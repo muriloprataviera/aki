@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <!-- Aki app icon: a speech bubble that points, with the red "aqui" dot. Paper #F3EFE6, ink #141414, red #FF3B1F. -->
+  <defs>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="125%">
+      <feDropShadow dx="0" dy="12" stdDeviation="14" flood-color="#000" flood-opacity=".28"/>
+    </filter>
+  </defs>
+  <rect x="100" y="100" width="824" height="824" rx="186" fill="#F3EFE6" filter="url(#shadow)"/>
+  <rect x="101.5" y="101.5" width="821" height="821" rx="185" fill="none" stroke="#000" stroke-opacity=".06" stroke-width="3"/>
+  <g transform="translate(100 100) scale(9.8095)">
+    <path d="M42 16a24 24 0 1 1-13 44.2L18 65l4-10.6A24 24 0 0 1 42 16Z" fill="#FF3B1F"/>
+    <circle cx="42" cy="40" r="8" fill="#141414"/>
+  </g>
+</svg>

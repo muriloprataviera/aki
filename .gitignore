@@ -1,0 +1,29 @@
+# Build output
+.build/
+.swiftpm/
+dist/
+*.app
+*.dmg
+*.xcarchive
+
+# Local only: copies of other projects kept for reference (see CLAUDE.md)
+referencias/
+
+# Local only: tool settings
+.claude/settings.local.json
+
+# macOS
+.DS_Store
+._*
+
+# Editors
+.vscode/
+.idea/
+*.swp
+
+# Local only: the website (its own repository) and the AI agents' instructions on this Mac
+site/
+CLAUDE.md
+CLAUDE.local.md
+AGENTS.md
+.mcp.json

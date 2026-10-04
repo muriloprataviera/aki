@@ -1,0 +1,28 @@
+/* Aki — tokens de marca. Fonte única para site, app, extensão e materiais. */
+:root {
+  /* cores */
+  --aki-paper: #F3EFE6;      /* fundo claro */
+  --aki-paper-2: #EAE4D7;
+  --aki-surface: #FFFFFF;
+  --aki-ink: #141414;        /* texto */
+  --aki-ink-2: #5E5A52;
+  --aki-ink-3: #8C877C;
+  --aki-line: #DDD6C8;
+  --aki-red: #FF3B1F;        /* o "aqui": só no que marca algo */
+  --aki-red-press: #E2300F;
+  --aki-red-veil: rgba(255, 59, 31, .12);
+  --aki-night: #111111;      /* fundo escuro */
+  --aki-night-2: #1C1C1C;
+  --aki-night-line: #2A2A2A;
+  --aki-night-ink: #F3EFE6;
+  --aki-night-ink-2: #A39E93;
+  /* tipografia */
+  --aki-display: "Bricolage Grotesque", ui-sans-serif, system-ui, sans-serif; /* títulos, 700–800, tracking -0.04em */
+  --aki-sans: "Geist", ui-sans-serif, system-ui, -apple-system, sans-serif;  /* texto, 400–600 */
+  --aki-mono: "Geist Mono", ui-monospace, SFMono-Regular, Menlo, monospace;  /* código, seletores, atalhos */
+  /* forma e movimento */
+  --aki-radius: 22px;
+  --aki-radius-sm: 12px;
+  --aki-ease: cubic-bezier(.22, 1, .36, 1);
+  --aki-spring: cubic-bezier(.34, 1.56, .64, 1);
+}

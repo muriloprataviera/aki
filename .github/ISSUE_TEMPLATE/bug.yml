@@ -1,0 +1,23 @@
+name: Something's wrong
+description: Aki did something it shouldn't, or didn't do something it should.
+labels: [bug]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: What you did, what you expected, what you got. A screenshot helps.
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Aki version
+      description: Settings → General.
+    validations:
+      required: true
+  - type: input
+    id: setup
+    attributes:
+      label: Mac and apps
+      description: macOS version, the agent (Claude Code, Codex…) and where it runs (Orca, VS Code, Terminal…), the browser if it's about a web page.
