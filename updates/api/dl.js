@@ -1,5 +1,6 @@
 // Download gate for aki-updates.vercel.app: tells the maker on Telegram that someone
-// downloaded Aki (country, system, browser, page they came from — never the IP), then
+// downloaded Aki (city/region/country from the host, system, browser, page they came from — never
+// the IP), then
 // hands over the file as usual. Bots and link previews are not reported.
 const fs = require('fs');
 const path = require('path');
@@ -28,11 +29,15 @@ module.exports = async (req, res) => {
   const ua = req.headers['user-agent'] || '';
   if (req.method === 'GET' && !isBot(ua)) {
     const cc = (req.headers['x-vercel-ip-country'] || '').toUpperCase();
+    let city = '';
+    try { city = decodeURIComponent(req.headers['x-vercel-ip-city'] || ''); } catch { /* malformed header */ }
+    const region = (req.headers['x-vercel-ip-country-region'] || '').toUpperCase();
+    const place = [city, region].filter(Boolean).join(', ');
     let from = '';
     try { const r = new URL(req.headers.referer || ''); from = r.host + r.pathname; } catch { /* no referer */ }
     const when = new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo', dateStyle: 'short', timeStyle: 'short' });
     const what = kind === 'dmg' ? '📥 Download do Aki' : '⌨️ Instalação pelo Terminal';
-    const lines = [`${what} ${latest}`.trim(), `${flag(cc)} ${cc || '??'} · ${system(ua)}${browser(ua) ? ' · ' + browser(ua) : ''}`, from && `veio de: ${from}`, when];
+    const lines = [`${what} ${latest}`.trim(), `${flag(cc)} ${place ? place + ' · ' : ''}${cc || '??'} · ${system(ua)}${browser(ua) ? ' · ' + browser(ua) : ''}`, from && `veio de: ${from}`, when];
     await notify(lines.filter(Boolean).join('\n'));
   }
   if (kind === 'dmg') {
