@@ -315,7 +315,7 @@ extension L10n {
         "Leave": "終了",
         "⇥ next session · esc leave": "⇥ 次のセッション · esc 終了",
         "Allow Accessibility to outline buttons and page elements": "ボタンやページの要素を枠で示すには、アクセシビリティを許可してください",
-        "Click: element · ↑↓ bigger/smaller · ⌥: lines of text · ⇧ click: point · Drag: area · ⌘⏎: send": "クリック:要素 · ↑↓ 大きく/小さく · ⌥:テキスト行 · ⇧ クリック:点 · ドラッグ:範囲 · ⌘⏎:送信",
+        "Click: element · ↑↓ bigger/smaller · ⌥: lines of text · ⌘ click: point · ⇧ click: normal click · Drag: area · ⌘⏎: send": "クリック:要素 · ↑↓ 大きく/小さく · ⌥:テキスト行 · ⌘ クリック:点 · ⇧ クリック:通常のクリック · ドラッグ:範囲 · ⌘⏎:送信",
         "mark": "マーク",
         "Send": "送信",
         "Cancel": "キャンセル",

@@ -47,10 +47,28 @@ struct TerminalApp: Identifiable, Hashable {
                 owners[pid] = app
                 return app
             }
+            // A helper inside an app's bundle ("Orca.app/…/Orca Helper"): that app, even
+            // when the helper outlived its parent (Orca restarted, its tabs kept running).
+            if let app = enclosingApp(of: current) {
+                owners[pid] = app
+                return app
+            }
             guard let parent = parentPID(of: current), parent > 1 else { break }
             current = parent
         }
         return nil
+    }
+
+    /// The running app whose bundle holds this process's executable, if any.
+    @MainActor private static func enclosingApp(of pid: Int32) -> NSRunningApplication? {
+        var buffer = [CChar](repeating: 0, count: 4096)
+        guard proc_pidpath(pid, &buffer, UInt32(buffer.count)) > 0 else { return nil }
+        let path = String(cString: buffer)
+        guard let range = path.range(of: ".app/") else { return nil }
+        let bundle = URL(filePath: String(path[..<range.lowerBound]) + ".app").standardizedFileURL
+        return NSWorkspace.shared.runningApplications.first {
+            $0.activationPolicy == .regular && $0.bundleURL?.standardizedFileURL == bundle
+        }
     }
 
     @MainActor private static var owners: [Int32: NSRunningApplication] = [:]

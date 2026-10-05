@@ -315,7 +315,7 @@ extension L10n {
         "Leave": "Quitter",
         "⇥ next session · esc leave": "⇥ session suivante · esc quitter",
         "Allow Accessibility to outline buttons and page elements": "Autorisez l’Accessibilité pour entourer les boutons et éléments de la page",
-        "Click: element · ↑↓ bigger/smaller · ⌥: lines of text · ⇧ click: point · Drag: area · ⌘⏎: send": "Clic : élément · ↑↓ plus grand/petit · ⌥ : lignes de texte · ⇧ clic : point · Glisser : zone · ⌘⏎ : envoyer",
+        "Click: element · ↑↓ bigger/smaller · ⌥: lines of text · ⌘ click: point · ⇧ click: normal click · Drag: area · ⌘⏎: send": "Clic : élément · ↑↓ plus grand/petit · ⌥ : lignes de texte · ⌘ clic : point · ⇧ clic : clic normal · Glisser : zone · ⌘⏎ : envoyer",
         "mark": "annotation",
         "Send": "Envoyer",
         "Cancel": "Annuler",

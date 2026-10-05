@@ -103,8 +103,10 @@ enum TerminalJump {
         guard FileManager.default.isExecutableFile(atPath: orcaCLI) else { return .failed }
         // Only a conversation that runs in Orca: one in Terminal or iTerm must never
         // be typed into an Orca tab that happens to share its folder.
+        // Orca's own tab handle in the process's environment says so too.
         let inOrca = await MainActor.run {
-            TerminalApp.owner(of: terminal.pid).map { $0.bundleIdentifier == "com.stablyai.orca" || $0.bundleURL?.lastPathComponent == "Orca.app" } ?? false
+            terminal.orcaHandle != nil
+                || TerminalApp.owner(of: terminal.pid).map { $0.bundleIdentifier == "com.stablyai.orca" || $0.bundleURL?.lastPathComponent == "Orca.app" } ?? false
         }
         guard inOrca else { return .failed }
         return await Task.detached(priority: .userInitiated) {

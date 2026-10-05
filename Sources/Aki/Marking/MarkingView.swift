@@ -17,6 +17,8 @@ struct MarkingView: View {
     let close: () -> Void
     /// Leaves and forgets the queue (its ×); `close` keeps it for next time.
     let discard: () -> Void
+    /// ⇧-click: a plain click on the app below, at this global point (top-left origin).
+    var passClick: (CGPoint) -> Void = { _ in }
 
     @State private var dragStart: CGPoint?
     @State private var dragNow: CGPoint?
@@ -78,7 +80,14 @@ struct MarkingView: View {
                         .onEnded { value in
                             let start = value.startLocation, end = value.location
                             let moved = hypot(end.x - start.x, end.y - start.y)
-                            let shift = NSEvent.modifierFlags.contains(.shift)
+                            let point = NSEvent.modifierFlags.contains(.command)
+                            // ⇧-click: a normal click on what's below (another sheet, a link), no mark.
+                            if moved < 5, NSEvent.modifierFlags.contains(.shift) {
+                                dragStart = nil
+                                dragNow = nil
+                                passClick(globalPoint(start))
+                                return
+                            }
                             var rect = CGRect(x: min(start.x, end.x), y: min(start.y, end.y),
                                               width: abs(end.x - start.x), height: abs(end.y - start.y))
                             var element: ProbedElement?
@@ -93,8 +102,8 @@ struct MarkingView: View {
                                     text = lines.map(\.text).joined(separator: "\n")
                                 }
                             } else if moved < 5 {
-                                // A click: the outlined element, or a point with ⇧ (or nothing outlined).
-                                if !shift, let hovered = session.target, let local = localRect(hovered.frame) {
+                                // A click: the outlined element, or a point with ⌘ (or nothing outlined).
+                                if !point, let hovered = session.target, let local = localRect(hovered.frame) {
                                     rect = local
                                     element = hovered
                                 } else {
@@ -941,7 +950,7 @@ struct MarkingView: View {
     }
 
     private static var allHintItems: [(keys: String, label: String)] {
-        L10n.t("Click: element · ↑↓ bigger/smaller · ⌥: lines of text · ⇧ click: point · Drag: area · ⌘⏎: send")
+        L10n.t("Click: element · ↑↓ bigger/smaller · ⌥: lines of text · ⌘ click: point · ⇧ click: normal click · Drag: area · ⌘⏎: send")
             .components(separatedBy: " · ").map { part in
                 if let colon = part.firstIndex(of: ":") {
                     return (String(part[..<colon]).trimmingCharacters(in: .whitespaces),

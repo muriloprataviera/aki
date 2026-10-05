@@ -125,7 +125,7 @@ final class MarkingController {
             }
             for (index, grab) in grabs.enumerated() {
                 let panel = MarkingPanel(screen: grab.screen)
-                let view = MarkingView(
+                var view = MarkingView(
                     session: session, screen: index,
                     target: { [weak self] id in self?.target(for: id, on: grab.screen) },
                     dockSpot: { [weak self] in
@@ -136,6 +136,7 @@ final class MarkingController {
                     sendOnly: { [weak self] id in self?.send(only: id) },
                     close: { [weak self] in self?.close() },
                     discard: { [weak self] in self?.discard() })
+                view.passClick = { [weak self] point in self?.passClick(at: point) }
                 let hosting = FirstClickHostingView(rootView: view)
                 panel.contentView = hosting
                 panel.orderFrontRegardless()
@@ -442,6 +443,23 @@ final class MarkingController {
             }
         }
         scrollMonitors = [local, global].compactMap { $0 }
+    }
+
+    /// ⇧-click: the overlays step aside as when scrolling, a plain click (no ⇧) lands
+    /// on the app below, and the screens are captured again once it settles.
+    private func passClick(at point: CGPoint) {
+        guard let session, !session.flying, !session.sending else { return }
+        session.scrolling = true
+        panels.forEach { $0.ignoresMouseEvents = true }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) { [weak self] in
+            let source = CGEventSource(stateID: .hidSystemState)
+            for type in [CGEventType.leftMouseDown, .leftMouseUp] {
+                let event = CGEvent(mouseEventSource: source, mouseType: type, mouseCursorPosition: point, mouseButton: .left)
+                event?.flags = []
+                event?.post(tap: .cghidEventTap)
+            }
+            self?.scrollMoved()
+        }
     }
 
     private func scrollMoved() {

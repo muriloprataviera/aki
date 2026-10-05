@@ -315,7 +315,7 @@ extension L10n {
         "Leave": "나가기",
         "⇥ next session · esc leave": "⇥ 다음 세션 · esc 나가기",
         "Allow Accessibility to outline buttons and page elements": "버튼과 페이지 요소의 윤곽을 표시하려면 손쉬운 사용을 허용하세요",
-        "Click: element · ↑↓ bigger/smaller · ⌥: lines of text · ⇧ click: point · Drag: area · ⌘⏎: send": "클릭: 요소 · ↑↓ 크게/작게 · ⌥: 텍스트 줄 · ⇧ 클릭: 지점 · 드래그: 영역 · ⌘⏎: 보내기",
+        "Click: element · ↑↓ bigger/smaller · ⌥: lines of text · ⌘ click: point · ⇧ click: normal click · Drag: area · ⌘⏎: send": "클릭: 요소 · ↑↓ 크게/작게 · ⌥: 텍스트 줄 · ⌘ 클릭: 지점 · ⇧ 클릭: 일반 클릭 · 드래그: 영역 · ⌘⏎: 보내기",
         "mark": "표시",
         "Send": "보내기",
         "Cancel": "취소",
