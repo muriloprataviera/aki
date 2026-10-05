@@ -71,7 +71,12 @@ final class MarkingController {
         holdCursor()
         Task {
             defer { starting = false }
-            guard let grabs = await ScreenGrab.captureAll(excluding: overlayIDs), !grabs.isEmpty else {
+            // The page's session (by its localhost port) is looked up while the screens
+            // are captured; the sidebar's list is fresh enough to start with.
+            let terminals = model.markableTerminals
+            async let byPort = Self.sessionServing(context.url, among: terminals, selected: model.markingDestination)
+            let grabs0 = await ScreenGrab.captureAll(excluding: overlayIDs)
+            guard let grabs = grabs0, !grabs.isEmpty else {
                 model.marking = false
                 NSCursor.arrow.set()
                 // Undo what start() set up: windows back, focus back to where you were.
@@ -85,12 +90,9 @@ final class MarkingController {
                 askForScreenRecording()
                 return
             }
-            // The agent may just have changed in Orca: don't use the last poll.
-            await model.refresh()
-            let terminals = model.visibleTerminals
-            let byPort = await Self.sessionServing(context.url, among: terminals, selected: model.markingDestination)
+            let byPortID = await byPort
             let session = MarkingSession(
-                grabs: grabs, context: context, terminals: terminals, destination: byPort ?? model.markingDestination)
+                grabs: grabs, context: context, terminals: terminals, destination: byPortID ?? model.markingDestination)
             session.hues = Dictionary(uniqueKeysWithValues: terminals.map { ($0.id, model.hue(of: $0)) })
             session.projects = Dictionary(uniqueKeysWithValues: terminals.map { ($0.id, model.projectKey(of: $0)) })
             // Marks saved in an earlier round (esc keeps them): back in the queue.
@@ -139,6 +141,9 @@ final class MarkingController {
                 panel.orderFrontRegardless()
                 panels.append(panel)
             }
+            // The agent may just have changed in Orca: a fresh look, after the overlay is up
+            // (it takes about half a second; followTerminals brings the result in).
+            Task { await model.refresh() }
             // The panel under the pointer takes the keyboard.
             let mouse = NSEvent.mouseLocation
             (panels.first { $0.frame.contains(mouse) } ?? panels.first)?.makeKey()
@@ -164,12 +169,12 @@ final class MarkingController {
     /// Follow the sidebar's live session list while a mark's card is open.
     private func followTerminals(_ session: MarkingSession) {
         guard self.session === session else { return }
-        let terminals = model.visibleTerminals
+        let terminals = model.markableTerminals
         session.updateTerminals(terminals)
         session.hues = Dictionary(uniqueKeysWithValues: terminals.map { ($0.id, model.hue(of: $0)) })
         session.projects = Dictionary(uniqueKeysWithValues: terminals.map { ($0.id, model.projectKey(of: $0)) })
         withObservationTracking {
-            _ = model.visibleTerminals
+            _ = model.markableTerminals
         } onChange: { [weak self, weak session] in
             Task { @MainActor in
                 guard let self, let session else { return }

@@ -388,6 +388,24 @@ struct SidebarRoot: View {
                     .zIndex(20)
             }
 
+            // A new version, announced like Orca does: click to see it and install.
+            if let version = model.updateVersion {
+                let hot = model.hoveredTarget == "update|now"
+                HStack(spacing: 5) {
+                    Image(systemName: "arrow.down.circle.fill").font(.system(size: 11 * layout.scale, weight: .bold))
+                    Text("\(L10n.t("Update to")) \(version)").font(.system(size: 11 * layout.scale, weight: .semibold))
+                }
+                .foregroundStyle(.white)
+                .padding(.horizontal, 10 * layout.scale).frame(height: 24 * layout.scale)
+                .background(Capsule().fill(AkiPalette.red.opacity(hot ? 1 : 0.92)))
+                .shadow(color: AkiPalette.red.opacity(0.45), radius: hot ? 10 : 6)
+                .scaleEffect(hot ? 1.05 : 1)
+                .animation(.spring(response: 0.25, dampingFraction: 0.7), value: hot)
+                .fixedSize()
+                .clickTarget("update|now")
+                .position(layout.updatePillCenter(expanded: model.expanded))
+                .transition(.scale.combined(with: .opacity))
+            }
             // The drag handle: dots along the bar's far side, inside the body.
             if model.expanded {
                 // Under the pointer it rises out of the bar, like a tab, to be grabbed.

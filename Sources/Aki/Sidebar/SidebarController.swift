@@ -409,7 +409,8 @@ final class SidebarController {
         }
         if model.orbHovered != overOrb { model.orbHovered = overOrb }
         if model.gripHovered != overGrip { model.gripHovered = overGrip }
-        let target = overCard ? model.target(at: point).flatMap { $0 == "card" ? nil : $0 } : nil
+        let overUpdate = model.targets["update|now"]?.insetBy(dx: -3, dy: -3).contains(point) ?? false
+        let target = overCard ? model.target(at: point).flatMap { $0 == "card" ? nil : $0 } : (overUpdate ? "update|now" : nil)
         if model.hoveredTarget != target { model.hoveredTarget = target }
         setCursor(overResize ? Self.resizeCursor(layout.resizeDirection) : overGrip ? .openHand
             : (overOrb || overMark || overHistory || overHide || overName != nil || overEye || target != nil) ? .pointingHand : nil)
@@ -502,6 +503,8 @@ final class SidebarController {
     /// Clicks land only on what's visible; everywhere else the panel is a hole.
     private func updateInteractiveRects(cursor: CGPoint? = nil) {
         var rects = [layout.bodyRect(expanded: model.expanded)]
+        // The update pill shows folded or open: always clickable.
+        if let pill = model.targets["update|now"] { rects.append(pill) }
         if model.expanded { rects.append(layout.orbRect) }
         if model.expanded { rects.append(layout.gripRect) }
         if model.expanded { rects.append(layout.markOrbRect) }
@@ -509,7 +512,7 @@ final class SidebarController {
         if model.expanded { rects.append(layout.resizeRect) }
         // Project names over the groups (double-click renames).
         if model.expanded {
-            rects += model.targets.filter { $0.key.hasPrefix("project|") || $0.key == "projects-eye" }.map(\.value)
+            rects += model.targets.filter { $0.key.hasPrefix("project|") || $0.key == "projects-eye" || $0.key == "update|now" }.map(\.value)
         }
         if let cardRect { rects.append(cardRect) }
         hosting.interactiveRects = rects
@@ -620,6 +623,11 @@ final class SidebarController {
                 preferences.visibility = preferences.visibility == .alwaysShow ? .onHover : .alwaysShow
                 return true
             }
+        }
+        // The update pill: Sparkle's window with what's new and Install.
+        if let pill = model.targets["update|now"], pill.insetBy(dx: -3, dy: -3).contains(point) {
+            Updates.shared.checkForUpdates()
+            return true
         }
         // A project's name (the pencil shows on hover): one click and you type.
         if let name = model.targets.first(where: { $0.key.hasPrefix("project|") && $0.value.insetBy(dx: -3, dy: -3).contains(point) }) {

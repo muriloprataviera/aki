@@ -29,6 +29,10 @@ struct MarkingView: View {
     /// Where the queue was when you started editing from it: it stays put while you
     /// go through its marks, and moves again only for a new mark.
     @State private var queueAnchor: CGPoint?
+    @State private var showsMore = false
+    @State private var moreDrag: CGSize = .zero
+    @State private var moreDragging: CGSize = .zero
+    @State private var moreHandleHovered = false
     @FocusState private var fieldFocused: Bool
 
     private var grab: ScreenGrab { session.grabs[screen] }
@@ -339,10 +343,19 @@ struct MarkingView: View {
         .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous).strokeBorder(hue.opacity(0.6), lineWidth: 1))
         .shadow(color: hue.opacity(0.25), radius: 20, y: 6)
         .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { cardHeight = $0 }
+        // "+N": the other sessions to the card's right, or its left when there's no room.
+        .overlay(alignment: x + width + 10 + 240 <= grab.screen.frame.width - 12 ? .topTrailing : .topLeading) {
+            if showsMore && !pickerRest.isEmpty {
+                let right = x + width + 10 + 240 <= grab.screen.frame.width - 12
+                morePanel
+                    .offset(x: (right ? 250 : -250) + moreDrag.width + moreDragging.width,
+                            y: moreDrag.height + moreDragging.height)
+            }
+        }
         .offset(x: x, y: y)
         .animation(.easeOut(duration: 0.15), value: cardHeight)
         .onAppear { focusField() }
-        .onChange(of: session.editing) { focusField() }
+        .onChange(of: session.editing) { focusField(); showsMore = false }
         .transition(.opacity.combined(with: .scale(scale: 0.96, anchor: .topLeading)))
     }
 
@@ -488,60 +501,50 @@ struct MarkingView: View {
 
     // MARK: Destination and actions
 
-    /// Every available session in sidebar order: picking one never moves its ring.
+    /// The first four sessions in sidebar order (the chosen one always among them):
+    /// picking one never moves its ring. The rest wait behind "+N", in a list beside the card.
+    private var pickerShown: [AgentTerminal] {
+        var shown = Array(session.terminals.prefix(4))
+        if let chosen = session.terminal(session.destination), !shown.contains(chosen), !shown.isEmpty {
+            shown[shown.count - 1] = chosen
+        }
+        return shown
+    }
+
+    private var pickerRest: [AgentTerminal] {
+        let shown = pickerShown
+        return session.terminals.filter { !shown.contains($0) }
+    }
+
     private var terminalPicker: some View {
         VStack(alignment: .leading, spacing: 6) {
-            ScrollView(.horizontal, showsIndicators: true) {
-            HStack(spacing: 6) {
-                ForEach(session.terminals) { terminal in
-                    let selected = terminal.id == session.destination
-                    let hue = Color(session.hue(for: terminal.id))
+            HStack(alignment: .top, spacing: 6) {
+                ForEach(pickerShown) { terminal in pickerTile(terminal) }
+                if !pickerRest.isEmpty {
                     Button {
-                        withAnimation(.spring(response: 0.25, dampingFraction: 0.8)) {
-                            session.setDestination(terminal.id)
-                        }
+                        withAnimation(.easeOut(duration: 0.15)) { showsMore.toggle() }
                     } label: {
                         VStack(spacing: 3) {
-                            // The AI as a big symbol in the ring; the name below is the session's.
-                            AgentGlyphView(agent: terminal.agent, size: selected ? 24 : 21)
+                            Text("+\(pickerRest.count)")
+                                .font(.system(size: 12, weight: .bold, design: .rounded))
                                 .foregroundStyle(.white)
-                                .frame(width: selected ? 36 : 32, height: selected ? 36 : 32)
-                                .background(Circle().fill(hue.opacity(selected ? 0.9 : 0.25)))
-                                .overlay {
-                                    if selected {
-                                        Circle().strokeBorder(AkiPalette.auroraAngular, lineWidth: 2.5).padding(-3)
-                                    } else {
-                                        Circle().strokeBorder(hue.opacity(0.6), lineWidth: 1)
-                                    }
-                                }
-                                .shadow(color: selected ? AkiPalette.aurora[2].opacity(0.7) : .clear, radius: 6)
-                                .overlay(alignment: .bottomLeading) {
-                                    if let number = session.number(of: terminal.id) {
-                                        NumberBadge(number: number, size: 13).offset(x: -4, y: 4)
-                                    }
-                                }
-                                .overlay(alignment: .topTrailing) {
-                                    TerminalAppIcon(bundleID: TerminalApp.owner(of: terminal.pid)?.bundleIdentifier, size: 12)
-                                        .offset(x: 3, y: -3)
-                                }
+                                .frame(width: 32, height: 32)
+                                .background(Circle().fill(Color.white.opacity(showsMore ? 0.22 : 0.1)))
+                                .overlay(Circle().strokeBorder(Color.white.opacity(0.35), lineWidth: 1))
                                 .frame(width: 42, height: 42)
-                            Text(terminal.name)
-                                .font(.system(size: 10, weight: selected ? .bold : .semibold))
-                                .foregroundStyle(selected ? Color.white : Color.white.opacity(0.75))
-                                .multilineTextAlignment(.center)
-                                .lineLimit(2)
-                                .frame(width: 70)
+                            Text(L10n.t("More"))
+                                .font(.system(size: 10, weight: .semibold))
+                                .foregroundStyle(.white.opacity(0.75))
                         }
+                        .frame(width: 44)
                     }
                     .buttonStyle(.plain)
                     .focusable(false)
                     .modifier(PickHover())
-                    .help("\(terminal.agent.displayName) · \(terminal.name) · \(URL(filePath: terminal.worktree).lastPathComponent)"
-                          + (session.number(of: terminal.id).map { $0 <= 9 ? " · ⌘\($0)" : "" } ?? ""))
+                    .help(L10n.t("Other sessions"))
                 }
             }
             .padding(.vertical, 4)
-            }
             if let terminal = session.terminal(session.destination) {
                 // The chosen one in full: its name first, the AI after it, quieter.
                 (Text(terminal.name).font(.system(size: 12, weight: .bold)).foregroundColor(Color(session.hue(for: terminal.id)))
@@ -549,6 +552,119 @@ struct MarkingView: View {
                     .fixedSize(horizontal: false, vertical: true)
             }
         }
+    }
+
+    private func pickerTile(_ terminal: AgentTerminal) -> some View {
+        let selected = terminal.id == session.destination
+        let hue = Color(session.hue(for: terminal.id))
+        return Button {
+            withAnimation(.spring(response: 0.25, dampingFraction: 0.8)) {
+                session.setDestination(terminal.id)
+            }
+        } label: {
+            VStack(spacing: 3) {
+                // The AI as a big symbol in the ring; the name below is the session's.
+                AgentGlyphView(agent: terminal.agent, size: selected ? 24 : 21)
+                    .foregroundStyle(.white)
+                    .frame(width: selected ? 36 : 32, height: selected ? 36 : 32)
+                    .background(Circle().fill(hue.opacity(selected ? 0.9 : 0.25)))
+                    .overlay {
+                        if selected {
+                            Circle().strokeBorder(AkiPalette.auroraAngular, lineWidth: 2.5).padding(-3)
+                        } else {
+                            Circle().strokeBorder(hue.opacity(0.6), lineWidth: 1)
+                        }
+                    }
+                    .shadow(color: selected ? AkiPalette.aurora[2].opacity(0.7) : .clear, radius: 6)
+                    .overlay(alignment: .bottomLeading) {
+                        if let number = session.number(of: terminal.id) {
+                            NumberBadge(number: number, size: 13).offset(x: -4, y: 4)
+                        }
+                    }
+                    .overlay(alignment: .topTrailing) {
+                        TerminalAppIcon(bundleID: TerminalApp.owner(of: terminal.pid)?.bundleIdentifier, size: 12)
+                            .offset(x: 3, y: -3)
+                    }
+                    .frame(width: 42, height: 42)
+                Text(terminal.name)
+                    .font(.system(size: 10, weight: selected ? .bold : .semibold))
+                    .foregroundStyle(selected ? Color.white : Color.white.opacity(0.75))
+                    .multilineTextAlignment(.center)
+                    .lineLimit(2)
+                    .frame(width: 60)
+            }
+        }
+        .buttonStyle(.plain)
+        .focusable(false)
+        .modifier(PickHover())
+        .help(pickerHelp(terminal))
+    }
+
+    private func pickerHelp(_ terminal: AgentTerminal) -> String {
+        "\(terminal.agent.displayName) · \(terminal.name) · \(URL(filePath: terminal.worktree).lastPathComponent)"
+            + (session.number(of: terminal.id).map { $0 <= 9 ? " · ⌘\($0)" : "" } ?? "")
+    }
+
+    /// The sessions behind "+N": a list beside the card, one row each.
+    private var morePanel: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            // Its top is a handle (the grabber bar says so; the hand too): drag it anywhere.
+            VStack(spacing: 6) {
+                Capsule()
+                    .fill(Color.white.opacity(moreHandleHovered ? 0.6 : 0.3))
+                    .frame(width: 36, height: 5)
+                    .frame(maxWidth: .infinity)
+                HStack(spacing: 5) {
+                    Image(systemName: "arrow.up.and.down.and.arrow.left.and.right")
+                        .font(.system(size: 9, weight: .bold))
+                    Text(L10n.t("Other sessions"))
+                    Spacer(minLength: 0)
+                }
+            }
+            .font(.system(size: 10, weight: .semibold))
+            .foregroundStyle(.white.opacity(moreHandleHovered ? 0.8 : 0.5))
+            .padding(.horizontal, 10).padding(.top, 8).padding(.bottom, 4)
+            .contentShape(Rectangle())
+            // Again on every move: the marking overlay would put the pin back.
+            .onContinuousHover { phase in
+                switch phase {
+                case .active:
+                    moreHandleHovered = true
+                    (moreDragging == .zero ? NSCursor.openHand : NSCursor.closedHand).set()
+                case .ended:
+                    moreHandleHovered = false
+                    AkiCursor.pin.set()
+                }
+            }
+            .gesture(DragGesture(coordinateSpace: .global)
+                .onChanged { moreDragging = $0.translation; NSCursor.closedHand.set() }
+                .onEnded { value in
+                    moreDrag.width += value.translation.width
+                    moreDrag.height += value.translation.height
+                    moreDragging = .zero
+                })
+            ScrollView(.vertical, showsIndicators: true) {
+                VStack(alignment: .leading, spacing: 2) {
+                    ForEach(pickerRest) { terminal in
+                        MoreRow(terminal: terminal, hue: Color(session.hue(for: terminal.id)),
+                                number: session.number(of: terminal.id), help: pickerHelp(terminal)) {
+                            withAnimation(.easeOut(duration: 0.15)) {
+                                session.setDestination(terminal.id)
+                                showsMore = false
+                            }
+                        }
+                    }
+                }
+                .padding(.horizontal, 4).padding(.bottom, 6)
+            }
+            .frame(maxHeight: 360)
+            .fixedSize(horizontal: false, vertical: pickerRest.count <= 8)
+        }
+        .frame(width: 240, alignment: .leading)
+        .background(RoundedRectangle(cornerRadius: 14, style: .continuous).fill(Color(red: 20 / 255, green: 20 / 255, blue: 20 / 255)))
+        .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).strokeBorder(Color.white.opacity(0.15), lineWidth: 1))
+        .shadow(color: .black.opacity(0.35), radius: 16, y: 6)
+        .transition(.opacity)
     }
 
     /// Save puts the mark in the queue (and you go on marking); Send now sends
@@ -1332,5 +1448,51 @@ struct PickHover: ViewModifier {
                 hovered = inside
                 if inside { NSCursor.pointingHand.set() } else { AkiCursor.pin.set() }
             }
+    }
+}
+
+/// One session in the "+N" list: its AI in its colour, number, name and project.
+private struct MoreRow: View {
+    let terminal: AgentTerminal
+    let hue: Color
+    let number: Int?
+    let help: String
+    let pick: () -> Void
+    @State private var hovered = false
+
+    var body: some View {
+        Button(action: pick) {
+            HStack(spacing: 8) {
+                AgentGlyphView(agent: terminal.agent, size: 15)
+                    .foregroundStyle(.white)
+                    .frame(width: 24, height: 24)
+                    .background(Circle().fill(hue.opacity(0.5)))
+                    .overlay(alignment: .bottomLeading) {
+                        if let number { NumberBadge(number: number, size: 11).offset(x: -3, y: 3) }
+                    }
+                VStack(alignment: .leading, spacing: 1) {
+                    Text(terminal.name)
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundStyle(.white)
+                        .lineLimit(1)
+                    Text(URL(filePath: terminal.worktree).lastPathComponent)
+                        .font(.system(size: 10))
+                        .foregroundStyle(.white.opacity(0.5))
+                        .lineLimit(1)
+                }
+                Spacer(minLength: 0)
+                TerminalAppIcon(bundleID: TerminalApp.owner(of: terminal.pid)?.bundleIdentifier, size: 14)
+            }
+            .padding(.horizontal, 6).padding(.vertical, 5)
+            .background(RoundedRectangle(cornerRadius: 8).fill(Color.white.opacity(hovered ? 0.1 : 0)))
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .focusable(false)
+        .help(help)
+        .onHover { inside in
+            hovered = inside
+            if inside { NSCursor.pointingHand.set() } else { AkiCursor.pin.set() }
+        }
     }
 }

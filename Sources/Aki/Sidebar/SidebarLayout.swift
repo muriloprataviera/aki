@@ -266,6 +266,14 @@ struct SidebarLayout: Equatable {
         point(along: bodyStart + bodyLength / 2, depth: Self.bleed + depth - s(Self.ringMargin) * 0.45)
     }
 
+    /// "Update to 0.2.1": just outside the bar, over its far end (away from the edge).
+    /// With the bar folded, just over the small pill in the middle.
+    func updatePillCenter(expanded: Bool) -> CGPoint {
+        expanded
+            ? point(along: bodyStart + bodyLength - curl - s(48), depth: Self.bleed + depth + s(18))
+            : point(along: bodyStart + bodyLength / 2, depth: Self.bleed + s(Self.pillDepth) + s(20))
+    }
+
     /// The resize handle, like a window's: in the body's far-end corner away from
     /// the edge (the top right of a bottom bar).
     var resizeCenter: CGPoint {

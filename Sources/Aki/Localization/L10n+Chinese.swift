@@ -1,6 +1,9 @@
 // Simplified Chinese strings for Aki's interface (keys are the English text).
 extension L10n {
     static let chinese: [String: String] = [
+        "More": "更多",
+        "Other sessions": "其他会话",
+        "Update to": "更新到",
         "Search marks": "搜索标注",
         "All apps": "全部应用",
         "All projects": "全部项目",

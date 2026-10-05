@@ -1,6 +1,6 @@
 #!/bin/sh
 # Installs (or updates) Aki in one line:
-#   curl -fsSL https://aki-updates.vercel.app/install | sh
+#   curl -fsSL https://aki-updates.vercel.app/aki-install.sh | sh
 # Downloads the latest stable version, puts it in /Applications and opens it.
 # Published by scripts/publish.sh next to the downloads.
 set -eu

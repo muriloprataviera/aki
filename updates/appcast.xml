@@ -1,0 +1,37 @@
+<?xml version="1.0" standalone="yes"?>
+<rss xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" version="2.0">
+    <channel>
+        <title>Aki</title>
+        <item>
+            <title>0.2.0</title>
+            <pubDate>Sun, 04 Oct 2026 20:44:12 -0300</pubDate>
+            <sparkle:version>0.2.0</sparkle:version>
+            <sparkle:shortVersionString>0.2.0</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
+            <description><![CDATA[<h2>Aki 0.2.0 — the first version for everyone</h2>
+<h3>Mark anything</h3>
+<ul>
+<li>Mark an element, an area or lines of text in any app with <b>⇧⌘A</b>. Chrome, Brave, Edge, Arc and Vivaldi give the exact element (selector, text, HTML, React source), no extension needed.</li>
+<li>Arrow keys walk the page like DevTools.</li>
+<li>Each mark carries its text and, when it helps, a crop.</li>
+<li>A queue: send one, send all, or keep them for later. Queued marks survive restarts.</li>
+</ul>
+<h3>Your agents</h3>
+<ul>
+<li>One ring per Claude Code or Codex session, showing the AI and the app it runs in.</li>
+<li>Marks go to the right session by themselves, then Aki types the request into its tab, with a countdown and a ✓ when the agent is done.</li>
+<li>MCP server and <code>aki</code> command for any agent, <code>aki://</code> links and Raycast commands.</li>
+</ul>
+<h3>Around it</h3>
+<ul>
+<li>History (<b>⇧⌘H</b>) with search and filters.</li>
+<li>Get started: every permission, why it's needed, and a button straight to it.</li>
+<li>Nine languages, light and dark, shortcuts you choose, and updates by itself.</li>
+<li>Secrets on screen are never read; the local server is locked to your Mac; updates are signed.</li>
+</ul>
+]]></description>
+            <enclosure url="https://aki-updates.vercel.app/0.2.0/Aki-0.2.0.zip" length="3127919" type="application/octet-stream" sparkle:edSignature="dgN65mkQTy8esZcN4Ax1s6Zt9sR1G4xnTx/Uo76tHf1a339LZCRhihwmMWeY5ySrbHi9S+FgPTv1cOxnSMZdBA=="/>
+        </item>
+    </channel>
+</rss>

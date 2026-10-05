@@ -46,9 +46,39 @@ for v in $( { grep -o 'aki-updates.vercel.app/[0-9][^/"]*/' updates/appcast.xml 
     || echo "warning: couldn't fetch v$v from GitHub; its download will be missing" >&2
 done
 cp updates/appcast.xml "$host/appcast.xml"
-# One-line install: curl -fsSL https://aki-updates.vercel.app/install | sh
+# One-line install: curl -fsSL https://aki-updates.vercel.app/aki-install.sh | sh
+# (/install and /install.sh stay as older names for the same script)
+cp scripts/get-aki.sh "$host/aki-install.sh"
 cp scripts/get-aki.sh "$host/install"
 [ -f updates/latest.txt ] && cp updates/latest.txt "$host/latest.txt"
+# How the host serves things: the installer reads as text in a browser (named
+# aki-install.sh if saved), /Aki.dmg always points at the newest stable DMG, the
+# bare address goes to the site, and any page may read the feed and latest.txt (public data).
+latest=$(cat updates/latest.txt 2>/dev/null || echo "$version")
+cat > "$host/vercel.json" <<JSON
+{
+  "redirects": [
+    { "source": "/", "destination": "https://useaki.vercel.app/", "permanent": false },
+    { "source": "/Aki.dmg", "destination": "/$latest/Aki-$latest.dmg", "permanent": false }
+  ],
+  "rewrites": [{ "source": "/install.sh", "destination": "/install" }],
+  "headers": [
+    { "source": "/(aki-install.sh|install|install.sh)", "headers": [
+      { "key": "Content-Type", "value": "text/plain; charset=utf-8" },
+      { "key": "Content-Disposition", "value": "inline; filename=\"aki-install.sh\"" },
+      { "key": "X-Content-Type-Options", "value": "nosniff" },
+      { "key": "Cache-Control", "value": "public, max-age=300" }
+    ] },
+    { "source": "/(appcast.xml|latest.txt)", "headers": [
+      { "key": "Access-Control-Allow-Origin", "value": "*" },
+      { "key": "Cache-Control", "value": "public, max-age=300" }
+    ] },
+    { "source": "/(.*)/Aki-(.*)", "headers": [
+      { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
+    ] }
+  ]
+}
+JSON
 (cd "$host" && vercel deploy --prod --yes --scope murilo-2977s-projects >/dev/null)
 curl -fsS https://aki-updates.vercel.app/appcast.xml | grep -q "$version" \
   && echo "Aki $version is out — every Aki will see it within a day (or now, via Check for Updates)." \

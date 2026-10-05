@@ -49,7 +49,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         GlobalShortcuts.shared.apply()
         model.startMarking = { [weak self] in self?.marking.start() }
         installMainMenu()
+        Updates.shared.onAvailable = { [weak self] version in
+            self?.model.updateVersion = version
+            self?.markStatusItem(version != nil)
+        }
         Updates.shared.start()
+        // `AKI_FAKE_UPDATE=0.9.9` shows the update pill and dot (design work and screenshots).
+        if let fake = ProcessInfo.processInfo.environment["AKI_FAKE_UPDATE"] {
+            model.updateVersion = fake
+            DispatchQueue.main.async { self.markStatusItem(true) }
+        }
         followMacAppearance()
         startServer(store: store)
         model.startRefreshing()
@@ -199,10 +208,21 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         statusItem = item
     }
 
+    /// The pin with a small red dot while an update waits.
+    private func markStatusItem(_ waiting: Bool) {
+        statusItem?.button?.image = waiting ? AkiBrand.pinWithDot(size: 17) : AkiBrand.pin(size: 17)
+    }
+
     /// The menu bar pin's menu, as things are now.
     func menuNeedsUpdate(_ menu: NSMenu) {
         guard menu === statusItem?.menu else { return }
         menu.removeAllItems()
+        if let version = Updates.shared.available {
+            let update = ClosureMenuItem("\(L10n.t("Update to")) \(version)…") { Updates.shared.checkForUpdates() }
+            update.image = NSImage(systemSymbolName: "arrow.down.circle.fill", accessibilityDescription: nil)
+            menu.addItem(update)
+            menu.addItem(.separator())
+        }
         func shortcut(_ item: NSMenuItem, _ combo: KeyCombo) -> NSMenuItem {
             let key = combo.menuKey
             item.keyEquivalent = key.key

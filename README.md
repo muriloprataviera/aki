@@ -87,7 +87,7 @@ Telling an agent *what* to change is the slow part: take a screenshot, paste it,
 **One line** (about a minute — downloads the latest version, puts it in Applications and opens it):
 
 ```sh
-curl -fsSL https://aki-updates.vercel.app/install | sh
+curl -fsSL https://aki-updates.vercel.app/aki-install.sh | sh
 ```
 
 Or by hand:

@@ -1,6 +1,9 @@
 // Italian strings for Aki's interface (keys are the English text).
 extension L10n {
     static let italian: [String: String] = [
+        "More": "Altro",
+        "Other sessions": "Altre sessioni",
+        "Update to": "Aggiorna a",
         "Search marks": "Cerca segni",
         "All apps": "Tutte le app",
         "All projects": "Tutti i progetti",

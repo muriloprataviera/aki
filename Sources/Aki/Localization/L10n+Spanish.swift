@@ -1,6 +1,9 @@
 // Spanish strings for Aki's interface (keys are the English text).
 extension L10n {
     static let spanish: [String: String] = [
+        "More": "Más",
+        "Other sessions": "Otras sesiones",
+        "Update to": "Actualizar a",
         "Search marks": "Buscar marcas",
         "All apps": "Todas las apps",
         "All projects": "Todos los proyectos",

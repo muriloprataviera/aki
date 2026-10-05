@@ -31,6 +31,29 @@ enum AkiBrand {
     }
 }
 
+extension AkiBrand {
+    /// The pin with Aki's red dot in the corner (not a template: the dot stays red).
+    static func pinWithDot(size: CGFloat = 18) -> NSImage {
+        let base = pin(size: size)
+        let image = NSImage(size: base.size, flipped: false) { rect in
+            let tint = NSApp.effectiveAppearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua ? NSColor.white : NSColor.black
+            let tinted = NSImage(size: rect.size, flipped: false) { r in
+                base.draw(in: r)
+                tint.set()
+                r.fill(using: .sourceAtop)
+                return true
+            }
+            tinted.draw(in: rect)
+            let d = rect.width * 0.42
+            NSColor(red: 1, green: 59 / 255, blue: 31 / 255, alpha: 1).setFill()
+            NSBezierPath(ovalIn: NSRect(x: rect.maxX - d, y: rect.maxY - d, width: d, height: d)).fill()
+            return true
+        }
+        image.isTemplate = false
+        return image
+    }
+}
+
 /// Whether Aki shows in the Dock and ⌘Tab. As set in Settings (menu bar by
 /// default), except while one of its windows (Settings, History) is open: then
 /// it's a regular app you can ⌘Tab to, and it steps back when the last one closes.

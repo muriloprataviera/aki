@@ -68,12 +68,11 @@ final class SidebarModel {
     var terminals: [AgentTerminal] = []
     /// The conversation new marks go to.
     var selectedTerminal: String?
-    /// Where new marks go: the chosen session while it's shown in the sidebar,
-    /// else the first one shown (a hidden one would leave marks with nowhere to go).
+    /// Where new marks go: the chosen session while it can be marked for (hidden from
+    /// the sidebar too: picked from "+N"), else the first one shown.
     var markingDestination: String? {
-        let shown = visibleTerminals
-        if let id = selectedTerminal, shown.contains(where: { $0.id == id }) { return id }
-        return shown.first?.id
+        if let id = selectedTerminal, markableTerminals.contains(where: { $0.id == id }) { return id }
+        return visibleTerminals.first?.id
     }
     /// The scale the sidebar is drawn at (set by the controller: shrunk when the
     /// bar wouldn't fit the screen), so drawing and clicks agree.
@@ -139,6 +138,8 @@ final class SidebarModel {
     var hoveredProject: String?
     /// The resize corner under the pointer, and while it's being dragged.
     var resizeHovered = false
+    /// A new version waiting (announced, not downloaded): its pill shows by the bar.
+    var updateVersion: String?
     var resizing = false
     /// The session the history window is filtered to (nil = all).
     var historySession: String?
@@ -231,15 +232,23 @@ final class SidebarModel {
         visibleTerminals.firstIndex { $0.id == id }.map { $0 + 1 }
     }
 
+    /// Off in Settings: its agent untracked, its project switched off (Claude / Codex)
+    /// or its terminal app disconnected (Terminals).
+    private func switchedOff(_ terminal: AgentTerminal) -> Bool {
+        preferences.hiddenWorktrees.contains(terminal.worktree)
+            || !preferences.tracks(terminal.agent)
+            || (TerminalApp.owner(of: terminal.pid)?.bundleIdentifier.map(preferences.disconnectedApps.contains) ?? false)
+    }
+
+    /// Every session you can mark for: the sidebar's, then the ones hidden from it.
+    /// Hiding a ring tidies the sidebar; it doesn't take the session off the picker.
+    var markableTerminals: [AgentTerminal] {
+        visibleTerminals + terminals.filter { preferences.hiddenTerminals.contains($0.id) && !switchedOff($0) }
+    }
+
     /// Conversations of tracked agents that aren't hidden, in sidebar order.
     var visibleTerminals: [AgentTerminal] {
-        let shown = terminals.filter { terminal in
-            !preferences.hiddenTerminals.contains(terminal.id)
-                && !preferences.hiddenWorktrees.contains(terminal.worktree)  // off in Settings → Claude / Codex
-                && preferences.tracks(terminal.agent)
-                // Its terminal app switched off in Settings → Terminals.
-                && !(TerminalApp.owner(of: terminal.pid)?.bundleIdentifier.map(preferences.disconnectedApps.contains) ?? false)
-        }
+        let shown = terminals.filter { !preferences.hiddenTerminals.contains($0.id) && !switchedOff($0) }
         // Your dragged order first; sessions you never moved keep their place after.
         let rank = Dictionary(preferences.ringOrder.enumerated().map { ($1, $0) }, uniquingKeysWith: { a, _ in a })
         let ordered = shown.enumerated().sorted { a, b in
