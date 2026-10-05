@@ -23,7 +23,19 @@ async function notify(text) {
   } catch { /* a missed notice never blocks the download */ } finally { clearTimeout(t); }
 }
 
+// The maker's own downloads and tests are labelled, so every unlabelled notice is a real visitor.
+// A browser is marked once by opening /eu?k=<secret> (cookie only on this host); scripts send X-Aki-Me.
+const cookie = (req, name) => (req.headers.cookie || '').split(/;\s*/).map((c) => c.split('=')).find(([k]) => k === name)?.[1] || '';
+const isMe = (req) => { const me = process.env.AKI_ME; return !!me && [req.headers['x-aki-me'], cookie(req, 'aki_me'), req.query.me].includes(me); };
+
 module.exports = async (req, res) => {
+  if (req.query.kind === 'me') {
+    const ok = !!process.env.AKI_ME && req.query.k === process.env.AKI_ME;
+    if (ok) res.setHeader('Set-Cookie', `aki_me=${process.env.AKI_ME}; Max-Age=63072000; Path=/; Secure; HttpOnly; SameSite=Lax`);
+    res.statusCode = ok ? 200 : 404;
+    res.setHeader('Content-Type', 'text/html; charset=utf-8'); res.setHeader('Cache-Control', 'no-store'); res.setHeader('X-Robots-Tag', 'noindex');
+    return res.end(ok ? '<!doctype html><meta charset="utf-8"><title>Aki</title><body style="font:16px system-ui;padding:40px;background:#F3EFE6;color:#141414"><h1>✓ Este navegador está marcado como seu.</h1><p>Seus downloads chegam no Telegram como "🧪 Você (teste)".</p>' : 'Not found');
+  }
   const kind = req.query.kind === 'script' ? 'script' : 'dmg';
   const latest = read('latest.txt').trim();
   const ua = req.headers['user-agent'] || '';
@@ -37,7 +49,8 @@ module.exports = async (req, res) => {
     try { const r = new URL(req.headers.referer || ''); from = r.host + r.pathname; } catch { /* no referer */ }
     const when = new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo', dateStyle: 'short', timeStyle: 'short' });
     const what = kind === 'dmg' ? '📥 Download do Aki' : '⌨️ Instalação pelo Terminal';
-    const lines = [`${what} ${latest}`.trim(), `${flag(cc)} ${place ? place + ' · ' : ''}${cc || '??'} · ${system(ua)}${browser(ua) ? ' · ' + browser(ua) : ''}`, from && `veio de: ${from}`, when];
+    const me = isMe(req) ? '🧪 Você (teste) · ' : '';
+    const lines = [`${me}${what} ${latest}`.trim(), `${flag(cc)} ${place ? place + ' · ' : ''}${cc || '??'} · ${system(ua)}${browser(ua) ? ' · ' + browser(ua) : ''}`, from && `veio de: ${from}`, when];
     await notify(lines.filter(Boolean).join('\n'));
   }
   if (kind === 'dmg') {
