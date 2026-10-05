@@ -4,6 +4,8 @@ What changed in each version of Aki. Versions follow [semantic versioning](https
 
 ## [Unreleased]
 
+## [0.3.1] — 2026-10-05
+
 ### Fixed
 - Pointing inside apps that answer nothing at all (Telegram) now finds the message, button or icon from the picture; in 0.3.0 it still took the whole window.
 
