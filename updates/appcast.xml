@@ -3,6 +3,42 @@
     <channel>
         <title>Aki</title>
         <item>
+            <title>0.3.0</title>
+            <pubDate>Mon, 05 Oct 2026 19:12:37 -0300</pubDate>
+            <sparkle:version>0.3.0</sparkle:version>
+            <sparkle:shortVersionString>0.3.0</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
+            <description><![CDATA[<h2>Aki 0.3.0</h2>
+<h3>Mark anything, even where apps say nothing</h3>
+<ul>
+<li>Apps that don't tell macOS what's in their window (Telegram, games, some design apps) and pages drawn as one picture (Google Sheets): Aki now finds the box under the pointer in the screen itself — a message, a row, a button, an icon, a photo, a single spreadsheet cell. <b>↑</b> takes what holds it.</li>
+<li><b>⇧-click</b> is a normal click on the app below (another sheet, a tab, a menu), without making a mark. A point is now <b>⌘-click</b>.</li>
+<li><b>⌘+ / ⌘−</b> zoom the page below while you mark.</li>
+<li>Zoom on any mark's picture, from the card, the queue or the History.</li>
+</ul>
+<h3>The queue</h3>
+<ul>
+<li>Shows every mark, can be moved out of the way, and marks can be ticked and removed together (<b>⌫</b>).</li>
+<li>The History shows what's waiting in the queue: keep marking with it, drop one, or clear it.</li>
+</ul>
+<h3>Faster, and to the right session</h3>
+<ul>
+<li>Marking opens at once, with the session you last wrote in as the destination.</li>
+<li>The session picker shows four sessions, the rest behind "+N", each with whether it's working or waiting for you.</li>
+<li>Marks go to the terminal 3 s after you stop (was 5 s).</li>
+<li>Updates are announced, not downloaded: a pill by the sidebar and a dot on the menu bar pin.</li>
+</ul>
+<h3>Fixes</h3>
+<ul>
+<li>Sessions take the name you gave their tab in Orca.</li>
+<li>Marks reach Orca tabs again after Orca restarts.</li>
+<li>The sidebar's resize corner works next to the last ring.</li>
+</ul>
+]]></description>
+            <enclosure url="https://aki-updates.vercel.app/0.3.0/Aki-0.3.0.zip" length="3306169" type="application/octet-stream" sparkle:edSignature="kf61lwfr/IuYME5JNDU2QlE/+zQpcjheimX4BfVoreAXtoqF3qBDnYATc0bCHsHCBG95cjmT2NSMjEW8/kDQDQ=="/>
+        </item>
+        <item>
             <title>0.2.0</title>
             <pubDate>Sun, 04 Oct 2026 20:44:12 -0300</pubDate>
             <sparkle:version>0.2.0</sparkle:version>
