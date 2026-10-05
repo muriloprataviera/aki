@@ -28,5 +28,3 @@ CLAUDE.local.md
 AGENTS.md
 .mcp.json
 
-# Local only: backups (the old history must never be published)
-_backups/
