@@ -11,7 +11,7 @@
 
 <p align="center">
   Point at anything on your Mac — a button, a line in the terminal, a whole area — say what should change,<br>
-  and Claude Code, Codex or your agent of choice gets it in the right session. No screenshots, no ⌘Tab, no "not that one".
+  and Claude Code, Codex or your agent of choice gets it in the right session. No pasting screenshots, no ⌘Tab, no "not that one".
 </p>
 
 <p align="center">
@@ -102,7 +102,7 @@ Apple Silicon, macOS 14 or later.
 
 | To… | Aki needs | Why |
 |---|---|---|
-| See what you mark (crop it, read its text) | **Screen Recording** | macOS asks this of any app that looks at the screen. Nothing is recorded and nothing leaves your Mac. |
+| See what you mark (crop it, read its text) | **Screen Recording** | macOS asks this of any app that looks at the screen. Nothing is recorded; marks stay on your Mac until you send them to your agent. |
 | Point at buttons, rows and tabs in any app | **Accessibility** | It's how Mac apps describe their buttons and lists to other apps. |
 | Hand your marks to Claude Code or Codex | **Aki's MCP server** in the agent (Settings → Agents → *Connect*) | It's how agents get new tools. Sessions already open see it after a restart. |
 | Pick the exact element on a web page | In the browser: **View → Developer → Allow JavaScript from Apple Events**, then allow Aki to control it | Aki asks the page itself which element is under the pointer — no extension. |
