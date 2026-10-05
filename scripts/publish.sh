@@ -47,28 +47,26 @@ for v in $( { grep -o 'aki-updates.vercel.app/[0-9][^/"]*/' updates/appcast.xml 
 done
 cp updates/appcast.xml "$host/appcast.xml"
 # One-line install: curl -fsSL https://aki-updates.vercel.app/aki-install.sh | sh
-# (/install and /install.sh stay as older names for the same script)
-cp scripts/get-aki.sh "$host/aki-install.sh"
-cp scripts/get-aki.sh "$host/install"
+# (/install and /install.sh stay as older names). The script and /Aki.dmg go through
+# api/dl.js, which tells the maker on Telegram that someone downloaded (no IP), then serves the file.
+mkdir -p "$host/script" && cp scripts/get-aki.sh "$host/script/aki-install.sh"
+cp -R updates/api "$host/api"
 [ -f updates/latest.txt ] && cp updates/latest.txt "$host/latest.txt"
-# How the host serves things: the installer reads as text in a browser (named
-# aki-install.sh if saved), /Aki.dmg always points at the newest stable DMG, the
-# bare address goes to the site, and any page may read the feed and latest.txt (public data).
+# How the host serves things: /Aki.dmg and the installer go through api/dl.js (newest stable
+# DMG; installer as text, named aki-install.sh if saved), the bare address goes to the site,
+# and any page may read the feed and latest.txt (public data).
 latest=$(cat updates/latest.txt 2>/dev/null || echo "$version")
 cat > "$host/vercel.json" <<JSON
 {
   "redirects": [
-    { "source": "/", "destination": "https://useaki.vercel.app/", "permanent": false },
-    { "source": "/Aki.dmg", "destination": "/$latest/Aki-$latest.dmg", "permanent": false }
+    { "source": "/", "destination": "https://useaki.vercel.app/", "permanent": false }
   ],
-  "rewrites": [{ "source": "/install.sh", "destination": "/install" }],
+  "rewrites": [
+    { "source": "/Aki.dmg", "destination": "/api/dl?kind=dmg" },
+    { "source": "/(aki-install.sh|install|install.sh)", "destination": "/api/dl?kind=script" }
+  ],
+  "functions": { "api/dl.js": { "includeFiles": "{script/aki-install.sh,latest.txt}" } },
   "headers": [
-    { "source": "/(aki-install.sh|install|install.sh)", "headers": [
-      { "key": "Content-Type", "value": "text/plain; charset=utf-8" },
-      { "key": "Content-Disposition", "value": "inline; filename=\"aki-install.sh\"" },
-      { "key": "X-Content-Type-Options", "value": "nosniff" },
-      { "key": "Cache-Control", "value": "public, max-age=300" }
-    ] },
     { "source": "/(appcast.xml|latest.txt)", "headers": [
       { "key": "Access-Control-Allow-Origin", "value": "*" },
       { "key": "Cache-Control", "value": "public, max-age=300" }
