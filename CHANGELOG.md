@@ -4,6 +4,8 @@ What changed in each version of Aki. Versions follow [semantic versioning](https
 
 ## [Unreleased]
 
+## [0.3.0] — 2026-10-05
+
 ### Added
 - Apps that don't say what's in their window (Telegram, games, some design apps) and pages drawn as one canvas: Aki finds the box under the pointer in the picture itself — a message bubble, a row, a button, an icon, a photo, a spreadsheet cell — with ↑ for what holds it (a cell's row, a bubble's chat).
 - The History lists the queue (marks saved but not sent) at the top: keep marking with it, drop one, or clear it.
@@ -22,7 +24,7 @@ What changed in each version of Aki. Versions follow [semantic versioning](https
 
 ### Fixed
 - The crop tile and the on/off keys in the card show the hand pointer.
-- Sessions take the name you gave their tab in Orca ("ABA PEDIDOS") instead of the conversation's topic.
+- Sessions take the name you gave their tab in Orca (e.g. "ORDERS TAB") instead of the conversation's topic.
 - Marks reach Orca tabs again after Orca restarts (its tabs keep running in a helper Aki didn't recognise, so nothing was typed).
 - The sidebar's resize corner works again next to the last ring (its card no longer covers it), with a bigger spot to grab and a shorter drag between sizes.
 
