@@ -257,7 +257,7 @@ enum VisualProbe {
         for y in 0..<h {
             var run: Int32 = 0
             for x in 0..<w {
-                let hit: Int32 = pixels.color(x + minX, y + minY).near(background, 5) ? 1 : 0
+                let hit: Int32 = pixels.color(x + minX, y + minY).near(background, 6) ? 1 : 0
                 run += hit
                 rows[y * (w + 1) + x + 1] = run
                 cols[x * (h + 1) + y + 1] = cols[x * (h + 1) + y] + hit
@@ -302,7 +302,8 @@ enum VisualProbe {
             return element.label.lowercased().hasPrefix("canvas")
         }
         let role = element.role ?? ""
-        if role == "AXWindow" || role == "AXApplication" { return true }
+        // "window": what Aki itself says when the app answered nothing at all.
+        if ["AXWindow", "AXApplication", "window"].contains(role) { return true }
         let area = element.frame.width * element.frame.height
         return area > screen.width * screen.height * 0.25
             && ["AXGroup", "AXScrollArea", "AXUnknown", "AXLayoutArea", "AXSplitGroup", "AXWebArea", ""].contains(role)
