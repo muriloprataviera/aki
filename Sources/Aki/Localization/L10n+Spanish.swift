@@ -1,6 +1,16 @@
 // Spanish strings for Aki's interface (keys are the English text).
 extension L10n {
     static let spanish: [String: String] = [
+        "area": "área",
+        "In the queue, not sent": "En la cola, sin enviar",
+        "Keep marking": "Seguir marcando",
+        "Opens marking with the queue, to add more and send": "Abre la marcación con la cola, para añadir más y enviar",
+        "Remove the selected marks (⌫)": "Quitar las marcas seleccionadas (⌫)",
+        "Remove": "Quitar",
+        "Unselect": "Desmarcar",
+        "Select to remove": "Seleccionar para quitar",
+        "Zoom": "Zoom",
+        "See it bigger": "Ver más grande",
         "More": "Más",
         "Other sessions": "Otras sesiones",
         "Update to": "Actualizar a",

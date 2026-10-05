@@ -48,6 +48,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         GlobalShortcuts.shared.onHistory = { [weak self] in self?.history.toggle() }
         GlobalShortcuts.shared.apply()
         model.startMarking = { [weak self] in self?.marking.start() }
+        model.resumeQueue = { [weak self] in self?.marking.start() }
+        model.removeQueued = { [weak self] id in self?.marking.removeQueued(id) }
+        model.clearQueue = { [weak self] in self?.marking.clearQueued() }
         installMainMenu()
         Updates.shared.onAvailable = { [weak self] version in
             self?.model.updateVersion = version

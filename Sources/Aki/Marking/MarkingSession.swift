@@ -84,6 +84,8 @@ final class MarkingSession {
     var texts: [Int: ScreenText] = [:]
     /// ⌥ is held: hover and clicks pick lines of text instead of UI elements.
     var optionHeld = false
+    /// ⇧ held: a click goes to the app below (the plain arrow says so, no outline).
+    var shiftHeld = false
     /// The line under the pointer in ⌥ mode, with the screen it's on.
     var hoveredLine: (screen: Int, line: ScreenText.Line)?
     /// Last pointer position per screen, to refresh the hover when ⌥ changes.
@@ -178,8 +180,21 @@ final class MarkingSession {
         probeStarted = Date()
         lastProbe = point
         let front = context.pid
+        // The screen under the point, for the picture-based lookup when the app says too little.
+        let primary = NSScreen.screens.first?.frame.height ?? 0
+        let screen = grabs.indices.first { i in
+            let f = grabs[i].screen.frame
+            return CGRect(x: f.minX, y: primary - f.maxY, width: f.width, height: f.height).contains(point)
+        }
+        let grab = screen.map { grabs[$0] }
+        let size = grab?.screen.frame.size ?? .zero
+        let origin = grab.map { CGPoint(x: $0.screen.frame.minX, y: primary - $0.screen.frame.maxY) } ?? .zero
+        let text = screen.flatMap { texts[$0] }
         Task.detached(priority: .userInitiated) {
-            let found = ElementProbe.element(at: point, preferring: front)
+            var found = ElementProbe.element(at: point, preferring: front)
+            if let grab, VisualProbe.tooVague(found, screen: CGRect(origin: .zero, size: size)) {
+                found = VisualProbe.element(at: point, found: found, image: grab.image, screenSize: size, origin: origin, text: text)
+            }
             await MainActor.run {
                 // Same element as before (pointer moved inside it): keep the ↑ level.
                 if self.hovered?.frame != found?.frame || self.hovered?.label != found?.label { self.hovered = found }
@@ -301,7 +316,17 @@ final class MarkingSession {
         renumber()
     }
 
+    /// Marks ticked in the queue, to take out together (button or ⌫).
+    var queueSelected: Set<UUID> = []
+
+    func removeSelected() {
+        let ids = queueSelected
+        queueSelected = []
+        for id in ids { remove(id) }
+    }
+
     func remove(_ id: UUID) {
+        queueSelected.remove(id)
         marks.removeAll { $0.id == id }
         if editing == id { editing = nil; draft = "" }
         renumber()

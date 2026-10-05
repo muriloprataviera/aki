@@ -1,4 +1,5 @@
 import AkiCore
+import AppKit
 import Foundation
 
 let usage = """
@@ -117,6 +118,43 @@ do {
             let message = (t.lastMessage ?? "").prefix(70)
             print("\(t.agent.rawValue.padding(toLength: 6, withPad: " ", startingAt: 0)) \(t.state.rawValue.padding(toLength: 9, withPad: " ", startingAt: 0)) \(t.name.prefix(30).padding(toLength: 30, withPad: " ", startingAt: 0)) \(URL(filePath: t.worktree).lastPathComponent)  — \(message)")
         }
+
+    case "visual-probe":
+        // Bench for the picture-based lookup: aki visual-probe in.png out.png x,y x,y …
+        // (points). Draws the box found at each point (red) and the one holding it (blue).
+        guard arguments.count >= 4, let image = NSImage(contentsOfFile: arguments[1]),
+              let cg = image.cgImage(forProposedRect: nil, context: nil, hints: nil),
+              let pixels = VisualProbe.Pixels(cg, size: image.size)
+        else { fail("usage: aki visual-probe in.png out.png x,y …") }
+        let text = ScreenText.read(cg, size: image.size)
+        let bounds = CGRect(origin: .zero, size: image.size)
+        var found: [(CGPoint, [CGRect])] = []
+        for argument in arguments.dropFirst(3) {
+            let xy = argument.split(separator: ",").compactMap { Double($0) }
+            guard xy.count == 2 else { continue }
+            let point = CGPoint(x: xy[0], y: xy[1])
+            let started = Date()
+            let boxes = VisualProbe.boxes(at: point, in: pixels, within: bounds, lines: text.lines)
+            print("\(argument): \(boxes.map { "\(Int($0.minX)),\(Int($0.minY)) \(Int($0.width))x\(Int($0.height))" }.joined(separator: " ⊂ "))  (\(Int(Date().timeIntervalSince(started) * 1000)) ms)")
+            found.append((point, boxes))
+        }
+        let out = NSImage(size: image.size, flipped: true) { _ in
+            image.draw(in: bounds, from: .zero, operation: .copy, fraction: 1, respectFlipped: true, hints: nil)
+            for (point, boxes) in found {
+                for (i, box) in boxes.prefix(2).enumerated() {
+                    (i == 0 ? NSColor.systemRed : NSColor.systemBlue).setStroke()
+                    let path = NSBezierPath(rect: box.insetBy(dx: CGFloat(-i), dy: CGFloat(-i)))
+                    path.lineWidth = 2
+                    path.stroke()
+                }
+                NSColor.systemYellow.setFill()
+                NSBezierPath(ovalIn: CGRect(x: point.x - 4, y: point.y - 4, width: 8, height: 8)).fill()
+            }
+            return true
+        }
+        guard let tiff = out.tiffRepresentation, let png = NSBitmapImageRep(data: tiff)?.representation(using: .png, properties: [:])
+        else { fail("couldn't draw") }
+        try? png.write(to: URL(filePath: arguments[2]))
 
     case "orca-tabs":
         // Which Orca tab each conversation maps to (no switching).

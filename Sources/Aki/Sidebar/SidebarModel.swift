@@ -67,11 +67,22 @@ final class SidebarModel {
     /// Every agent conversation open (Claude sessions, Codex processes).
     var terminals: [AgentTerminal] = []
     /// The conversation new marks go to.
-    var selectedTerminal: String?
+    var selectedTerminal: String? {
+        didSet { if selectedTerminal != nil { selectedAt = Date() } }
+    }
+    @ObservationIgnored private var selectedAt = Date.distantPast
+    /// The conversation you last sent a message in (it went from idle to working
+    /// without Aki typing into it): where marks usually go next.
+    @ObservationIgnored private var lastUsed: (id: String, at: Date)?
+    /// When Aki itself last typed into each session (that's not you using it).
+    @ObservationIgnored private var typedByAki: [String: Date] = [:]
     /// Where new marks go: the chosen session while it can be marked for (hidden from
     /// the sidebar too: picked from "+N"), else the first one shown.
     var markingDestination: String? {
-        if let id = selectedTerminal, markableTerminals.contains(where: { $0.id == id }) { return id }
+        let open = markableTerminals
+        // The terminal you used last, unless you picked one by hand after that.
+        if let last = lastUsed, last.at > selectedAt, open.contains(where: { $0.id == last.id }) { return last.id }
+        if let id = selectedTerminal, open.contains(where: { $0.id == id }) { return id }
         return visibleTerminals.first?.id
     }
     /// The scale the sidebar is drawn at (set by the controller: shrunk when the
@@ -424,6 +435,43 @@ final class SidebarModel {
                 try? await Task.sleep(for: .seconds(3))
             }
         }
+        statusTask?.cancel()
+        statusTask = Task { [weak self] in
+            while !Task.isCancelled {
+                try? await Task.sleep(for: .milliseconds(400))
+                await self?.refreshStates()
+            }
+        }
+    }
+
+    @ObservationIgnored private var statusTask: Task<Void, Never>?
+
+    /// Claude Code writes its state (working, waiting for you, idle) to its session
+    /// file the moment it changes: reading those small files is cheap, so rings and
+    /// the marking picker follow within half a second. The full scan stays every 3 s.
+    private func refreshStates() async {
+        let live = await Task.detached { ClaudeSessions.live() }.value
+        var updated = terminals
+        var changed = false
+        for session in live {
+            guard let i = updated.firstIndex(where: { $0.id == session.sessionId }) else { continue }
+            let state: AgentTerminal.State = switch session.status {
+            case .waiting: .waiting
+            case .busy: .working
+            case .shell: .shell
+            default: updated[i].state == .listening ? .listening : .idle
+            }
+            if updated[i].state != state {
+                // Idle → working with nobody but you at the keyboard: you just used it.
+                if state == .working, updated[i].state == .idle || updated[i].state == .waiting,
+                   Date().timeIntervalSince(typedByAki[session.sessionId] ?? .distantPast) > 15 {
+                    lastUsed = (session.sessionId, Date())
+                }
+                updated[i].state = state
+                changed = true
+            }
+        }
+        if changed { terminals = updated }
     }
 
     /// Claude Code's status per session (context, limits), from the status line.
@@ -431,6 +479,13 @@ final class SidebarModel {
     @ObservationIgnored private var lastCleanup = Date.distantPast
     /// Marks saved in the marking queue but not sent yet (shown on the pill).
     var queuedMarks = 0
+    /// The marks saved but not sent (they wait for the next round of marking),
+    /// as the History shows them.
+    var queuedList: [QueuedMark] = []
+    /// History's queue buttons: back to marking with it, drop one, drop them all.
+    var resumeQueue: () -> Void = {}
+    var removeQueued: (UUID) -> Void = { _ in }
+    var clearQueue: () -> Void = {}
     /// Marking is on screen (the sidebar keeps its hands off the cursor).
     @ObservationIgnored var marking = false
     /// Bytes and marks sent to each session (by session id).
@@ -482,6 +537,12 @@ final class SidebarModel {
                 finished.insert(terminal.id)
                 let id = terminal.id
                 DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) { [weak self] in self?.finished.remove(id) }
+            }
+        }
+        for terminal in open where terminal.state == .working {
+            if let before = terminals.first(where: { $0.id == terminal.id }), before.state == .idle || before.state == .waiting,
+               Date().timeIntervalSince(typedByAki[terminal.id] ?? .distantPast) > 15 {
+                lastUsed = (terminal.id, Date())
             }
         }
         if open != terminals { terminals = open }
@@ -616,6 +677,7 @@ final class SidebarModel {
     func deliver(_ terminal: AgentTerminal) {
         guard delivery[terminal.id] != .sending else { return }
         delivery[terminal.id] = .sending
+        typedByAki[terminal.id] = Date()
         Task {
             // The marks this request is about, taken before it goes: any arriving
             // meanwhile still count as not delivered (their own wait sends them).
@@ -732,4 +794,14 @@ final class SidebarModel {
             await refresh()
         }
     }
+}
+
+/// A mark waiting in the queue, as listed outside marking.
+struct QueuedMark: Identifiable, Equatable {
+    let id: UUID
+    let number: Int
+    let comment: String
+    let text: String?
+    let destination: String?
+    let image: NSImage?
 }

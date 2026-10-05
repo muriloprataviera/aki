@@ -1,6 +1,16 @@
 // Italian strings for Aki's interface (keys are the English text).
 extension L10n {
     static let italian: [String: String] = [
+        "area": "area",
+        "In the queue, not sent": "In coda, non inviati",
+        "Keep marking": "Continua a segnare",
+        "Opens marking with the queue, to add more and send": "Apre la marcatura con la coda, per aggiungerne altri e inviare",
+        "Remove the selected marks (⌫)": "Rimuovi i segni selezionati (⌫)",
+        "Remove": "Rimuovi",
+        "Unselect": "Deseleziona",
+        "Select to remove": "Seleziona per rimuovere",
+        "Zoom": "Zoom",
+        "See it bigger": "Vedi più grande",
         "More": "Altro",
         "Other sessions": "Altre sessioni",
         "Update to": "Aggiorna a",

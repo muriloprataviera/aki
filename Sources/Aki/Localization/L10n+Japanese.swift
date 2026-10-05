@@ -1,6 +1,16 @@
 // Japanese strings for Aki's interface (keys are the English text).
 extension L10n {
     static let japanese: [String: String] = [
+        "area": "範囲",
+        "In the queue, not sent": "キュー内・未送信",
+        "Keep marking": "マークを続ける",
+        "Opens marking with the queue, to add more and send": "キューを開いたままマークを始め、追加して送信します",
+        "Remove the selected marks (⌫)": "選択したマークを削除 (⌫)",
+        "Remove": "削除",
+        "Unselect": "選択を解除",
+        "Select to remove": "選択して削除",
+        "Zoom": "拡大",
+        "See it bigger": "大きく表示",
         "More": "その他",
         "Other sessions": "ほかのセッション",
         "Update to": "アップデート：",

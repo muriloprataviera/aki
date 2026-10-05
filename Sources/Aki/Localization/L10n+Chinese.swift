@@ -1,6 +1,16 @@
 // Simplified Chinese strings for Aki's interface (keys are the English text).
 extension L10n {
     static let chinese: [String: String] = [
+        "area": "区域",
+        "In the queue, not sent": "队列中，未发送",
+        "Keep marking": "继续标记",
+        "Opens marking with the queue, to add more and send": "带着队列打开标记，继续添加并发送",
+        "Remove the selected marks (⌫)": "移除所选标记 (⌫)",
+        "Remove": "移除",
+        "Unselect": "取消选择",
+        "Select to remove": "选择以移除",
+        "Zoom": "放大",
+        "See it bigger": "查看大图",
         "More": "更多",
         "Other sessions": "其他会话",
         "Update to": "更新到",

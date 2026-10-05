@@ -35,13 +35,33 @@ final class MarkingController {
     private var scrollMonitors: [Any] = []
     private var scrollIdle: DispatchWorkItem?
     private var starting = false
-    /// Marks saved but not sent, kept between rounds.
-    private var queued: [Mark] = []
+    /// Marks saved but not sent, kept between rounds (the sidebar counts them, the History lists them).
+    private var queued: [Mark] = [] {
+        didSet {
+                let pictures = Dictionary(uniqueKeysWithValues: model.queuedList.map { ($0.id, $0.image) })
+            model.queuedList = queued.map { mark in
+                QueuedMark(id: mark.id, number: mark.number, comment: mark.comment, text: mark.text,
+                           destination: mark.destination,
+                           image: session?.previewImage(of: mark) ?? pictures[mark.id] ?? nil)
+            }
+        }
+    }
     private var cursorTimer: Timer?
     private var appObserver: Any?
     private var activeObserver: Any?
 
     var isActive: Bool { session != nil }
+
+    /// Empties the waiting queue (from the History, with marking closed).
+    func clearQueued() {
+        if isActive { discard() } else { queued = [] }
+    }
+
+    /// Takes one waiting mark out of the queue (from the History).
+    func removeQueued(_ id: UUID) {
+        queued.removeAll { $0.id == id }
+        for index in queued.indices { queued[index].number = index + 1 }
+    }
 
     init(model: SidebarModel) {
         self.model = model
@@ -98,7 +118,6 @@ final class MarkingController {
             // Marks saved in an earlier round (esc keeps them): back in the queue.
             if !queued.isEmpty { session.resume(queued) }
             queued = []
-            model.queuedMarks = 0
             self.session = session
             followTerminals(session)
             session.live = !model.preferences.freezeScreen
@@ -200,6 +219,13 @@ final class MarkingController {
 
     /// esc: drops the mark being written (or clears it), else leaves.
     private func escape() {
+        // A picture opened bigger: esc puts it away first.
+        if ImageZoom.isOpen {
+            ImageZoom.close()
+            let mouse = NSEvent.mouseLocation
+            (panels.first { $0.frame.contains(mouse) } ?? panels.first)?.makeKey()
+            return
+        }
         // Mid-send (saving, or the marks in flight): it finishes by itself.
         guard let session, !session.sending, !session.flying else { return }
         if session.editing != nil && session.draft.isEmpty {
@@ -245,7 +271,15 @@ final class MarkingController {
             MainActor.assumeIsolated {
                 ticks += 1
                 guard let self, self.isActive || self.starting else { timer.invalidate(); return }
-                if ticks < 24 {
+                // ⇧ as it really is: after a ⇧-click the app below is in front and
+                // Aki hears no keys, so letting go of ⇧ is only seen here.
+                self.followShift(NSEvent.modifierFlags.contains(.shift))
+                if ImageZoom.isOpen {
+                    // Its own window, its own pointer.
+                } else if self.session?.shiftHeld == true {
+                    // ⇧ held: the arrow, whatever a button or a text field set meanwhile.
+                    if NSCursor.current !== NSCursor.arrow { NSCursor.arrow.set() }
+                } else if ticks < 24 {
                     AkiCursor.pin.set()  // the first second: always
                 } else if ticks % 2 == 0, NSCursor.current === NSCursor.arrow || NSCursor.current === AkiCursor.pin {
                     // After that, every 0.1 s: the pin again unless a button's hand or the
@@ -278,12 +312,12 @@ final class MarkingController {
     /// The queue's ×: leaves and forgets the marks.
     func discard() {
         queued = []
-        model.queuedMarks = 0
         session?.marks.removeAll()
         teardown()
     }
 
     private func teardown() {
+        AkiCursor.passThrough = false
         model.marking = false
         setAside.forEach { $0.orderBack(nil) }
         setAside = []
@@ -353,7 +387,6 @@ final class MarkingController {
             close()
             if !keep.isEmpty {
                 queued = keep
-                model.queuedMarks = keep.count
             }
             if let destination = session.marks.last?.destination {
                 model.selectedTerminal = destination
@@ -375,6 +408,7 @@ final class MarkingController {
                     session.optionHeld = held
                     for screen in session.pointer.keys { session.updateLineHover(screen: screen) }
                 }
+                self.followShift(event.modifierFlags.contains(.shift))
                 return event
             }
             switch event.keyCode {
@@ -409,6 +443,17 @@ final class MarkingController {
                         session.setDestination(session.terminals[n - 1].id)
                     }
                 }
+                return nil
+            // ⌘+ / ⌘− / ⌘0: the page's own zoom, on the app below; the screen is captured again.
+            case 24 where event.modifierFlags.contains(.command) && session.editing == nil,
+                 27 where event.modifierFlags.contains(.command) && session.editing == nil,
+                 29 where event.modifierFlags.contains(.command) && session.editing == nil,
+                 69 where event.modifierFlags.contains(.command) && session.editing == nil,
+                 78 where event.modifierFlags.contains(.command) && session.editing == nil:
+                self.passKey(event)
+                return nil
+            case 51 where session.editing == nil && !session.queueSelected.isEmpty:  // ⌫: the ticked marks out
+                withAnimation(.easeOut(duration: 0.15)) { session.removeSelected() }
                 return nil
             case 36 where event.modifierFlags.contains(.command):  // ⌘⏎
                 self.send()
@@ -445,21 +490,76 @@ final class MarkingController {
         scrollMonitors = [local, global].compactMap { $0 }
     }
 
+    /// Keys meant for the app below (⌘+ zooms its page): it comes forward, gets the key,
+    /// and once it has redrawn the screens are captured again and Aki takes the keys back.
+    private func passKey(_ event: NSEvent) {
+        guard let session, !session.flying, !session.sending, let key = event.cgEvent?.copy() else { return }
+        let point = NSEvent.mouseLocation
+        let primary = NSScreen.screens.first?.frame.height ?? 0
+        let owner = Self.appOwningWindow(at: CGPoint(x: point.x, y: primary - point.y)) ?? previousApp
+        session.scrolling = true
+        panels.forEach { $0.ignoresMouseEvents = true }
+        reactivateAfterCapture = true
+        owner?.activate()
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) { [weak self] in
+            key.post(tap: .cghidEventTap)
+            if let up = CGEvent(keyboardEventSource: nil, virtualKey: CGKeyCode(event.keyCode), keyDown: false) {
+                up.flags = key.flags
+                up.post(tap: .cghidEventTap)
+            }
+            self?.scrollMoved()
+        }
+    }
+
+    /// After a key passed to the app below: Aki takes the keyboard back once captured.
+    private var reactivateAfterCapture = false
+
+    /// ⇧: the computer's own arrow, so it's clear the click goes through; let go, the pin.
+    private func followShift(_ held: Bool) {
+        guard let session, held != session.shiftHeld else { return }
+        session.shiftHeld = held
+        AkiCursor.passThrough = held
+        (held ? NSCursor.arrow : AkiCursor.pin).set()
+    }
+
     /// ⇧-click: the overlays step aside as when scrolling, a plain click (no ⇧) lands
     /// on the app below, and the screens are captured again once it settles.
     private func passClick(at point: CGPoint) {
         guard let session, !session.flying, !session.sending else { return }
         session.scrolling = true
         panels.forEach { $0.ignoresMouseEvents = true }
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) { [weak self] in
-            let source = CGEventSource(stateID: .hidSystemState)
-            for type in [CGEventType.leftMouseDown, .leftMouseUp] {
+        // The app under the point comes forward first: Chrome (and others) take a click
+        // on an inactive window as "activate me" only, and the page never gets it.
+        let owner = Self.appOwningWindow(at: point)
+        let needsActivation = owner.map { !$0.isActive } ?? false
+        owner?.activate()
+        DispatchQueue.main.asyncAfter(deadline: .now() + (needsActivation ? 0.2 : 0.05)) { [weak self] in
+            let source = CGEventSource(stateID: .privateState)
+            for type in [CGEventType.mouseMoved, .leftMouseDown, .leftMouseUp] {
                 let event = CGEvent(mouseEventSource: source, mouseType: type, mouseCursorPosition: point, mouseButton: .left)
                 event?.flags = []
+                if type != .mouseMoved { event?.setIntegerValueField(.mouseEventClickState, value: 1) }
                 event?.post(tap: .cghidEventTap)
+                if type == .leftMouseDown { usleep(30_000) }
             }
             self?.scrollMoved()
         }
+    }
+
+    /// The app whose window is under a global point (top-left origin), Aki's own left out.
+    private static func appOwningWindow(at point: CGPoint) -> NSRunningApplication? {
+        let me = ProcessInfo.processInfo.processIdentifier
+        let windows = CGWindowListCopyWindowInfo([.optionOnScreenOnly, .excludeDesktopElements], kCGNullWindowID)
+            as? [[String: Any]] ?? []
+        for window in windows {
+            guard let pid = window[kCGWindowOwnerPID as String] as? pid_t, pid != me,
+                (window[kCGWindowLayer as String] as? Int) == 0,
+                let bounds = window[kCGWindowBounds as String] as? NSDictionary,
+                let rect = CGRect(dictionaryRepresentation: bounds), rect.contains(point)
+            else { continue }
+            return NSRunningApplication(processIdentifier: pid)
+        }
+        return nil
     }
 
     private func scrollMoved() {
@@ -483,6 +583,10 @@ final class MarkingController {
             }
             session.scrolling = false
             self.panels.forEach { $0.ignoresMouseEvents = false }
+            if self.reactivateAfterCapture {
+                self.reactivateAfterCapture = false
+                NSApp.activate(ignoringOtherApps: true)
+            }
             let mouse = NSEvent.mouseLocation
             (self.panels.first { $0.frame.contains(mouse) } ?? self.panels.first)?.makeKey()
         }
@@ -544,5 +648,5 @@ final class FirstClickHostingView<Content: View>: NSHostingView<Content> {
         addCursorRect(bounds, cursor: AkiCursor.pin)
     }
 
-    override func cursorUpdate(with event: NSEvent) { AkiCursor.pin.set() }
+    override func cursorUpdate(with event: NSEvent) { AkiCursor.set(AkiCursor.pin) }
 }

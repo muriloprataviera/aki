@@ -158,6 +158,9 @@ private struct HistoryView: View {
                 }
                 Spacer(minLength: 0)
             }
+            if !model.queuedList.isEmpty {
+                QueueSection(model: model, close: close)
+            }
             if filtered.isEmpty {
                 Spacer()
                 Text(L10n.t("Nothing here yet. Mark with {mark}.")).font(.system(size: 11)).foregroundStyle(.white.opacity(0.45))
@@ -424,9 +427,14 @@ private struct HistoryRow: View {
                 .background(Circle().fill(AkiPalette.hue(number: number)))
                 .opacity(done ? 0.5 : 1)
             if let image = AnnotationImage.file(for: annotation).flatMap({ NSImage(contentsOf: $0) }) {
-                Image(nsImage: image).resizable().aspectRatio(contentMode: .fill)
-                    .frame(width: 34, height: 24).clipShape(RoundedRectangle(cornerRadius: 4))
-                    .opacity(done ? 0.5 : 1)
+                Button { ImageZoom.show(image) } label: {
+                    Image(nsImage: image).resizable().aspectRatio(contentMode: .fill)
+                        .frame(width: 34, height: 24).clipShape(RoundedRectangle(cornerRadius: 4))
+                        .opacity(done ? 0.5 : 1)
+                }
+                .buttonStyle(.plain)
+                .onHover { inside in (inside ? NSCursor.pointingHand : NSCursor.arrow).set() }
+                .help(L10n.t("See it bigger"))
             }
             VStack(alignment: .leading, spacing: 1) {
                 Text(comment).font(.system(size: 11.5, weight: .medium)).foregroundStyle(.white.opacity(done ? 0.45 : 0.92))
@@ -610,5 +618,85 @@ private struct FilterMenu<Icon: View, Items: View>: View {
         .background(Capsule().fill(active ? Color.white : Color.white.opacity(hovered ? 0.13 : 0.07)))
         .onHover { hovered = $0 }
         .animation(.easeOut(duration: 0.12), value: active)
+    }
+}
+
+/// The marks saved but not sent yet (they wait for the next round of marking):
+/// back to marking with them, drop one, or drop them all.
+private struct QueueSection: View {
+    let model: SidebarModel
+    let close: () -> Void
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            HStack(spacing: 6) {
+                Image(systemName: "tray.full").font(.system(size: 10, weight: .bold)).foregroundStyle(AkiPalette.red)
+                Text(L10n.t("In the queue, not sent")).font(.system(size: 11, weight: .bold)).foregroundStyle(.white)
+                Text("· \(model.queuedList.count)").font(.system(size: 11)).foregroundStyle(.white.opacity(0.55))
+                Spacer()
+                Button {
+                    close()
+                    model.resumeQueue()
+                } label: {
+                    Label(L10n.t("Keep marking"), systemImage: "scope")
+                        .font(.system(size: 10.5, weight: .semibold)).foregroundStyle(.black)
+                        .padding(.horizontal, 8).frame(height: 22)
+                        .background(Capsule().fill(Color.white))
+                }
+                .buttonStyle(.plain)
+                .hoverLift()
+                .help(L10n.t("Opens marking with the queue, to add more and send"))
+                Button { model.clearQueue() } label: {
+                    Label(L10n.t("Clear"), systemImage: "trash")
+                        .font(.system(size: 10.5, weight: .semibold)).foregroundStyle(.white.opacity(0.8))
+                        .padding(.horizontal, 8).frame(height: 22)
+                        .background(Capsule().fill(Color.white.opacity(0.1)))
+                }
+                .buttonStyle(.plain)
+                .hoverLift()
+                .help(L10n.t("Clear the queue"))
+            }
+            ForEach(model.queuedList) { mark in
+                HStack(spacing: 8) {
+                    Text("\(mark.number)")
+                        .font(.system(size: 8.5, weight: .heavy, design: .rounded)).foregroundStyle(.black)
+                        .frame(width: 15, height: 15).background(Circle().fill(AkiPalette.hue(number: mark.number)))
+                    if let image = mark.image {
+                        Button { ImageZoom.show(image) } label: {
+                            Image(nsImage: image).resizable().aspectRatio(contentMode: .fill)
+                                .frame(width: 34, height: 24).clipShape(RoundedRectangle(cornerRadius: 4))
+                        }
+                        .buttonStyle(.plain)
+                        .onHover { inside in (inside ? NSCursor.pointingHand : NSCursor.arrow).set() }
+                        .help(L10n.t("See it bigger"))
+                    }
+                    VStack(alignment: .leading, spacing: 1) {
+                        Text(mark.comment.isEmpty ? (mark.text ?? L10n.t("(no comment)")) : mark.comment)
+                            .font(.system(size: 11.5, weight: .medium)).foregroundStyle(.white.opacity(0.92)).lineLimit(2)
+                        if let id = mark.destination, let terminal = model.allTerminals.first(where: { $0.id == id }) {
+                            HStack(spacing: 4) {
+                                SessionIdentityView(identity: SessionIdentity(terminal: terminal), size: 11,
+                                                    showAppName: false, showAgentName: false)
+                                Text(terminal.name).lineLimit(1)
+                            }
+                            .font(.system(size: 9.5)).foregroundStyle(.white.opacity(0.55))
+                        }
+                    }
+                    Spacer(minLength: 0)
+                    Button { model.removeQueued(mark.id) } label: {
+                        Image(systemName: "xmark").font(.system(size: 9, weight: .bold)).foregroundStyle(.white.opacity(0.7))
+                            .frame(width: 20, height: 20).background(Circle().fill(Color.white.opacity(0.1)))
+                    }
+                    .buttonStyle(.plain)
+                    .hoverLift()
+                    .help(L10n.t("Remove from the queue"))
+                }
+                .padding(5)
+                .background(RoundedRectangle(cornerRadius: 7).fill(Color.white.opacity(0.04)))
+            }
+        }
+        .padding(8)
+        .background(RoundedRectangle(cornerRadius: 10).fill(AkiPalette.red.opacity(0.08)))
+        .overlay(RoundedRectangle(cornerRadius: 10).strokeBorder(AkiPalette.red.opacity(0.35), lineWidth: 1))
     }
 }

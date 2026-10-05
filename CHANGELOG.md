@@ -5,14 +5,24 @@ What changed in each version of Aki. Versions follow [semantic versioning](https
 ## [Unreleased]
 
 ### Added
-- ⇧-click while marking is a normal click on the app below (another sheet, a tab, a link), without making a mark; the screen is captured again right after. Marking a point moved to ⌘-click.
+- Apps that don't say what's in their window (Telegram, games, some design apps) and pages drawn as one canvas: Aki finds the box under the pointer in the picture itself — a message bubble, a row, a button, an icon, a photo, a spreadsheet cell — with ↑ for what holds it (a cell's row, a bubble's chat).
+- The History lists the queue (marks saved but not sent) at the top: keep marking with it, drop one, or clear it.
+- ⌘+ / ⌘− / ⌘0 while marking zoom the page below (the browser's own zoom); the screen is captured again right after.
+- The queue shows every mark (it scrolls), can be dragged by its top, and marks can be ticked and removed together before sending ("Remove N" or ⌫).
+- Zoom on a mark's picture: "Zoom" on the card's crop, or click the thumbnail in the queue or the history. Pinch or ⌘-scroll to zoom, double-click for fit / 100 %, esc to close.
+- ⇧-click while marking is a normal click on the app below (another sheet, a tab, a link — Chrome too, which is brought forward first), without making a mark; the screen is captured again right after. Marking a point moved to ⌘-click. While ⇧ is held the pointer is the normal arrow everywhere (buttons too) and nothing is outlined.
+- The session picker shows whether each session is working, waiting for you or idle (as on the rings), and Claude Code's state now shows within half a second instead of up to 3.5 s.
 
 ### Changed
+- Marking opens with the session you last sent a message in as the destination (unless you picked another one after that).
+- Marks go to the terminal 3 s after you stop (was 5 s); still adjustable in Settings.
 - Marking opens almost at once (about 0.06 s instead of half a second): sessions are refreshed after the screen is up.
 - The session picker while marking shows four sessions and a "+N" button: the others, hidden ones from the sidebar included, open in a list beside the card that you can drag.
 - Updates are announced, not downloaded: a pill by the sidebar and a dot on the menu bar pin, like Orca. Click it to see what's new and install.
 
 ### Fixed
+- The crop tile and the on/off keys in the card show the hand pointer.
+- Sessions take the name you gave their tab in Orca ("ABA PEDIDOS") instead of the conversation's topic.
 - Marks reach Orca tabs again after Orca restarts (its tabs keep running in a helper Aki didn't recognise, so nothing was typed).
 - The sidebar's resize corner works again next to the last ring (its card no longer covers it), with a bigger spot to grab and a shorter drag between sizes.
 

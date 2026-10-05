@@ -1,6 +1,16 @@
 // Korean strings for Aki's interface (keys are the English text).
 extension L10n {
     static let korean: [String: String] = [
+        "area": "영역",
+        "In the queue, not sent": "대기열, 보내지 않음",
+        "Keep marking": "계속 표시하기",
+        "Opens marking with the queue, to add more and send": "대기열과 함께 표시를 열어 더 추가하고 보냅니다",
+        "Remove the selected marks (⌫)": "선택한 표시 제거 (⌫)",
+        "Remove": "제거",
+        "Unselect": "선택 해제",
+        "Select to remove": "선택해서 제거",
+        "Zoom": "확대",
+        "See it bigger": "크게 보기",
         "More": "더 보기",
         "Other sessions": "다른 세션",
         "Update to": "업데이트:",

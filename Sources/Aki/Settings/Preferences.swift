@@ -396,7 +396,7 @@ final class Preferences {
         hiddenTerminals = Set(defaults.stringArray(forKey: Keys.hiddenTerminals) ?? [])
         ringOrder = defaults.stringArray(forKey: Keys.ringOrder) ?? []
         disconnectedApps = Set(defaults.stringArray(forKey: Keys.disconnectedApps) ?? [])
-        waitIdleSeconds = defaults.object(forKey: Keys.waitIdle) as? Int ?? 5
+        waitIdleSeconds = defaults.object(forKey: Keys.waitIdle) as? Int ?? 3
         autoDeliver = defaults.object(forKey: Keys.autoDeliver) as? Bool ?? true
         alongFraction = defaults.object(forKey: Keys.along) as? Double ?? 0.5
         L10n.language = language

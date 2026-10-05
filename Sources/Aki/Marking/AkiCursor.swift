@@ -4,6 +4,15 @@ import AppKit
 /// pointing with its tail (bottom left). Same shape as the `.pb` / `.pd` paths in
 /// website (viewBox 16 14 52 53), drawn here so the app needs no file.
 enum AkiCursor {
+    /// ⇧ held while marking: clicks go to the app below, so the pointer is the plain
+    /// arrow everywhere — over buttons and cards too — until ⇧ is let go.
+    nonisolated(unsafe) static var passThrough = false
+
+    /// Sets a cursor unless ⇧ holds the arrow.
+    static func set(_ cursor: NSCursor) {
+        (passThrough ? NSCursor.arrow : cursor).set()
+    }
+
     static let pin: NSCursor = {
         let size: CGFloat = 28
         let scale = size / 53

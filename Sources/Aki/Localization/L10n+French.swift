@@ -1,6 +1,16 @@
 // French strings for Aki's interface (keys are the English text).
 extension L10n {
     static let french: [String: String] = [
+        "area": "zone",
+        "In the queue, not sent": "Dans la file, pas envoyées",
+        "Keep marking": "Continuer à marquer",
+        "Opens marking with the queue, to add more and send": "Ouvre le marquage avec la file, pour en ajouter et envoyer",
+        "Remove the selected marks (⌫)": "Retirer les marques sélectionnées (⌫)",
+        "Remove": "Retirer",
+        "Unselect": "Désélectionner",
+        "Select to remove": "Sélectionner pour retirer",
+        "Zoom": "Zoom",
+        "See it bigger": "Voir en grand",
         "More": "Plus",
         "Other sessions": "Autres sessions",
         "Update to": "Mettre à jour vers",

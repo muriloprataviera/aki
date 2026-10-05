@@ -31,6 +31,10 @@ struct MarkingView: View {
     /// Where the queue was when you started editing from it: it stays put while you
     /// go through its marks, and moves again only for a new mark.
     @State private var queueAnchor: CGPoint?
+    /// Where you dragged the queue to (on top of where it sits by itself).
+    @State private var queueDrag: CGSize = .zero
+    @State private var queueDragging: CGSize = .zero
+    @State private var queueHandleHovered = false
     @State private var showsMore = false
     @State private var moreDrag: CGSize = .zero
     @State private var moreDragging: CGSize = .zero
@@ -63,7 +67,9 @@ struct MarkingView: View {
                     guard case .active(let location) = phase, dragStart == nil else { return }
                     // On the screen being marked (not a card or button): always the pin, whatever
                     // the system or the app below set meanwhile.
-                    if NSCursor.current !== AkiCursor.pin { AkiCursor.pin.set() }
+                    if session.shiftHeld {
+                        if NSCursor.current !== NSCursor.arrow { NSCursor.arrow.set() }
+                    } else if NSCursor.current !== AkiCursor.pin { AkiCursor.set(AkiCursor.pin) }
                     session.pointer[screen] = location
                     if session.optionHeld {
                         session.updateLineHover(screen: screen)
@@ -80,6 +86,12 @@ struct MarkingView: View {
                         .onEnded { value in
                             let start = value.startLocation, end = value.location
                             let moved = hypot(end.x - start.x, end.y - start.y)
+                            // The click that put a zoomed picture away: just that.
+                            if ImageZoom.isOpen || Date().timeIntervalSince(ImageZoom.closedAt) < 0.4 {
+                                dragStart = nil
+                                dragNow = nil
+                                return
+                            }
                             let point = NSEvent.modifierFlags.contains(.command)
                             // ⇧-click: a normal click on what's below (another sheet, a link), no mark.
                             if moved < 5, NSEvent.modifierFlags.contains(.shift) {
@@ -101,6 +113,10 @@ struct MarkingView: View {
                                     rect = lines.dropFirst().reduce(first.rect) { $0.union($1.rect) }
                                     text = lines.map(\.text).joined(separator: "\n")
                                 }
+                            } else if moved < 5, !point, let row = canvasRow(at: start) {
+                                // A spreadsheet's row (a canvas has no elements): its cells' text.
+                                rect = row.rect
+                                text = row.text
                             } else if moved < 5 {
                                 // A click: the outlined element, or a point with ⌘ (or nothing outlined).
                                 if !point, let hovered = session.target, let local = localRect(hovered.frame) {
@@ -151,7 +167,9 @@ struct MarkingView: View {
             }
             // No outline while dragging an area or writing a comment: nothing gets
             // pre-selected under the pointer then.
-            if let hovered = session.target, !session.optionHeld, dragStart == nil, session.editing == nil, !session.flying,
+            if let row = canvasRow {
+                lineHighlight(row.rect, label: String(row.text.prefix(48)), hue: Color(session.hue(for: session.destination)))
+            } else if let hovered = session.target, !session.optionHeld, !session.shiftHeld, dragStart == nil, session.editing == nil, !session.flying,
                 let rect = localRect(hovered.frame)
             {
                 let hue = Color(session.hue(for: session.destination))
@@ -201,7 +219,7 @@ struct MarkingView: View {
                 let spot = queueAnchor ?? queueSpot
                 queuePanel
                     .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { queueHeight = $0 }
-                    .offset(x: spot.x, y: spot.y)
+                    .offset(x: spot.x + queueDrag.width + queueDragging.width, y: spot.y + queueDrag.height + queueDragging.height)
                     .animation(.spring(response: 0.3, dampingFraction: 0.85), value: spot)
                     .transition(.opacity.combined(with: .scale(scale: 0.95)))
                     .onChange(of: session.marks.count) { old, new in if new > old { queueAnchor = nil } }
@@ -224,6 +242,21 @@ struct MarkingView: View {
         }
         .frame(width: grab.screen.frame.width, height: grab.screen.frame.height, alignment: .topLeading)
         .environment(\.colorScheme, .dark)
+    }
+
+    /// Over a spreadsheet (or anything drawn as one canvas) there are no elements
+    /// to point at: the row under the pointer, read from the screen, instead.
+    private var canvasRow: ScreenText.Line? {
+        guard dragStart == nil, session.editing == nil, let point = session.pointer[screen] else { return nil }
+        return canvasRow(at: point)
+    }
+
+    private func canvasRow(at point: CGPoint) -> ScreenText.Line? {
+        guard !session.optionHeld, !session.shiftHeld, !session.flying,
+              let target = session.target, session.level == 0, target.label.lowercased().hasPrefix("canvas"),
+              let bounds = localRect(target.frame), let text = session.texts[screen]
+        else { return nil }
+        return text.row(at: point, within: bounds)
     }
 
     private func lineHighlight(_ rect: CGRect, label: String, hue: Color) -> some View {
@@ -452,6 +485,8 @@ struct MarkingView: View {
                     } copy: {
                         NSPasteboard.general.clearContents()
                         NSPasteboard.general.writeObjects([image])
+                    } zoom: {
+                        ImageZoom.show(image)
                     }
                 }
             }
@@ -557,7 +592,9 @@ struct MarkingView: View {
             if let terminal = session.terminal(session.destination) {
                 // The chosen one in full: its name first, the AI after it, quieter.
                 (Text(terminal.name).font(.system(size: 12, weight: .bold)).foregroundColor(Color(session.hue(for: terminal.id)))
-                    + Text("  ·  \(terminal.agent.displayName)").font(.system(size: 10.5, weight: .medium)).foregroundColor(.white.opacity(0.5)))
+                    + Text("  ·  \(terminal.agent.displayName)").font(.system(size: 10.5, weight: .medium)).foregroundColor(.white.opacity(0.5))
+                    + Text("  ·  \(stateText(terminal.state))").font(.system(size: 10.5, weight: .medium))
+                        .foregroundColor(terminal.state == .waiting ? AkiPalette.red : .white.opacity(terminal.state == .idle ? 0.4 : 0.75)))
                     .fixedSize(horizontal: false, vertical: true)
             }
         }
@@ -594,6 +631,13 @@ struct MarkingView: View {
                         TerminalAppIcon(bundleID: TerminalApp.owner(of: terminal.pid)?.bundleIdentifier, size: 12)
                             .offset(x: 3, y: -3)
                     }
+                    // Running or not, as on its ring: spinning while it works, a pulse while it waits for you.
+                    .overlay(alignment: .bottomTrailing) {
+                        LiveDot(state: terminal.state, hue: terminal.state == .idle ? Color.white.opacity(0.5) : .white)
+                            .padding(2)
+                            .background(Circle().fill(Color(red: 20 / 255, green: 20 / 255, blue: 20 / 255)))
+                            .offset(x: 3, y: 3)
+                    }
                     .frame(width: 42, height: 42)
                 Text(terminal.name)
                     .font(.system(size: 10, weight: selected ? .bold : .semibold))
@@ -610,8 +654,18 @@ struct MarkingView: View {
     }
 
     private func pickerHelp(_ terminal: AgentTerminal) -> String {
-        "\(terminal.agent.displayName) · \(terminal.name) · \(URL(filePath: terminal.worktree).lastPathComponent)"
+        "\(terminal.agent.displayName) · \(terminal.name) · \(stateText(terminal.state)) · \(URL(filePath: terminal.worktree).lastPathComponent)"
             + (session.number(of: terminal.id).map { $0 <= 9 ? " · ⌘\($0)" : "" } ?? "")
+    }
+
+    private func stateText(_ state: AgentTerminal.State) -> String {
+        switch state {
+        case .waiting: L10n.t("waiting for you")
+        case .working: L10n.t("working")
+        case .shell: L10n.t("running a command")
+        case .listening: L10n.t("listening")
+        case .idle: L10n.t("idle")
+        }
     }
 
     /// The sessions behind "+N": a list beside the card, one row each.
@@ -639,14 +693,14 @@ struct MarkingView: View {
                 switch phase {
                 case .active:
                     moreHandleHovered = true
-                    (moreDragging == .zero ? NSCursor.openHand : NSCursor.closedHand).set()
+                    AkiCursor.set(moreDragging == .zero ? NSCursor.openHand : NSCursor.closedHand)
                 case .ended:
                     moreHandleHovered = false
-                    AkiCursor.pin.set()
+                    AkiCursor.set(AkiCursor.pin)
                 }
             }
             .gesture(DragGesture(coordinateSpace: .global)
-                .onChanged { moreDragging = $0.translation; NSCursor.closedHand.set() }
+                .onChanged { moreDragging = $0.translation; AkiCursor.set(NSCursor.closedHand) }
                 .onEnded { value in
                     moreDrag.width += value.translation.width
                     moreDrag.height += value.translation.height
@@ -744,32 +798,76 @@ struct MarkingView: View {
 
     /// The queue: every mark of this round, then one button that sends them all
     /// to the session (and its agent) you chose.
+    /// Takes the ticked marks out of the queue (the button, or ⌫).
+    private func removeSelected() {
+        withAnimation(.easeOut(duration: 0.15)) { session.removeSelected() }
+    }
+
     private var queuePanel: some View {
         let destinations = Set(session.marks.compactMap(\.destination))
         let terminal = session.terminal(session.marks.last?.destination ?? session.destination)
         let hue = Color(session.hue(for: terminal?.id))
         let count = session.marks.count
-        let shown = session.marks.suffix(4)
+        let selected = session.queueSelected.intersection(session.marks.map(\.id))
         return VStack(alignment: .leading, spacing: 6) {
+            // Its top is a handle: drag the queue out of the way.
+            Capsule()
+                .fill(Color.white.opacity(queueHandleHovered ? 0.6 : 0.25))
+                .frame(width: 32, height: 4)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 2)
+                .contentShape(Rectangle())
+                .onContinuousHover { phase in
+                    switch phase {
+                    case .active:
+                        queueHandleHovered = true
+                        AkiCursor.set(queueDragging == .zero ? NSCursor.openHand : NSCursor.closedHand)
+                    case .ended:
+                        queueHandleHovered = false
+                        AkiCursor.set(AkiCursor.pin)
+                    }
+                }
+                .gesture(DragGesture(coordinateSpace: .global)
+                    .onChanged { queueDragging = $0.translation; AkiCursor.set(NSCursor.closedHand) }
+                    .onEnded { value in
+                        queueDrag.width += value.translation.width
+                        queueDrag.height += value.translation.height
+                        queueDragging = .zero
+                    })
+                .help(L10n.t("Drag to move"))
             HStack(spacing: 4) {
                 Text(L10n.t("Queue")).font(.system(size: 11, weight: .bold)).foregroundStyle(.white)
                 Text("· \(count)").font(.system(size: 11)).foregroundStyle(.white.opacity(0.55))
                 Spacer()
-                ClearQueueButton(action: discard)
+                if selected.isEmpty {
+                    ClearQueueButton(action: discard)
+                } else {
+                    // The ticked ones out, the rest stays to send.
+                    RemoveSelectedButton(count: selected.count) { removeSelected() }
+                }
             }
-            if count > shown.count {
-                Text("+\(count - shown.count)").font(.system(size: 10)).foregroundStyle(.white.opacity(0.5))
+            // Every mark (it scrolls past five), each with a tick to pick it.
+            ScrollView(.vertical, showsIndicators: count > 5) {
+                VStack(alignment: .leading, spacing: 6) {
+                    ForEach(session.marks) { mark in
+                        QueueRow(mark: mark, image: session.previewImage(of: mark), terminal: session.terminal(mark.destination),
+                                 hue: Color(session.hue(for: mark.destination)),
+                                 editing: session.editing == mark.id,
+                                 selected: selected.contains(mark.id),
+                                 selecting: !selected.isEmpty,
+                                 select: {
+                                     if session.queueSelected.contains(mark.id) { session.queueSelected.remove(mark.id) } else { session.queueSelected.insert(mark.id) }
+                                 },
+                                 remove: { withAnimation(.easeOut(duration: 0.15)) { session.remove(mark.id) } },
+                                 open: {
+                                     if queueAnchor == nil { queueAnchor = queueSpot }
+                                     withAnimation(.easeOut(duration: 0.15)) { session.edit(mark.id) }
+                                 })
+                    }
+                }
             }
-            ForEach(shown) { mark in
-                QueueRow(mark: mark, image: session.previewImage(of: mark), terminal: session.terminal(mark.destination),
-                         hue: Color(session.hue(for: mark.destination)),
-                         editing: session.editing == mark.id,
-                         remove: { withAnimation(.easeOut(duration: 0.15)) { session.remove(mark.id) } },
-                         open: {
-                             if queueAnchor == nil { queueAnchor = queueSpot }
-                             withAnimation(.easeOut(duration: 0.15)) { session.edit(mark.id) }
-                         })
-            }
+            .frame(maxHeight: count > 5 ? 230 : nil)
+            .fixedSize(horizontal: false, vertical: count <= 5)
             // Where the whole queue goes, changeable here.
             Menu {
                 ForEach(session.terminals) { t in
@@ -989,7 +1087,7 @@ struct BarButton: View {
         .disabled(!enabled)
         .onHover { inside in
             hovered = inside && enabled
-            if inside && enabled { NSCursor.pointingHand.set() } else { AkiCursor.pin.set() }
+            if inside && enabled { AkiCursor.set(NSCursor.pointingHand) } else { AkiCursor.set(AkiCursor.pin) }
         }
     }
 }
@@ -1055,6 +1153,10 @@ struct QueueRow: View {
     let terminal: AgentTerminal?
     let hue: Color
     let editing: Bool
+    /// Ticked to be taken out with others; once one is, every row shows its tick.
+    var selected = false
+    var selecting = false
+    var select: () -> Void = {}
     let remove: () -> Void
     /// A click on the row: write (or change) its comment.
     var open: () -> Void = {}
@@ -1062,14 +1164,39 @@ struct QueueRow: View {
 
     var body: some View {
         HStack(spacing: 8) {
-            Text("\(mark.number)")
-                .font(.system(size: 9, weight: .bold, design: .rounded))
-                .foregroundStyle(.white)
-                .frame(width: 16, height: 16)
-                .background(Circle().fill(hue))
+            // Its number; under the pointer (or while picking) a tick to select it.
+            Button(action: select) {
+                Group {
+                    if hovered || selecting {
+                        Image(systemName: selected ? "checkmark.circle.fill" : "circle")
+                            .font(.system(size: 15, weight: .semibold))
+                            .foregroundStyle(selected ? AkiPalette.red : Color.white.opacity(0.7))
+                    } else {
+                        Text("\(mark.number)")
+                            .font(.system(size: 9, weight: .bold, design: .rounded))
+                            .foregroundStyle(.white)
+                            .frame(width: 16, height: 16)
+                            .background(Circle().fill(hue))
+                    }
+                }
+                .frame(width: 18, height: 18)
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .focusable(false)
+            .onHover { inside in AkiCursor.set(inside ? NSCursor.pointingHand : AkiCursor.pin) }
+            .help(L10n.t(selected ? "Unselect" : "Select to remove"))
             Group {
                 if let image {
-                    Image(nsImage: image).resizable().aspectRatio(contentMode: .fill)
+                    // Click: see it bigger.
+                    Button { ImageZoom.show(image) } label: {
+                        Image(nsImage: image).resizable().aspectRatio(contentMode: .fill)
+                            .frame(width: 30, height: 20)
+                    }
+                    .buttonStyle(.plain)
+                    .focusable(false)
+                    .onHover { inside in AkiCursor.set(inside ? NSCursor.pointingHand : AkiCursor.pin) }
+                    .help(L10n.t("See it bigger"))
                 } else {
                     Color.white.opacity(0.1)
                 }
@@ -1105,7 +1232,7 @@ struct QueueRow: View {
             }
         }
         .padding(4)
-        .background(RoundedRectangle(cornerRadius: 7).fill(Color.white.opacity(hovered || editing ? 0.08 : 0.03)))
+        .background(RoundedRectangle(cornerRadius: 7).fill(selected ? AkiPalette.red.opacity(0.18) : Color.white.opacity(hovered || editing ? 0.08 : 0.03)))
         .onHover { hovered = $0 }
     }
 }
@@ -1130,12 +1257,39 @@ struct RowIconButton: View {
         .focusable(false)
         .onHover { inside in
             hovered = inside
-            if inside { NSCursor.pointingHand.set() } else { AkiCursor.pin.set() }
+            if inside { AkiCursor.set(NSCursor.pointingHand) } else { AkiCursor.set(AkiCursor.pin) }
         }
     }
 }
 
 /// "Clear": empties the queue (and leaves marking).
+/// "Remove N": the ticked marks out of the queue.
+struct RemoveSelectedButton: View {
+    let count: Int
+    let action: () -> Void
+    @State private var hovered = false
+
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 4) {
+                Image(systemName: "trash").font(.system(size: 9, weight: .bold))
+                Text("\(L10n.t("Remove")) \(count)").font(.system(size: 10, weight: .semibold))
+            }
+            .foregroundStyle(.white)
+            .padding(.horizontal, 8).frame(height: 20)
+            .background(Capsule().fill(AkiPalette.red.opacity(hovered ? 1 : 0.85)))
+            .contentShape(Capsule())
+        }
+        .buttonStyle(.plain)
+        .focusable(false)
+        .help(L10n.t("Remove the selected marks (⌫)"))
+        .onHover { inside in
+            hovered = inside
+            AkiCursor.set(inside ? NSCursor.pointingHand : AkiCursor.pin)
+        }
+    }
+}
+
 struct ClearQueueButton: View {
     let action: () -> Void
     @State private var hovered = false
@@ -1156,7 +1310,7 @@ struct ClearQueueButton: View {
         .help(L10n.t("Clear the queue"))
         .onHover { inside in
             hovered = inside
-            if inside { NSCursor.pointingHand.set() } else { AkiCursor.pin.set() }
+            if inside { AkiCursor.set(NSCursor.pointingHand) } else { AkiCursor.set(AkiCursor.pin) }
         }
     }
 }
@@ -1172,7 +1326,7 @@ struct GlowHover: ViewModifier {
             .animation(.easeOut(duration: 0.12), value: hovered)
             .onHover { inside in
                 hovered = inside
-                if inside { NSCursor.pointingHand.set() } else { AkiCursor.pin.set() }
+                if inside { AkiCursor.set(NSCursor.pointingHand) } else { AkiCursor.set(AkiCursor.pin) }
             }
     }
 }
@@ -1188,9 +1342,12 @@ struct PreviewTile<Content: View>: View {
     let toggle: () -> Void
     /// Copies what the tile shows (the crop, the text) to the clipboard.
     var copy: (() -> Void)? = nil
+    /// Opens what the tile shows bigger (the crop).
+    var zoom: (() -> Void)? = nil
     @State private var hovered = false
     @State private var copied = false
     @State private var copyHovered = false
+    @State private var zoomHovered = false
 
     var body: some View {
         Button(action: toggle) {
@@ -1205,11 +1362,19 @@ struct PreviewTile<Content: View>: View {
                     .clipShape(RoundedRectangle(cornerRadius: 7))
                     .overlay(RoundedRectangle(cornerRadius: 7).strokeBorder(on ? hue : Color.white.opacity(0.2), lineWidth: on ? 1.5 : 1))
                     .overlay(alignment: .topTrailing) {
-                        Image(systemName: on ? "checkmark.circle.fill" : "circle")
-                            .font(.system(size: 14, weight: .bold))
-                            .foregroundStyle(on ? hue : Color.white.opacity(0.6))
-                            .background(Circle().fill(Color.black).padding(1))
-                            .offset(x: 5, y: -5)
+                        // Sticks out of the corner: its own button, so the hand shows on it too.
+                        Button(action: toggle) {
+                            Image(systemName: on ? "checkmark.circle.fill" : "circle")
+                                .font(.system(size: 14, weight: .bold))
+                                .foregroundStyle(on ? hue : Color.white.opacity(0.6))
+                                .background(Circle().fill(Color.black).padding(1))
+                                .padding(3)
+                                .contentShape(Circle())
+                        }
+                        .buttonStyle(.plain)
+                        .focusable(false)
+                        .onHover { inside in AkiCursor.set(inside ? NSCursor.pointingHand : AkiCursor.pin) }
+                        .offset(x: 8, y: -8)
                     }
                     .opacity(on ? 1 : 0.4)
                     .background(RoundedRectangle(cornerRadius: 7).fill(Color.white.opacity(0.05)))
@@ -1235,10 +1400,34 @@ struct PreviewTile<Content: View>: View {
                             .focusable(false)
                             .onHover { inside in
                                 withAnimation(.easeOut(duration: 0.12)) { copyHovered = inside }
-                                if inside { NSCursor.pointingHand.set() } else { AkiCursor.pin.set() }
+                                if inside { AkiCursor.set(NSCursor.pointingHand) } else { AkiCursor.set(AkiCursor.pin) }
                             }
                             .padding(5)
                             .opacity(hovered || copied ? 1 : 0)
+                        }
+                    }
+                    .overlay(alignment: .bottomLeading) {
+                        if let zoom {
+                            Button(action: zoom) {
+                                HStack(spacing: 3) {
+                                    Image(systemName: "plus.magnifyingglass").font(.system(size: 9, weight: .bold))
+                                    Text(L10n.t("Zoom")).font(.system(size: 9.5, weight: .semibold))
+                                }
+                                .foregroundStyle(zoomHovered ? Color.black : Color.white)
+                                .padding(.horizontal, 6).frame(height: 18)
+                                .background(Capsule().fill(zoomHovered ? AnyShapeStyle(Color.white) : AnyShapeStyle(Color.black.opacity(0.75))))
+                                .overlay(Capsule().strokeBorder(Color.white.opacity(zoomHovered ? 0 : 0.25), lineWidth: 0.5))
+                                .scaleEffect(zoomHovered ? 1.08 : 1)
+                            }
+                            .buttonStyle(.plain)
+                            .focusable(false)
+                            .onHover { inside in
+                                withAnimation(.easeOut(duration: 0.12)) { zoomHovered = inside }
+                                if inside { AkiCursor.set(NSCursor.pointingHand) } else { AkiCursor.set(AkiCursor.pin) }
+                            }
+                            .help(L10n.t("See it bigger"))
+                            .padding(5)
+                            .opacity(hovered ? 1 : 0)
                         }
                     }
             }
@@ -1247,7 +1436,10 @@ struct PreviewTile<Content: View>: View {
         }
         .buttonStyle(.plain)
         .focusable(false)
-        .onHover { inside in withAnimation(.easeOut(duration: 0.12)) { hovered = inside } }
+        .onHover { inside in
+            withAnimation(.easeOut(duration: 0.12)) { hovered = inside }
+            AkiCursor.set(inside ? NSCursor.pointingHand : AkiCursor.pin)
+        }
         .help(on ? L10n.t("Click to leave it out") : L10n.t("Click to send it"))
     }
 }
@@ -1303,7 +1495,10 @@ struct KeyButton: View {
         }
         .buttonStyle(.plain)
         .focusable(false)
-        .onHover { inside in withAnimation(.easeOut(duration: 0.12)) { hovered = inside } }
+        .onHover { inside in
+            withAnimation(.easeOut(duration: 0.12)) { hovered = inside }
+            AkiCursor.set(inside ? NSCursor.pointingHand : AkiCursor.pin)
+        }
         .help(help ?? label ?? key)
     }
 }
@@ -1455,7 +1650,7 @@ struct PickHover: ViewModifier {
             .animation(.spring(response: 0.2, dampingFraction: 0.6), value: hovered)
             .onHover { inside in
                 hovered = inside
-                if inside { NSCursor.pointingHand.set() } else { AkiCursor.pin.set() }
+                if inside { AkiCursor.set(NSCursor.pointingHand) } else { AkiCursor.set(AkiCursor.pin) }
             }
     }
 }
@@ -1468,6 +1663,16 @@ private struct MoreRow: View {
     let help: String
     let pick: () -> Void
     @State private var hovered = false
+
+    /// Said only when it's doing something; idle says nothing.
+    private var state: String? {
+        switch terminal.state {
+        case .waiting: L10n.t("waiting for you")
+        case .working: L10n.t("working")
+        case .shell: L10n.t("running a command")
+        case .listening, .idle: nil
+        }
+    }
 
     var body: some View {
         Button(action: pick) {
@@ -1484,10 +1689,17 @@ private struct MoreRow: View {
                         .font(.system(size: 12, weight: .semibold))
                         .foregroundStyle(.white)
                         .lineLimit(1)
-                    Text(URL(filePath: terminal.worktree).lastPathComponent)
-                        .font(.system(size: 10))
-                        .foregroundStyle(.white.opacity(0.5))
-                        .lineLimit(1)
+                    HStack(spacing: 4) {
+                        LiveDot(state: terminal.state, hue: terminal.state == .idle ? Color.white.opacity(0.5) : .white)
+                        if let state {
+                            Text(state).foregroundStyle(terminal.state == .waiting ? AkiPalette.red : .white.opacity(0.75))
+                            Text("·").foregroundStyle(.white.opacity(0.35))
+                        }
+                        Text(URL(filePath: terminal.worktree).lastPathComponent)
+                            .foregroundStyle(.white.opacity(0.5))
+                    }
+                    .font(.system(size: 10))
+                    .lineLimit(1)
                 }
                 Spacer(minLength: 0)
                 TerminalAppIcon(bundleID: TerminalApp.owner(of: terminal.pid)?.bundleIdentifier, size: 14)
@@ -1501,7 +1713,7 @@ private struct MoreRow: View {
         .help(help)
         .onHover { inside in
             hovered = inside
-            if inside { NSCursor.pointingHand.set() } else { AkiCursor.pin.set() }
+            if inside { AkiCursor.set(NSCursor.pointingHand) } else { AkiCursor.set(AkiCursor.pin) }
         }
     }
 }

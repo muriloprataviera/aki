@@ -36,6 +36,7 @@ enum TerminalJump {
 
     private static let cacheLock = NSLock()
     nonisolated(unsafe) private static var cachedTabs: (at: Date, tabs: [[String: Any]])?
+    nonisolated(unsafe) private static var cachedNames: (modified: Date?, names: [String: String])?
 
     /// Orca's tab list, kept for a little while so a double-click jumps at once.
     static func orcaTabs(maxAge: TimeInterval = 20) -> [[String: Any]]? {
@@ -70,14 +71,49 @@ enum TerminalJump {
         return match?["handle"] as? String
     }
 
+    /// The names you gave tabs in Orca (double-click a tab: "ABA PEDIDOS"), by tab id.
+    /// The CLI only lists the terminal's own title (Claude's topic), so they're read
+    /// from Orca's saved workspace; re-read only when that file changes.
+    static func orcaTabNames() -> [String: String] {
+        let base = FileManager.default.homeDirectoryForCurrentUser
+            .appending(path: "Library/Application Support/orca")
+        var profile = "local-default"
+        if let data = try? Data(contentsOf: base.appending(path: "orca-profile-index.json")),
+           let index = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+           let active = index["activeProfileId"] as? String, !active.contains("/") {
+            profile = active
+        }
+        let file = base.appending(path: "profiles/\(profile)/orca-data.json")
+        let modified = (try? FileManager.default.attributesOfItem(atPath: file.path))?[.modificationDate] as? Date
+        if let cached = cacheLock.withLock({ cachedNames }), cached.modified == modified { return cached.names }
+        var names: [String: String] = [:]
+        if let data = try? Data(contentsOf: file),
+           let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+           let byWorktree = (json["workspaceSession"] as? [String: Any])?["tabsByWorktree"] as? [String: Any] {
+            for case let tabs as [[String: Any]] in byWorktree.values {
+                for tab in tabs {
+                    if let id = tab["id"] as? String, let name = (tab["customTitle"] as? String)?
+                        .trimmingCharacters(in: .whitespacesAndNewlines), !name.isEmpty {
+                        names[id] = name
+                    }
+                }
+            }
+        }
+        cacheLock.withLock { cachedNames = (modified, names) }
+        return names
+    }
+
     /// Codex and other agents have no Claude registry name. Their exact tab's
     /// title distinguishes sessions that share a project, including after an IA switch.
+    /// A name you gave the tab in Orca wins over both.
     static func namedTerminals(_ terminals: [AgentTerminal]) -> [AgentTerminal] {
         guard terminals.contains(where: { $0.orcaHandle != nil }), let tabs = orcaTabs(maxAge: 3) else { return terminals }
+        let custom = orcaTabNames()
         return terminals.map { terminal in
             guard let handle = terminal.orcaHandle,
                   let tab = tabs.first(where: { ($0["handle"] as? String) == handle && ($0["worktreePath"] as? String) == terminal.worktree }),
-                  let title = tab["title"] as? String, !title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                  let title = (tab["tabId"] as? String).flatMap({ custom[$0] }) ?? tab["title"] as? String,
+                  !title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
             else { return terminal }
             var named = terminal
             named.name = title.trimmingCharacters(in: .whitespacesAndNewlines)
