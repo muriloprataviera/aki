@@ -4,6 +4,9 @@ What changed in each version of Aki. Versions follow [semantic versioning](https
 
 ## [Unreleased]
 
+### Changed
+- Aki looks for a new version every hour (was once a day), so the update pill shows up soon after a release.
+
 ## [0.3.1] — 2026-10-05
 
 ### Fixed

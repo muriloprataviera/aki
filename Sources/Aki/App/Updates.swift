@@ -1,7 +1,7 @@
 import AppKit
 import Sparkle
 
-/// In-app updates with Sparkle: once a day Aki reads the feed
+/// In-app updates with Sparkle: every hour Aki reads the feed
 /// (aki-updates.vercel.app/appcast.xml). A newer version is only *announced* —
 /// a pill by the sidebar and a dot on the menu bar pin, like Orca — nothing is
 /// downloaded until you click it; then Sparkle's window shows what's new and
@@ -21,7 +21,7 @@ final class Updates: NSObject, SPUUpdaterDelegate, SPUStandardUserDriverDelegate
 
     var updater: SPUUpdater { controller.updater }
 
-    /// Starts the daily check (call once at launch).
+    /// Starts the hourly check (call once at launch).
     func start() {
         _ = controller
         updater.automaticallyDownloadsUpdates = Preferences.shared.installUpdatesByThemselves
