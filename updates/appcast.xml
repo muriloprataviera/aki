@@ -3,6 +3,21 @@
     <channel>
         <title>Aki</title>
         <item>
+            <title>0.3.1</title>
+            <pubDate>Mon, 05 Oct 2026 20:11:54 -0300</pubDate>
+            <sparkle:version>0.3.1</sparkle:version>
+            <sparkle:shortVersionString>0.3.1</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
+            <description><![CDATA[<h2>Aki 0.3.1</h2>
+<h3>Fix</h3>
+<ul>
+<li>Pointing inside apps that tell macOS nothing about their window (Telegram) now picks the message, button or icon under the pointer. In 0.3.0 it still took the whole window there.</li>
+</ul>
+]]></description>
+            <enclosure url="https://aki-updates.vercel.app/0.3.1/Aki-0.3.1.zip" length="3306186" type="application/octet-stream" sparkle:edSignature="lieVQPZPbQsFispl1rDOZ4UoTsUAaCGsjMT8lRl7eA8u3/MaLi4o0F9GfmWNNtgonF8iIvnZ353e8qlXTrbDDA=="/>
+        </item>
+        <item>
             <title>0.3.0</title>
             <pubDate>Mon, 05 Oct 2026 19:12:37 -0300</pubDate>
             <sparkle:version>0.3.0</sparkle:version>
