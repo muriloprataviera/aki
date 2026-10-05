@@ -284,7 +284,9 @@ struct SidebarLayout: Equatable {
 
     var resizeRect: CGRect {
         let c = resizeCenter
-        return CGRect(x: c.x - s(13), y: c.y - s(13), width: s(26), height: s(26))
+        // Easy to catch at any size: never under 30 pt.
+        let half = max(s(15), 15)
+        return CGRect(x: c.x - half, y: c.y - half, width: half * 2, height: half * 2)
     }
 
     /// Out of that corner (forward along the body and away from the edge): a

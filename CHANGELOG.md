@@ -9,6 +9,8 @@ What changed in each version of Aki. Versions follow [semantic versioning](https
 - The session picker while marking shows four sessions and a "+N" button: the others, hidden ones from the sidebar included, open in a list beside the card that you can drag.
 - Updates are announced, not downloaded: a pill by the sidebar and a dot on the menu bar pin, like Orca. Click it to see what's new and install.
 
+### Fixed
+- The sidebar's resize corner works again next to the last ring (its card no longer covers it), with a bigger spot to grab and a shorter drag between sizes.
 
 ## [0.2.0] — 2026-10-04
 

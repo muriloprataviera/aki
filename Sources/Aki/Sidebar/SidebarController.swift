@@ -138,7 +138,7 @@ final class SidebarController {
             let reach = (screenPoint.x - start.point.x) * d.dx - (screenPoint.y - start.point.y) * d.dy
             let all = SidebarSize.allCases
             let base = all.firstIndex(of: start.size) ?? 1
-            let i = min(max(base + Int((reach / 36).rounded()), 0), all.count - 1)
+            let i = min(max(base + Int((reach / 26).rounded()), 0), all.count - 1)
             if all[i] != self.preferences.size {
                 withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) { self.preferences.size = all[i] }
             }
@@ -377,13 +377,15 @@ final class SidebarController {
             return
         }
         let point = localCursor
-        let overCard = cardRect?.contains(point) ?? false
+        // The resize corner wins over a card: the last ring's card reaches down over it
+        // (its pointer), and would leave the handle lit but dead.
+        let overResize = model.expanded && layout.resizeRect.contains(point)
+        let overCard = !overResize && (cardRect?.contains(point) ?? false)
         // The orb at one end, the grip at the other.
         let overOrb = model.expanded && layout.orbRect.contains(point)
         let overName = model.expanded ? model.targets.first { $0.key.hasPrefix("project|") && $0.value.insetBy(dx: -3, dy: -3).contains(point) }
             .map { String($0.key.dropFirst("project|".count)) } : nil
         // A project's name wins over the grip under it (the grip would rise over the name).
-        let overResize = model.expanded && !overCard && layout.resizeRect.contains(point)
         if model.resizeHovered != overResize { model.resizeHovered = overResize }
         let overGrip = model.expanded && overName == nil && !overResize && layout.gripRect.contains(point)
         let overMark = model.expanded && !overCard && layout.markOrbRect.contains(point)
@@ -417,7 +419,7 @@ final class SidebarController {
 
         let keepOpen = preferences.visibility == .alwaysShow || model.pinned != nil || model.editingProject != nil
         let inside = model.expanded
-            ? layout.bodyRect(expanded: true).insetBy(dx: -6, dy: -6).contains(point) || overCard || overOrb || overGrip
+            ? layout.bodyRect(expanded: true).insetBy(dx: -6, dy: -6).contains(point) || overCard || overOrb || overGrip || overResize
                 || overMark || overHistory || overHide
                 || model.targets.contains { ($0.key.hasPrefix("project|") || $0.key == "projects-eye") && $0.value.insetBy(dx: -4, dy: -4).contains(point) }
             : layout.wakeRect.contains(point)
