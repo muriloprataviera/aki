@@ -277,6 +277,8 @@ final class Preferences {
     }
     /// Beta versions: new things first, for those who want to try them.
     var betaUpdates: Bool { didSet { defaults.set(betaUpdates, forKey: Keys.betaUpdates) } }
+    /// One anonymous notice to the maker on first launch (version, macOS, language). On by default; off sends nothing.
+    var installPing: Bool { didSet { defaults.set(installPing, forKey: Keys.installPing) } }
     /// Pictures never take more than this on disk (MB); the oldest unneeded go first.
     var maxPicturesMB: Int { didSet { defaults.set(maxPicturesMB, forKey: Keys.maxPicturesMB) } }
     var presence: AppPresence { didSet { defaults.set(presence.rawValue, forKey: Keys.presence) } }
@@ -383,6 +385,7 @@ final class Preferences {
         keepDays = defaults.object(forKey: Keys.keepDays) as? Int ?? 30
         installUpdatesByThemselves = defaults.object(forKey: Keys.installUpdates) as? Bool ?? false
         betaUpdates = defaults.object(forKey: Keys.betaUpdates) as? Bool ?? false
+        installPing = defaults.object(forKey: Keys.installPing) as? Bool ?? true
         maxPicturesMB = defaults.object(forKey: Keys.maxPicturesMB) as? Int ?? 200
         presence = value(Keys.presence, AppPresence.menuBar)
         language = value(Keys.language, AppLanguage.system)
@@ -423,6 +426,7 @@ final class Preferences {
         static let keepDays = "keepDays"
         static let installUpdates = "installUpdatesByThemselves"
         static let betaUpdates = "betaUpdates"
+        static let installPing = "installPing"
         static let maxPicturesMB = "maxPicturesMB"
         static let presence = "appPresence"
         static let language = "appLanguage"

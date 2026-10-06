@@ -64,7 +64,8 @@ cat > "$host/vercel.json" <<JSON
   "rewrites": [
     { "source": "/Aki.dmg", "destination": "/api/dl?kind=dmg" },
     { "source": "/(aki-install.sh|install|install.sh)", "destination": "/api/dl?kind=script" },
-    { "source": "/eu", "destination": "/api/dl?kind=me" }
+    { "source": "/eu", "destination": "/api/dl?kind=me" },
+    { "source": "/ping", "destination": "/api/dl?kind=ping" }
   ],
   "functions": { "api/dl.js": { "includeFiles": "{script/aki-install.sh,latest.txt}" } },
   "headers": [

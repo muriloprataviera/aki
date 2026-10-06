@@ -37,6 +37,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         model.openHistory = { [weak self] session in self?.history.show(session: session) }
         settings.recentre = { [weak self] in self?.sidebar.relocate() }
         marking = MarkingController(model: model)
+        InstallPing.scheduleIfNeeded(preferences)
         marking.sidebarSpot = { [weak self] in self?.sidebar.dockSpot() }
         marking.ringLocation = { [weak self] id in self?.sidebar.screenLocation(of: id) }
         marking.didSend = { [weak self] ids in

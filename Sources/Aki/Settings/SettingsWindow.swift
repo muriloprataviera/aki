@@ -746,6 +746,10 @@ struct SettingsView: View {
                 Toggle(L10n.t("Get beta versions"), isOn: $preferences.betaUpdates)
                 Caption(L10n.t("Aki checks once a day. Betas bring new things first and may be less steady."))
             }
+            Section(L10n.t("Privacy")) {
+                Toggle(L10n.t("Tell the maker you installed Aki"), isOn: $preferences.installPing)
+                Caption(L10n.t("Once, on first launch: Aki's version, your macOS version and language. No account, no identifier, nothing you mark."))
+            }
             Section(L10n.t("About")) {
                 HStack(spacing: 14) {
                     Image(nsImage: AkiBrand.appIcon).resizable().interpolation(.high).frame(width: 48, height: 48)

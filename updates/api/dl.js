@@ -36,6 +36,22 @@ module.exports = async (req, res) => {
     res.setHeader('Content-Type', 'text/html; charset=utf-8'); res.setHeader('Cache-Control', 'no-store'); res.setHeader('X-Robots-Tag', 'noindex');
     return res.end(ok ? '<!doctype html><meta charset="utf-8"><title>Aki</title><body style="font:16px system-ui;padding:40px;background:#F3EFE6;color:#141414"><h1>✓ Este navegador está marcado como seu.</h1><p>Seus downloads chegam no Telegram como "🧪 Você (teste)".</p>' : 'Not found');
   }
+  // First launch of an installed Aki (sent once by the app; the person can turn it off).
+  if (req.query.kind === 'ping') {
+    if (req.method !== 'POST') { res.statusCode = 405; return res.end(); }
+    let b = req.body || {};
+    if (typeof b === 'string') { try { b = JSON.parse(b); } catch { b = {}; } }
+    const clean = (v) => String(v || '').replace(/[^\w .,()+-]/g, '').slice(0, 40);
+    const cc = (req.headers['x-vercel-ip-country'] || '').toUpperCase();
+    let city = ''; try { city = decodeURIComponent(req.headers['x-vercel-ip-city'] || ''); } catch { /* malformed */ }
+    const region = (req.headers['x-vercel-ip-country-region'] || '').toUpperCase();
+    const place = [city, region].filter(Boolean).join(', ');
+    const when = new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo', dateStyle: 'short', timeStyle: 'short' });
+    const me = isMe(req) ? '🧪 Você (teste) · ' : '';
+    await notify([`${me}🎉 Novo Aki instalado ${clean(b.version)}`.trim(),
+      `${flag(cc)} ${place ? place + ' · ' : ''}${cc || '??'} · macOS ${clean(b.macos)} · ${clean(b.language)}`, when].join('\n'));
+    res.statusCode = 204; return res.end();
+  }
   const kind = req.query.kind === 'script' ? 'script' : 'dmg';
   const latest = read('latest.txt').trim();
   const ua = req.headers['user-agent'] || '';

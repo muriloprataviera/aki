@@ -37,7 +37,7 @@ struct GetStartedPane: View {
                     goal: L10n.t("To see what you mark"),
                     example: L10n.t("You circle a broken chart: your agent gets the picture. You mark an error in the terminal: it gets the text."),
                     permission: L10n.t("Screen Recording"),
-                    why: L10n.t("macOS asks this of any app that looks at the screen. Nothing is recorded and nothing leaves your Mac."),
+                    why: L10n.t("macOS asks this of any app that looks at the screen. Nothing is recorded; what you mark stays on your Mac until you send it to your agent."),
                     action: askedScreen && !screen ? L10n.t("Restart Aki") : L10n.t("Allow"),
                     help: askedScreen && !screen ? L10n.t("macOS applies this permission after Aki restarts.") : nil
                 ) {
@@ -96,6 +96,13 @@ struct GetStartedPane: View {
                     Text(L10n.t("Press {mark} anywhere, click something and write what should change. ⌘⏎ sends it to your agent."))
                         .fixedSize(horizontal: false, vertical: true)
                 }
+            }
+            Section {
+                Toggle(L10n.t("Tell the maker you installed Aki"), isOn: Binding(
+                    get: { Preferences.shared.installPing }, set: { Preferences.shared.installPing = $0 }))
+                Text(L10n.t("Once, on first launch: Aki's version, your macOS version and language. No account, no identifier, nothing you mark."))
+                    .font(.caption).foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
             }
         }
         .formStyle(.grouped)
