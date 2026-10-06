@@ -1,21 +1,58 @@
-// Download gate for aki-updates.vercel.app: tells the maker on Telegram that someone
-// downloaded Aki (city/region/country from the host, system, browser, page they came from — never
-// the IP), then
-// hands over the file as usual. Bots and link previews are not reported.
+// The one function on aki-updates.vercel.app. It
+// - hands over the download (/Aki.dmg → newest stable DMG; /aki-install.sh → the installer)
+//   and tells the maker on Telegram that someone downloaded (state and country from the host,
+//   system, browser, the page they came from — never the IP, never the city);
+// - takes the app's anonymous notices (/ping: installed, updated) and tells the maker too;
+// - marks the maker's own browser (/eu) so his tests show up as tests.
+// Everything here is public, so it trusts nothing it receives: notices must look exactly
+// like the app's (a version that really exists, fixed formats) or are dropped in silence;
+// each place may only send a few per hour; and the text that reaches Telegram is plain
+// and short. Abuse can only cost a few ignored requests — nothing is stored, nothing runs.
 const fs = require('fs');
 const path = require('path');
+const crypto = require('crypto');
 
 const read = (f) => { try { return fs.readFileSync(path.join(__dirname, '..', f), 'utf8'); } catch { return ''; } };
 const flag = (cc) => (/^[A-Z]{2}$/.test(cc) ? String.fromCodePoint(...[...cc].map((c) => 0x1f1a5 + c.charCodeAt(0))) : '🌐');
 const system = (ua) => (/curl/i.test(ua) ? 'Terminal (curl)' : /iPhone|iPad/.test(ua) ? 'iOS' : /Mac OS X|Macintosh/.test(ua) ? 'macOS' : /Windows/.test(ua) ? 'Windows' : /Android/.test(ua) ? 'Android' : /Linux/.test(ua) ? 'Linux' : 'outro');
 const browser = (ua) => (/Edg\//.test(ua) ? 'Edge' : /Arc\//.test(ua) ? 'Arc' : /Chrome\//.test(ua) ? 'Chrome' : /Firefox\//.test(ua) ? 'Firefox' : /Safari\//.test(ua) ? 'Safari' : '');
 const isBot = (ua) => !ua || /bot|crawl|spider|slurp|preview|facebookexternalhit|embed|monitor|uptime|headless|python-requests|go-http|wget/i.test(ua);
+/// Only letters, digits and a few signs, short: nothing odd reaches the message.
+const plain = (v, max = 40) => String(v || '').replace(/[^\p{L}\p{N} .,()+\-/:]/gu, '').slice(0, max);
+/// Where the request came from, state and country only (the host knows it; the IP is never read here).
+const place = (req) => {
+  const cc = plain(req.headers['x-vercel-ip-country'], 2).toUpperCase();
+  const region = plain(req.headers['x-vercel-ip-country-region'], 6).toUpperCase();
+  return `${flag(cc)} ${region ? region + ' · ' : ''}${cc || '??'}`;
+};
+const when = () => new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo', dateStyle: 'short', timeStyle: 'short' });
 
-async function notify(text) {
+// --- Limits. Kept in this instance's memory only (a few minutes, never written anywhere):
+// the key is a one-way hash of where the request came from, so even that isn't kept as is.
+const hits = new Map();
+const salt = crypto.randomBytes(16);
+const from = (req) => crypto.createHash('sha256').update(salt)
+  .update(String(req.headers['x-real-ip'] || req.headers['x-forwarded-for'] || '').split(',')[0].trim()).digest('hex').slice(0, 16);
+/// Whether `key` may do `kind` again: at most `max` times per `windowMs`.
+function allowed(key, kind, max, windowMs) {
+  const now = Date.now();
+  const k = `${kind}:${key}`;
+  const list = (hits.get(k) || []).filter((t) => now - t < windowMs);
+  if (list.length >= max) { hits.set(k, list); return false; }
+  list.push(now);
+  hits.set(k, list);
+  if (hits.size > 5000) for (const [key2, l] of hits) if (!l.some((t) => now - t < 3600e3)) hits.delete(key2);
+  return true;
+}
+
+async function notify(req, text) {
+  // However many places send, at most 30 Telegram messages per 10 minutes from here.
+  if (!allowed('all', 'telegram', 30, 600e3)) return;
   const token = process.env.AKI_TG_TOKEN, chat = process.env.AKI_TG_CHAT;
   if (!token || !chat) return;
   const ctl = new AbortController(); const t = setTimeout(() => ctl.abort(), 1500);
   try {
+    // Plain text (no parse_mode): nothing in it is read as formatting or links.
     await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
       method: 'POST', headers: { 'content-type': 'application/json' }, signal: ctl.signal,
       body: JSON.stringify({ chat_id: chat, text, disable_web_page_preview: true }),
@@ -26,63 +63,78 @@ async function notify(text) {
 // The maker's own downloads and tests are labelled, so every unlabelled notice is a real visitor.
 // A browser is marked once by opening /eu?k=<secret> (cookie only on this host); scripts send X-Aki-Me.
 const cookie = (req, name) => (req.headers.cookie || '').split(/;\s*/).map((c) => c.split('=')).find(([k]) => k === name)?.[1] || '';
-const isMe = (req) => { const me = process.env.AKI_ME; return !!me && [req.headers['x-aki-me'], cookie(req, 'aki_me'), req.query.me].includes(me); };
+/// Compared in constant time, so timing can't reveal the secret letter by letter.
+const same = (a, b) => {
+  const x = Buffer.from(String(a || '')), y = Buffer.from(String(b || ''));
+  return x.length === y.length && x.length > 0 && crypto.timingSafeEqual(x, y);
+};
+const isMe = (req) => { const me = process.env.AKI_ME; return !!me && [req.headers['x-aki-me'], cookie(req, 'aki_me')].some((v) => same(v, me)); };
+
+// --- Notices from the app: only what the app sends, exactly.
+const versions = () => new Set([...read('appcast.xml').matchAll(/<sparkle:shortVersionString>([^<]+)</g)].map((m) => m[1]));
+const VERSION = /^\d{1,3}\.\d{1,3}\.\d{1,3}(-beta\.\d{1,3})?$/;
+const MACOS = /^\d{2}\.\d{1,2}(\.\d{1,2})?$/;
+const LANGUAGE = /^[a-z]{2,3}(-[A-Za-z0-9]{2,8}){0,2}$/;
+
+async function ping(req, res) {
+  res.statusCode = 204;
+  if (req.method !== 'POST') { res.statusCode = 405; return res.end(); }
+  if (Number(req.headers['content-length'] || 0) > 1024) return res.end();
+  // The app's own network stack says who it is ("Aki/0.3.2 CFNetwork/… Darwin/…").
+  if (!/^Aki\/[\d.]+(-beta\.\d+)? CFNetwork\//.test(req.headers['user-agent'] || '')) return res.end();
+  let b = req.body || {};
+  if (typeof b === 'string') { try { b = JSON.parse(b); } catch { return res.end(); } }
+  if (typeof b !== 'object' || Array.isArray(b)) return res.end();
+  const known = versions();
+  const event = b.event === 'update' ? 'update' : b.event === 'install' || b.event === undefined ? 'install' : null;
+  const ok = event && VERSION.test(b.version || '') && known.has(b.version)
+    && (event === 'install' || (VERSION.test(b.from || '') && known.has(b.from) && b.from !== b.version))
+    && MACOS.test(b.macos || '') && LANGUAGE.test(b.language || '') && (b.chip === undefined || b.chip === 'Apple Silicon');
+  if (!ok) return res.end();
+  // One install and a couple of updates per place per day is plenty.
+  if (!allowed(from(req), `ping-${event}`, event === 'install' ? 2 : 4, 86400e3)) return res.end();
+  const me = isMe(req) ? '🧪 Você (teste) · ' : '';
+  const head = event === 'update'
+    ? `${me}🔄 Aki atualizado ${b.from} → ${b.version}`
+    : `${me}🎉 Novo Aki instalado ${b.version}`;
+  await notify(req, [head, `${place(req)} · macOS ${b.macos} · ${b.language}`, when()].join('\n'));
+  return res.end();
+}
 
 module.exports = async (req, res) => {
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('Referrer-Policy', 'no-referrer');
   if (req.query.kind === 'me') {
-    const ok = !!process.env.AKI_ME && req.query.k === process.env.AKI_ME;
+    const ok = !!process.env.AKI_ME && same(req.query.k, process.env.AKI_ME) && allowed(from(req), 'me', 10, 3600e3);
     if (ok) res.setHeader('Set-Cookie', `aki_me=${process.env.AKI_ME}; Max-Age=63072000; Path=/; Secure; HttpOnly; SameSite=Lax`);
     res.statusCode = ok ? 200 : 404;
     res.setHeader('Content-Type', 'text/html; charset=utf-8'); res.setHeader('Cache-Control', 'no-store'); res.setHeader('X-Robots-Tag', 'noindex');
+    res.setHeader('Content-Security-Policy', "default-src 'none'; style-src 'unsafe-inline'; frame-ancestors 'none'");
     return res.end(ok ? '<!doctype html><meta charset="utf-8"><title>Aki</title><body style="font:16px system-ui;padding:40px;background:#F3EFE6;color:#141414"><h1>✓ Este navegador está marcado como seu.</h1><p>Seus downloads chegam no Telegram como "🧪 Você (teste)".</p>' : 'Not found');
   }
-  // An installed Aki: first launch, or running a new version after an update (sent by
-  // the app when its anonymous notices are on; the person can turn them off).
-  if (req.query.kind === 'ping') {
-    if (req.method !== 'POST') { res.statusCode = 405; return res.end(); }
-    let b = req.body || {};
-    if (typeof b === 'string') { try { b = JSON.parse(b); } catch { b = {}; } }
-    const clean = (v) => String(v || '').replace(/[^\w .,()+-]/g, '').slice(0, 40);
-    const cc = (req.headers['x-vercel-ip-country'] || '').toUpperCase();
-    let city = ''; try { city = decodeURIComponent(req.headers['x-vercel-ip-city'] || ''); } catch { /* malformed */ }
-    const region = (req.headers['x-vercel-ip-country-region'] || '').toUpperCase();
-    const place = [city, region].filter(Boolean).join(', ');
-    const when = new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo', dateStyle: 'short', timeStyle: 'short' });
-    const me = isMe(req) ? '🧪 Você (teste) · ' : '';
-    const head = b.event === 'update'
-      ? `${me}🔄 Aki atualizado ${clean(b.from)} → ${clean(b.version)}`
-      : `${me}🎉 Novo Aki instalado ${clean(b.version)}`;
-    await notify([head.trim(),
-      `${flag(cc)} ${place ? place + ' · ' : ''}${cc || '??'} · macOS ${clean(b.macos)} · ${clean(b.language)}`, when].join('\n'));
-    res.statusCode = 204; return res.end();
-  }
+  if (req.query.kind === 'ping') return ping(req, res);
+
   const kind = req.query.kind === 'script' ? 'script' : 'dmg';
   const latest = read('latest.txt').trim();
   const ua = req.headers['user-agent'] || '';
-  if (req.method === 'GET' && !isBot(ua)) {
-    const cc = (req.headers['x-vercel-ip-country'] || '').toUpperCase();
-    let city = '';
-    try { city = decodeURIComponent(req.headers['x-vercel-ip-city'] || ''); } catch { /* malformed header */ }
-    const region = (req.headers['x-vercel-ip-country-region'] || '').toUpperCase();
-    const place = [city, region].filter(Boolean).join(', ');
-    let from = '';
-    try { const r = new URL(req.headers.referer || ''); from = r.host + r.pathname; } catch { /* no referer */ }
-    const when = new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo', dateStyle: 'short', timeStyle: 'short' });
+  // A notice per download — but a place that downloads over and over is told about only now and then.
+  if (req.method === 'GET' && !isBot(ua) && allowed(from(req), 'download', 3, 3600e3)) {
+    let came = '';
+    try { const r = new URL(req.headers.referer || ''); came = plain(r.host + r.pathname, 80); } catch { /* no referer */ }
     const what = kind === 'dmg' ? '📥 Download do Aki' : '⌨️ Instalação pelo Terminal';
     const me = isMe(req) ? '🧪 Você (teste) · ' : '';
-    const lines = [`${me}${what} ${latest}`.trim(), `${flag(cc)} ${place ? place + ' · ' : ''}${cc || '??'} · ${system(ua)}${browser(ua) ? ' · ' + browser(ua) : ''}`, from && `veio de: ${from}`, when];
-    await notify(lines.filter(Boolean).join('\n'));
+    const lines = [`${me}${what} ${plain(latest, 20)}`, `${place(req)} · ${system(ua)}${browser(ua) ? ' · ' + browser(ua) : ''}`, came && `veio de: ${came}`, when()];
+    await notify(req, lines.filter(Boolean).join('\n'));
   }
   if (kind === 'dmg') {
     res.statusCode = 302;
-    res.setHeader('Location', latest ? `/${latest}/Aki-${latest}.dmg` : '/');
+    res.setHeader('Location', VERSION.test(latest) ? `/${latest}/Aki-${latest}.dmg` : '/');
     res.setHeader('Cache-Control', 'no-store');
     return res.end();
   }
   res.statusCode = 200;
   res.setHeader('Content-Type', 'text/plain; charset=utf-8');
   res.setHeader('Content-Disposition', 'inline; filename="aki-install.sh"');
-  res.setHeader('X-Content-Type-Options', 'nosniff');
   res.setHeader('Cache-Control', 'no-store');
   res.end(read('script/aki-install.sh'));
 };
