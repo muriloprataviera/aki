@@ -298,8 +298,14 @@ enum VisualProbe {
     static func tooVague(_ element: ProbedElement?, screen: CGRect) -> Bool {
         guard let element else { return true }
         if element.fromBrowser {
-            // Pages answer precisely, except what they draw as one picture (a spreadsheet).
-            return element.label.lowercased().hasPrefix("canvas")
+            // Pages answer precisely, except what they draw as one picture (a spreadsheet)
+            // and what they embed from elsewhere (an iframe: Claude's artifacts, videos,
+            // payments): the browser keeps its inside closed, so the page only sees the box.
+            let label = element.label.lowercased()
+            if label.hasPrefix("canvas") || label.hasPrefix("iframe") { return true }
+            let html = (element.html ?? "").lowercased()
+            let big = element.frame.width * element.frame.height > screen.width * screen.height * 0.12
+            return big && html.contains("<iframe")
         }
         let role = element.role ?? ""
         // "window": what Aki itself says when the app answered nothing at all.

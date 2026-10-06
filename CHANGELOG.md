@@ -13,6 +13,9 @@ What changed in each version of Aki. Versions follow [semantic versioning](https
 - The sidebar's rings, in Aki's colours: the AI's symbol in the middle, and the ring tells the state — a light arc turning slowly while it works, red when it waits for you, quiet otherwise. Aki's pin stands over the session your marks go to. No more initials, one colour per project or gradients.
 - What Aki types to your agent is shorter and says what the marks are about ("📍 Aki: 2 new marks — “…” · “…”"), uses `aki` when it's there, asks to open a picture only when it matters, and to close all marks in one go.
 
+### Fixed
+- Pointing inside things a page embeds from elsewhere (Claude's artifacts, videos, payment forms) finds the button or text under the pointer; the browser keeps their inside closed, so Aki used to see only the whole box.
+
 ## [0.3.3] — 2026-10-06
 
 ### Added
