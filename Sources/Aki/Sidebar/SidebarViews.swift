@@ -388,23 +388,13 @@ struct SidebarRoot: View {
                     .zIndex(20)
             }
 
-            // A new version, announced like Orca does: click to see it and install.
-            if let version = model.updateVersion {
-                let hot = model.hoveredTarget == "update|now"
-                HStack(spacing: 5) {
-                    Image(systemName: "arrow.down.circle.fill").font(.system(size: 11 * layout.scale, weight: .bold))
-                    Text("\(L10n.t("Update to")) \(version)").font(.system(size: 11 * layout.scale, weight: .semibold))
-                }
-                .foregroundStyle(.white)
-                .padding(.horizontal, 10 * layout.scale).frame(height: 24 * layout.scale)
-                .background(Capsule().fill(AkiPalette.red.opacity(hot ? 1 : 0.92)))
-                .shadow(color: AkiPalette.red.opacity(0.45), radius: hot ? 10 : 6)
-                .scaleEffect(hot ? 1.05 : 1)
-                .animation(.spring(response: 0.25, dampingFraction: 0.7), value: hot)
-                .fixedSize()
-                .clickTarget("update|now")
-                .position(layout.updatePillCenter(expanded: model.expanded))
-                .transition(.scale.combined(with: .opacity))
+            // A new version, like Orca: click it, it downloads right in the pill, and
+            // Aki restarts on the new version by itself.
+            if model.update != .idle {
+                UpdatePill(state: model.update, hot: model.hoveredTarget == "update|now", scale: layout.scale)
+                    .clickTarget("update|now")
+                    .position(layout.updatePillCenter(expanded: model.expanded))
+                    .transition(.scale.combined(with: .opacity))
             }
             // The drag handle: dots along the bar's far side, inside the body.
             if model.expanded {
@@ -1923,5 +1913,131 @@ struct ProjectName: View {
         .shadow(color: editing ? AkiPalette.aurora[2].opacity(0.5) : .clear, radius: 10)
         .animation(.easeOut(duration: 0.15), value: hovered)
         .animation(.spring(response: 0.3, dampingFraction: 0.75), value: editing)
+    }
+}
+
+/// The update pill: what to do (red), how far the download is (a bar filling up),
+/// and short messages (up to date, updated, couldn't).
+struct UpdatePill: View {
+    let state: UpdateState
+    let hot: Bool
+    let scale: CGFloat
+
+    private var clickable: Bool {
+        switch state {
+        case .available, .upToDate, .failed: true
+        default: false
+        }
+    }
+
+    private var icon: String {
+        switch state {
+        case .available: "arrow.down.circle.fill"
+        case .checking, .downloading: "arrow.down.circle"
+        case .installing: "arrow.triangle.2.circlepath"
+        case .upToDate, .updated: "checkmark.circle.fill"
+        case .failed: "exclamationmark.triangle.fill"
+        case .idle: "circle"
+        }
+    }
+
+    private var text: String {
+        switch state {
+        case .available(let v): "\(L10n.t("Update to")) \(v)"
+        case .checking: L10n.t("Checking for updates…")
+        case .downloading(let v, let f): "\(L10n.t("Downloading")) \(v)" + (f.map { " · \(Int($0 * 100))%" } ?? "…")
+        case .installing: L10n.t("Installing, Aki restarts…")
+        case .upToDate: L10n.t("Aki is up to date")
+        case .updated(let v): "\(L10n.t("Updated to")) \(v)"
+        case .failed: L10n.t("Couldn't update. Click to try again")
+        case .idle: ""
+        }
+    }
+
+    /// Finished (updated, or nothing newer): the moment the check hops.
+    private var done: Bool {
+        switch state {
+        case .updated, .upToDate: true
+        default: false
+        }
+    }
+
+    /// Red asks for you; dark is Aki at work or telling you something.
+    private var asks: Bool { if case .available = state { true } else { false } }
+
+    var body: some View {
+        HStack(spacing: 5) {
+            Group {
+                if done {
+                    PinMark(size: 14 * scale, bobbing: false)  // done: the pin itself hops
+                } else {
+                    Image(systemName: icon).font(.system(size: 11 * scale, weight: .bold))
+                        .symbolEffect(.pulse, isActive: { if case .installing = state { true } else { false } }())
+                }
+            }
+                // Done: the check hops, once.
+                .phaseAnimator([0.0, -7.0, 0.0, -2.5, 0.0], trigger: done) { view, hop in
+                    view.offset(y: hop * scale)
+                } animation: { _ in .spring(response: 0.22, dampingFraction: 0.55) }
+            // The percentage rolls like a counter instead of fading over itself.
+            Text(text).font(.system(size: 11 * scale, weight: .semibold)).monospacedDigit()
+                .contentTransition(.numericText())
+        }
+        .foregroundStyle(.white)
+        .padding(.horizontal, 10 * scale).frame(height: 24 * scale)
+        .background {
+            ZStack(alignment: .leading) {
+                Capsule().fill(asks ? AkiPalette.red.opacity(hot ? 1 : 0.92) : Color(white: 0.12).opacity(0.96))
+                // The download filling the pill from the left.
+                if case .downloading(_, let fraction) = state {
+                    GeometryReader { box in
+                        let width = max(box.size.height, box.size.width * (fraction ?? 0.04))
+                        Capsule().fill(AkiPalette.red)
+                            .frame(width: width)
+                            .animation(.easeOut(duration: 0.2), value: fraction)
+                    }
+                }
+                if case .installing = state { Capsule().fill(AkiPalette.red) }
+            }
+            .clipShape(Capsule())
+        }
+        .overlay(alignment: .leading) {
+            // Over the pill, unclipped: the pin riding the download's tip.
+            if case .downloading(_, let fraction) = state {
+                GeometryReader { box in
+                    let width = max(box.size.height, box.size.width * (fraction ?? 0.04))
+                    PinMark(size: 15 * scale, bobbing: true)
+                        .position(x: width - 2 * scale, y: -4 * scale)
+                        .animation(.easeOut(duration: 0.2), value: fraction)
+                }
+            }
+        }
+        .overlay(Capsule().strokeBorder(Color.white.opacity(asks ? 0 : 0.18), lineWidth: 1))
+        .shadow(color: AkiPalette.red.opacity(asks ? 0.45 : 0.2), radius: hot && clickable ? 10 : 6)
+        .scaleEffect(hot && clickable ? 1.05 : 1)
+        .animation(.spring(response: 0.25, dampingFraction: 0.7), value: hot)
+        .animation(.easeOut(duration: 0.2), value: state)
+        .fixedSize()
+    }
+}
+
+/// Aki's pin (the brand's speech-bubble pin, as the marking pointer draws it):
+/// bobbing while something loads.
+struct PinMark: View {
+    let size: CGFloat
+    let bobbing: Bool
+    @State private var up = false
+
+    var body: some View {
+        Image(nsImage: AkiCursor.pin.image)
+            .resizable()
+            .interpolation(.high)
+            .frame(width: size, height: size)
+            .shadow(color: .black.opacity(0.35), radius: 2, y: 1)
+            .offset(y: bobbing && up ? -2.5 : 0)
+            .onAppear {
+                guard bobbing else { return }
+                withAnimation(.easeInOut(duration: 0.45).repeatForever(autoreverses: true)) { up = true }
+            }
     }
 }

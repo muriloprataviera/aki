@@ -1,6 +1,12 @@
 // Italian strings for Aki's interface (keys are the English text).
 extension L10n {
     static let italian: [String: String] = [
+        "Checking for updates…": "Ricerca aggiornamenti…",
+        "Downloading": "Download di",
+        "Installing, Aki restarts…": "Installazione, Aki si riavvia…",
+        "Aki is up to date": "Aki è aggiornato",
+        "Updated to": "Aggiornato a",
+        "Couldn't update. Click to try again": "Aggiornamento non riuscito. Clicca per riprovare",
         "area": "area",
         "In the queue, not sent": "In coda, non inviati",
         "Keep marking": "Continua a segnare",

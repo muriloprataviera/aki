@@ -150,7 +150,8 @@ final class SidebarModel {
     /// The resize corner under the pointer, and while it's being dragged.
     var resizeHovered = false
     /// A new version waiting (announced, not downloaded): its pill shows by the bar.
-    var updateVersion: String?
+    /// The update pill by the sidebar: a new version, its download, the restart.
+    var update: UpdateState = .idle
     var resizing = false
     /// The session the history window is filtered to (nil = all).
     var historySession: String?

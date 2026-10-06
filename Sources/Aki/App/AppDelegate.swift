@@ -1,5 +1,6 @@
 import AkiCore
 import AppKit
+import SwiftUI
 import Carbon.HIToolbox
 
 enum AppMain {
@@ -53,16 +54,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         model.removeQueued = { [weak self] id in self?.marking.removeQueued(id) }
         model.clearQueue = { [weak self] in self?.marking.clearQueued() }
         installMainMenu()
-        Updates.shared.onAvailable = { [weak self] version in
-            self?.model.updateVersion = version
-            self?.markStatusItem(version != nil)
+        // `AKI_FAKE_UPDATE=0.9.9` shows the pill and a pretend download (design work and screenshots).
+        Updates.shared.onChange = { [weak self] state in
+            withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) { self?.model.update = state }
+            if case .available = state { self?.markStatusItem(true) } else { self?.markStatusItem(false) }
         }
         Updates.shared.start()
-        // `AKI_FAKE_UPDATE=0.9.9` shows the update pill and dot (design work and screenshots).
-        if let fake = ProcessInfo.processInfo.environment["AKI_FAKE_UPDATE"] {
-            model.updateVersion = fake
-            DispatchQueue.main.async { self.markStatusItem(true) }
-        }
         followMacAppearance()
         startServer(store: store)
         model.startRefreshing()
@@ -222,7 +219,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         guard menu === statusItem?.menu else { return }
         menu.removeAllItems()
         if let version = Updates.shared.available {
-            let update = ClosureMenuItem("\(L10n.t("Update to")) \(version)…") { Updates.shared.checkForUpdates() }
+            let update = ClosureMenuItem("\(L10n.t("Update to")) \(version)") { Updates.shared.tap() }
             update.image = NSImage(systemSymbolName: "arrow.down.circle.fill", accessibilityDescription: nil)
             menu.addItem(update)
             menu.addItem(.separator())

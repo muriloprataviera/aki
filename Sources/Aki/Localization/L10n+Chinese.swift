@@ -1,6 +1,12 @@
 // Simplified Chinese strings for Aki's interface (keys are the English text).
 extension L10n {
     static let chinese: [String: String] = [
+        "Checking for updates…": "正在检查更新…",
+        "Downloading": "正在下载",
+        "Installing, Aki restarts…": "正在安装，Aki 将重新启动…",
+        "Aki is up to date": "Aki 已是最新版本",
+        "Updated to": "已更新到",
+        "Couldn't update. Click to try again": "无法更新。点按重试",
         "area": "区域",
         "In the queue, not sent": "队列中，未发送",
         "Keep marking": "继续标记",

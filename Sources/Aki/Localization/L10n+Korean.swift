@@ -1,6 +1,12 @@
 // Korean strings for Aki's interface (keys are the English text).
 extension L10n {
     static let korean: [String: String] = [
+        "Checking for updates…": "업데이트 확인 중…",
+        "Downloading": "다운로드 중",
+        "Installing, Aki restarts…": "설치 중, Aki가 다시 시작됩니다…",
+        "Aki is up to date": "Aki가 최신 버전입니다",
+        "Updated to": "업데이트됨:",
+        "Couldn't update. Click to try again": "업데이트하지 못했습니다. 클릭해서 다시 시도",
         "area": "영역",
         "In the queue, not sent": "대기열, 보내지 않음",
         "Keep marking": "계속 표시하기",

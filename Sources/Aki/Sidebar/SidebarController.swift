@@ -626,9 +626,9 @@ final class SidebarController {
                 return true
             }
         }
-        // The update pill: Sparkle's window with what's new and Install.
+        // The update pill: install what's waiting (it downloads right in the pill), or look again.
         if let pill = model.targets["update|now"], pill.insetBy(dx: -3, dy: -3).contains(point) {
-            Updates.shared.checkForUpdates()
+            Updates.shared.tap()
             return true
         }
         // A project's name (the pencil shows on hover): one click and you type.
