@@ -411,8 +411,9 @@ final class SidebarController {
         }
         if model.orbHovered != overOrb { model.orbHovered = overOrb }
         if model.gripHovered != overGrip { model.gripHovered = overGrip }
-        let overUpdate = model.targets["update|now"]?.insetBy(dx: -3, dy: -3).contains(point) ?? false
-        let target = overCard ? model.target(at: point).flatMap { $0 == "card" ? nil : $0 } : (overUpdate ? "update|now" : nil)
+        // The update pill, or the card's parts (its button, ×, the notes link).
+        let overUpdate = ["update|now", "update|close", "update|notes"].first { model.targets[$0]?.insetBy(dx: -3, dy: -3).contains(point) ?? false }
+        let target = overCard ? model.target(at: point).flatMap { $0 == "card" ? nil : $0 } : overUpdate
         if model.hoveredTarget != target { model.hoveredTarget = target }
         setCursor(overResize ? Self.resizeCursor(layout.resizeDirection) : overGrip ? .openHand
             : (overOrb || overMark || overHistory || overHide || overName != nil || overEye || target != nil) ? .pointingHand : nil)
@@ -507,6 +508,7 @@ final class SidebarController {
         var rects = [layout.bodyRect(expanded: model.expanded)]
         // The update pill shows folded or open: always clickable.
         if let pill = model.targets["update|now"] { rects.append(pill) }
+        if model.showsUpdateCard, let card = model.targets["update|card"] { rects.append(card) }
         if model.expanded { rects.append(layout.orbRect) }
         if model.expanded { rects.append(layout.gripRect) }
         if model.expanded { rects.append(layout.markOrbRect) }
@@ -626,11 +628,22 @@ final class SidebarController {
                 return true
             }
         }
-        // The update pill: install what's waiting (it downloads right in the pill), or look again.
+        // The update card: × leaves just the pill; the notes open the site's page.
+        if model.showsUpdateCard, let close = model.targets["update|close"], close.insetBy(dx: -4, dy: -4).contains(point) {
+            withAnimation(.spring(response: 0.3, dampingFraction: 0.85)) { model.updateCardClosed = model.update.version }
+            return true
+        }
+        if model.showsUpdateCard, let notes = model.targets["update|notes"], notes.insetBy(dx: -3, dy: -3).contains(point) {
+            if let url = URL(string: "https://useaki.vercel.app/releases") { NSWorkspace.shared.open(url) }
+            return true
+        }
+        // The update pill or the card's button: install what's waiting, or look again.
         if let pill = model.targets["update|now"], pill.insetBy(dx: -3, dy: -3).contains(point) {
             Updates.shared.tap()
             return true
         }
+        // Anywhere else on the card: nothing (not a click through to what's below).
+        if model.showsUpdateCard, let card = model.targets["update|card"], card.contains(point) { return true }
         // A project's name (the pencil shows on hover): one click and you type.
         if let name = model.targets.first(where: { $0.key.hasPrefix("project|") && $0.value.insetBy(dx: -3, dy: -3).contains(point) }) {
             if model.editingProject == nil { startEditingProject(String(name.key.dropFirst("project|".count))) }

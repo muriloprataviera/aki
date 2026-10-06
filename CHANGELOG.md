@@ -5,6 +5,8 @@ What changed in each version of Aki. Versions follow [semantic versioning](https
 ## [Unreleased]
 
 ### Added
+- A new version shows as a card by the sidebar, like Orca's: what it is, that your queue won't be lost, what's new, and one Update button that becomes the download's bar. × leaves just the pill.
+- Versions read short: "0.3.3 beta", not "0.3.3-beta.3".
 - The History shows the queue (marks saved but not sent) in its own block on top, apart from the rest; the menu bar pin's menu has "See the queue". esc closes the History even from the search field.
 
 ### Changed

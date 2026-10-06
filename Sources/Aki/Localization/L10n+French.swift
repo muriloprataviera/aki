@@ -1,6 +1,10 @@
 // French strings for Aki's interface (keys are the English text).
 extension L10n {
     static let french: [String: String] = [
+        "Update available": "Mise à jour disponible",
+        "is ready.": "est prêt.",
+        "Marks in your queue won't be lost.": "Votre file de marques ne se perd pas.",
+        "What's new": "Nouveautés",
         "They go to your agent when you send them.": "Elles partent vers votre agent quand vous les envoyez.",
         "To": "Vers",
         "See the queue": "Voir la file",

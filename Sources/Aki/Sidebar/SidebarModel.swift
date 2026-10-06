@@ -144,6 +144,18 @@ final class SidebarModel {
     /// A new version waiting (announced, not downloaded): its pill shows by the bar.
     /// The update pill by the sidebar: a new version, its download, the restart.
     var update: UpdateState = .idle
+    /// The version whose update card you closed (×): from then on only the pill, until a newer one.
+    var updateCardClosed: String? = UserDefaults.standard.string(forKey: "updateCardClosed") {
+        didSet { UserDefaults.standard.set(updateCardClosed, forKey: "updateCardClosed") }
+    }
+    /// The card, like Orca's: shown for a version not closed yet, and through its download.
+    var showsUpdateCard: Bool {
+        switch update {
+        case .available(let v): updateCardClosed != v
+        case .downloading(let v, _), .installing(let v), .waitingForQueue(let v): updateCardClosed != v
+        default: false
+        }
+    }
     var resizing = false
     /// The session the history window is filtered to (nil = all).
     var historySession: String?

@@ -1,6 +1,10 @@
 // German strings for Aki's interface (keys are the English text).
 extension L10n {
     static let german: [String: String] = [
+        "Update available": "Update verfügbar",
+        "is ready.": "ist bereit.",
+        "Marks in your queue won't be lost.": "Deine Warteschlange geht nicht verloren.",
+        "What's new": "Neuigkeiten",
         "They go to your agent when you send them.": "Sie gehen an deinen Agenten, wenn du sie sendest.",
         "To": "An",
         "See the queue": "Warteschlange ansehen",

@@ -1,6 +1,10 @@
 // Spanish strings for Aki's interface (keys are the English text).
 extension L10n {
     static let spanish: [String: String] = [
+        "Update available": "Actualización disponible",
+        "is ready.": "está listo.",
+        "Marks in your queue won't be lost.": "Tu cola de marcas no se pierde.",
+        "What's new": "Novedades",
         "They go to your agent when you send them.": "Van a tu agente cuando las envíes.",
         "To": "Para",
         "See the queue": "Ver la cola",

@@ -23,16 +23,24 @@ enum UpdateState: Equatable {
     /// Just restarted on this version (shown a few seconds).
     case updated(String)
 
+    /// A version as people read it: "0.3.3-beta.3" → "0.3.3 beta" (the beta's number is
+    /// for Sparkle and the maker; the person just needs to know it's a beta).
+    static func shown(_ version: String) -> String {
+        guard let dash = version.range(of: "-beta") else { return version }
+        return String(version[..<dash.lowerBound]) + " beta"
+    }
+
     /// What the pill and the menu bar's menu say.
     var text: String {
-        switch self {
-        case .available(let v): "\(L10n.t("Update to")) \(v)"
+        let shown = { (v: String) in UpdateState.shown(v) }
+        return switch self {
+        case .available(let v): "\(L10n.t("Update to")) \(shown(v))"
         case .checking: L10n.t("Checking for updates…")
-        case .downloading(let v, let f): "\(L10n.t("Downloading")) \(v)" + (f.map { " · \(Int($0 * 100))%" } ?? "…")
+        case .downloading(let v, let f): "\(L10n.t("Downloading")) \(shown(v))" + (f.map { " · \(Int($0 * 100))%" } ?? "…")
         case .installing: L10n.t("Installing, Aki restarts…")
-        case .waitingForQueue(let v): "\(v) · " + L10n.t("updates once the queue is sent")
+        case .waitingForQueue(let v): "\(shown(v)) · " + L10n.t("updates once the queue is sent")
         case .upToDate: L10n.t("Aki is up to date")
-        case .updated(let v): "\(L10n.t("Updated to")) \(v)"
+        case .updated(let v): "\(L10n.t("Updated to")) \(shown(v))"
         case .failed: L10n.t("Couldn't update. Click to try again")
         case .idle: ""
         }
