@@ -1,6 +1,7 @@
 // Japanese strings for Aki's interface (keys are the English text).
 extension L10n {
     static let japanese: [String: String] = [
+        "Update": "アップデート",
         "updates once the queue is sent": "キューを送信したらアップデートします",
         "Anonymous notices": "匿名の通知",
         "Send anonymous notices to the maker": "作者に匿名の通知を送る",

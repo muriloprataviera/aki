@@ -1,6 +1,7 @@
 // Spanish strings for Aki's interface (keys are the English text).
 extension L10n {
     static let spanish: [String: String] = [
+        "Update": "Actualizar",
         "updates once the queue is sent": "se actualiza cuando se envíe la cola",
         "Anonymous notices": "Avisos anónimos",
         "Send anonymous notices to the maker": "Enviar avisos anónimos al creador",

@@ -1,6 +1,7 @@
 // Italian strings for Aki's interface (keys are the English text).
 extension L10n {
     static let italian: [String: String] = [
+        "Update": "Aggiorna",
         "updates once the queue is sent": "si aggiorna appena la coda è inviata",
         "Anonymous notices": "Avvisi anonimi",
         "Send anonymous notices to the maker": "Invia avvisi anonimi all'autore",

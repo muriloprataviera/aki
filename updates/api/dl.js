@@ -45,19 +45,22 @@ function allowed(key, kind, max, windowMs) {
   return true;
 }
 
+/// Sends one message; false only when Telegram couldn't take it (down, slow) — not when
+/// the hourly cap or a missing setting held it back (those wouldn't go better later).
 async function notify(req, text) {
   // However many places send, at most 30 Telegram messages per 10 minutes from here.
-  if (!allowed('all', 'telegram', 30, 600e3)) return;
+  if (!allowed('all', 'telegram', 30, 600e3)) return true;
   const token = process.env.AKI_TG_TOKEN, chat = process.env.AKI_TG_CHAT;
-  if (!token || !chat) return;
+  if (!token || !chat) return true;
   const ctl = new AbortController(); const t = setTimeout(() => ctl.abort(), 1500);
   try {
     // Plain text (no parse_mode): nothing in it is read as formatting or links.
-    await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+    const r = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
       method: 'POST', headers: { 'content-type': 'application/json' }, signal: ctl.signal,
       body: JSON.stringify({ chat_id: chat, text, disable_web_page_preview: true }),
     });
-  } catch { /* a missed notice never blocks the download */ } finally { clearTimeout(t); }
+    return !!r && r.ok !== false;
+  } catch { return false; /* a missed notice never blocks the download */ } finally { clearTimeout(t); }
 }
 
 // The maker's own downloads and tests are labelled, so every unlabelled notice is a real visitor.
@@ -110,7 +113,8 @@ async function ping(req, res) {
   const head = event === 'update'
     ? `${me}🔄 Aki atualizado ${b.from} → ${b.version}`
     : `${me}🎉 Novo Aki instalado ${b.version}`;
-  await notify(req, [head, `${place(req)} · macOS ${b.macos} · ${b.language}`, when()].join('\n'));
+  // Telegram didn't take it: say so, and the app tries again next launch.
+  if (!(await notify(req, [head, `${place(req)} · macOS ${b.macos} · ${b.language}`, when()].join('\n')))) res.statusCode = 503;
   return res.end();
 }
 

@@ -1,6 +1,7 @@
 // German strings for Aki's interface (keys are the English text).
 extension L10n {
     static let german: [String: String] = [
+        "Update": "Aktualisieren",
         "updates once the queue is sent": "aktualisiert, sobald die Warteschlange gesendet ist",
         "Anonymous notices": "Anonyme Hinweise",
         "Send anonymous notices to the maker": "Anonyme Hinweise an den Entwickler senden",

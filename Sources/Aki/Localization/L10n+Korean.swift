@@ -1,6 +1,7 @@
 // Korean strings for Aki's interface (keys are the English text).
 extension L10n {
     static let korean: [String: String] = [
+        "Update": "업데이트",
         "updates once the queue is sent": "대기열을 보내면 업데이트됩니다",
         "Anonymous notices": "익명 알림",
         "Send anonymous notices to the maker": "제작자에게 익명 알림 보내기",

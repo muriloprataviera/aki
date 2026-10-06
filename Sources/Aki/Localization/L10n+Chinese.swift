@@ -1,6 +1,7 @@
 // Simplified Chinese strings for Aki's interface (keys are the English text).
 extension L10n {
     static let chinese: [String: String] = [
+        "Update": "更新",
         "updates once the queue is sent": "队列发送后即更新",
         "Anonymous notices": "匿名通知",
         "Send anonymous notices to the maker": "向作者发送匿名通知",
