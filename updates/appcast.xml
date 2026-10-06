@@ -3,6 +3,19 @@
     <channel>
         <title>Aki</title>
         <item>
+            <title>0.4.0-beta.3</title>
+            <pubDate>Tue, 06 Oct 2026 13:07:58 -0300</pubDate>
+            <sparkle:channel>beta</sparkle:channel>
+            <sparkle:version>20261006160758</sparkle:version>
+            <sparkle:shortVersionString>0.4.0-beta.3</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
+            <description><![CDATA[<h2>Aki 0.4.0 beta 3</h2>
+<ul><li>Two bigger sidebar sizes, Extra large and Huge, for big monitors: drag the resize corner out, or pick them in Settings.</li></ul>
+]]></description>
+            <enclosure url="https://aki-updates.vercel.app/0.4.0-beta.3/Aki-0.4.0-beta.3.zip" length="3365308" type="application/octet-stream" sparkle:edSignature="Rl8sYG5QL1a2pARQqdyVqvrLsjBokYCyPVmUv6fJo/0FrDKCesK7e2Nw9FAxrTteYe9xtsspy4S/XJDENeTXDw=="/>
+        </item>
+        <item>
             <title>0.4.0-beta.2</title>
             <pubDate>Tue, 06 Oct 2026 13:04:11 -0300</pubDate>
             <sparkle:channel>beta</sparkle:channel>
@@ -57,22 +70,6 @@
 </ul>
 ]]></description>
             <enclosure url="https://aki-updates.vercel.app/0.3.3/Aki-0.3.3.zip" length="3362090" type="application/octet-stream" sparkle:edSignature="9X4HwbHpFRwI5KWYaObegWYgaJTYSaBCGhtEA2egN2FsJiVW7Yp9K6Xs30Nnfe+ziDSZrNY+/pCbKnN44m/KCA=="/>
-        </item>
-        <item>
-            <title>0.3.3-beta.8</title>
-            <pubDate>Tue, 06 Oct 2026 11:06:43 -0300</pubDate>
-            <sparkle:channel>beta</sparkle:channel>
-            <sparkle:version>20261006140643</sparkle:version>
-            <sparkle:shortVersionString>0.3.3-beta.8</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
-            <description><![CDATA[<h2>Aki 0.3.3 beta 8</h2>
-<ul>
-<li>The tag over what you point at says "↑ bigger · ↓ smaller": ↑ takes what holds it — a block, the whole terminal, the window.</li>
-<li>Each build's number now includes the second, so two versions built close together both reach you.</li>
-</ul>
-]]></description>
-            <enclosure url="https://aki-updates.vercel.app/0.3.3-beta.8/Aki-0.3.3-beta.8.zip" length="3362140" type="application/octet-stream" sparkle:edSignature="d+AyoQDeIZHR8ZnjevTkm8NHQp+iYxEkGbU71eX2q5klF0lNiJsco8GwsE5EZznrLbdwWy1YkuNkazquZhL2Aw=="/>
         </item>
         <item>
             <title>0.3.2</title>
