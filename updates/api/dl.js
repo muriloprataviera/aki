@@ -41,7 +41,8 @@ function allowed(key, kind, max, windowMs) {
   if (list.length >= max) { hits.set(k, list); return false; }
   list.push(now);
   hits.set(k, list);
-  if (hits.size > 5000) for (const [key2, l] of hits) if (!l.some((t) => now - t < 3600e3)) hits.delete(key2);
+  // Tidy up only what's past the longest window (a day), so no limit ends early.
+  if (hits.size > 5000) for (const [key2, l] of hits) if (!l.some((t) => now - t < 86400e3)) hits.delete(key2);
   return true;
 }
 
