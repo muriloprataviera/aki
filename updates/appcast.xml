@@ -3,6 +3,19 @@
     <channel>
         <title>Aki</title>
         <item>
+            <title>0.4.0-beta.4</title>
+            <pubDate>Tue, 06 Oct 2026 13:30:25 -0300</pubDate>
+            <sparkle:channel>beta</sparkle:channel>
+            <sparkle:version>20261006163024</sparkle:version>
+            <sparkle:shortVersionString>0.4.0-beta.4</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
+            <description><![CDATA[<h2>Aki 0.4.0 beta 4</h2>
+<ul><li>Pointing inside things a page embeds from elsewhere (Claude's artifacts, videos, payment forms) finds the button or text under the pointer, not just the whole box.</li></ul>
+]]></description>
+            <enclosure url="https://aki-updates.vercel.app/0.4.0-beta.4/Aki-0.4.0-beta.4.zip" length="3365516" type="application/octet-stream" sparkle:edSignature="J3Kdnhhk9lliqCLbuLZu8M8AbVVLd0ZaFqYqkOGj5QlRal3/XlRv/2hqxvNtGli3JVczae1MWLpMKha1eMwYDw=="/>
+        </item>
+        <item>
             <title>0.4.0-beta.3</title>
             <pubDate>Tue, 06 Oct 2026 13:07:58 -0300</pubDate>
             <sparkle:channel>beta</sparkle:channel>
@@ -27,24 +40,6 @@
 <ul><li>The AI's symbol in the rings is back to plain (light on dark), no colour of its own.</li></ul>
 ]]></description>
             <enclosure url="https://aki-updates.vercel.app/0.4.0-beta.2/Aki-0.4.0-beta.2.zip" length="3365215" type="application/octet-stream" sparkle:edSignature="tkNnP8V4wfdg8k/bL6Up7haxwpgCg4lkP0PtNnMuH6fp7bUCO0+zD09DYq+Lt92HGHtrTDuOYvG5wSjkG4Q8BA=="/>
-        </item>
-        <item>
-            <title>0.4.0-beta.1</title>
-            <pubDate>Tue, 06 Oct 2026 12:59:20 -0300</pubDate>
-            <sparkle:channel>beta</sparkle:channel>
-            <sparkle:version>20261006155919</sparkle:version>
-            <sparkle:shortVersionString>0.4.0-beta.1</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
-            <description><![CDATA[<h2>Aki 0.4.0 beta 1</h2>
-<ul>
-<li>The sidebar's rings, redrawn: the AI in the middle in its own colours, and the ring tells the state — a light arc turning slowly while it works, red when it waits for you. Aki's pin stands over the session your marks go to.</li>
-<li>The short <code>aki</code> command in Terminal (Get started → In Terminal → Install).</li>
-<li>What Aki types to your agent is shorter and says what the marks are about.</li>
-<li>Aki also looks for updates when the Mac wakes up.</li>
-</ul>
-]]></description>
-            <enclosure url="https://aki-updates.vercel.app/0.4.0-beta.1/Aki-0.4.0-beta.1.zip" length="3365873" type="application/octet-stream" sparkle:edSignature="c3150VZy4S2B6QRLvLqB/6WWoIY1i1ZLm2aP5TvtSfWrfeEdf8tHMeM5gy9mg25a8xrpuSnvmu+Q76G3TaUdDw=="/>
         </item>
         <item>
             <title>0.3.3</title>
