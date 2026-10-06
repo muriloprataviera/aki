@@ -1,6 +1,11 @@
 // German strings for Aki's interface (keys are the English text).
 extension L10n {
     static let german: [String: String] = [
+        "They go to your agent when you send them.": "Sie gehen an deinen Agenten, wenn du sie sendest.",
+        "To": "An",
+        "See the queue": "Warteschlange ansehen",
+        "Update": "Aktualisieren",
+        "updates once the queue is sent": "aktualisiert, sobald die Warteschlange gesendet ist",
         "Anonymous notices": "Anonyme Hinweise",
         "Send anonymous notices to the maker": "Anonyme Hinweise an den Entwickler senden",
         "When Aki is installed and each time it updates: its version (and the one before), your macOS version and language. No account, no identifier, nothing you mark or type.": "Bei der Installation und bei jedem Update: die Version (und die vorherige), die macOS-Version und die Sprache. Kein Konto, keine Kennung, nichts, was du markierst oder tippst.",

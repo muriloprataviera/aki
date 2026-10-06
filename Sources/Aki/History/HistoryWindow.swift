@@ -17,8 +17,10 @@ final class HistoryWindowController {
         if let panel, panel.isVisible { panel.orderOut(nil) } else { show() }
     }
 
-    func show(session: String? = nil) {
+    func show(session: String? = nil, queue: Bool = false) {
         model.historySession = session
+        model.historyOnQueue = queue
+        model.historyRequest += 1
         let panel = self.panel ?? makePanel()
         self.panel = panel
         if let screen = NSScreen.main {
@@ -31,7 +33,15 @@ final class HistoryWindowController {
         AppWindows.refresh()
     }
 
+    private var escMonitor: Any?
+
     private func makePanel() -> NSPanel {
+        // esc closes it, even with the cursor in the search field (which would keep the key).
+        escMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
+            guard event.keyCode == 53, let panel = self?.panel, panel.isKeyWindow else { return event }
+            panel.orderOut(nil)
+            return nil
+        }
         // A regular Mac window: close, minimise and zoom in the corner, as everywhere.
         let panel = HistoryPanel(
             contentRect: NSRect(x: 0, y: 0, width: 600, height: 620),
@@ -158,8 +168,15 @@ private struct HistoryView: View {
                 }
                 Spacer(minLength: 0)
             }
+            // Marks saved but not sent yet: their own block on top, apart from the history.
             if !model.queuedList.isEmpty {
                 QueueSection(model: model, close: close)
+                HStack(spacing: 8) {
+                    Text(L10n.t("History").uppercased()).font(.system(size: 9, weight: .bold)).tracking(0.8)
+                        .foregroundStyle(.white.opacity(0.4))
+                    Rectangle().fill(Color.white.opacity(0.1)).frame(height: 1)
+                }
+                .padding(.top, 4)
             }
             if filtered.isEmpty {
                 Spacer()
@@ -209,8 +226,9 @@ private struct HistoryView: View {
         // The header shares the title bar's row with close / minimise / zoom.
         .ignoresSafeArea()
         .task { await load() }
-        .onAppear { session = model.historySession }
-        .onChange(of: model.historySession) { session = model.historySession }
+        .onAppear(perform: openAsAsked)
+        // Every request to open it (the queue, a session) chooses the tab again.
+        .onChange(of: model.historyRequest) { openAsAsked() }
         .onReceive(Timer.publish(every: 3, on: .main, in: .common).autoconnect()) { _ in Task { await load() } }
     }
 
@@ -282,8 +300,13 @@ private struct HistoryView: View {
         return AgentSession.Agent.allCases.filter(found.contains)
     }
 
+    /// What the opening asked for: a session's marks, or everything (the queue is always on top).
+    private func openAsAsked() {
+        session = model.historySession
+    }
+
     private func count(_ option: Show) -> Int {
-        annotations.filter { option == .all || (option == .pending ? $0.status != "completed" : $0.status == "completed") }.count
+        return annotations.filter { option == .all || (option == .pending ? $0.status != "completed" : $0.status == "completed") }.count
     }
 
     private func matches(_ a: Annotation) -> Bool {
@@ -630,9 +653,14 @@ private struct QueueSection: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
             HStack(spacing: 6) {
-                Image(systemName: "tray.full").font(.system(size: 10, weight: .bold)).foregroundStyle(AkiPalette.red)
-                Text(L10n.t("In the queue, not sent")).font(.system(size: 11, weight: .bold)).foregroundStyle(.white)
-                Text("· \(model.queuedList.count)").font(.system(size: 11)).foregroundStyle(.white.opacity(0.55))
+                Image(systemName: "tray.full.fill").font(.system(size: 11, weight: .bold)).foregroundStyle(.white)
+                    .frame(width: 22, height: 22).background(Circle().fill(AkiPalette.red))
+                VStack(alignment: .leading, spacing: 0) {
+                    Text("\(L10n.t("In the queue, not sent")) · \(model.queuedList.count)")
+                        .font(.system(size: 12, weight: .bold)).foregroundStyle(.white)
+                    Text(L10n.t("They go to your agent when you send them."))
+                        .font(.system(size: 9.5)).foregroundStyle(.white.opacity(0.5))
+                }
                 Spacer()
                 Button {
                     close()
@@ -695,8 +723,9 @@ private struct QueueSection: View {
                 .background(RoundedRectangle(cornerRadius: 7).fill(Color.white.opacity(0.04)))
             }
         }
-        .padding(8)
-        .background(RoundedRectangle(cornerRadius: 10).fill(AkiPalette.red.opacity(0.08)))
-        .overlay(RoundedRectangle(cornerRadius: 10).strokeBorder(AkiPalette.red.opacity(0.35), lineWidth: 1))
+        .padding(10)
+        .background(RoundedRectangle(cornerRadius: 12, style: .continuous).fill(LinearGradient(
+            colors: [AkiPalette.red.opacity(0.16), AkiPalette.red.opacity(0.05)], startPoint: .topLeading, endPoint: .bottomTrailing)))
+        .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous).strokeBorder(AkiPalette.red.opacity(0.45), lineWidth: 1))
     }
 }

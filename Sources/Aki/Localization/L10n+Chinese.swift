@@ -1,6 +1,11 @@
 // Simplified Chinese strings for Aki's interface (keys are the English text).
 extension L10n {
     static let chinese: [String: String] = [
+        "They go to your agent when you send them.": "发送后会交给你的智能体。",
+        "To": "发送到",
+        "See the queue": "查看队列",
+        "Update": "更新",
+        "updates once the queue is sent": "队列发送后即更新",
         "Anonymous notices": "匿名通知",
         "Send anonymous notices to the maker": "向作者发送匿名通知",
         "When Aki is installed and each time it updates: its version (and the one before), your macOS version and language. No account, no identifier, nothing you mark or type.": "安装 Aki 时以及每次更新时:版本(以及之前的版本)、macOS 版本和语言。没有账号、没有标识符,也不含你标记或输入的任何内容。",

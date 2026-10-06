@@ -1,6 +1,11 @@
 // Japanese strings for Aki's interface (keys are the English text).
 extension L10n {
     static let japanese: [String: String] = [
+        "They go to your agent when you send them.": "送信するとエージェントに届きます。",
+        "To": "送信先",
+        "See the queue": "キューを見る",
+        "Update": "アップデート",
+        "updates once the queue is sent": "キューを送信したらアップデートします",
         "Anonymous notices": "匿名の通知",
         "Send anonymous notices to the maker": "作者に匿名の通知を送る",
         "When Aki is installed and each time it updates: its version (and the one before), your macOS version and language. No account, no identifier, nothing you mark or type.": "Aki のインストール時とアップデートのたび:バージョン(と前のバージョン)、macOS のバージョン、言語。アカウントも識別子も、マークや入力した内容も送りません。",

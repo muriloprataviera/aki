@@ -16,19 +16,29 @@ enum InstallPing {
     private static let lastVersionKey = "lastRunVersion"
     private static let endpoint = URL(string: "https://aki-updates.vercel.app/ping")!
 
+    /// An update not told yet (no network then, or Aki quit first): tried again next launch.
+    private static let pendingKey = "updatePingPending"
+
     static func scheduleIfNeeded(_ preferences: Preferences) {
         let defaults = UserDefaults.standard
         let before = defaults.string(forKey: lastVersionKey)
         defaults.set(Aki.version, forKey: lastVersionKey)
+        if let before, before != Aki.version, defaults.bool(forKey: sentKey) {
+            // Kept from the oldest version not told yet, so 0.3.0 → 0.3.1 → 0.3.2 offline says 0.3.0 → 0.3.2.
+            if defaults.string(forKey: pendingKey) == nil { defaults.set(before, forKey: pendingKey) }
+        }
         let installed = !defaults.bool(forKey: sentKey)
-        let updatedFrom = before.flatMap { $0 != Aki.version ? $0 : nil }
+        let updatedFrom = defaults.string(forKey: pendingKey)
         guard installed || updatedFrom != nil else { return }
         DispatchQueue.main.asyncAfter(deadline: .now() + (installed ? 120 : 15)) {
-            guard preferences.installPing else { return }
+            // Off: nothing goes, and nothing waits to go later.
+            guard preferences.installPing else { defaults.removeObject(forKey: pendingKey); return }
             if installed {
                 send(event: "install", from: nil) { ok in if ok { defaults.set(true, forKey: sentKey) } }
+            } else if let updatedFrom, updatedFrom != Aki.version {
+                send(event: "update", from: updatedFrom) { ok in if ok { defaults.removeObject(forKey: pendingKey) } }
             } else {
-                send(event: "update", from: updatedFrom) { _ in }
+                defaults.removeObject(forKey: pendingKey)
             }
         }
     }

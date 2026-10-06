@@ -742,6 +742,18 @@ struct SettingsView: View {
                         Button(L10n.t("Check now")) { Updates.shared.checkForUpdates() }
                     }
                 }
+                // What the check found, here too (the sidebar's pill may be hidden).
+                if model.update != .idle {
+                    HStack(spacing: 6) {
+                        Image(systemName: model.update.icon)
+                        Text(model.update.text).monospacedDigit()
+                        Spacer()
+                        if model.update.clickable, case .available = model.update {
+                            Button(L10n.t("Update")) { Updates.shared.tap() }
+                        }
+                    }
+                    .foregroundStyle(model.update == .failed ? AkiPalette.red : .secondary)
+                }
                 Toggle(L10n.t("Install updates by themselves"), isOn: $preferences.installUpdatesByThemselves)
                 Toggle(L10n.t("Get beta versions"), isOn: $preferences.betaUpdates)
                 Caption(L10n.t("Aki checks every hour. Betas bring new things first and may be less steady."))

@@ -3,6 +3,9 @@ name: Checks
 on:
   pull_request:
   workflow_dispatch:
+# Read-only token: checks never write to the repository.
+permissions:
+  contents: read
 concurrency:
   group: checks-${{ github.ref }}
   cancel-in-progress: true

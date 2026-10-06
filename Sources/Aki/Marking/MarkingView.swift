@@ -223,7 +223,8 @@ struct MarkingView: View {
                 let spot = queueAnchor ?? queueSpot
                 queuePanel
                     .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { queueHeight = $0 }
-                    .offset(x: spot.x + queueDrag.width + queueDragging.width, y: spot.y + queueDrag.height + queueDragging.height)
+                    .offset(x: min(max(spot.x + queueDrag.width + queueDragging.width, 12), grab.screen.frame.width - 242),
+                            y: min(max(spot.y + queueDrag.height + queueDragging.height, 12), grab.screen.frame.height - queueHeight - 12))
                     .animation(.spring(response: 0.3, dampingFraction: 0.85), value: spot)
                     .transition(.opacity.combined(with: .scale(scale: 0.95)))
                     .onChange(of: session.marks.count) { old, new in if new > old { queueAnchor = nil } }
@@ -245,6 +246,9 @@ struct MarkingView: View {
             }
         }
         .frame(width: grab.screen.frame.width, height: grab.screen.frame.height, alignment: .topLeading)
+        // Another mark's card opens where it belongs, not where the last one was dragged
+        // (watched here: the card's own view is gone between marks).
+        .onChange(of: session.editing) { if session.editing != nil { cardDrag = .zero } }
         .environment(\.colorScheme, .dark)
     }
 
@@ -317,34 +321,11 @@ struct MarkingView: View {
             return CGPoint(x: min(max(x, 12), bounds.width - width - 12),
                            y: min(max(q.y, 12), bounds.height - bottomReserve - size.height))
         } ?? placement(near: mark.anchor, size: size)
-        let x = origin.x + cardDrag.width + cardDragging.width, y = origin.y + cardDrag.height + cardDragging.height
+        // Dragged, but never off its screen (each screen draws only its own card).
+        let screenSize = grab.screen.frame.size
+        let x = min(max(origin.x + cardDrag.width + cardDragging.width, 12), screenSize.width - width - 12)
+        let y = min(max(origin.y + cardDrag.height + cardDragging.height, 12), screenSize.height - min(cardHeight, screenSize.height - 24) - 12)
         return VStack(alignment: .leading, spacing: 10) {
-            // Its top is a handle: drag the card off what you want to see.
-            Capsule()
-                .fill(Color.white.opacity(cardHandleHovered ? 0.6 : 0.25))
-                .frame(width: 36, height: 4)
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 3)
-                .padding(.top, -8)
-                .contentShape(Rectangle())
-                .onContinuousHover { phase in
-                    switch phase {
-                    case .active:
-                        cardHandleHovered = true
-                        AkiCursor.set(cardDragging == .zero ? NSCursor.openHand : NSCursor.closedHand)
-                    case .ended:
-                        cardHandleHovered = false
-                        AkiCursor.set(AkiCursor.pin)
-                    }
-                }
-                .gesture(DragGesture(coordinateSpace: .global)
-                    .onChanged { cardDragging = $0.translation; AkiCursor.set(NSCursor.closedHand) }
-                    .onEnded { value in
-                        cardDrag.width += value.translation.width
-                        cardDrag.height += value.translation.height
-                        cardDragging = .zero
-                    })
-                .help(L10n.t("Drag to move"))
             HStack(spacing: 8) {
                 Text("\(mark.number)")
                     .font(.system(size: 12, weight: .bold, design: .rounded))
@@ -408,8 +389,36 @@ struct MarkingView: View {
                 buttons
             }
         }
-        .padding(14)
+        .padding(.horizontal, 14).padding(.bottom, 14).padding(.top, 20)
         .frame(width: width, alignment: .leading)
+        // The grab handle: centred on the card's top edge, in its own strip.
+        .overlay(alignment: .top) {
+                // Its top is a handle: drag the card off what you want to see.
+                // The same six dots as the sidebar's handle: every grab spot looks alike.
+                GripDots(vertical: false, hovered: cardHandleHovered, scale: 0.85, tint: .white, backdrop: Color.white.opacity(0.08))
+                    .padding(.top, 3)
+                    .contentShape(Rectangle())
+                    .onContinuousHover { phase in
+                        switch phase {
+                        case .active:
+                            cardHandleHovered = true
+                            AkiCursor.set(cardDragging == .zero ? NSCursor.openHand : NSCursor.closedHand)
+                        case .ended:
+                            cardHandleHovered = false
+                            AkiCursor.set(AkiCursor.pin)
+                        }
+                    }
+                    .gesture(DragGesture(coordinateSpace: .global)
+                        .onChanged { cardDragging = $0.translation; AkiCursor.set(NSCursor.closedHand) }
+                        .onEnded { value in
+                            // Keep where it shows (stopped at the screen's edge), not where the pointer went.
+                            cardDrag.width = min(max(origin.x + cardDrag.width + value.translation.width, 12), screenSize.width - width - 12) - origin.x
+                            cardDrag.height = min(max(origin.y + cardDrag.height + value.translation.height, 12),
+                                                  screenSize.height - min(cardHeight, screenSize.height - 24) - 12) - origin.y
+                            cardDragging = .zero
+                        })
+                    .help(L10n.t("Drag to move"))
+        }
         // Solid: nothing from the screen behind shows through the text.
         .background(RoundedRectangle(cornerRadius: 16, style: .continuous).fill(Color(red: 20 / 255, green: 20 / 255, blue: 20 / 255)))
         .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous).strokeBorder(hue.opacity(0.6), lineWidth: 1))
@@ -427,8 +436,7 @@ struct MarkingView: View {
         .offset(x: x, y: y)
         .animation(.easeOut(duration: 0.15), value: cardHeight)
         .onAppear { focusField() }
-        // Another mark's card opens where it belongs, not where the last one was dragged.
-        .onChange(of: session.editing) { focusField(); showsMore = false; cardDrag = .zero }
+        .onChange(of: session.editing) { focusField(); showsMore = false }
         .transition(.opacity.combined(with: .scale(scale: 0.96, anchor: .topLeading)))
     }
 
@@ -704,9 +712,7 @@ struct MarkingView: View {
         VStack(alignment: .leading, spacing: 0) {
             // Its top is a handle (the grabber bar says so; the hand too): drag it anywhere.
             VStack(spacing: 6) {
-                Capsule()
-                    .fill(Color.white.opacity(moreHandleHovered ? 0.6 : 0.3))
-                    .frame(width: 36, height: 5)
+                GripDots(vertical: false, hovered: moreHandleHovered, scale: 0.8, tint: .white, backdrop: Color.white.opacity(0.08))
                     .frame(maxWidth: .infinity)
                 HStack(spacing: 5) {
                     Image(systemName: "arrow.up.and.down.and.arrow.left.and.right")
@@ -841,31 +847,6 @@ struct MarkingView: View {
         let count = session.marks.count
         let selected = session.queueSelected.intersection(session.marks.map(\.id))
         return VStack(alignment: .leading, spacing: 6) {
-            // Its top is a handle: drag the queue out of the way.
-            Capsule()
-                .fill(Color.white.opacity(queueHandleHovered ? 0.6 : 0.25))
-                .frame(width: 32, height: 4)
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 2)
-                .contentShape(Rectangle())
-                .onContinuousHover { phase in
-                    switch phase {
-                    case .active:
-                        queueHandleHovered = true
-                        AkiCursor.set(queueDragging == .zero ? NSCursor.openHand : NSCursor.closedHand)
-                    case .ended:
-                        queueHandleHovered = false
-                        AkiCursor.set(AkiCursor.pin)
-                    }
-                }
-                .gesture(DragGesture(coordinateSpace: .global)
-                    .onChanged { queueDragging = $0.translation; AkiCursor.set(NSCursor.closedHand) }
-                    .onEnded { value in
-                        queueDrag.width += value.translation.width
-                        queueDrag.height += value.translation.height
-                        queueDragging = .zero
-                    })
-                .help(L10n.t("Drag to move"))
             HStack(spacing: 4) {
                 Text(L10n.t("Queue")).font(.system(size: 11, weight: .bold)).foregroundStyle(.white)
                 Text("· \(count)").font(.system(size: 11)).foregroundStyle(.white.opacity(0.55))
@@ -900,7 +881,6 @@ struct MarkingView: View {
             .frame(maxHeight: count > 5 ? 230 : nil)
             .fixedSize(horizontal: false, vertical: count <= 5)
             // Where the whole queue goes, changeable here: a field that reads as one.
-            Text(L10n.t("Where it goes")).font(.system(size: 9.5, weight: .semibold)).foregroundStyle(.white.opacity(0.5))
             Menu {
                 ForEach(session.terminals) { t in
                     Button {
@@ -921,14 +901,9 @@ struct MarkingView: View {
             Button { send() } label: {
                 HStack(spacing: 5) {
                     Image(systemName: "paperplane.fill").font(.system(size: 10, weight: .bold))
-                    if destinations.count > 1 {
-                        Text("\(L10n.t("Send")) \(count) · \(destinations.count) \(L10n.t("sessions"))")
-                            .font(.system(size: 11, weight: .bold))
-                    } else if let terminal {
-                        AgentGlyphView(agent: terminal.agent, size: 11)
-                        TerminalAppIcon(bundleID: TerminalApp.owner(of: terminal.pid)?.bundleIdentifier, size: 11)
-                        Text(terminal.name).font(.system(size: 11, weight: .bold)).lineLimit(1)
-                    }
+                    // A verb, not the session again (the chooser above says where): plainly the button.
+                    Text(count == 1 ? L10n.t("Send") : "\(L10n.t("Send all")) (\(count))")
+                        .font(.system(size: 11.5, weight: .bold))
                     Spacer(minLength: 2)
                     Keycap(key: "⌘⏎", size: 8)
                 }
@@ -944,8 +919,36 @@ struct MarkingView: View {
             .modifier(GlowHover())
             .help(terminal.map { "\(L10n.t("Send")) \(count) \(L10n.t("to")) \($0.agent.displayName) · \($0.name)" } ?? "")
         }
-        .padding(9)
+        .padding(.horizontal, 9).padding(.bottom, 9).padding(.top, 17)
         .frame(width: 230)
+        // The grab handle: centred on the queue's top edge, as on the card.
+        .overlay(alignment: .top) {
+                // Its top is a handle: drag the queue out of the way.
+                GripDots(vertical: false, hovered: queueHandleHovered, scale: 0.8, tint: .white, backdrop: Color.white.opacity(0.08))
+                    .padding(.top, 2)
+                    .contentShape(Rectangle())
+                    .onContinuousHover { phase in
+                        switch phase {
+                        case .active:
+                            queueHandleHovered = true
+                            AkiCursor.set(queueDragging == .zero ? NSCursor.openHand : NSCursor.closedHand)
+                        case .ended:
+                            queueHandleHovered = false
+                            AkiCursor.set(AkiCursor.pin)
+                        }
+                    }
+                    .gesture(DragGesture(coordinateSpace: .global)
+                        .onChanged { queueDragging = $0.translation; AkiCursor.set(NSCursor.closedHand) }
+                        .onEnded { value in
+                            // Keep where it shows (stopped at the screen's edge), not where the pointer went.
+                            let spot = queueAnchor ?? queueSpot
+                            queueDrag.width = min(max(spot.x + queueDrag.width + value.translation.width, 12), grab.screen.frame.width - 242) - spot.x
+                            queueDrag.height = min(max(spot.y + queueDrag.height + value.translation.height, 12),
+                                                   grab.screen.frame.height - queueHeight - 12) - spot.y
+                            queueDragging = .zero
+                        })
+                    .help(L10n.t("Drag to move"))
+        }
         .fixedSize(horizontal: false, vertical: true)
         .background(RoundedRectangle(cornerRadius: 12, style: .continuous).fill(Color(red: 20 / 255, green: 20 / 255, blue: 20 / 255)))
         .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous).strokeBorder(hue.opacity(0.5), lineWidth: 1))
@@ -1755,24 +1758,26 @@ struct DestinationField: View {
     @State private var hovered = false
 
     var body: some View {
+        // A chooser, not a button: only an outline, "To" before the name, the menu arrows.
         HStack(spacing: 6) {
-            Circle().fill(hue).frame(width: 7, height: 7)
+            Text(L10n.t("To")).font(.system(size: 10.5, weight: .medium)).foregroundStyle(.white.opacity(0.5))
+            Circle().fill(hue).frame(width: 6, height: 6)
             if let terminal {
-                AgentGlyphView(agent: terminal.agent, size: 11).foregroundStyle(.white)
-                TerminalAppIcon(bundleID: TerminalApp.owner(of: terminal.pid)?.bundleIdentifier, size: 11)
-                Text(terminal.name).font(.system(size: 11, weight: .bold)).foregroundStyle(.white).lineLimit(1)
+                AgentGlyphView(agent: terminal.agent, size: 10).foregroundStyle(.white.opacity(0.85))
+                Text(terminal.name).font(.system(size: 11, weight: .semibold)).foregroundStyle(.white.opacity(0.9)).lineLimit(1)
             } else if let several {
-                Text("\(several) \(L10n.t("sessions"))").font(.system(size: 11, weight: .bold)).foregroundStyle(.white)
+                Text("\(several) \(L10n.t("sessions"))").font(.system(size: 11, weight: .semibold)).foregroundStyle(.white.opacity(0.9))
             } else {
-                Text(L10n.t("No destination")).font(.system(size: 11, weight: .bold)).foregroundStyle(.white)
+                Text(L10n.t("No destination")).font(.system(size: 11, weight: .semibold)).foregroundStyle(.white.opacity(0.9))
             }
             Spacer(minLength: 4)
-            Image(systemName: "chevron.up.chevron.down").font(.system(size: 9, weight: .bold))
-                .foregroundStyle(.white.opacity(hovered ? 0.95 : 0.6))
+            Text(L10n.t("Change")).font(.system(size: 10, weight: .medium)).foregroundStyle(.white.opacity(hovered ? 0.9 : 0.5))
+            Image(systemName: "chevron.up.chevron.down").font(.system(size: 8.5, weight: .bold))
+                .foregroundStyle(.white.opacity(hovered ? 0.9 : 0.5))
         }
-        .padding(.horizontal, 8).frame(height: 26)
-        .background(RoundedRectangle(cornerRadius: 7).fill(Color.white.opacity(hovered ? 0.14 : 0.07)))
-        .overlay(RoundedRectangle(cornerRadius: 7).strokeBorder(hovered ? hue.opacity(0.9) : Color.white.opacity(0.18), lineWidth: 1))
+        .padding(.horizontal, 8).frame(height: 24)
+        .background(RoundedRectangle(cornerRadius: 7).fill(Color.white.opacity(hovered ? 0.06 : 0)))
+        .overlay(RoundedRectangle(cornerRadius: 7).strokeBorder(Color.white.opacity(hovered ? 0.45 : 0.2), style: StrokeStyle(lineWidth: 1, dash: [3, 2])))
         .contentShape(Rectangle())
         .onHover { inside in
             withAnimation(.easeOut(duration: 0.12)) { hovered = inside }

@@ -57,7 +57,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         // `AKI_FAKE_UPDATE=0.9.9` shows the pill and a pretend download (design work and screenshots).
         Updates.shared.onChange = { [weak self] state in
             withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) { self?.model.update = state }
-            if case .available = state { self?.markStatusItem(true) } else { self?.markStatusItem(false) }
+            // The dot while there's something to see (with the sidebar hidden, it's the only sign).
+            switch state {
+            case .available, .downloading, .installing, .waitingForQueue, .failed: self?.markStatusItem(true)
+            default: self?.markStatusItem(false)
+            }
+        }
+        // An update restarts Aki: never while marks wait to be sent (they live in memory).
+        Updates.shared.canRestart = { [weak self] in
+            guard let self else { return true }
+            return !self.marking.hasUnsentMarks
         }
         Updates.shared.start()
         followMacAppearance()
@@ -218,10 +227,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     func menuNeedsUpdate(_ menu: NSMenu) {
         guard menu === statusItem?.menu else { return }
         menu.removeAllItems()
-        if let version = Updates.shared.available {
-            let update = ClosureMenuItem("\(L10n.t("Update to")) \(version)") { Updates.shared.tap() }
-            update.image = NSImage(systemSymbolName: "arrow.down.circle.fill", accessibilityDescription: nil)
-            menu.addItem(update)
+        // The update, as the pill says it — also for those who hide the sidebar.
+        let update = Updates.shared.state
+        if update != .idle {
+            // Only what a click can act on is a button; the rest just tells (no action: greyed).
+            let item = update.clickable
+                ? ClosureMenuItem(update.text) { Updates.shared.tap() }
+                : NSMenuItem(title: update.text, action: nil, keyEquivalent: "")
+            item.image = NSImage(systemSymbolName: update.icon, accessibilityDescription: nil)
+            menu.addItem(item)
             menu.addItem(.separator())
         }
         func shortcut(_ item: NSMenuItem, _ combo: KeyCombo) -> NSMenuItem {
@@ -239,6 +253,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         let history = ClosureMenuItem(L10n.t("History")) { [weak self] in self?.history.show() }
         history.image = NSImage(systemSymbolName: "clock.arrow.circlepath", accessibilityDescription: nil)
         menu.addItem(shortcut(history, preferences.historyShortcut))
+        // Marks saved but not sent: straight to them.
+        if model.queuedMarks > 0 {
+            let queue = ClosureMenuItem("\(L10n.t("See the queue")) (\(model.queuedMarks))") { [weak self] in self?.history.show(queue: true) }
+            queue.image = NSImage(systemSymbolName: "tray.full", accessibilityDescription: nil)
+            menu.addItem(queue)
+        }
         menu.addItem(.separator())
         // The sidebar, as it is: bring it back, or keep it open (✓) / let it hide.
         if preferences.visibility == .hidden {

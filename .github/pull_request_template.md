@@ -8,7 +8,7 @@
 
 ## Checklist
 
-- [ ] Opened against `develop`
+- [ ] Opened against `main`
 - [ ] `swift build` and `swift run AkiChecks` pass
 - [ ] `python3 scripts/check-translations.py` passes (new texts in all languages)
 - [ ] Ran the app (`scripts/install.sh`) and tried what changed

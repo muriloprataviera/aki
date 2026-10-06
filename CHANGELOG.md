@@ -4,6 +4,22 @@ What changed in each version of Aki. Versions follow [semantic versioning](https
 
 ## [Unreleased]
 
+### Added
+- The History shows the queue (marks saved but not sent) in its own block on top, apart from the rest; the menu bar pin's menu has "See the queue". esc closes the History even from the search field.
+
+### Changed
+- Updates never restart Aki while marks wait to be sent: it downloads, says "updates once the queue is sent", and restarts after. The update's state also shows in the menu bar pin's menu and in Settings, for those who hide the sidebar. Checking for updates only shows what's new; installing is always a click.
+
+### Changed
+- Every grab spot (comment card, queue, "+N" list) has the same six dots as the sidebar's handle.
+- In the queue, the destination is plainly a chooser ("To: … Change", outlined) and the button plainly says "Send".
+
+### Fixed
+- **Marks could go to the wrong conversation**: session names came from a copy of Orca's tab names that Orca stopped updating, so an old name ("ORDERS TAB") showed on a conversation that is now another one. Names now come only from Orca's live list.
+- Marking opens on the session you chose last — never one guessed from activity (a session also starts working on its own).
+- A dragged comment card or queue stays on its screen; the next mark's card opens in its own place.
+- The number of marks in the queue on the sidebar stays right.
+
 ## [0.3.2] — 2026-10-06
 
 ### Added

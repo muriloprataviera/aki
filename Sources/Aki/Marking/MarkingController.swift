@@ -38,7 +38,8 @@ final class MarkingController {
     /// Marks saved but not sent, kept between rounds (the sidebar counts them, the History lists them).
     private var queued: [Mark] = [] {
         didSet {
-                let pictures = Dictionary(uniqueKeysWithValues: model.queuedList.map { ($0.id, $0.image) })
+            model.queuedMarks = queued.count
+            let pictures = Dictionary(uniqueKeysWithValues: model.queuedList.map { ($0.id, $0.image) })
             model.queuedList = queued.map { mark in
                 QueuedMark(id: mark.id, number: mark.number, comment: mark.comment, text: mark.text,
                            destination: mark.destination,
@@ -51,6 +52,9 @@ final class MarkingController {
     private var activeObserver: Any?
 
     var isActive: Bool { session != nil }
+
+    /// Marks that a restart would lose: marking open, or saved in the queue (memory only).
+    var hasUnsentMarks: Bool { isActive || starting || !queued.isEmpty }
 
     /// Empties the waiting queue (from the History, with marking closed).
     func clearQueued() {
@@ -72,7 +76,8 @@ final class MarkingController {
     }
 
     func start() {
-        guard !isActive, !starting else { return }
+        // Aki is restarting on a new version: marks made now would be lost.
+        guard !isActive, !starting, !Updates.shared.restarting else { return }
         starting = true
         previousApp = NSWorkspace.shared.frontmostApplication
         let context = MarkContext.current()

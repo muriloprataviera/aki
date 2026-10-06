@@ -2,9 +2,9 @@
 
 Thanks for wanting to help. Start with [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) — a one-page map of how Aki is built. A few rules keep things calm:
 
-- **How:** people the maintainer adds as collaborators branch straight in this repository (`yourname/topic`); everyone else forks it. Either way, the change comes in as a pull request to `develop`, and the maintainer decides what goes in.
+- **How:** people the maintainer adds as collaborators branch straight in this repository (`yourname/topic`); everyone else forks it. Either way, the change comes in as a pull request to `main`, and the maintainer decides what goes in.
 
-- **Branch from `develop`, open the pull request to `develop`.** Nothing reaches people using Aki until the next release; releases are tags (`vX.Y.Z`) cut by the maintainer.
+- **Branch from `main`, open the pull request to `main`.** Nothing reaches people using Aki until the next release; releases are tags (`vX.Y.Z`) cut by the maintainer.
 - **One topic per pull request**, small enough to review in one sitting. Say what it changes and how you tried it (a screenshot or short video for anything visible).
 - **Commits:** `feat: …`, `fix: …`, `perf: …`, `docs: …`, `chore: …` — the release notes are built from them.
 - **Before opening it:** `swift build`, `swift run AkiChecks` and `python3 scripts/check-translations.py` pass (CI runs the same on every pull request), and you ran the app (`scripts/install.sh`) and tried what you changed.

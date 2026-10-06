@@ -13,6 +13,9 @@ enum UpdateState: Equatable {
     case downloading(String, Double?)
     /// Unpacking and swapping it in; Aki restarts by itself right after.
     case installing(String)
+    /// Downloaded, but marks are waiting in the queue (they live only in memory):
+    /// Aki restarts as soon as they're sent or cleared.
+    case waitingForQueue(String)
     /// You asked and there's nothing newer (shown a few seconds).
     case upToDate
     /// It didn't work (shown a few seconds; the next check tries again).
@@ -20,9 +23,44 @@ enum UpdateState: Equatable {
     /// Just restarted on this version (shown a few seconds).
     case updated(String)
 
+    /// What the pill and the menu bar's menu say.
+    var text: String {
+        switch self {
+        case .available(let v): "\(L10n.t("Update to")) \(v)"
+        case .checking: L10n.t("Checking for updates…")
+        case .downloading(let v, let f): "\(L10n.t("Downloading")) \(v)" + (f.map { " · \(Int($0 * 100))%" } ?? "…")
+        case .installing: L10n.t("Installing, Aki restarts…")
+        case .waitingForQueue(let v): "\(v) · " + L10n.t("updates once the queue is sent")
+        case .upToDate: L10n.t("Aki is up to date")
+        case .updated(let v): "\(L10n.t("Updated to")) \(v)"
+        case .failed: L10n.t("Couldn't update. Click to try again")
+        case .idle: ""
+        }
+    }
+
+    var icon: String {
+        switch self {
+        case .available: "arrow.down.circle.fill"
+        case .checking, .downloading: "arrow.down.circle"
+        case .installing: "arrow.triangle.2.circlepath"
+        case .waitingForQueue: "tray.full"
+        case .upToDate, .updated: "checkmark.circle.fill"
+        case .failed: "exclamationmark.triangle.fill"
+        case .idle: "circle"
+        }
+    }
+
+    /// A click does something (install, look again); the rest only tell.
+    var clickable: Bool {
+        switch self {
+        case .available, .upToDate, .failed: true
+        default: false
+        }
+    }
+
     var version: String? {
         switch self {
-        case .available(let v), .downloading(let v, _), .installing(let v), .updated(let v): v
+        case .available(let v), .downloading(let v, _), .installing(let v), .waitingForQueue(let v), .updated(let v): v
         default: nil
         }
     }
@@ -74,6 +112,16 @@ final class Updates: NSObject, SPUUserDriver, SPUUpdaterDelegate {
 
     /// Sparkle's question for the update found, answered when you click the pill.
     private var answer: ((SPUUserUpdateChoice) -> Void)?
+    /// The update found was already downloaded and unpacked (from an earlier session):
+    /// answering it restarts straight away, so it goes through the queue check too.
+    private var answerRestarts = false
+    /// Whether restarting now would lose nothing (no marking open, nothing in the queue).
+    var canRestart: () -> Bool = { true }
+    /// The restart is on its way: no new marking may start (it would be lost when Aki quits).
+    private(set) var restarting = false
+    /// The go-ahead to restart, held while marks wait in the queue.
+    private var restart: ((SPUUserUpdateChoice) -> Void)?
+    private var restartTimer: Timer?
     private var expected: UInt64 = 0
     private var received: UInt64 = 0
     /// `AKI_FAKE_UPDATE=0.9.9`: the pill and a pretend download (design work, screenshots).
@@ -99,7 +147,8 @@ final class Updates: NSObject, SPUUserDriver, SPUUpdaterDelegate {
 
     /// "Check for Updates…" in the menus and Settings.
     @objc func checkForUpdates() {
-        if case .available = state { install(); return }
+        // Already found: the pill (and the menu) show it; installing is only ever a click on it.
+        if case .available = state { return }
         guard updater.canCheckForUpdates else { return }
         updater.checkForUpdates()
     }
@@ -109,21 +158,32 @@ final class Updates: NSObject, SPUUserDriver, SPUUpdaterDelegate {
         switch state {
         case .available: install()
         case .idle, .upToDate, .failed: checkForUpdates()
-        case .checking, .downloading, .installing, .updated: break
+        case .checking, .downloading, .installing, .waitingForQueue, .updated: break
         }
     }
 
     private func install() {
         guard case .available(let version) = state else { return }
         if fake != nil { pretend(version); return }
-        state = .downloading(version, nil)
         let reply = answer
         answer = nil
+        if answerRestarts {
+            // Ready from before: this answer is the restart itself.
+            answerRestarts = false
+            state = .installing(version)
+            restart = reply
+            restartWhenSafe()
+            return
+        }
+        state = .downloading(version, nil)
         reply?(.install)
     }
 
     /// Kept for Settings: an update found is downloaded and installed with no click.
-    func setInstallsByThemselves(_ on: Bool) {}
+    func setInstallsByThemselves(_ on: Bool) {
+        // Turned on with one already waiting: take it now.
+        if on, case .available = state { install() }
+    }
 
     // MARK: SPUUserDriver — every step, drawn by Aki
 
@@ -142,6 +202,7 @@ final class Updates: NSObject, SPUUserDriver, SPUUpdaterDelegate {
         MainActor.assumeIsolated {
             if appcastItem.isInformationOnlyUpdate { reply(.dismiss); return }
             answer = reply
+            answerRestarts = updateState.stage == .installing
             state = .available(version)
             if Preferences.shared.installUpdatesByThemselves { install() }
         }
@@ -195,10 +256,31 @@ final class Updates: NSObject, SPUUserDriver, SPUUpdaterDelegate {
 
     nonisolated func showReady(toInstallAndRelaunch reply: @escaping (SPUUserUpdateChoice) -> Void) {
         MainActor.assumeIsolated {
-            if let version = state.version { state = .installing(version) }
-            // Restart right away: the new version comes back on its own.
-            UserDefaults.standard.set(Aki.version, forKey: updatingFromKey)
+            restart = reply
+            restartWhenSafe()
         }
+    }
+
+    /// Restarts on the new version — right away, or once the queue is empty and marking
+    /// is closed (marks not sent yet live only in memory: a restart would lose them).
+    private func restartWhenSafe() {
+        guard let reply = restart, let version = state.version else { return }
+        guard canRestart() else {
+            state = .waitingForQueue(version)
+            if restartTimer == nil {
+                restartTimer = Timer.scheduledTimer(withTimeInterval: 2, repeats: true) { [weak self] _ in
+                    MainActor.assumeIsolated { self?.restartWhenSafe() }
+                }
+            }
+            return
+        }
+        restartTimer?.invalidate()
+        restartTimer = nil
+        restart = nil
+        restarting = true
+        state = .installing(version)
+        // The new version comes back on its own and says so.
+        UserDefaults.standard.set(Aki.version, forKey: updatingFromKey)
         reply(.install)
     }
 
@@ -215,9 +297,15 @@ final class Updates: NSObject, SPUUserDriver, SPUUpdaterDelegate {
 
     nonisolated func dismissUpdateInstallation() {
         MainActor.assumeIsolated {
+            // The session is over: nothing of it may answer a later one.
             answer = nil
+            answerRestarts = false
+            restart = nil
+            restarting = false
+            restartTimer?.invalidate()
+            restartTimer = nil
             switch state {
-            case .checking, .downloading, .installing, .available: state = .idle
+            case .checking, .downloading, .installing, .waitingForQueue, .available: state = .idle
             default: break
             }
         }
