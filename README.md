@@ -25,7 +25,7 @@
 <p align="center">
   <img src="https://img.shields.io/badge/macOS-14%2B-141414?style=flat-square&logo=apple&logoColor=F3EFE6" alt="macOS 14+">
   <img src="https://img.shields.io/badge/Apple%20Silicon-native-141414?style=flat-square" alt="Apple Silicon">
-  <img src="https://img.shields.io/badge/version-0.2%20beta-FF3B1F?style=flat-square" alt="0.2 beta">
+  <a href="../../releases/latest"><img src="https://img.shields.io/github/v/release/muriloprataviera/aki?style=flat-square&color=FF3B1F&label=version" alt="Latest version"></a>
   <img src="https://img.shields.io/badge/Claude%20Code%20%C2%B7%20Codex%20%C2%B7%20Gemini%20%C2%B7%20opencode-works%20with-141414?style=flat-square" alt="Works with Claude Code, Codex, Gemini, opencode">
   <a href="https://x.com/muprataviera"><img src="https://img.shields.io/badge/follow-@muprataviera-141414?style=flat-square&logo=x" alt="Follow on X"></a>
 </p>
@@ -116,7 +116,7 @@ Aki sends no usage data and no crash reports. The one exception is two small, an
 | Aki is installed (about two minutes after the first launch) | Aki's version, macOS version, chip, preferred language |
 | Aki updates to a new version | the same, plus the version it updated from |
 
-The download host (`aki-updates.vercel.app`, on Vercel) adds the approximate city, region and country. **No account, no identifier, no IP address kept, nothing you mark or type.** They're on by default and explained in **Get started**; turn them off there or in **Settings → General → Privacy** — when off, nothing is sent. The code is short and readable: [`Sources/Aki/App/InstallPing.swift`](Sources/Aki/App/InstallPing.swift). Details in the [privacy notice](https://useaki.vercel.app/privacy).
+The download host (`aki-updates.vercel.app`, on Vercel) adds the approximate state or region and country (never the city). **No account, no identifier, no IP address kept, nothing you mark or type.** They're on by default and explained in **Get started**; turn them off there or in **Settings → General → Privacy** — when off, nothing is sent. The code is short and readable: [`Sources/Aki/App/InstallPing.swift`](Sources/Aki/App/InstallPing.swift). Details in the [privacy notice](https://useaki.vercel.app/privacy).
 
 ### Where Aki lives
 
@@ -186,7 +186,7 @@ file:     src/components/Hero.tsx:42
 
 ## Privacy
 
-Everything stays on your Mac, in `~/.aki`. Aki's local server listens on `127.0.0.1` only and checks every request's origin. Nothing is sent anywhere except the update check.
+Everything you mark stays on your Mac, in `~/.aki`. Aki's local server listens on `127.0.0.1` only and checks every request's origin. Nothing is sent anywhere except the update check and the optional, anonymous notices described in [Anonymous notices](#anonymous-notices-telemetry).
 
 ## Build from source
 
