@@ -1,6 +1,8 @@
 // Simplified Chinese strings for Aki's interface (keys are the English text).
 extension L10n {
     static let chinese: [String: String] = [
+        "to do": "待办",
+        "destination": "目标",
         "Find a session": "查找会话",
         "No session with that name": "没有这个名称的会话",
         "Extra large": "特大",

@@ -46,7 +46,8 @@ struct SidebarLayout: Equatable {
 
     // Tiny name under a terminal's ring
     static let labelGap: CGFloat = 5
-    static let labelHeight: CGFloat = 13
+    /// Two lines under a ring: the session's name, then its state in a word.
+    static let labelHeight: CGFloat = 25
     static let labelFont: CGFloat = 10
 
     let count: Int

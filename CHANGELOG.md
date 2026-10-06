@@ -12,7 +12,7 @@ What changed in each version of Aki. Versions follow [semantic versioning](https
 
 ### Changed
 - Aki also looks for a new version when the Mac wakes up, not only on the hour.
-- The sidebar's rings, in Aki's colours: the AI's symbol in the middle, and the ring tells the state — a light arc turning slowly while it works, red when it waits for you, quiet otherwise. Aki's pin stands over the session your marks go to. No more initials, one colour per project or gradients.
+- The sidebar's rings, in Aki's colours: the AI's symbol in the middle, and the ring tells the state — a light arc turning slowly while it works, red when it waits for you, quiet otherwise. Under each name, its state in a word (working, idle, waiting for you). The session your marks go to is framed, with "destination" and Aki's pin; your requests an AI hasn't finished show as "1 to do". No more initials, one colour per project or gradients.
 - What Aki types to your agent is shorter and says what the marks are about ("📍 Aki: 2 new marks — “…” · “…”"), uses `aki` when it's there, asks to open a picture only when it matters, and to close all marks in one go.
 
 ### Fixed

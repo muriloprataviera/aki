@@ -592,17 +592,21 @@ struct RingCell: View {
                 // The number says how many wait; the card shows them.)
                 .overlay(alignment: .topTrailing) {
                     if ring.pending > 0 {
-                        Text("\(ring.pending)")
-                            .font(.system(size: 8.5 * scale, weight: .bold).monospacedDigit())
-                            .foregroundStyle(AkiPalette.fg)
-                            .padding(.horizontal, 3.5 * scale)
-                            .frame(minWidth: 14 * scale, minHeight: 14 * scale)
-                            .background(Capsule().fill(AkiPalette.auroraDiagonal))
-                            // A dark edge, and further out on the destination, so its glow doesn't swallow it.
-                            .overlay(Capsule().strokeBorder(AkiPalette.bg, lineWidth: 1.5 * scale))
-                            .offset(x: (isDestination ? 9 : 3) * scale, y: (isDestination ? -9 : -3) * scale)
-                            .zIndex(2)
-                            .transition(.scale.combined(with: .opacity))
+                        // Your requests this AI hasn't finished yet, in words: "1 to do".
+                        HStack(spacing: 2.5 * scale) {
+                            PinMark(size: 9 * scale, bobbing: false)
+                            Text("\(ring.pending) " + L10n.t("to do"))
+                                .font(.system(size: 8.5 * scale, weight: .bold).monospacedDigit())
+                                .foregroundStyle(AkiPalette.fg)
+                                .fixedSize()
+                        }
+                        .padding(.leading, 3 * scale).padding(.trailing, 5 * scale)
+                        .frame(height: 15 * scale)
+                        .background(Capsule().fill(AkiPalette.bg))
+                        .overlay(Capsule().strokeBorder(AkiPalette.fg.opacity(0.3), lineWidth: 1))
+                        .offset(x: 14 * scale, y: -6 * scale)
+                        .zIndex(2)
+                        .transition(.scale.combined(with: .opacity))
                     }
                 }
                 .background {
@@ -637,9 +641,8 @@ struct RingCell: View {
                 .animation(.spring(response: 0.35, dampingFraction: 0.5), value: model.finished)
                 .overlay {
                     if isDestination {
-                        // Where new marks go: Aki's own pin stands over it — the "here".
-                        PinMark(size: 17 * scale, bobbing: false)
-                            .offset(y: -(SidebarLayout.ring / 2 + 9) * scale)
+                        // (The whole cell is framed, with "destination" and the pin: see below.)
+                        EmptyView()
                     } else if pinned {
                         Circle().strokeBorder(AkiPalette.fg.opacity(0.4), lineWidth: 1).padding(-6 * scale)
                     }
@@ -663,24 +666,58 @@ struct RingCell: View {
                     .frame(width: (SidebarLayout.ring + 22) * scale, height: SidebarLayout.labelHeight * scale)
             }
             if case .terminal(let terminal) = ring {
-                // Its number first (⌘1–⌘9 picks it while marking), then the name.
-                (Text(model.number(of: terminal.id).map { "\($0) " } ?? "")
-                    .font(.system(size: SidebarLayout.labelFont * scale * (isDestination ? 1.15 : 1), weight: .heavy,
-                                  design: .rounded).monospacedDigit())
-                    .foregroundColor(isDestination ? AkiPalette.bg : AkiPalette.textPrimary)
-                    + Text(terminal.name))
-                    .font(.system(size: SidebarLayout.labelFont * scale * (isDestination ? 1.15 : 1),
-                                  weight: isDestination ? .bold : .semibold))
-                    .foregroundStyle(isDestination ? AkiPalette.bg : hovered ? AkiPalette.textPrimary : AkiPalette.textSecondary)
-                    .lineLimit(1)
-                    .truncationMode(.tail)
-                    .padding(.horizontal, isDestination ? 5 * scale : 0)
-                    // The destination's name on paper: plain, no gradient (the brand's black and paper).
-                    .background {
-                        if isDestination { Capsule().fill(AkiPalette.fg) }
-                    }
-                    .frame(width: (SidebarLayout.ring + 22) * scale, height: SidebarLayout.labelHeight * scale)
+                VStack(spacing: 1 * scale) {
+                    // Its number first (⌘1–⌘9 picks it while marking), then the name.
+                    (Text(model.number(of: terminal.id).map { "\($0) " } ?? "")
+                        .font(.system(size: SidebarLayout.labelFont * scale, weight: .heavy, design: .rounded).monospacedDigit())
+                        .foregroundColor(AkiPalette.textPrimary)
+                        + Text(terminal.name))
+                        .font(.system(size: SidebarLayout.labelFont * scale, weight: isDestination ? .heavy : .bold))
+                        .foregroundStyle(isDestination || hovered ? AkiPalette.textPrimary : AkiPalette.textSecondary)
+                        .lineLimit(1)
+                        .truncationMode(.tail)
+                    // What it's doing, in a word (red only when it waits for you).
+                    Text(stateWord(terminal.state).uppercased())
+                        .font(.system(size: 7.5 * scale, weight: .bold))
+                        .tracking(0.4 * scale)
+                        .foregroundStyle(terminal.state == .waiting ? AkiPalette.red
+                                         : terminal.state == .idle ? AkiPalette.textSecondary.opacity(0.7) : AkiPalette.textSecondary)
+                        .lineLimit(1)
+                }
+                .frame(width: (SidebarLayout.ring + 22) * scale, height: SidebarLayout.labelHeight * scale)
             }
+        }
+        // The destination: the whole cell framed in paper, "destination" and Aki's pin on top.
+        .overlay {
+            if isDestination {
+                RoundedRectangle(cornerRadius: 12 * scale, style: .continuous)
+                    .strokeBorder(AkiPalette.fg.opacity(0.9), lineWidth: 1.5 * scale)
+                    .padding(-5 * scale)
+                    .overlay(alignment: .top) {
+                        HStack(spacing: 3 * scale) {
+                            PinMark(size: 10 * scale, bobbing: false)
+                            Text(L10n.t("destination").uppercased())
+                                .font(.system(size: 7.5 * scale, weight: .heavy)).tracking(0.5 * scale)
+                                .foregroundStyle(AkiPalette.bg)
+                                .fixedSize()
+                        }
+                        .padding(.leading, 3 * scale).padding(.trailing, 6 * scale)
+                        .frame(height: 13 * scale)
+                        .background(Capsule().fill(AkiPalette.fg))
+                        .offset(y: -11 * scale)
+                    }
+                    .allowsHitTesting(false)
+            }
+        }
+    }
+
+    private func stateWord(_ state: AgentTerminal.State) -> String {
+        switch state {
+        case .waiting: L10n.t("waiting for you")
+        case .working: L10n.t("working")
+        case .shell: L10n.t("running a command")
+        case .listening: L10n.t("listening")
+        case .idle: L10n.t("idle")
         }
     }
 
