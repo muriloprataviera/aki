@@ -23,6 +23,41 @@ enum UpdateState: Equatable {
     /// Just restarted on this version (shown a few seconds).
     case updated(String)
 
+    /// What the pill and the menu bar's menu say.
+    var text: String {
+        switch self {
+        case .available(let v): "\(L10n.t("Update to")) \(v)"
+        case .checking: L10n.t("Checking for updates…")
+        case .downloading(let v, let f): "\(L10n.t("Downloading")) \(v)" + (f.map { " · \(Int($0 * 100))%" } ?? "…")
+        case .installing: L10n.t("Installing, Aki restarts…")
+        case .waitingForQueue(let v): "\(v) · " + L10n.t("updates once the queue is sent")
+        case .upToDate: L10n.t("Aki is up to date")
+        case .updated(let v): "\(L10n.t("Updated to")) \(v)"
+        case .failed: L10n.t("Couldn't update. Click to try again")
+        case .idle: ""
+        }
+    }
+
+    var icon: String {
+        switch self {
+        case .available: "arrow.down.circle.fill"
+        case .checking, .downloading: "arrow.down.circle"
+        case .installing: "arrow.triangle.2.circlepath"
+        case .waitingForQueue: "tray.full"
+        case .upToDate, .updated: "checkmark.circle.fill"
+        case .failed: "exclamationmark.triangle.fill"
+        case .idle: "circle"
+        }
+    }
+
+    /// A click does something (install, look again); the rest only tell.
+    var clickable: Bool {
+        switch self {
+        case .available, .upToDate, .failed: true
+        default: false
+        }
+    }
+
     var version: String? {
         switch self {
         case .available(let v), .downloading(let v, _), .installing(let v), .waitingForQueue(let v), .updated(let v): v

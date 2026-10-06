@@ -91,7 +91,11 @@ async function ping(req, res) {
   if (!/^Aki\/[\d.]+(-beta\.\d+)? CFNetwork\//.test(req.headers['user-agent'] || '')) return res.end();
   let b = req.body || {};
   if (typeof b === 'string') { try { b = JSON.parse(b); } catch { return res.end(); } }
-  if (typeof b !== 'object' || Array.isArray(b)) return res.end();
+  if (typeof b !== 'object' || b === null || Array.isArray(b)) return res.end();
+  // Every field a plain string (a list or an object is someone else's request).
+  for (const k of ['event', 'from', 'version', 'macos', 'language', 'chip']) {
+    if (b[k] !== undefined && typeof b[k] !== 'string') return res.end();
+  }
   const known = versions();
   const event = b.event === 'update' ? 'update' : b.event === 'install' || b.event === undefined ? 'install' : null;
   const ok = event && VERSION.test(b.version || '') && known.has(b.version)
