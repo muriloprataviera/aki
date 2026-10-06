@@ -326,33 +326,6 @@ struct MarkingView: View {
         let x = min(max(origin.x + cardDrag.width + cardDragging.width, 12), screenSize.width - width - 12)
         let y = min(max(origin.y + cardDrag.height + cardDragging.height, 12), screenSize.height - min(cardHeight, screenSize.height - 24) - 12)
         return VStack(alignment: .leading, spacing: 10) {
-            // Its top is a handle: drag the card off what you want to see.
-            // The same six dots as the sidebar's handle: every grab spot looks alike.
-            GripDots(vertical: false, hovered: cardHandleHovered, scale: 0.85, tint: .white, backdrop: Color.white.opacity(0.08))
-                .frame(maxWidth: .infinity)
-                .padding(.top, -10)
-                .padding(.bottom, -4)
-                .contentShape(Rectangle())
-                .onContinuousHover { phase in
-                    switch phase {
-                    case .active:
-                        cardHandleHovered = true
-                        AkiCursor.set(cardDragging == .zero ? NSCursor.openHand : NSCursor.closedHand)
-                    case .ended:
-                        cardHandleHovered = false
-                        AkiCursor.set(AkiCursor.pin)
-                    }
-                }
-                .gesture(DragGesture(coordinateSpace: .global)
-                    .onChanged { cardDragging = $0.translation; AkiCursor.set(NSCursor.closedHand) }
-                    .onEnded { value in
-                        // Keep where it shows (stopped at the screen's edge), not where the pointer went.
-                        cardDrag.width = min(max(origin.x + cardDrag.width + value.translation.width, 12), screenSize.width - width - 12) - origin.x
-                        cardDrag.height = min(max(origin.y + cardDrag.height + value.translation.height, 12),
-                                              screenSize.height - min(cardHeight, screenSize.height - 24) - 12) - origin.y
-                        cardDragging = .zero
-                    })
-                .help(L10n.t("Drag to move"))
             HStack(spacing: 8) {
                 Text("\(mark.number)")
                     .font(.system(size: 12, weight: .bold, design: .rounded))
@@ -416,8 +389,36 @@ struct MarkingView: View {
                 buttons
             }
         }
-        .padding(14)
+        .padding(.horizontal, 14).padding(.bottom, 14).padding(.top, 20)
         .frame(width: width, alignment: .leading)
+        // The grab handle: centred on the card's top edge, in its own strip.
+        .overlay(alignment: .top) {
+                // Its top is a handle: drag the card off what you want to see.
+                // The same six dots as the sidebar's handle: every grab spot looks alike.
+                GripDots(vertical: false, hovered: cardHandleHovered, scale: 0.85, tint: .white, backdrop: Color.white.opacity(0.08))
+                    .padding(.top, 3)
+                    .contentShape(Rectangle())
+                    .onContinuousHover { phase in
+                        switch phase {
+                        case .active:
+                            cardHandleHovered = true
+                            AkiCursor.set(cardDragging == .zero ? NSCursor.openHand : NSCursor.closedHand)
+                        case .ended:
+                            cardHandleHovered = false
+                            AkiCursor.set(AkiCursor.pin)
+                        }
+                    }
+                    .gesture(DragGesture(coordinateSpace: .global)
+                        .onChanged { cardDragging = $0.translation; AkiCursor.set(NSCursor.closedHand) }
+                        .onEnded { value in
+                            // Keep where it shows (stopped at the screen's edge), not where the pointer went.
+                            cardDrag.width = min(max(origin.x + cardDrag.width + value.translation.width, 12), screenSize.width - width - 12) - origin.x
+                            cardDrag.height = min(max(origin.y + cardDrag.height + value.translation.height, 12),
+                                                  screenSize.height - min(cardHeight, screenSize.height - 24) - 12) - origin.y
+                            cardDragging = .zero
+                        })
+                    .help(L10n.t("Drag to move"))
+        }
         // Solid: nothing from the screen behind shows through the text.
         .background(RoundedRectangle(cornerRadius: 16, style: .continuous).fill(Color(red: 20 / 255, green: 20 / 255, blue: 20 / 255)))
         .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous).strokeBorder(hue.opacity(0.6), lineWidth: 1))
@@ -846,32 +847,6 @@ struct MarkingView: View {
         let count = session.marks.count
         let selected = session.queueSelected.intersection(session.marks.map(\.id))
         return VStack(alignment: .leading, spacing: 6) {
-            // Its top is a handle: drag the queue out of the way.
-            GripDots(vertical: false, hovered: queueHandleHovered, scale: 0.8, tint: .white, backdrop: Color.white.opacity(0.08))
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, -4)
-                .contentShape(Rectangle())
-                .onContinuousHover { phase in
-                    switch phase {
-                    case .active:
-                        queueHandleHovered = true
-                        AkiCursor.set(queueDragging == .zero ? NSCursor.openHand : NSCursor.closedHand)
-                    case .ended:
-                        queueHandleHovered = false
-                        AkiCursor.set(AkiCursor.pin)
-                    }
-                }
-                .gesture(DragGesture(coordinateSpace: .global)
-                    .onChanged { queueDragging = $0.translation; AkiCursor.set(NSCursor.closedHand) }
-                    .onEnded { value in
-                        // Keep where it shows (stopped at the screen's edge), not where the pointer went.
-                        let spot = queueAnchor ?? queueSpot
-                        queueDrag.width = min(max(spot.x + queueDrag.width + value.translation.width, 12), grab.screen.frame.width - 242) - spot.x
-                        queueDrag.height = min(max(spot.y + queueDrag.height + value.translation.height, 12),
-                                               grab.screen.frame.height - queueHeight - 12) - spot.y
-                        queueDragging = .zero
-                    })
-                .help(L10n.t("Drag to move"))
             HStack(spacing: 4) {
                 Text(L10n.t("Queue")).font(.system(size: 11, weight: .bold)).foregroundStyle(.white)
                 Text("· \(count)").font(.system(size: 11)).foregroundStyle(.white.opacity(0.55))
@@ -944,8 +919,36 @@ struct MarkingView: View {
             .modifier(GlowHover())
             .help(terminal.map { "\(L10n.t("Send")) \(count) \(L10n.t("to")) \($0.agent.displayName) · \($0.name)" } ?? "")
         }
-        .padding(9)
+        .padding(.horizontal, 9).padding(.bottom, 9).padding(.top, 17)
         .frame(width: 230)
+        // The grab handle: centred on the queue's top edge, as on the card.
+        .overlay(alignment: .top) {
+                // Its top is a handle: drag the queue out of the way.
+                GripDots(vertical: false, hovered: queueHandleHovered, scale: 0.8, tint: .white, backdrop: Color.white.opacity(0.08))
+                    .padding(.top, 2)
+                    .contentShape(Rectangle())
+                    .onContinuousHover { phase in
+                        switch phase {
+                        case .active:
+                            queueHandleHovered = true
+                            AkiCursor.set(queueDragging == .zero ? NSCursor.openHand : NSCursor.closedHand)
+                        case .ended:
+                            queueHandleHovered = false
+                            AkiCursor.set(AkiCursor.pin)
+                        }
+                    }
+                    .gesture(DragGesture(coordinateSpace: .global)
+                        .onChanged { queueDragging = $0.translation; AkiCursor.set(NSCursor.closedHand) }
+                        .onEnded { value in
+                            // Keep where it shows (stopped at the screen's edge), not where the pointer went.
+                            let spot = queueAnchor ?? queueSpot
+                            queueDrag.width = min(max(spot.x + queueDrag.width + value.translation.width, 12), grab.screen.frame.width - 242) - spot.x
+                            queueDrag.height = min(max(spot.y + queueDrag.height + value.translation.height, 12),
+                                                   grab.screen.frame.height - queueHeight - 12) - spot.y
+                            queueDragging = .zero
+                        })
+                    .help(L10n.t("Drag to move"))
+        }
         .fixedSize(horizontal: false, vertical: true)
         .background(RoundedRectangle(cornerRadius: 12, style: .continuous).fill(Color(red: 20 / 255, green: 20 / 255, blue: 20 / 255)))
         .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous).strokeBorder(hue.opacity(0.5), lineWidth: 1))
