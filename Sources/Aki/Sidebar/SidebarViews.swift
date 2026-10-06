@@ -847,8 +847,7 @@ struct RingView: View {
     var appIcon: NSImage? = nil
     /// Shows the state without moving (the +N ring: it shouldn't blink).
     var calm = false
-    /// A session's ring: the AI in the middle in its own colours (Claude's orange ✳,
-    /// Codex's black on white), so it's known at a glance; the ring tells the state.
+    /// A session's ring: the AI's symbol in the middle (in the brand's paper); the ring tells the state.
     var brandCenter = false
     @State private var turning = false
     @State private var breathing = false
@@ -886,10 +885,9 @@ struct RingView: View {
             }
 
             if brandCenter {
-                Circle().fill(agent.brand.fill)
-                    .padding(track + 4 * scale)
-                    .overlay(AgentGlyphView(agent: agent, size: SidebarLayout.glyph * scale * 0.82)
-                        .foregroundStyle(agent.brand.glyph))
+                // The AI's symbol in the brand's paper, no colour of its own (Murilo, 06/10/2026).
+                AgentGlyphView(agent: agent, size: SidebarLayout.glyph * scale)
+                    .foregroundStyle(AkiPalette.fg)
             } else if let monogram {
                 // An empty monogram draws only the ring's state (the +N ring uses it).
                 Text(monogram)
