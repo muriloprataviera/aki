@@ -347,8 +347,10 @@ struct MarkingView: View {
                 .gesture(DragGesture(coordinateSpace: .global)
                     .onChanged { cardDragging = $0.translation; AkiCursor.set(NSCursor.closedHand) }
                     .onEnded { value in
-                        cardDrag.width += value.translation.width
-                        cardDrag.height += value.translation.height
+                        // Keep where it shows (stopped at the screen's edge), not where the pointer went.
+                        cardDrag.width = min(max(origin.x + cardDrag.width + value.translation.width, 12), screenSize.width - width - 12) - origin.x
+                        cardDrag.height = min(max(origin.y + cardDrag.height + value.translation.height, 12),
+                                              screenSize.height - min(cardHeight, screenSize.height - 24) - 12) - origin.y
                         cardDragging = .zero
                     })
                 .help(L10n.t("Drag to move"))
@@ -867,8 +869,11 @@ struct MarkingView: View {
                 .gesture(DragGesture(coordinateSpace: .global)
                     .onChanged { queueDragging = $0.translation; AkiCursor.set(NSCursor.closedHand) }
                     .onEnded { value in
-                        queueDrag.width += value.translation.width
-                        queueDrag.height += value.translation.height
+                        // Keep where it shows (stopped at the screen's edge), not where the pointer went.
+                        let spot = queueAnchor ?? queueSpot
+                        queueDrag.width = min(max(spot.x + queueDrag.width + value.translation.width, 12), grab.screen.frame.width - 242) - spot.x
+                        queueDrag.height = min(max(spot.y + queueDrag.height + value.translation.height, 12),
+                                               grab.screen.frame.height - queueHeight - 12) - spot.y
                         queueDragging = .zero
                     })
                 .help(L10n.t("Drag to move"))

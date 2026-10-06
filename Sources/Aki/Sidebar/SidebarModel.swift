@@ -157,6 +157,8 @@ final class SidebarModel {
     var historySession: String?
     /// The History opens on the queue (the menu's "See the queue").
     var historyOnQueue = false
+    /// Counts each request to open the History, so the same request twice still lands.
+    var historyRequest = 0
     var eyeHovered = false
     /// The project whose name is being typed, right over its group, and the text.
     var editingProject: String? {

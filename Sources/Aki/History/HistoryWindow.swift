@@ -20,6 +20,7 @@ final class HistoryWindowController {
     func show(session: String? = nil, queue: Bool = false) {
         model.historySession = session
         model.historyOnQueue = queue
+        model.historyRequest += 1
         let panel = self.panel ?? makePanel()
         self.panel = panel
         if let screen = NSScreen.main {
@@ -226,9 +227,9 @@ private struct HistoryView: View {
         // The header shares the title bar's row with close / minimise / zoom.
         .ignoresSafeArea()
         .task { await load() }
-        .onAppear { session = model.historySession; if model.historyOnQueue { show = .queue } }
-        .onChange(of: model.historyOnQueue) { if model.historyOnQueue { show = .queue } }
-        .onChange(of: model.historySession) { session = model.historySession }
+        .onAppear(perform: openAsAsked)
+        // Every request to open it (the queue, a session) chooses the tab again.
+        .onChange(of: model.historyRequest) { openAsAsked() }
         .onReceive(Timer.publish(every: 3, on: .main, in: .common).autoconnect()) { _ in Task { await load() } }
     }
 
@@ -298,6 +299,12 @@ private struct HistoryView: View {
     private var agents: [AgentSession.Agent] {
         let found = Set(annotations.compactMap(agentOf))
         return AgentSession.Agent.allCases.filter(found.contains)
+    }
+
+    /// What the opening asked for: the queue, or a session's marks (never left on the queue then).
+    private func openAsAsked() {
+        session = model.historySession
+        if model.historyOnQueue { show = .queue } else if show == .queue { show = .all }
     }
 
     private func count(_ option: Show) -> Int {
