@@ -332,6 +332,7 @@ extension L10n {
         "Couldn't find its tab": "탭을 찾을 수 없음",
         "Destination follows the Orca tab you click": "Orca에서 클릭한 탭을 목적지로 따라가기",
         "Click an agent's tab in Orca and new marks go to it. Other apps and tabs keep the destination.": "Orca에서 에이전트 탭을 클릭하면 새 표시가 그쪽으로 갑니다. 다른 앱과 탭에서는 목적지가 그대로입니다.",
+        "Click to rename · drag to move the project": "클릭해 이름 바꾸기 · 드래그해 프로젝트 이동",
         "Send to the terminal by itself": "터미널로 자동 보내기",
         "Types the request into the session's Orca tab when you stop marking (it waits while the agent is working).": "표시를 멈추면 세션의 Orca 탭에 요청을 입력합니다 (에이전트가 작업 중이면 기다립니다).",
         "Hide the sidebar": "사이드바 숨기기",

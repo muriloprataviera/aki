@@ -236,8 +236,12 @@ struct SidebarRoot: View {
                         .transition(.opacity)
                 } else {
                     ForEach(Array(rings.enumerated()), id: \.element.id) { index, ring in
-                        let isDragged = model.dragging.map { "terminal:" + $0.id == ring.id } ?? false
-                        let dragged = isDragged ? model.dragging?.offset ?? 0 : 0
+                        let inDraggedProject: Bool = {
+                            guard let project = model.draggingProject, case .terminal(let t) = ring else { return false }
+                            return model.projectKey(of: t) == project.key
+                        }()
+                        let isDragged = inDraggedProject || (model.dragging.map { "terminal:" + $0.id == ring.id } ?? false)
+                        let dragged = isDragged ? (inDraggedProject ? model.draggingProject?.offset : model.dragging?.offset) ?? 0 : 0
                         RingCell(model: model, ring: ring, scale: layout.scale, hovered: model.hovered == index,
                                  pinned: model.pinned == index)
                             .scaleEffect(isDragged ? 1.12 : 1)
@@ -287,12 +291,20 @@ struct SidebarRoot: View {
                 if groups.count > 1 {
                     let spots = nameSpots(groups, layout)
                     ForEach(Array(groups.enumerated()), id: \.offset) { i, g in
+                        // While one project is dragged by its name, only that name shows, riding along.
+                        let carried = model.draggingProject?.key == g.key
+                        let along = carried ? model.draggingProject?.offset ?? 0 : 0
                         ProjectName(model: model, key: g.key, label: g.label, scale: layout.scale, maxWidth: spots[i].width)
                             .clickTarget("project|" + g.key)
+                            .scaleEffect(carried ? 1.08 : 1)
+                            .shadow(color: .black.opacity(carried ? 0.5 : 0), radius: 8, y: 3)
                             // High enough to clear the grip's dots when they rise.
                             .position(layout.alongPoint(spots[i].center, out: 30 * layout.scale))
+                            .offset(x: preferences.edge.isVertical ? 0 : along, y: preferences.edge.isVertical ? along : 0)
+                            .opacity(model.draggingProject == nil || carried ? 1 : 0)
+                            .zIndex(carried ? 2 : 0)
                             .transition(.opacity)
-                        if i > 0 {
+                        if i > 0, model.draggingProject == nil {
                             let between = (layout.cellAlongCenter(g.first - 1) + layout.cellAlongCenter(g.first)) / 2
                             Capsule()
                                 .fill(AkiPalette.fg.opacity(0.18))
@@ -1954,7 +1966,7 @@ struct ProjectName: View {
         .overlay(Capsule().strokeBorder(editing || hovered ? AnyShapeStyle(AkiPalette.auroraDiagonal) : AnyShapeStyle(model.projectHue(key)),
                                         lineWidth: editing || hovered ? 1.2 : 1))
         .fixedSize(horizontal: editing || maxWidth == .infinity, vertical: true)
-        .help(L10n.t("Click to rename"))
+        .help(L10n.t("Click to rename · drag to move the project"))
         .shadow(color: editing ? AkiPalette.aurora[2].opacity(0.5) : .clear, radius: 10)
         .animation(.easeOut(duration: 0.15), value: hovered)
         .animation(.spring(response: 0.3, dampingFraction: 0.75), value: editing)

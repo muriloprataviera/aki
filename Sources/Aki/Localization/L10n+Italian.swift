@@ -332,6 +332,7 @@ extension L10n {
         "Couldn't find its tab": "Scheda non trovata",
         "Destination follows the Orca tab you click": "La destinazione segue la scheda di Orca su cui fai clic",
         "Click an agent's tab in Orca and new marks go to it. Other apps and tabs keep the destination.": "Fai clic sulla scheda di un agente in Orca e i nuovi segni vanno lì. Altre app e schede mantengono la destinazione.",
+        "Click to rename · drag to move the project": "Fai clic per rinominare · trascina per spostare il progetto",
         "Send to the terminal by itself": "Invia da solo al terminale",
         "Types the request into the session's Orca tab when you stop marking (it waits while the agent is working).": "Scrive la richiesta nella scheda Orca della sessione quando smetti di segnare (aspetta se l'agente sta lavorando).",
         "Hide the sidebar": "Nascondi la barra laterale",

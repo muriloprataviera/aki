@@ -48,6 +48,13 @@ final class SidebarController {
         return .crosshair
     }
 
+    /// The project whose name is under this point (top-left origin), if names show.
+    private func projectName(at point: CGPoint) -> String? {
+        guard preferences.showProjects else { return nil }
+        return model.targets.first { $0.key.hasPrefix("project|") && $0.value.insetBy(dx: -3, dy: -3).contains(point) }
+            .map { String($0.key.dropFirst("project|".count)) }
+    }
+
     func setCursor(_ wanted: NSCursor?) {
         guard !model.marking else { return }
         BackgroundCursor.enable()
@@ -103,6 +110,7 @@ final class SidebarController {
         panel.pressReorders = { [weak self] windowPoint in
             guard let self, self.model.expanded else { return false }
             let point = CGPoint(x: windowPoint.x, y: self.panel.frame.height - windowPoint.y)
+            if self.model.editingProject == nil, self.projectName(at: point) != nil { return true }
             guard let index = self.layout.cellIndex(at: point), index < self.model.rings.count,
                 case .terminal = self.model.rings[index] else { return false }
             return true
@@ -110,14 +118,30 @@ final class SidebarController {
         panel.onReorderDrag = { [weak self] start, now in
             guard let self else { return }
             let a = CGPoint(x: start.x, y: self.panel.frame.height - start.y)
+            let delta = self.preferences.edge.isVertical ? -(now.y - start.y) : now.x - start.x
+            // A project's name carries all its sessions.
+            if let key = self.model.draggingProject?.key ?? self.projectName(at: a) {
+                self.model.draggingProject = (key, delta)
+                self.setCursor(.closedHand)
+                return
+            }
             guard let index = self.layout.cellIndex(at: a), index < self.model.rings.count,
                 case .terminal(let terminal) = self.model.rings[index] else { return }
-            let delta = self.preferences.edge.isVertical ? -(now.y - start.y) : now.x - start.x
             self.model.dragging = (terminal.id, delta)
             self.setCursor(.closedHand)
         }
         panel.onReorderEnd = { [weak self] _ in
-            guard let self, let dragging = self.model.dragging else { return }
+            guard let self else { return }
+            if self.model.draggingProject != nil {
+                let order = self.model.proposedProjectOrder(step: self.layout.step)
+                withAnimation(.spring(response: 0.3, dampingFraction: 0.82)) {
+                    if let order { self.model.moveProjects(to: order) }
+                    self.model.draggingProject = nil
+                }
+                self.setCursor(nil)
+                return
+            }
+            guard let dragging = self.model.dragging else { return }
             let rings = self.model.rings
             if let to = self.model.proposedIndex(step: self.layout.step), case .terminal(let target) = rings[to] {
                 let destination = self.model.visibleTerminals.firstIndex { $0.id == target.id } ?? 0

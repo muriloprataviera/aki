@@ -332,6 +332,7 @@ extension L10n {
         "Couldn't find its tab": "タブが見つかりません",
         "Destination follows the Orca tab you click": "宛先は Orca でクリックしたタブに合わせる",
         "Click an agent's tab in Orca and new marks go to it. Other apps and tabs keep the destination.": "Orca でエージェントのタブをクリックすると、新しいマークはそこへ送られます。ほかのアプリやタブでは宛先は変わりません。",
+        "Click to rename · drag to move the project": "クリックで名前を変更 · ドラッグでプロジェクトを移動",
         "Send to the terminal by itself": "ターミナルに自動で送信",
         "Types the request into the session's Orca tab when you stop marking (it waits while the agent is working).": "マークを終えると、セッションの Orca タブに依頼を入力します(エージェントの作業中は待ちます)。",
         "Hide the sidebar": "サイドバーを隠す",

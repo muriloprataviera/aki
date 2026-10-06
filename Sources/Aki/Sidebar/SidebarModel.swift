@@ -289,12 +289,67 @@ final class SidebarModel {
     /// Ring positions while dragging: the dragged one leaves its slot and the
     /// others close the gap and open one where it would land.
     func displayIndex(of index: Int, step: CGFloat) -> Int {
+        if draggingProject != nil { return projectDisplayIndex(of: index, step: step) ?? index }
         guard let dragging, let from = rings.firstIndex(where: { $0.id == "terminal:" + dragging.id }),
             let to = proposedIndex(step: step), index != from
         else { return index }
         if from < to, index > from, index <= to { return index - 1 }
         if from > to, index >= to, index < from { return index + 1 }
         return index
+    }
+
+    /// The project being dragged by its name, and how far along the edge (points).
+    var draggingProject: (key: String, offset: CGFloat)?
+
+    /// Runs of session rings from one project, in sidebar order (indices into `rings`).
+    func projectRuns() -> [(key: String, indices: [Int])] {
+        var runs: [(key: String, indices: [Int])] = []
+        for (i, ring) in rings.enumerated() {
+            guard case .terminal(let t) = ring else { continue }
+            let key = projectKey(of: t)
+            if let last = runs.last, last.key == key, last.indices.last == i - 1 {
+                runs[runs.count - 1].indices.append(i)
+            } else {
+                runs.append((key, [i]))
+            }
+        }
+        return runs
+    }
+
+    /// While a project is dragged: the order its rings' groups would land in. It goes
+    /// past a neighbour once its middle crosses the neighbour's middle.
+    func proposedProjectOrder(step: CGFloat) -> [String]? {
+        guard let draggingProject else { return nil }
+        let runs = projectRuns()
+        guard let dragged = runs.first(where: { $0.key == draggingProject.key }) else { return nil }
+        func middle(_ indices: [Int]) -> CGFloat { CGFloat(indices.first! + indices.last!) / 2 }
+        let moved = middle(dragged.indices) + draggingProject.offset / max(step, 1)
+        var order = runs.filter { $0.key != dragged.key }
+        let place = order.filter { middle($0.indices) < moved }.count
+        order.insert(dragged, at: place)
+        return order.map(\.key)
+    }
+
+    /// Where a ring sits while a project is dragged: the other groups slide over.
+    private func projectDisplayIndex(of index: Int, step: CGFloat) -> Int? {
+        guard let order = proposedProjectOrder(step: step) else { return nil }
+        let runs = projectRuns()
+        guard let start = runs.first?.indices.first else { return nil }
+        var next = start
+        for key in order {
+            guard let run = runs.first(where: { $0.key == key }) else { continue }
+            if let at = run.indices.firstIndex(of: index) { return next + at }
+            next += run.indices.count
+        }
+        return nil
+    }
+
+    /// Puts a project's sessions, all together, in the order given and remembers it.
+    func moveProjects(to order: [String]) {
+        var keys = order
+        for t in visibleTerminals where !keys.contains(projectKey(of: t)) { keys.append(projectKey(of: t)) }
+        let ids = keys.flatMap { key in visibleTerminals.filter { projectKey(of: $0) == key }.map(\.id) }
+        preferences.ringOrder = ids + preferences.ringOrder.filter { !ids.contains($0) }
     }
 
     /// Puts a session's ring at `index` among the visible ones and remembers it.
