@@ -31,6 +31,15 @@ final class SidebarController {
     /// The diagonal resize cursor for the handle's corner (macOS 15 has the
     /// window's own; before that, a crosshair).
     static func resizeCursor(_ d: CGVector) -> NSCursor {
+        let key = "\(d.dx > 0)\(d.dy < 0)"
+        if let made = resizeCursors[key] { return made }
+        let made = makeResizeCursor(d)
+        resizeCursors[key] = made
+        return made
+    }
+    private static var resizeCursors: [String: NSCursor] = [:]
+
+    private static func makeResizeCursor(_ d: CGVector) -> NSCursor {
         if #available(macOS 15, *) {
             let position: NSCursor.FrameResizePosition = d.dx > 0
                 ? (d.dy < 0 ? .topRight : .bottomRight) : (d.dy < 0 ? .topLeft : .bottomLeft)
@@ -42,9 +51,17 @@ final class SidebarController {
     func setCursor(_ wanted: NSCursor?) {
         guard !model.marking else { return }
         BackgroundCursor.enable()
-        guard wanted !== shownCursor else { return }
-        (wanted ?? NSCursor.arrow).set()
-        shownCursor = wanted
+        // Over something of the sidebar: set it again whenever it was changed under us (the
+        // app below is in front and puts its arrow back), not only when it changes here —
+        // that's how the resize corner sometimes showed no resize cursor.
+        if let wanted {
+            if NSCursor.current !== wanted || shownCursor !== wanted { wanted.set() }
+            shownCursor = wanted
+            return
+        }
+        guard shownCursor != nil else { return }
+        NSCursor.arrow.set()
+        shownCursor = nil
     }
     /// A card opened by a click lets go 3 s after the pointer leaves it.
     private var pinnedAwayWork: DispatchWorkItem?
