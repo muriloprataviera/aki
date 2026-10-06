@@ -223,7 +223,8 @@ struct MarkingView: View {
                 let spot = queueAnchor ?? queueSpot
                 queuePanel
                     .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { queueHeight = $0 }
-                    .offset(x: spot.x + queueDrag.width + queueDragging.width, y: spot.y + queueDrag.height + queueDragging.height)
+                    .offset(x: min(max(spot.x + queueDrag.width + queueDragging.width, 12), grab.screen.frame.width - 242),
+                            y: min(max(spot.y + queueDrag.height + queueDragging.height, 12), grab.screen.frame.height - queueHeight - 12))
                     .animation(.spring(response: 0.3, dampingFraction: 0.85), value: spot)
                     .transition(.opacity.combined(with: .scale(scale: 0.95)))
                     .onChange(of: session.marks.count) { old, new in if new > old { queueAnchor = nil } }
@@ -320,7 +321,10 @@ struct MarkingView: View {
             return CGPoint(x: min(max(x, 12), bounds.width - width - 12),
                            y: min(max(q.y, 12), bounds.height - bottomReserve - size.height))
         } ?? placement(near: mark.anchor, size: size)
-        let x = origin.x + cardDrag.width + cardDragging.width, y = origin.y + cardDrag.height + cardDragging.height
+        // Dragged, but never off its screen (each screen draws only its own card).
+        let screenSize = grab.screen.frame.size
+        let x = min(max(origin.x + cardDrag.width + cardDragging.width, 12), screenSize.width - width - 12)
+        let y = min(max(origin.y + cardDrag.height + cardDragging.height, 12), screenSize.height - min(cardHeight, screenSize.height - 24) - 12)
         return VStack(alignment: .leading, spacing: 10) {
             // Its top is a handle: drag the card off what you want to see.
             Capsule()

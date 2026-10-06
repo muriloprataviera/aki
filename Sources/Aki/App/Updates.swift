@@ -117,6 +117,8 @@ final class Updates: NSObject, SPUUserDriver, SPUUpdaterDelegate {
     private var answerRestarts = false
     /// Whether restarting now would lose nothing (no marking open, nothing in the queue).
     var canRestart: () -> Bool = { true }
+    /// The restart is on its way: no new marking may start (it would be lost when Aki quits).
+    private(set) var restarting = false
     /// The go-ahead to restart, held while marks wait in the queue.
     private var restart: ((SPUUserUpdateChoice) -> Void)?
     private var restartTimer: Timer?
@@ -145,7 +147,8 @@ final class Updates: NSObject, SPUUserDriver, SPUUpdaterDelegate {
 
     /// "Check for Updates…" in the menus and Settings.
     @objc func checkForUpdates() {
-        if case .available = state { install(); return }
+        // Already found: the pill (and the menu) show it; installing is only ever a click on it.
+        if case .available = state { return }
         guard updater.canCheckForUpdates else { return }
         updater.checkForUpdates()
     }
@@ -274,6 +277,7 @@ final class Updates: NSObject, SPUUserDriver, SPUUpdaterDelegate {
         restartTimer?.invalidate()
         restartTimer = nil
         restart = nil
+        restarting = true
         state = .installing(version)
         // The new version comes back on its own and says so.
         UserDefaults.standard.set(Aki.version, forKey: updatingFromKey)
@@ -297,6 +301,7 @@ final class Updates: NSObject, SPUUserDriver, SPUUpdaterDelegate {
             answer = nil
             answerRestarts = false
             restart = nil
+            restarting = false
             restartTimer?.invalidate()
             restartTimer = nil
             switch state {

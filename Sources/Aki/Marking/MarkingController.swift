@@ -76,7 +76,8 @@ final class MarkingController {
     }
 
     func start() {
-        guard !isActive, !starting else { return }
+        // Aki is restarting on a new version: marks made now would be lost.
+        guard !isActive, !starting, !Updates.shared.restarting else { return }
         starting = true
         previousApp = NSWorkspace.shared.frontmostApplication
         let context = MarkContext.current()
