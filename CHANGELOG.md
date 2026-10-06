@@ -15,6 +15,8 @@ What changed in each version of Aki. Versions follow [semantic versioning](https
 - In the queue, the destination is plainly a chooser ("To: … Change", outlined) and the button plainly says "Send".
 
 ### Fixed
+- **Marks could go to the wrong conversation**: session names came from a copy of Orca's tab names that Orca stopped updating, so an old name ("ORDERS TAB") showed on a conversation that is now another one. Names now come only from Orca's live list.
+- Marking opens on the session you chose last — never one guessed from activity (a session also starts working on its own).
 - A dragged comment card or queue stays on its screen; the next mark's card opens in its own place.
 - The number of marks in the queue on the sidebar stays right.
 
