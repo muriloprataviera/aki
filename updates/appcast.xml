@@ -3,6 +3,22 @@
     <channel>
         <title>Aki</title>
         <item>
+            <title>0.4.0-beta.5</title>
+            <pubDate>Tue, 06 Oct 2026 13:36:54 -0300</pubDate>
+            <sparkle:channel>beta</sparkle:channel>
+            <sparkle:version>20261006163653</sparkle:version>
+            <sparkle:shortVersionString>0.4.0-beta.5</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
+            <description><![CDATA[<h2>Aki 0.4.0 beta 5</h2>
+<ul>
+<li>⏎ marks what's outlined, after walking with ↑ ↓.</li>
+<li>Search in the "+N" list of sessions: type part of the name or project; ⏎ takes the first.</li>
+</ul>
+]]></description>
+            <enclosure url="https://aki-updates.vercel.app/0.4.0-beta.5/Aki-0.4.0-beta.5.zip" length="3380894" type="application/octet-stream" sparkle:edSignature="z0QSYf6bqgkO4mDDelE+K+T/Zz0M2Hs/+nPT2UNJH/E8p7m0DALdQReKNEhReSkcFfdtT3ZM5TDlAPCES7ovAQ=="/>
+        </item>
+        <item>
             <title>0.4.0-beta.4</title>
             <pubDate>Tue, 06 Oct 2026 13:30:25 -0300</pubDate>
             <sparkle:channel>beta</sparkle:channel>
@@ -27,19 +43,6 @@
 <ul><li>Two bigger sidebar sizes, Extra large and Huge, for big monitors: drag the resize corner out, or pick them in Settings.</li></ul>
 ]]></description>
             <enclosure url="https://aki-updates.vercel.app/0.4.0-beta.3/Aki-0.4.0-beta.3.zip" length="3365308" type="application/octet-stream" sparkle:edSignature="Rl8sYG5QL1a2pARQqdyVqvrLsjBokYCyPVmUv6fJo/0FrDKCesK7e2Nw9FAxrTteYe9xtsspy4S/XJDENeTXDw=="/>
-        </item>
-        <item>
-            <title>0.4.0-beta.2</title>
-            <pubDate>Tue, 06 Oct 2026 13:04:11 -0300</pubDate>
-            <sparkle:channel>beta</sparkle:channel>
-            <sparkle:version>20261006160410</sparkle:version>
-            <sparkle:shortVersionString>0.4.0-beta.2</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
-            <description><![CDATA[<h2>Aki 0.4.0 beta 2</h2>
-<ul><li>The AI's symbol in the rings is back to plain (light on dark), no colour of its own.</li></ul>
-]]></description>
-            <enclosure url="https://aki-updates.vercel.app/0.4.0-beta.2/Aki-0.4.0-beta.2.zip" length="3365215" type="application/octet-stream" sparkle:edSignature="tkNnP8V4wfdg8k/bL6Up7haxwpgCg4lkP0PtNnMuH6fp7bUCO0+zD09DYq+Lt92HGHtrTDuOYvG5wSjkG4Q8BA=="/>
         </item>
         <item>
             <title>0.3.3</title>
