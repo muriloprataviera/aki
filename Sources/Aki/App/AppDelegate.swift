@@ -62,7 +62,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         // An update restarts Aki: never while marks wait to be sent (they live in memory).
         Updates.shared.canRestart = { [weak self] in
             guard let self else { return true }
-            return !self.marking.isActive && self.model.queuedMarks == 0
+            return !self.marking.hasUnsentMarks
         }
         Updates.shared.start()
         followMacAppearance()
