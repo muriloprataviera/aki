@@ -3,6 +3,31 @@
     <channel>
         <title>Aki</title>
         <item>
+            <title>0.3.3</title>
+            <pubDate>Tue, 06 Oct 2026 12:34:36 -0300</pubDate>
+            <sparkle:version>20261006153435</sparkle:version>
+            <sparkle:shortVersionString>0.3.3</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
+            <description><![CDATA[<h2>Aki 0.3.3</h2>
+<h3>Fixes that matter</h3>
+<ul>
+<li><b>Marks could go to the wrong conversation.</b> Session names came from a copy of Orca's tab names that Orca stopped updating, so an old name showed on a conversation that is now another one. Names now come only from Orca's live list, and marking opens on the session you chose last.</li>
+<li>Updates never restart Aki while marks wait to be sent: it downloads, waits for the queue, then restarts. Checking only shows what's new; installing is always a click.</li>
+<li>Orca's own pop-ups (and anything over its terminals) can be marked.</li>
+</ul>
+<h3>Smoother</h3>
+<ul>
+<li>The tag over what you point at says "↑ bigger · ↓ smaller": ↑ takes the block, the whole terminal, the window.</li>
+<li>The History shows the queue in its own block on top; "See the queue" in the menu bar pin's menu; esc closes the History.</li>
+<li>One six-dot handle wherever something can be dragged; the queue's destination reads as a chooser and the button says "Send".</li>
+<li>The sidebar's resize corner and pointer stay right; the rings show just the number of waiting marks.</li>
+<li>The update's progress also shows in the menu bar pin's menu and in Settings.</li>
+</ul>
+]]></description>
+            <enclosure url="https://aki-updates.vercel.app/0.3.3/Aki-0.3.3.zip" length="3362090" type="application/octet-stream" sparkle:edSignature="9X4HwbHpFRwI5KWYaObegWYgaJTYSaBCGhtEA2egN2FsJiVW7Yp9K6Xs30Nnfe+ziDSZrNY+/pCbKnN44m/KCA=="/>
+        </item>
+        <item>
             <title>0.3.3-beta.8</title>
             <pubDate>Tue, 06 Oct 2026 11:06:43 -0300</pubDate>
             <sparkle:channel>beta</sparkle:channel>
@@ -17,37 +42,6 @@
 </ul>
 ]]></description>
             <enclosure url="https://aki-updates.vercel.app/0.3.3-beta.8/Aki-0.3.3-beta.8.zip" length="3362140" type="application/octet-stream" sparkle:edSignature="d+AyoQDeIZHR8ZnjevTkm8NHQp+iYxEkGbU71eX2q5klF0lNiJsco8GwsE5EZznrLbdwWy1YkuNkazquZhL2Aw=="/>
-        </item>
-        <item>
-            <title>0.3.3-beta.7</title>
-            <pubDate>Tue, 06 Oct 2026 10:44:20 -0300</pubDate>
-            <sparkle:channel>beta</sparkle:channel>
-            <sparkle:version>202610061344</sparkle:version>
-            <sparkle:shortVersionString>0.3.3-beta.7</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
-            <description><![CDATA[<h2>Aki 0.3.3 beta 7</h2>
-<ul>
-<li>The sidebar's resize corner stays visible however often the pointer goes back and forth over it.</li>
-</ul>
-]]></description>
-            <enclosure url="https://aki-updates.vercel.app/0.3.3-beta.7/Aki-0.3.3-beta.7.zip" length="3360713" type="application/octet-stream" sparkle:edSignature="X+zOuVc3JIAkdGUHYipdxzI+3CBkMwdYS52FLiXETkD28RcC5e6I6V22Q2KOgcpy2oVUlcg6n66ieByAXOwDAA=="/>
-        </item>
-        <item>
-            <title>0.3.3-beta.6</title>
-            <pubDate>Tue, 06 Oct 2026 10:39:06 -0300</pubDate>
-            <sparkle:channel>beta</sparkle:channel>
-            <sparkle:version>202610061339</sparkle:version>
-            <sparkle:shortVersionString>0.3.3-beta.6</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
-            <description><![CDATA[<h2>Aki 0.3.3 beta 6</h2>
-<ul>
-<li>Orca's pop-ups and buttons can be marked (Orca answered with a see-through layer over its whole window).</li>
-<li>The sidebar's rings show just the number of waiting marks, without a tiny crop beside it.</li>
-</ul>
-]]></description>
-            <enclosure url="https://aki-updates.vercel.app/0.3.3-beta.6/Aki-0.3.3-beta.6.zip" length="3361098" type="application/octet-stream" sparkle:edSignature="LqBPSriZR7MHzjYLNuJXhccIZjXKEL6Yiv3T94vkEdSFrCi9dimYccin0p0s3bGaA9jlmUHM+VDBfXH3GN1LBQ=="/>
         </item>
         <item>
             <title>0.3.2</title>
@@ -88,42 +82,6 @@
 </ul>
 ]]></description>
             <enclosure url="https://aki-updates.vercel.app/0.3.1/Aki-0.3.1.zip" length="3306186" type="application/octet-stream" sparkle:edSignature="lieVQPZPbQsFispl1rDOZ4UoTsUAaCGsjMT8lRl7eA8u3/MaLi4o0F9GfmWNNtgonF8iIvnZ353e8qlXTrbDDA=="/>
-        </item>
-        <item>
-            <title>0.3.0</title>
-            <pubDate>Mon, 05 Oct 2026 19:12:37 -0300</pubDate>
-            <sparkle:version>0.3.0</sparkle:version>
-            <sparkle:shortVersionString>0.3.0</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
-            <description><![CDATA[<h2>Aki 0.3.0</h2>
-<h3>Mark anything, even where apps say nothing</h3>
-<ul>
-<li>Apps that don't tell macOS what's in their window (Telegram, games, some design apps) and pages drawn as one picture (Google Sheets): Aki now finds the box under the pointer in the screen itself — a message, a row, a button, an icon, a photo, a single spreadsheet cell. <b>↑</b> takes what holds it.</li>
-<li><b>⇧-click</b> is a normal click on the app below (another sheet, a tab, a menu), without making a mark. A point is now <b>⌘-click</b>.</li>
-<li><b>⌘+ / ⌘−</b> zoom the page below while you mark.</li>
-<li>Zoom on any mark's picture, from the card, the queue or the History.</li>
-</ul>
-<h3>The queue</h3>
-<ul>
-<li>Shows every mark, can be moved out of the way, and marks can be ticked and removed together (<b>⌫</b>).</li>
-<li>The History shows what's waiting in the queue: keep marking with it, drop one, or clear it.</li>
-</ul>
-<h3>Faster, and to the right session</h3>
-<ul>
-<li>Marking opens at once, with the session you last wrote in as the destination.</li>
-<li>The session picker shows four sessions, the rest behind "+N", each with whether it's working or waiting for you.</li>
-<li>Marks go to the terminal 3 s after you stop (was 5 s).</li>
-<li>Updates are announced, not downloaded: a pill by the sidebar and a dot on the menu bar pin.</li>
-</ul>
-<h3>Fixes</h3>
-<ul>
-<li>Sessions take the name you gave their tab in Orca.</li>
-<li>Marks reach Orca tabs again after Orca restarts.</li>
-<li>The sidebar's resize corner works next to the last ring.</li>
-</ul>
-]]></description>
-            <enclosure url="https://aki-updates.vercel.app/0.3.0/Aki-0.3.0.zip" length="3306169" type="application/octet-stream" sparkle:edSignature="kf61lwfr/IuYME5JNDU2QlE/+zQpcjheimX4BfVoreAXtoqF3qBDnYATc0bCHsHCBG95cjmT2NSMjEW8/kDQDQ=="/>
         </item>
     </channel>
 </rss>
