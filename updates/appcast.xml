@@ -3,6 +3,31 @@
     <channel>
         <title>Aki</title>
         <item>
+            <title>0.3.2</title>
+            <pubDate>Mon, 05 Oct 2026 22:47:29 -0300</pubDate>
+            <sparkle:version>0.3.2</sparkle:version>
+            <sparkle:shortVersionString>0.3.2</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
+            <description><![CDATA[<h2>Aki 0.3.2</h2>
+<h3>Updates, like they should be</h3>
+<ul>
+<li>A new version shows as a pill by the sidebar. Click it and it downloads right there — a bar filling up, Aki's pin riding its tip — then Aki restarts by itself on the new version and says so. No more update windows.</li>
+<li>Aki looks for a new version every hour.</li>
+</ul>
+<h3>Marking</h3>
+<ul>
+<li>The comment card can be dragged by its top, off what you want to see.</li>
+<li>The queue's destination is a clear field: the AI, the app and the session's whole name.</li>
+</ul>
+<h3>Privacy, said plainly</h3>
+<ul>
+<li>Aki sends anonymous notices to its maker when it's installed and when it updates: its version (and the one before), your macOS version and language. No account, no identifier, nothing you mark. They tell how many people use Aki and on which version, so the right things get fixed first. Get started says so, and one switch turns them off (also in Settings → General → Privacy).</li>
+</ul>
+]]></description>
+            <enclosure url="https://aki-updates.vercel.app/0.3.2/Aki-0.3.2.zip" length="3354978" type="application/octet-stream" sparkle:edSignature="w+qZF33XhH3CEkiPoOjp/LoViWohQJsGw10lHRHsH8+8etgWWMqlNl3arTQuspNgesms0aLsglrFCi8tC1s0Dw=="/>
+        </item>
+        <item>
             <title>0.3.1</title>
             <pubDate>Mon, 05 Oct 2026 20:11:54 -0300</pubDate>
             <sparkle:version>0.3.1</sparkle:version>
@@ -52,37 +77,6 @@
 </ul>
 ]]></description>
             <enclosure url="https://aki-updates.vercel.app/0.3.0/Aki-0.3.0.zip" length="3306169" type="application/octet-stream" sparkle:edSignature="kf61lwfr/IuYME5JNDU2QlE/+zQpcjheimX4BfVoreAXtoqF3qBDnYATc0bCHsHCBG95cjmT2NSMjEW8/kDQDQ=="/>
-        </item>
-        <item>
-            <title>0.2.0</title>
-            <pubDate>Sun, 04 Oct 2026 20:44:12 -0300</pubDate>
-            <sparkle:version>0.2.0</sparkle:version>
-            <sparkle:shortVersionString>0.2.0</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
-            <description><![CDATA[<h2>Aki 0.2.0 — the first version for everyone</h2>
-<h3>Mark anything</h3>
-<ul>
-<li>Mark an element, an area or lines of text in any app with <b>⇧⌘A</b>. Chrome, Brave, Edge, Arc and Vivaldi give the exact element (selector, text, HTML, React source), no extension needed.</li>
-<li>Arrow keys walk the page like DevTools.</li>
-<li>Each mark carries its text and, when it helps, a crop.</li>
-<li>A queue: send one, send all, or keep them for later. Queued marks survive restarts.</li>
-</ul>
-<h3>Your agents</h3>
-<ul>
-<li>One ring per Claude Code or Codex session, showing the AI and the app it runs in.</li>
-<li>Marks go to the right session by themselves, then Aki types the request into its tab, with a countdown and a ✓ when the agent is done.</li>
-<li>MCP server and <code>aki</code> command for any agent, <code>aki://</code> links and Raycast commands.</li>
-</ul>
-<h3>Around it</h3>
-<ul>
-<li>History (<b>⇧⌘H</b>) with search and filters.</li>
-<li>Get started: every permission, why it's needed, and a button straight to it.</li>
-<li>Nine languages, light and dark, shortcuts you choose, and updates by itself.</li>
-<li>Secrets on screen are never read; the local server is locked to your Mac; updates are signed.</li>
-</ul>
-]]></description>
-            <enclosure url="https://aki-updates.vercel.app/0.2.0/Aki-0.2.0.zip" length="3127919" type="application/octet-stream" sparkle:edSignature="dgN65mkQTy8esZcN4Ax1s6Zt9sR1G4xnTx/Uo76tHf1a339LZCRhihwmMWeY5ySrbHi9S+FgPTv1cOxnSMZdBA=="/>
         </item>
     </channel>
 </rss>
