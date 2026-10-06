@@ -316,6 +316,23 @@ final class MarkingSession {
         renumber()
     }
 
+    /// The "+N" list of other sessions is open (esc closes it before anything else).
+    var listOpen = false
+
+    /// ⏎ with nothing being written: mark what's outlined, as a click would.
+    func markTarget() {
+        guard let target, !flying, !sending, editing == nil else { return }
+        let primary = NSScreen.screens.first?.frame.height ?? 0
+        for (index, grab) in grabs.enumerated() {
+            let frame = grab.screen.frame
+            let local = target.frame.offsetBy(dx: -frame.minX, dy: -(primary - frame.maxY))
+            guard CGRect(origin: .zero, size: frame.size).intersects(local) else { continue }
+            add(screen: index, rect: local, element: target, anchor: CGPoint(x: local.maxX, y: local.maxY))
+            focusScreen(index)
+            return
+        }
+    }
+
     /// Marks ticked in the queue, to take out together (button or ⌫).
     var queueSelected: Set<UUID> = []
 

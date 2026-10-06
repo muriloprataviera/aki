@@ -5,6 +5,8 @@ What changed in each version of Aki. Versions follow [semantic versioning](https
 ## [Unreleased]
 
 ### Added
+- ⏎ marks what's outlined (after walking with ↑ ↓), as a click would.
+- The "+N" list of sessions has a search field (name or project, any case or accent); ⏎ takes the first match, esc closes the list.
 - Two bigger sidebar sizes, Extra large and Huge, for big monitors (the resize corner and Settings).
 - The short `aki` command in Terminal: the one-line installer adds it (your password, once), and Get started offers it to those who came by the DMG.
 

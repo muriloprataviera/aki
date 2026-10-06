@@ -1,6 +1,8 @@
 // Japanese strings for Aki's interface (keys are the English text).
 extension L10n {
     static let japanese: [String: String] = [
+        "Find a session": "セッションを検索",
+        "No session with that name": "その名前のセッションはありません",
         "Extra large": "特大",
         "Huge": "最大",
         "In Terminal": "ターミナル",

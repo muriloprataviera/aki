@@ -1,6 +1,8 @@
 // German strings for Aki's interface (keys are the English text).
 extension L10n {
     static let german: [String: String] = [
+        "Find a session": "Sitzung suchen",
+        "No session with that name": "Keine Sitzung mit diesem Namen",
         "Extra large": "Sehr groß",
         "Huge": "Riesig",
         "In Terminal": "Im Terminal",

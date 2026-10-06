@@ -35,7 +35,9 @@ struct MarkingView: View {
     @State private var queueDrag: CGSize = .zero
     @State private var queueDragging: CGSize = .zero
     @State private var queueHandleHovered = false
-    @State private var showsMore = false
+    /// Words typed in the "+N" list to find a session.
+    @State private var moreQuery = ""
+    @FocusState private var moreSearchFocused: Bool
     /// Where you dragged the comment card to (on top of where it opens by itself).
     @State private var cardDrag: CGSize = .zero
     @State private var cardDragging: CGSize = .zero
@@ -426,7 +428,7 @@ struct MarkingView: View {
         .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { cardHeight = $0 }
         // "+N": the other sessions to the card's right, or its left when there's no room.
         .overlay(alignment: x + width + 10 + 240 <= grab.screen.frame.width - 12 ? .topTrailing : .topLeading) {
-            if showsMore && !pickerRest.isEmpty {
+            if session.listOpen && !pickerRest.isEmpty {
                 let right = x + width + 10 + 240 <= grab.screen.frame.width - 12
                 morePanel
                     .offset(x: (right ? 250 : -250) + moreDrag.width + moreDragging.width,
@@ -436,7 +438,7 @@ struct MarkingView: View {
         .offset(x: x, y: y)
         .animation(.easeOut(duration: 0.15), value: cardHeight)
         .onAppear { focusField() }
-        .onChange(of: session.editing) { focusField(); showsMore = false }
+        .onChange(of: session.editing) { focusField(); session.listOpen = false }
         .transition(.opacity.combined(with: .scale(scale: 0.96, anchor: .topLeading)))
     }
 
@@ -599,20 +601,40 @@ struct MarkingView: View {
         return session.terminals.filter { !shown.contains($0) }
     }
 
+    /// The "+N" list: the sessions behind it, or — with words typed — every session that matches.
+    private var moreList: [AgentTerminal] {
+        let query = moreQuery.trimmingCharacters(in: .whitespaces)
+        guard !query.isEmpty else { return pickerRest }
+        return session.terminals.filter { terminal in
+            [terminal.name, URL(filePath: terminal.worktree).lastPathComponent].contains {
+                $0.range(of: query, options: [.caseInsensitive, .diacriticInsensitive]) != nil
+            }
+        }
+    }
+
+    private func pickFromList(_ terminal: AgentTerminal) {
+        withAnimation(.easeOut(duration: 0.15)) {
+            session.setDestination(terminal.id)
+            session.listOpen = false
+        }
+        moreQuery = ""
+        focusField()
+    }
+
     private var terminalPicker: some View {
         VStack(alignment: .leading, spacing: 6) {
             HStack(alignment: .top, spacing: 6) {
                 ForEach(pickerShown) { terminal in pickerTile(terminal) }
                 if !pickerRest.isEmpty {
                     Button {
-                        withAnimation(.easeOut(duration: 0.15)) { showsMore.toggle() }
+                        withAnimation(.easeOut(duration: 0.15)) { session.listOpen.toggle() }
                     } label: {
                         VStack(spacing: 3) {
                             Text("+\(pickerRest.count)")
                                 .font(.system(size: 12, weight: .bold, design: .rounded))
                                 .foregroundStyle(.white)
                                 .frame(width: 32, height: 32)
-                                .background(Circle().fill(Color.white.opacity(showsMore ? 0.22 : 0.1)))
+                                .background(Circle().fill(Color.white.opacity(session.listOpen ? 0.22 : 0.1)))
                                 .overlay(Circle().strokeBorder(Color.white.opacity(0.35), lineWidth: 1))
                                 .frame(width: 42, height: 42)
                             Text(L10n.t("More"))
@@ -743,24 +765,37 @@ struct MarkingView: View {
                     moreDrag.height += value.translation.height
                     moreDragging = .zero
                 })
+            // Type to find one: the name or the project, any case, accents or not; ⏎ takes the first.
+            HStack(spacing: 6) {
+                Image(systemName: "magnifyingglass").font(.system(size: 10, weight: .semibold)).foregroundStyle(.white.opacity(0.5))
+                TextField(L10n.t("Find a session"), text: $moreQuery)
+                    .textFieldStyle(.plain).font(.system(size: 11.5)).foregroundStyle(.white)
+                    .focused($moreSearchFocused)
+                    .onSubmit { if let first = moreList.first { pickFromList(first) } }
+            }
+            .padding(.horizontal, 8).frame(height: 26)
+            .background(RoundedRectangle(cornerRadius: 7).fill(Color.white.opacity(0.08)))
+            .padding(.horizontal, 6).padding(.bottom, 4)
             ScrollView(.vertical, showsIndicators: true) {
                 VStack(alignment: .leading, spacing: 2) {
-                    ForEach(pickerRest) { terminal in
+                    ForEach(moreList) { terminal in
                         MoreRow(terminal: terminal, hue: Color(session.hue(for: terminal.id)),
                                 number: session.number(of: terminal.id), help: pickerHelp(terminal)) {
-                            withAnimation(.easeOut(duration: 0.15)) {
-                                session.setDestination(terminal.id)
-                                showsMore = false
-                            }
+                            pickFromList(terminal)
                         }
+                    }
+                    if moreList.isEmpty {
+                        Text(L10n.t("No session with that name")).font(.system(size: 11)).foregroundStyle(.white.opacity(0.45))
+                            .padding(8)
                     }
                 }
                 .padding(.horizontal, 4).padding(.bottom, 6)
             }
             .frame(maxHeight: 360)
-            .fixedSize(horizontal: false, vertical: pickerRest.count <= 8)
+            .fixedSize(horizontal: false, vertical: moreList.count <= 8)
         }
         .frame(width: 240, alignment: .leading)
+        .onAppear { moreQuery = ""; DispatchQueue.main.async { moreSearchFocused = true } }
         .background(RoundedRectangle(cornerRadius: 14, style: .continuous).fill(Color(red: 20 / 255, green: 20 / 255, blue: 20 / 255)))
         .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).strokeBorder(Color.white.opacity(0.15), lineWidth: 1))
         .shadow(color: .black.opacity(0.35), radius: 16, y: 6)

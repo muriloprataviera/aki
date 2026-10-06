@@ -224,6 +224,11 @@ final class MarkingController {
 
     /// esc: drops the mark being written (or clears it), else leaves.
     private func escape() {
+        // The "+N" list open: esc closes just it.
+        if let session, session.listOpen {
+            withAnimation(.easeOut(duration: 0.15)) { session.listOpen = false }
+            return
+        }
         // A picture opened bigger: esc puts it away first.
         if ImageZoom.isOpen {
             ImageZoom.close()
@@ -459,6 +464,10 @@ final class MarkingController {
                 return nil
             case 51 where session.editing == nil && !session.queueSelected.isEmpty:  // ⌫: the ticked marks out
                 withAnimation(.easeOut(duration: 0.15)) { session.removeSelected() }
+                return nil
+            // ⏎ with nothing being written: mark what's outlined (after walking with ↑ ↓).
+            case 36 where !event.modifierFlags.contains(.command) && session.editing == nil && !session.listOpen && session.target != nil:
+                withAnimation(.spring(response: 0.3, dampingFraction: 0.75)) { session.markTarget() }
                 return nil
             case 36 where event.modifierFlags.contains(.command):  // ⌘⏎
                 self.send()
