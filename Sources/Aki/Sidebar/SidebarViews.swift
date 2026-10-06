@@ -1935,6 +1935,7 @@ struct UpdatePill: View {
         case .available: "arrow.down.circle.fill"
         case .checking, .downloading: "arrow.down.circle"
         case .installing: "arrow.triangle.2.circlepath"
+        case .waitingForQueue: "tray.full"
         case .upToDate, .updated: "checkmark.circle.fill"
         case .failed: "exclamationmark.triangle.fill"
         case .idle: "circle"
@@ -1947,6 +1948,7 @@ struct UpdatePill: View {
         case .checking: L10n.t("Checking for updates…")
         case .downloading(let v, let f): "\(L10n.t("Downloading")) \(v)" + (f.map { " · \(Int($0 * 100))%" } ?? "…")
         case .installing: L10n.t("Installing, Aki restarts…")
+        case .waitingForQueue(let v): "\(v) · " + L10n.t("updates once the queue is sent")
         case .upToDate: L10n.t("Aki is up to date")
         case .updated(let v): "\(L10n.t("Updated to")) \(v)"
         case .failed: L10n.t("Couldn't update. Click to try again")

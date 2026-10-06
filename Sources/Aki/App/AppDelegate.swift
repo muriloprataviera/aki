@@ -59,6 +59,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
             withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) { self?.model.update = state }
             if case .available = state { self?.markStatusItem(true) } else { self?.markStatusItem(false) }
         }
+        // An update restarts Aki: never while marks wait to be sent (they live in memory).
+        Updates.shared.canRestart = { [weak self] in
+            guard let self else { return true }
+            return !self.marking.isActive && self.model.queuedMarks == 0
+        }
         Updates.shared.start()
         followMacAppearance()
         startServer(store: store)

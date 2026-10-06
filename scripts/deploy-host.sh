@@ -32,7 +32,6 @@ cp -R updates/api "$host/api"
 # How the host serves things: /Aki.dmg and the installer go through api/dl.js (newest stable
 # DMG; installer as text, named aki-install.sh if saved), the bare address goes to the site,
 # and any page may read the feed and latest.txt (public data).
-latest=$(cat updates/latest.txt 2>/dev/null || echo "$(cat updates/latest.txt)")
 cat > "$host/vercel.json" <<JSON
 {
   "redirects": [

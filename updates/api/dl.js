@@ -62,7 +62,7 @@ async function notify(req, text) {
 
 // The maker's own downloads and tests are labelled, so every unlabelled notice is a real visitor.
 // A browser is marked once by opening /eu?k=<secret> (cookie only on this host); scripts send X-Aki-Me.
-const cookie = (req, name) => (req.headers.cookie || '').split(/;\s*/).map((c) => c.split('=')).find(([k]) => k === name)?.[1] || '';
+const cookie = (req, name) => { const c = (req.headers.cookie || '').split(/;\s*/).find((p) => p.startsWith(name + '=')); return c ? c.slice(name.length + 1) : ''; };
 /// Compared in constant time, so timing can't reveal the secret letter by letter.
 const same = (a, b) => {
   const x = Buffer.from(String(a || '')), y = Buffer.from(String(b || ''));
@@ -74,6 +74,13 @@ const isMe = (req) => { const me = process.env.AKI_ME; return !!me && [req.heade
 const versions = () => new Set([...read('appcast.xml').matchAll(/<sparkle:shortVersionString>([^<]+)</g)].map((m) => m[1]));
 const VERSION = /^\d{1,3}\.\d{1,3}\.\d{1,3}(-beta\.\d{1,3})?$/;
 const MACOS = /^\d{2}\.\d{1,2}(\.\d{1,2})?$/;
+/// Whether version a comes before b (numbers compared one by one; a beta before its release).
+const older = (a, b) => {
+  const parts = (v) => { const [n, beta] = v.split('-beta.'); return [...n.split('.').map(Number), beta === undefined ? Infinity : Number(beta)]; };
+  const x = parts(a), y = parts(b);
+  for (let i = 0; i < 4; i++) if (x[i] !== y[i]) return x[i] < y[i];
+  return false;
+};
 const LANGUAGE = /^[a-z]{2,3}(-[A-Za-z0-9]{2,8}){0,2}$/;
 
 async function ping(req, res) {
@@ -88,7 +95,9 @@ async function ping(req, res) {
   const known = versions();
   const event = b.event === 'update' ? 'update' : b.event === 'install' || b.event === undefined ? 'install' : null;
   const ok = event && VERSION.test(b.version || '') && known.has(b.version)
-    && (event === 'install' || (VERSION.test(b.from || '') && known.has(b.from) && b.from !== b.version))
+    // The version before may be older than what the feed still lists (someone who skipped
+    // a few): any well-formed one lower than the version now.
+    && (event === 'install' || (VERSION.test(b.from || '') && older(b.from, b.version)))
     && MACOS.test(b.macos || '') && LANGUAGE.test(b.language || '') && (b.chip === undefined || b.chip === 'Apple Silicon');
   if (!ok) return res.end();
   // One install and a couple of updates per place per day is plenty.

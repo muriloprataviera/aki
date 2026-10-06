@@ -245,6 +245,9 @@ struct MarkingView: View {
             }
         }
         .frame(width: grab.screen.frame.width, height: grab.screen.frame.height, alignment: .topLeading)
+        // Another mark's card opens where it belongs, not where the last one was dragged
+        // (watched here: the card's own view is gone between marks).
+        .onChange(of: session.editing) { if session.editing != nil { cardDrag = .zero } }
         .environment(\.colorScheme, .dark)
     }
 
@@ -427,8 +430,7 @@ struct MarkingView: View {
         .offset(x: x, y: y)
         .animation(.easeOut(duration: 0.15), value: cardHeight)
         .onAppear { focusField() }
-        // Another mark's card opens where it belongs, not where the last one was dragged.
-        .onChange(of: session.editing) { focusField(); showsMore = false; cardDrag = .zero }
+        .onChange(of: session.editing) { focusField(); showsMore = false }
         .transition(.opacity.combined(with: .scale(scale: 0.96, anchor: .topLeading)))
     }
 

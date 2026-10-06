@@ -1,6 +1,7 @@
 // French strings for Aki's interface (keys are the English text).
 extension L10n {
     static let french: [String: String] = [
+        "updates once the queue is sent": "mise à jour dès que la file est envoyée",
         "Anonymous notices": "Signaux anonymes",
         "Send anonymous notices to the maker": "Envoyer des signaux anonymes au créateur",
         "When Aki is installed and each time it updates: its version (and the one before), your macOS version and language. No account, no identifier, nothing you mark or type.": "À l'installation d'Aki et à chaque mise à jour : sa version (et la précédente), la version de macOS et la langue. Pas de compte, pas d'identifiant, rien de ce que vous marquez ou tapez.",
