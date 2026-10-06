@@ -4,6 +4,8 @@ What changed in each version of Aki. Versions follow [semantic versioning](https
 
 ## [Unreleased]
 
+## [0.3.2] — 2026-10-06
+
 ### Added
 - Updates happen inside Aki, like Orca: the pill says there's a new version; a click downloads it right in the pill (a bar filling up, Aki's pin riding its tip), then Aki restarts by itself on the new version and says so for a moment. No Sparkle windows.
 - The comment card can be dragged by its top, off what you want to see.
