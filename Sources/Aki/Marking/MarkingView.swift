@@ -36,6 +36,10 @@ struct MarkingView: View {
     @State private var queueDragging: CGSize = .zero
     @State private var queueHandleHovered = false
     @State private var showsMore = false
+    /// Where you dragged the comment card to (on top of where it opens by itself).
+    @State private var cardDrag: CGSize = .zero
+    @State private var cardDragging: CGSize = .zero
+    @State private var cardHandleHovered = false
     @State private var moreDrag: CGSize = .zero
     @State private var moreDragging: CGSize = .zero
     @State private var moreHandleHovered = false
@@ -313,8 +317,34 @@ struct MarkingView: View {
             return CGPoint(x: min(max(x, 12), bounds.width - width - 12),
                            y: min(max(q.y, 12), bounds.height - bottomReserve - size.height))
         } ?? placement(near: mark.anchor, size: size)
-        let x = origin.x, y = origin.y
+        let x = origin.x + cardDrag.width + cardDragging.width, y = origin.y + cardDrag.height + cardDragging.height
         return VStack(alignment: .leading, spacing: 10) {
+            // Its top is a handle: drag the card off what you want to see.
+            Capsule()
+                .fill(Color.white.opacity(cardHandleHovered ? 0.6 : 0.25))
+                .frame(width: 36, height: 4)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 3)
+                .padding(.top, -8)
+                .contentShape(Rectangle())
+                .onContinuousHover { phase in
+                    switch phase {
+                    case .active:
+                        cardHandleHovered = true
+                        AkiCursor.set(cardDragging == .zero ? NSCursor.openHand : NSCursor.closedHand)
+                    case .ended:
+                        cardHandleHovered = false
+                        AkiCursor.set(AkiCursor.pin)
+                    }
+                }
+                .gesture(DragGesture(coordinateSpace: .global)
+                    .onChanged { cardDragging = $0.translation; AkiCursor.set(NSCursor.closedHand) }
+                    .onEnded { value in
+                        cardDrag.width += value.translation.width
+                        cardDrag.height += value.translation.height
+                        cardDragging = .zero
+                    })
+                .help(L10n.t("Drag to move"))
             HStack(spacing: 8) {
                 Text("\(mark.number)")
                     .font(.system(size: 12, weight: .bold, design: .rounded))
@@ -397,7 +427,8 @@ struct MarkingView: View {
         .offset(x: x, y: y)
         .animation(.easeOut(duration: 0.15), value: cardHeight)
         .onAppear { focusField() }
-        .onChange(of: session.editing) { focusField(); showsMore = false }
+        // Another mark's card opens where it belongs, not where the last one was dragged.
+        .onChange(of: session.editing) { focusField(); showsMore = false; cardDrag = .zero }
         .transition(.opacity.combined(with: .scale(scale: 0.96, anchor: .topLeading)))
     }
 
