@@ -3,6 +3,19 @@
     <channel>
         <title>Aki</title>
         <item>
+            <title>0.4.0-beta.7</title>
+            <pubDate>Tue, 06 Oct 2026 15:22:24 -0300</pubDate>
+            <sparkle:channel>beta</sparkle:channel>
+            <sparkle:version>20261006182223</sparkle:version>
+            <sparkle:shortVersionString>0.4.0-beta.7</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
+            <description><![CDATA[<h2>Aki 0.4.0 beta 7</h2>
+<ul><li>The update pill says which beta: "0.4.0 beta 7".</li></ul>
+]]></description>
+            <enclosure url="https://aki-updates.vercel.app/0.4.0-beta.7/Aki-0.4.0-beta.7.zip" length="3388054" type="application/octet-stream" sparkle:edSignature="WQ3DlffvgSLmoJJAOOnVUnrlSYO5P48cya5hl+TKrJbgLymmW3c32Sr7Ci+94aB5fxWSm7fuPdcMkxL1pAcoDg=="/>
+        </item>
+        <item>
             <title>0.4.0-beta.6</title>
             <pubDate>Tue, 06 Oct 2026 15:09:46 -0300</pubDate>
             <sparkle:channel>beta</sparkle:channel>
@@ -34,19 +47,6 @@
 </ul>
 ]]></description>
             <enclosure url="https://aki-updates.vercel.app/0.4.0-beta.5/Aki-0.4.0-beta.5.zip" length="3380894" type="application/octet-stream" sparkle:edSignature="z0QSYf6bqgkO4mDDelE+K+T/Zz0M2Hs/+nPT2UNJH/E8p7m0DALdQReKNEhReSkcFfdtT3ZM5TDlAPCES7ovAQ=="/>
-        </item>
-        <item>
-            <title>0.4.0-beta.4</title>
-            <pubDate>Tue, 06 Oct 2026 13:30:25 -0300</pubDate>
-            <sparkle:channel>beta</sparkle:channel>
-            <sparkle:version>20261006163024</sparkle:version>
-            <sparkle:shortVersionString>0.4.0-beta.4</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
-            <description><![CDATA[<h2>Aki 0.4.0 beta 4</h2>
-<ul><li>Pointing inside things a page embeds from elsewhere (Claude's artifacts, videos, payment forms) finds the button or text under the pointer, not just the whole box.</li></ul>
-]]></description>
-            <enclosure url="https://aki-updates.vercel.app/0.4.0-beta.4/Aki-0.4.0-beta.4.zip" length="3365516" type="application/octet-stream" sparkle:edSignature="J3Kdnhhk9lliqCLbuLZu8M8AbVVLd0ZaFqYqkOGj5QlRal3/XlRv/2hqxvNtGli3JVczae1MWLpMKha1eMwYDw=="/>
         </item>
         <item>
             <title>0.3.3</title>
