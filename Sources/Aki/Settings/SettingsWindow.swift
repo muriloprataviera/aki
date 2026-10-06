@@ -835,6 +835,8 @@ struct SettingsView: View {
                 }
             }
             Caption(L10n.t("Types the request into the session's Orca tab when you stop marking (it waits while the agent is working)."))
+            Toggle(L10n.t("Destination follows the Orca tab you click"), isOn: $preferences.followOrcaTab)
+            Caption(L10n.t("Click an agent's tab in Orca and new marks go to it. Other apps and tabs keep the destination."))
         }
     }
 }

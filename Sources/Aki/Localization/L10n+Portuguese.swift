@@ -221,6 +221,8 @@ extension L10n {
         "Pictures on disk": "Fotos no disco",
         "Pictures of marks already resolved or deleted. Aki deletes them by itself as the agent resolves; this clears what's left.": "Fotos de marcas já resolvidas ou apagadas. O Aki apaga sozinho conforme o agente resolve; isto limpa o que sobrou.", "Send to the terminal now": "Enviar agora para o terminal", "Sending…": "Enviando…",
         "Sent to the terminal": "Enviado para o terminal", "Couldn't find its tab": "Não achei a aba",
+        "Destination follows the Orca tab you click": "O destino segue a aba que você clica no Orca",
+        "Click an agent's tab in Orca and new marks go to it. Other apps and tabs keep the destination.": "Clique na aba de um agente no Orca e as marcas novas vão para ela. Outros apps e abas mantêm o destino.",
         "Send to the terminal by itself": "Mandar sozinho para o terminal",
         "Types the request into the session's Orca tab when you stop marking (it waits while the agent is working).": "Escreve o pedido na aba da sessão no Orca quando você para de marcar (espera se o agente estiver trabalhando).", "Hide the sidebar": "Esconder a barrinha", "Show the sidebar": "Mostrar a barrinha",
         "Connected": "Conectado", "Reconnect": "Reconectar",

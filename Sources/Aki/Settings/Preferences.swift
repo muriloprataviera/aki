@@ -285,6 +285,8 @@ final class Preferences {
     var betaUpdates: Bool { didSet { defaults.set(betaUpdates, forKey: Keys.betaUpdates) } }
     /// One anonymous notice to the maker on first launch (version, macOS, language). On by default; off sends nothing.
     var installPing: Bool { didSet { defaults.set(installPing, forKey: Keys.installPing) } }
+    /// The sidebar's destination follows the agent tab you click in Orca.
+    var followOrcaTab: Bool { didSet { defaults.set(followOrcaTab, forKey: Keys.followOrcaTab) } }
     /// Pictures never take more than this on disk (MB); the oldest unneeded go first.
     var maxPicturesMB: Int { didSet { defaults.set(maxPicturesMB, forKey: Keys.maxPicturesMB) } }
     var presence: AppPresence { didSet { defaults.set(presence.rawValue, forKey: Keys.presence) } }
@@ -392,6 +394,7 @@ final class Preferences {
         installUpdatesByThemselves = defaults.object(forKey: Keys.installUpdates) as? Bool ?? false
         betaUpdates = defaults.object(forKey: Keys.betaUpdates) as? Bool ?? false
         installPing = defaults.object(forKey: Keys.installPing) as? Bool ?? true
+        followOrcaTab = defaults.object(forKey: Keys.followOrcaTab) as? Bool ?? true
         maxPicturesMB = defaults.object(forKey: Keys.maxPicturesMB) as? Int ?? 200
         presence = value(Keys.presence, AppPresence.menuBar)
         language = value(Keys.language, AppLanguage.system)
@@ -433,6 +436,7 @@ final class Preferences {
         static let installUpdates = "installUpdatesByThemselves"
         static let betaUpdates = "betaUpdates"
         static let installPing = "installPing"
+        static let followOrcaTab = "followOrcaTab"
         static let maxPicturesMB = "maxPicturesMB"
         static let presence = "appPresence"
         static let language = "appLanguage"

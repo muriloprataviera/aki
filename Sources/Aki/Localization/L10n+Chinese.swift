@@ -330,6 +330,8 @@ extension L10n {
         "Sending…": "正在发送…",
         "Sent to the terminal": "已发送到终端",
         "Couldn't find its tab": "找不到其标签页",
+        "Destination follows the Orca tab you click": "目标跟随你在 Orca 中点击的标签页",
+        "Click an agent's tab in Orca and new marks go to it. Other apps and tabs keep the destination.": "在 Orca 中点击某个代理的标签页，新的标记就发往那里。其他应用和标签页不会改变目标。",
         "Send to the terminal by itself": "自动发送到终端",
         "Types the request into the session's Orca tab when you stop marking (it waits while the agent is working).": "停止标记后，将请求输入到该会话的 Orca 标签页（智能体工作时会等待）。",
         "Hide the sidebar": "隐藏侧边栏",

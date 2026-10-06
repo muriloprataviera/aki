@@ -5,6 +5,7 @@ What changed in each version of Aki. Versions follow [semantic versioning](https
 ## [Unreleased]
 
 ### Added
+- The sidebar's destination follows the agent tab you click in Orca (other apps and tabs keep it; Settings turns it off).
 - ⏎ marks what's outlined (after walking with ↑ ↓), as a click would.
 - The "+N" list of sessions has a search field (name or project, any case or accent); ⏎ takes the first match, esc closes the list.
 - Two bigger sidebar sizes, Extra large and Huge, for big monitors (the resize corner and Settings).

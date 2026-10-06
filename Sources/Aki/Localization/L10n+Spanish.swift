@@ -330,6 +330,8 @@ extension L10n {
         "Sending…": "Enviando…",
         "Sent to the terminal": "Enviado al terminal",
         "Couldn't find its tab": "No se encontró su pestaña",
+        "Destination follows the Orca tab you click": "El destino sigue la pestaña en la que haces clic en Orca",
+        "Click an agent's tab in Orca and new marks go to it. Other apps and tabs keep the destination.": "Haz clic en la pestaña de un agente en Orca y las marcas nuevas van a ella. Otras apps y pestañas mantienen el destino.",
         "Send to the terminal by itself": "Enviar solo al terminal",
         "Types the request into the session's Orca tab when you stop marking (it waits while the agent is working).": "Escribe la petición en la pestaña de la sesión en Orca cuando dejas de marcar (espera si el agente está trabajando).",
         "Hide the sidebar": "Ocultar la barra lateral",

@@ -437,11 +437,27 @@ final class SidebarModel {
             while !Task.isCancelled {
                 try? await Task.sleep(for: .milliseconds(400))
                 await self?.refreshStates()
+                self?.followOrcaFocus()
             }
         }
     }
 
     @ObservationIgnored private var statusTask: Task<Void, Never>?
+    /// The Orca tab last seen in focus: the destination changes only when you click
+    /// another tab, so a choice made on the sidebar holds until then.
+    @ObservationIgnored private var lastOrcaTab: String?
+
+    /// Clicking an agent's tab in Orca makes it the destination. Any other tab, app or
+    /// doubt (two sessions with that name) leaves the destination as it was.
+    private func followOrcaFocus() {
+        guard preferences.followOrcaTab, let title = OrcaFocus.focusedTabTitle() else { return }
+        guard title != lastOrcaTab else { return }
+        lastOrcaTab = title
+        let wanted = TerminalJump.normalized(title)
+        let matches = markableTerminals.filter { $0.orcaHandle != nil && TerminalJump.normalized($0.name) == wanted }
+        guard matches.count == 1, selectedTerminal != matches[0].id else { return }
+        selectedTerminal = matches[0].id
+    }
 
     /// Claude Code writes its state (working, waiting for you, idle) to its session
     /// file the moment it changes: reading those small files is cheap, so rings and

@@ -330,6 +330,8 @@ extension L10n {
         "Sending…": "Wird gesendet …",
         "Sent to the terminal": "Ans Terminal gesendet",
         "Couldn't find its tab": "Tab nicht gefunden",
+        "Destination follows the Orca tab you click": "Ziel folgt dem Orca-Tab, den du anklickst",
+        "Click an agent's tab in Orca and new marks go to it. Other apps and tabs keep the destination.": "Klicke in Orca auf den Tab eines Agenten, und neue Markierungen gehen dorthin. Andere Apps und Tabs behalten das Ziel.",
         "Send to the terminal by itself": "Automatisch ans Terminal senden",
         "Types the request into the session's Orca tab when you stop marking (it waits while the agent is working).": "Tippt die Anfrage in den Orca-Tab der Sitzung, wenn du aufhörst zu markieren (wartet, solange der Agent arbeitet).",
         "Hide the sidebar": "Seitenleiste ausblenden",
