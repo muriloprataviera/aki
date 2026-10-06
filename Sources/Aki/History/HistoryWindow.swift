@@ -17,8 +17,9 @@ final class HistoryWindowController {
         if let panel, panel.isVisible { panel.orderOut(nil) } else { show() }
     }
 
-    func show(session: String? = nil) {
+    func show(session: String? = nil, queue: Bool = false) {
         model.historySession = session
+        model.historyOnQueue = queue
         let panel = self.panel ?? makePanel()
         self.panel = panel
         if let screen = NSScreen.main {
@@ -31,7 +32,15 @@ final class HistoryWindowController {
         AppWindows.refresh()
     }
 
+    private var escMonitor: Any?
+
     private func makePanel() -> NSPanel {
+        // esc closes it, even with the cursor in the search field (which would keep the key).
+        escMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
+            guard event.keyCode == 53, let panel = self?.panel, panel.isKeyWindow else { return event }
+            panel.orderOut(nil)
+            return nil
+        }
         // A regular Mac window: close, minimise and zoom in the corner, as everywhere.
         let panel = HistoryPanel(
             contentRect: NSRect(x: 0, y: 0, width: 600, height: 620),
@@ -70,7 +79,7 @@ private struct HistoryView: View {
     let model: SidebarModel
     let close: () -> Void
 
-    enum Show: String, CaseIterable { case pending, resolved, all }
+    enum Show: String, CaseIterable { case queue, pending, resolved, all }
 
     @State private var annotations: [Annotation] = []
     @State private var show: Show = .all
@@ -96,9 +105,10 @@ private struct HistoryView: View {
                 ForEach(Show.allCases, id: \.self) { option in
                     let on = show == option
                     Button { withAnimation(.easeOut(duration: 0.15)) { show = option } } label: {
-                        Text("\(L10n.t(option == .pending ? "Pending" : option == .resolved ? "Done marks" : "All")) \(count(option))")
+                        Text("\(L10n.t(option == .queue ? "Queue" : option == .pending ? "Pending" : option == .resolved ? "Done marks" : "All")) \(count(option))")
                             .font(.system(size: 10.5, weight: on ? .bold : .medium))
-                            .foregroundStyle(on ? .black : .white.opacity(0.6))
+                            // The queue in red while marks wait in it: easy to spot.
+                            .foregroundStyle(on ? .black : option == .queue && count(.queue) > 0 ? AkiPalette.red : .white.opacity(0.6))
                             .padding(.horizontal, 7).frame(height: 20)
                             .background(Capsule().fill(on ? Color.white : Color.white.opacity(0.001)))
                     }
@@ -158,10 +168,17 @@ private struct HistoryView: View {
                 }
                 Spacer(minLength: 0)
             }
-            if !model.queuedList.isEmpty {
-                QueueSection(model: model, close: close)
-            }
-            if filtered.isEmpty {
+            if show == .queue {
+                // Marks saved but not sent yet (they wait for the next round of marking).
+                if model.queuedList.isEmpty {
+                    Spacer()
+                    Text(L10n.t("Nothing in the queue. Marks you save with “Queue it” wait here."))
+                        .font(.system(size: 11)).foregroundStyle(.white.opacity(0.45)).frame(maxWidth: .infinity)
+                    Spacer()
+                } else {
+                    ScrollView { QueueSection(model: model, close: close).padding(.trailing, 12) }
+                }
+            } else if filtered.isEmpty {
                 Spacer()
                 Text(L10n.t("Nothing here yet. Mark with {mark}.")).font(.system(size: 11)).foregroundStyle(.white.opacity(0.45))
                     .frame(maxWidth: .infinity)
@@ -209,7 +226,8 @@ private struct HistoryView: View {
         // The header shares the title bar's row with close / minimise / zoom.
         .ignoresSafeArea()
         .task { await load() }
-        .onAppear { session = model.historySession }
+        .onAppear { session = model.historySession; if model.historyOnQueue { show = .queue } }
+        .onChange(of: model.historyOnQueue) { if model.historyOnQueue { show = .queue } }
         .onChange(of: model.historySession) { session = model.historySession }
         .onReceive(Timer.publish(every: 3, on: .main, in: .common).autoconnect()) { _ in Task { await load() } }
     }
@@ -283,7 +301,8 @@ private struct HistoryView: View {
     }
 
     private func count(_ option: Show) -> Int {
-        annotations.filter { option == .all || (option == .pending ? $0.status != "completed" : $0.status == "completed") }.count
+        if option == .queue { return model.queuedList.count }
+        return annotations.filter { option == .all || (option == .pending ? $0.status != "completed" : $0.status == "completed") }.count
     }
 
     private func matches(_ a: Annotation) -> Bool {

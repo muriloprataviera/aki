@@ -253,6 +253,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         let history = ClosureMenuItem(L10n.t("History")) { [weak self] in self?.history.show() }
         history.image = NSImage(systemSymbolName: "clock.arrow.circlepath", accessibilityDescription: nil)
         menu.addItem(shortcut(history, preferences.historyShortcut))
+        // Marks saved but not sent: straight to them.
+        if model.queuedMarks > 0 {
+            let queue = ClosureMenuItem("\(L10n.t("See the queue")) (\(model.queuedMarks))") { [weak self] in self?.history.show(queue: true) }
+            queue.image = NSImage(systemSymbolName: "tray.full", accessibilityDescription: nil)
+            menu.addItem(queue)
+        }
         menu.addItem(.separator())
         // The sidebar, as it is: bring it back, or keep it open (✓) / let it hide.
         if preferences.visibility == .hidden {

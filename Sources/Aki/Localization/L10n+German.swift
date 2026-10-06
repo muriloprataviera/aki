@@ -1,6 +1,8 @@
 // German strings for Aki's interface (keys are the English text).
 extension L10n {
     static let german: [String: String] = [
+        "Nothing in the queue. Marks you save with “Queue it” wait here.": "Nichts in der Warteschlange. Markierungen, die du mit „In die Warteschlange“ sicherst, warten hier.",
+        "See the queue": "Warteschlange ansehen",
         "Update": "Aktualisieren",
         "updates once the queue is sent": "aktualisiert, sobald die Warteschlange gesendet ist",
         "Anonymous notices": "Anonyme Hinweise",

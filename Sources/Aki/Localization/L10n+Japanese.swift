@@ -1,6 +1,8 @@
 // Japanese strings for Aki's interface (keys are the English text).
 extension L10n {
     static let japanese: [String: String] = [
+        "Nothing in the queue. Marks you save with “Queue it” wait here.": "キューは空です。「キューへ」で保存したマークはここで待ちます。",
+        "See the queue": "キューを見る",
         "Update": "アップデート",
         "updates once the queue is sent": "キューを送信したらアップデートします",
         "Anonymous notices": "匿名の通知",

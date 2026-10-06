@@ -155,6 +155,8 @@ final class SidebarModel {
     var resizing = false
     /// The session the history window is filtered to (nil = all).
     var historySession: String?
+    /// The History opens on the queue (the menu's "See the queue").
+    var historyOnQueue = false
     var eyeHovered = false
     /// The project whose name is being typed, right over its group, and the text.
     var editingProject: String? {
