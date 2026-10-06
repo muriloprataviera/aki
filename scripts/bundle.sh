@@ -22,7 +22,11 @@ cp THIRD_PARTY_NOTICES "$app/Contents/Resources/THIRD_PARTY_NOTICES.txt"
 # Two numbers: the version people see (0.3.3-beta.2) and the build, which only ever grows
 # (the time it was built). Sparkle compares the build: it reads "0.3.3-beta.1" and
 # "0.3.3-beta.2" (and "0.3.3") as the same version, so betas would never update.
-build=$(date -u +%Y%m%d%H%M)
+# To the second, and never the same as the last one built here (two builds in one second wait).
+build=$(date -u +%Y%m%d%H%M%S)
+last=$(cat .build/last-build 2>/dev/null || echo 0)
+while [ "$build" -le "$last" ]; do sleep 1; build=$(date -u +%Y%m%d%H%M%S); done
+mkdir -p .build && echo "$build" > .build/last-build
 sed -e "s/__VERSION__/$version/g" -e "s/__BUILD__/$build/g" Resources/Info.plist > "$app/Contents/Info.plist"
 
 # Sparkle, for in-app updates: the framework goes in Contents/Frameworks (the

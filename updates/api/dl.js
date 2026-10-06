@@ -108,7 +108,11 @@ async function ping(req, res) {
   }
   const known = versions();
   const event = b.event === 'update' ? 'update' : b.event === 'install' || b.event === undefined ? 'install' : null;
-  const ok = event && VERSION.test(b.version || '') && known.has(b.version)
+  // The feed lists only the newest few: any well-formed version up to the newest published one
+  // is real (someone still on an older beta); one past it is made up.
+  const newest = [...known].reduce((a, v) => (a && !older(a, v) ? a : v), '');
+  const real = (v) => VERSION.test(v || '') && (known.has(v) || (newest && older(v, newest)));
+  const ok = event && real(b.version)
     // The version before may be older than what the feed still lists (someone who skipped
     // a few): any well-formed one lower than the version now.
     && (event === 'install' || (VERSION.test(b.from || '') && older(b.from, b.version)))
