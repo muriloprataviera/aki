@@ -4,6 +4,16 @@ What changed in each version of Aki. Versions follow [semantic versioning](https
 
 ## [Unreleased]
 
+### Added
+- The History has a "Queue" tab (red while marks wait in it), and the menu bar pin's menu has "See the queue". esc closes the History even from the search field.
+
+### Changed
+- Updates never restart Aki while marks wait to be sent: it downloads, says "updates once the queue is sent", and restarts after. The update's state also shows in the menu bar pin's menu and in Settings, for those who hide the sidebar. Checking for updates only shows what's new; installing is always a click.
+
+### Fixed
+- A dragged comment card or queue stays on its screen; the next mark's card opens in its own place.
+- The number of marks in the queue on the sidebar stays right.
+
 ## [0.3.2] — 2026-10-06
 
 ### Added
