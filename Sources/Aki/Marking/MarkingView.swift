@@ -899,7 +899,8 @@ struct MarkingView: View {
             }
             .frame(maxHeight: count > 5 ? 230 : nil)
             .fixedSize(horizontal: false, vertical: count <= 5)
-            // Where the whole queue goes, changeable here.
+            // Where the whole queue goes, changeable here: a field that reads as one.
+            Text(L10n.t("Where it goes")).font(.system(size: 9.5, weight: .semibold)).foregroundStyle(.white.opacity(0.5))
             Menu {
                 ForEach(session.terminals) { t in
                     Button {
@@ -909,19 +910,14 @@ struct MarkingView: View {
                     }
                 }
             } label: {
-                // One text: a menu's label on macOS shows only its first piece.
-                (Text("\(L10n.t("Where it goes")):  ").foregroundColor(.white.opacity(0.55))
-                    + Text("● ").foregroundColor(hue)
-                    + Text(destinations.count > 1 ? "\(destinations.count) \(L10n.t("sessions"))" : (terminal.map { "\($0.agent.displayName) · \($0.name)" } ?? L10n.t("No destination")))
-                        .foregroundColor(.white).bold()
-                    + Text("  ⌃⌄").foregroundColor(.white.opacity(0.6)))
-                    .font(.system(size: 10.5))
+                DestinationField(terminal: destinations.count > 1 ? nil : terminal, hue: hue,
+                                 several: destinations.count > 1 ? destinations.count : nil)
             }
-            .menuStyle(.borderlessButton)
+            .menuStyle(.button)
+            .buttonStyle(.plain)
             .menuIndicator(.hidden)
             .frame(maxWidth: .infinity, alignment: .leading)
             .focusable(false)
-            .modifier(PickHover())
             Button { send() } label: {
                 HStack(spacing: 5) {
                     Image(systemName: "paperplane.fill").font(.system(size: 10, weight: .bold))
@@ -1746,5 +1742,42 @@ private struct MoreRow: View {
             hovered = inside
             if inside { AkiCursor.set(NSCursor.pointingHand) } else { AkiCursor.set(AkiCursor.pin) }
         }
+    }
+}
+
+/// The queue's destination as a field you can click: the AI, its app, the session's
+/// whole name, and the up-down arrows every Mac menu has; it lights up under the pointer.
+struct DestinationField: View {
+    let terminal: AgentTerminal?
+    let hue: Color
+    /// Marks going to more than one session.
+    let several: Int?
+    @State private var hovered = false
+
+    var body: some View {
+        HStack(spacing: 6) {
+            Circle().fill(hue).frame(width: 7, height: 7)
+            if let terminal {
+                AgentGlyphView(agent: terminal.agent, size: 11).foregroundStyle(.white)
+                TerminalAppIcon(bundleID: TerminalApp.owner(of: terminal.pid)?.bundleIdentifier, size: 11)
+                Text(terminal.name).font(.system(size: 11, weight: .bold)).foregroundStyle(.white).lineLimit(1)
+            } else if let several {
+                Text("\(several) \(L10n.t("sessions"))").font(.system(size: 11, weight: .bold)).foregroundStyle(.white)
+            } else {
+                Text(L10n.t("No destination")).font(.system(size: 11, weight: .bold)).foregroundStyle(.white)
+            }
+            Spacer(minLength: 4)
+            Image(systemName: "chevron.up.chevron.down").font(.system(size: 9, weight: .bold))
+                .foregroundStyle(.white.opacity(hovered ? 0.95 : 0.6))
+        }
+        .padding(.horizontal, 8).frame(height: 26)
+        .background(RoundedRectangle(cornerRadius: 7).fill(Color.white.opacity(hovered ? 0.14 : 0.07)))
+        .overlay(RoundedRectangle(cornerRadius: 7).strokeBorder(hovered ? hue.opacity(0.9) : Color.white.opacity(0.18), lineWidth: 1))
+        .contentShape(Rectangle())
+        .onHover { inside in
+            withAnimation(.easeOut(duration: 0.12)) { hovered = inside }
+            AkiCursor.set(inside ? NSCursor.pointingHand : AkiCursor.pin)
+        }
+        .help(terminal.map { "\($0.agent.displayName) · \($0.name)" } ?? "")
     }
 }
