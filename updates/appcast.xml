@@ -3,6 +3,21 @@
     <channel>
         <title>Aki</title>
         <item>
+            <title>0.3.3-beta.7</title>
+            <pubDate>Tue, 06 Oct 2026 10:44:20 -0300</pubDate>
+            <sparkle:channel>beta</sparkle:channel>
+            <sparkle:version>202610061344</sparkle:version>
+            <sparkle:shortVersionString>0.3.3-beta.7</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
+            <description><![CDATA[<h2>Aki 0.3.3 beta 7</h2>
+<ul>
+<li>The sidebar's resize corner stays visible however often the pointer goes back and forth over it.</li>
+</ul>
+]]></description>
+            <enclosure url="https://aki-updates.vercel.app/0.3.3-beta.7/Aki-0.3.3-beta.7.zip" length="3360713" type="application/octet-stream" sparkle:edSignature="X+zOuVc3JIAkdGUHYipdxzI+3CBkMwdYS52FLiXETkD28RcC5e6I6V22Q2KOgcpy2oVUlcg6n66ieByAXOwDAA=="/>
+        </item>
+        <item>
             <title>0.3.3-beta.6</title>
             <pubDate>Tue, 06 Oct 2026 10:39:06 -0300</pubDate>
             <sparkle:channel>beta</sparkle:channel>
@@ -32,22 +47,6 @@
 </ul>
 ]]></description>
             <enclosure url="https://aki-updates.vercel.app/0.3.3-beta.5/Aki-0.3.3-beta.5.zip" length="3367741" type="application/octet-stream" sparkle:edSignature="fN/A5/CkjQOD52f0G20OOiE2dRne1wetc9cOAc730arQL712wHTYKbjFJH2yyQEhaGJz/L4clfc9g757SivtCQ=="/>
-        </item>
-        <item>
-            <title>0.3.3-beta.4</title>
-            <pubDate>Tue, 06 Oct 2026 10:30:41 -0300</pubDate>
-            <sparkle:channel>beta</sparkle:channel>
-            <sparkle:version>202610061330</sparkle:version>
-            <sparkle:shortVersionString>0.3.3-beta.4</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
-            <description><![CDATA[<h2>Aki 0.3.3 beta 4</h2>
-<ul>
-<li>Versions read short: "0.3.3 beta".</li>
-<li>Fixes from beta 3: marks reach the right conversation (names come only from Orca's live list), and marking opens on the session you chose last.</li>
-</ul>
-]]></description>
-            <enclosure url="https://aki-updates.vercel.app/0.3.3-beta.4/Aki-0.3.3-beta.4.zip" length="3366746" type="application/octet-stream" sparkle:edSignature="Yel7m34urgZ2+3hZaZqZ+gd8EVDlE6WlYv5Kni09cZMePTMJBIGB/aQjCJHbL/IE+xj7z//nqrG45KwVk6FcBg=="/>
         </item>
         <item>
             <title>0.3.2</title>
