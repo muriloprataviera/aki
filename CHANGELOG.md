@@ -8,6 +8,7 @@ What changed in each version of Aki. Versions follow [semantic versioning](https
 - The short `aki` command in Terminal: the one-line installer adds it (your password, once), and Get started offers it to those who came by the DMG.
 
 ### Changed
+- Aki also looks for a new version when the Mac wakes up, not only on the hour.
 - The sidebar's rings, in Aki's colours: the AI in the middle in its own colours (Claude's orange ✳), and the ring tells the state — a light arc turning slowly while it works, red when it waits for you, quiet otherwise. Aki's pin stands over the session your marks go to. No more initials, one colour per project or gradients.
 - What Aki types to your agent is shorter and says what the marks are about ("📍 Aki: 2 new marks — “…” · “…”"), uses `aki` when it's there, asks to open a picture only when it matters, and to close all marks in one go.
 

@@ -151,6 +151,16 @@ final class Updates: NSObject, SPUUserDriver, SPUUpdaterDelegate {
         }
         updater.automaticallyDownloadsUpdates = false
         do { try updater.start() } catch { NSLog("Aki updates: \(error.localizedDescription)") }
+        // Also when the Mac wakes (lid opened in the morning), not only on the hour.
+        NSWorkspace.shared.notificationCenter.addObserver(
+            forName: NSWorkspace.didWakeNotification, object: nil, queue: .main
+        ) { [weak self] _ in
+            MainActor.assumeIsolated {
+                guard let self, self.state == .idle, self.updater.canCheckForUpdates else { return }
+                // A few seconds in: the network comes back after the screen.
+                DispatchQueue.main.asyncAfter(deadline: .now() + 8) { self.updater.checkForUpdatesInBackground() }
+            }
+        }
     }
 
     /// "Check for Updates…" in the menus and Settings.
