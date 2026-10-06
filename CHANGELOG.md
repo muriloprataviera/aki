@@ -21,7 +21,7 @@ What changed in each version of Aki. Versions follow [semantic versioning](https
 ## [0.3.3] — 2026-10-06
 
 ### Added
-- Betas read short on screen: "0.3.3 beta".
+- Betas read cleanly on screen: "0.4.0 beta 6".
 - The History shows the queue (marks saved but not sent) in its own block on top, apart from the rest; the menu bar pin's menu has "See the queue". esc closes the History even from the search field.
 
 ### Changed

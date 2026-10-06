@@ -23,11 +23,12 @@ enum UpdateState: Equatable {
     /// Just restarted on this version (shown a few seconds).
     case updated(String)
 
-    /// A version as people read it: "0.3.3-beta.3" → "0.3.3 beta" (the beta's number is
-    /// for Sparkle and the maker; the person just needs to know it's a beta).
+    /// A version as people read it: "0.4.0-beta.6" → "0.4.0 beta 6" (which beta, without
+    /// the dash and dot).
     static func shown(_ version: String) -> String {
         guard let dash = version.range(of: "-beta") else { return version }
-        return String(version[..<dash.lowerBound]) + " beta"
+        let number = version[dash.upperBound...].trimmingCharacters(in: CharacterSet(charactersIn: "."))
+        return String(version[..<dash.lowerBound]) + " beta" + (number.isEmpty ? "" : " \(number)")
     }
 
     /// What the pill and the menu bar's menu say.
