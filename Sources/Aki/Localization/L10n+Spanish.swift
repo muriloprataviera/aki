@@ -1,7 +1,8 @@
 // Spanish strings for Aki's interface (keys are the English text).
 extension L10n {
     static let spanish: [String: String] = [
-        "Nothing in the queue. Marks you save with “Queue it” wait here.": "Nada en la cola. Las marcas que guardas con “A la cola” esperan aquí.",
+        "They go to your agent when you send them.": "Van a tu agente cuando las envíes.",
+        "To": "Para",
         "See the queue": "Ver la cola",
         "Update": "Actualizar",
         "updates once the queue is sent": "se actualiza cuando se envíe la cola",

@@ -5,10 +5,14 @@ What changed in each version of Aki. Versions follow [semantic versioning](https
 ## [Unreleased]
 
 ### Added
-- The History has a "Queue" tab (red while marks wait in it), and the menu bar pin's menu has "See the queue". esc closes the History even from the search field.
+- The History shows the queue (marks saved but not sent) in its own block on top, apart from the rest; the menu bar pin's menu has "See the queue". esc closes the History even from the search field.
 
 ### Changed
 - Updates never restart Aki while marks wait to be sent: it downloads, says "updates once the queue is sent", and restarts after. The update's state also shows in the menu bar pin's menu and in Settings, for those who hide the sidebar. Checking for updates only shows what's new; installing is always a click.
+
+### Changed
+- Every grab spot (comment card, queue, "+N" list) has the same six dots as the sidebar's handle.
+- In the queue, the destination is plainly a chooser ("To: … Change", outlined) and the button plainly says "Send".
 
 ### Fixed
 - A dragged comment card or queue stays on its screen; the next mark's card opens in its own place.

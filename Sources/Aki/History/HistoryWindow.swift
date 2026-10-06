@@ -80,7 +80,7 @@ private struct HistoryView: View {
     let model: SidebarModel
     let close: () -> Void
 
-    enum Show: String, CaseIterable { case queue, pending, resolved, all }
+    enum Show: String, CaseIterable { case pending, resolved, all }
 
     @State private var annotations: [Annotation] = []
     @State private var show: Show = .all
@@ -106,10 +106,9 @@ private struct HistoryView: View {
                 ForEach(Show.allCases, id: \.self) { option in
                     let on = show == option
                     Button { withAnimation(.easeOut(duration: 0.15)) { show = option } } label: {
-                        Text("\(L10n.t(option == .queue ? "Queue" : option == .pending ? "Pending" : option == .resolved ? "Done marks" : "All")) \(count(option))")
+                        Text("\(L10n.t(option == .pending ? "Pending" : option == .resolved ? "Done marks" : "All")) \(count(option))")
                             .font(.system(size: 10.5, weight: on ? .bold : .medium))
-                            // The queue in red while marks wait in it: easy to spot.
-                            .foregroundStyle(on ? .black : option == .queue && count(.queue) > 0 ? AkiPalette.red : .white.opacity(0.6))
+                            .foregroundStyle(on ? .black : .white.opacity(0.6))
                             .padding(.horizontal, 7).frame(height: 20)
                             .background(Capsule().fill(on ? Color.white : Color.white.opacity(0.001)))
                     }
@@ -169,17 +168,17 @@ private struct HistoryView: View {
                 }
                 Spacer(minLength: 0)
             }
-            if show == .queue {
-                // Marks saved but not sent yet (they wait for the next round of marking).
-                if model.queuedList.isEmpty {
-                    Spacer()
-                    Text(L10n.t("Nothing in the queue. Marks you save with “Queue it” wait here."))
-                        .font(.system(size: 11)).foregroundStyle(.white.opacity(0.45)).frame(maxWidth: .infinity)
-                    Spacer()
-                } else {
-                    ScrollView { QueueSection(model: model, close: close).padding(.trailing, 12) }
+            // Marks saved but not sent yet: their own block on top, apart from the history.
+            if !model.queuedList.isEmpty {
+                QueueSection(model: model, close: close)
+                HStack(spacing: 8) {
+                    Text(L10n.t("History").uppercased()).font(.system(size: 9, weight: .bold)).tracking(0.8)
+                        .foregroundStyle(.white.opacity(0.4))
+                    Rectangle().fill(Color.white.opacity(0.1)).frame(height: 1)
                 }
-            } else if filtered.isEmpty {
+                .padding(.top, 4)
+            }
+            if filtered.isEmpty {
                 Spacer()
                 Text(L10n.t("Nothing here yet. Mark with {mark}.")).font(.system(size: 11)).foregroundStyle(.white.opacity(0.45))
                     .frame(maxWidth: .infinity)
@@ -301,14 +300,12 @@ private struct HistoryView: View {
         return AgentSession.Agent.allCases.filter(found.contains)
     }
 
-    /// What the opening asked for: the queue, or a session's marks (never left on the queue then).
+    /// What the opening asked for: a session's marks, or everything (the queue is always on top).
     private func openAsAsked() {
         session = model.historySession
-        if model.historyOnQueue { show = .queue } else if show == .queue { show = .all }
     }
 
     private func count(_ option: Show) -> Int {
-        if option == .queue { return model.queuedList.count }
         return annotations.filter { option == .all || (option == .pending ? $0.status != "completed" : $0.status == "completed") }.count
     }
 
@@ -656,9 +653,14 @@ private struct QueueSection: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
             HStack(spacing: 6) {
-                Image(systemName: "tray.full").font(.system(size: 10, weight: .bold)).foregroundStyle(AkiPalette.red)
-                Text(L10n.t("In the queue, not sent")).font(.system(size: 11, weight: .bold)).foregroundStyle(.white)
-                Text("· \(model.queuedList.count)").font(.system(size: 11)).foregroundStyle(.white.opacity(0.55))
+                Image(systemName: "tray.full.fill").font(.system(size: 11, weight: .bold)).foregroundStyle(.white)
+                    .frame(width: 22, height: 22).background(Circle().fill(AkiPalette.red))
+                VStack(alignment: .leading, spacing: 0) {
+                    Text("\(L10n.t("In the queue, not sent")) · \(model.queuedList.count)")
+                        .font(.system(size: 12, weight: .bold)).foregroundStyle(.white)
+                    Text(L10n.t("They go to your agent when you send them."))
+                        .font(.system(size: 9.5)).foregroundStyle(.white.opacity(0.5))
+                }
                 Spacer()
                 Button {
                     close()
@@ -721,8 +723,9 @@ private struct QueueSection: View {
                 .background(RoundedRectangle(cornerRadius: 7).fill(Color.white.opacity(0.04)))
             }
         }
-        .padding(8)
-        .background(RoundedRectangle(cornerRadius: 10).fill(AkiPalette.red.opacity(0.08)))
-        .overlay(RoundedRectangle(cornerRadius: 10).strokeBorder(AkiPalette.red.opacity(0.35), lineWidth: 1))
+        .padding(10)
+        .background(RoundedRectangle(cornerRadius: 12, style: .continuous).fill(LinearGradient(
+            colors: [AkiPalette.red.opacity(0.16), AkiPalette.red.opacity(0.05)], startPoint: .topLeading, endPoint: .bottomTrailing)))
+        .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous).strokeBorder(AkiPalette.red.opacity(0.45), lineWidth: 1))
     }
 }

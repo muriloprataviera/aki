@@ -1,7 +1,8 @@
 // Simplified Chinese strings for Aki's interface (keys are the English text).
 extension L10n {
     static let chinese: [String: String] = [
-        "Nothing in the queue. Marks you save with “Queue it” wait here.": "队列为空。用“加入队列”保存的标记会在这里等待。",
+        "They go to your agent when you send them.": "发送后会交给你的智能体。",
+        "To": "发送到",
         "See the queue": "查看队列",
         "Update": "更新",
         "updates once the queue is sent": "队列发送后即更新",

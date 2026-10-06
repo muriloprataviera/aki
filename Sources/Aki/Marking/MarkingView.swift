@@ -327,12 +327,11 @@ struct MarkingView: View {
         let y = min(max(origin.y + cardDrag.height + cardDragging.height, 12), screenSize.height - min(cardHeight, screenSize.height - 24) - 12)
         return VStack(alignment: .leading, spacing: 10) {
             // Its top is a handle: drag the card off what you want to see.
-            Capsule()
-                .fill(Color.white.opacity(cardHandleHovered ? 0.6 : 0.25))
-                .frame(width: 36, height: 4)
+            // The same six dots as the sidebar's handle: every grab spot looks alike.
+            GripDots(vertical: false, hovered: cardHandleHovered, scale: 0.85, tint: .white, backdrop: Color.white.opacity(0.08))
                 .frame(maxWidth: .infinity)
-                .padding(.vertical, 3)
-                .padding(.top, -8)
+                .padding(.top, -10)
+                .padding(.bottom, -4)
                 .contentShape(Rectangle())
                 .onContinuousHover { phase in
                     switch phase {
@@ -712,9 +711,7 @@ struct MarkingView: View {
         VStack(alignment: .leading, spacing: 0) {
             // Its top is a handle (the grabber bar says so; the hand too): drag it anywhere.
             VStack(spacing: 6) {
-                Capsule()
-                    .fill(Color.white.opacity(moreHandleHovered ? 0.6 : 0.3))
-                    .frame(width: 36, height: 5)
+                GripDots(vertical: false, hovered: moreHandleHovered, scale: 0.8, tint: .white, backdrop: Color.white.opacity(0.08))
                     .frame(maxWidth: .infinity)
                 HStack(spacing: 5) {
                     Image(systemName: "arrow.up.and.down.and.arrow.left.and.right")
@@ -850,11 +847,9 @@ struct MarkingView: View {
         let selected = session.queueSelected.intersection(session.marks.map(\.id))
         return VStack(alignment: .leading, spacing: 6) {
             // Its top is a handle: drag the queue out of the way.
-            Capsule()
-                .fill(Color.white.opacity(queueHandleHovered ? 0.6 : 0.25))
-                .frame(width: 32, height: 4)
+            GripDots(vertical: false, hovered: queueHandleHovered, scale: 0.8, tint: .white, backdrop: Color.white.opacity(0.08))
                 .frame(maxWidth: .infinity)
-                .padding(.vertical, 2)
+                .padding(.vertical, -4)
                 .contentShape(Rectangle())
                 .onContinuousHover { phase in
                     switch phase {
@@ -911,7 +906,6 @@ struct MarkingView: View {
             .frame(maxHeight: count > 5 ? 230 : nil)
             .fixedSize(horizontal: false, vertical: count <= 5)
             // Where the whole queue goes, changeable here: a field that reads as one.
-            Text(L10n.t("Where it goes")).font(.system(size: 9.5, weight: .semibold)).foregroundStyle(.white.opacity(0.5))
             Menu {
                 ForEach(session.terminals) { t in
                     Button {
@@ -932,14 +926,9 @@ struct MarkingView: View {
             Button { send() } label: {
                 HStack(spacing: 5) {
                     Image(systemName: "paperplane.fill").font(.system(size: 10, weight: .bold))
-                    if destinations.count > 1 {
-                        Text("\(L10n.t("Send")) \(count) · \(destinations.count) \(L10n.t("sessions"))")
-                            .font(.system(size: 11, weight: .bold))
-                    } else if let terminal {
-                        AgentGlyphView(agent: terminal.agent, size: 11)
-                        TerminalAppIcon(bundleID: TerminalApp.owner(of: terminal.pid)?.bundleIdentifier, size: 11)
-                        Text(terminal.name).font(.system(size: 11, weight: .bold)).lineLimit(1)
-                    }
+                    // A verb, not the session again (the chooser above says where): plainly the button.
+                    Text(count == 1 ? L10n.t("Send") : "\(L10n.t("Send all")) (\(count))")
+                        .font(.system(size: 11.5, weight: .bold))
                     Spacer(minLength: 2)
                     Keycap(key: "⌘⏎", size: 8)
                 }
@@ -1766,24 +1755,26 @@ struct DestinationField: View {
     @State private var hovered = false
 
     var body: some View {
+        // A chooser, not a button: only an outline, "To" before the name, the menu arrows.
         HStack(spacing: 6) {
-            Circle().fill(hue).frame(width: 7, height: 7)
+            Text(L10n.t("To")).font(.system(size: 10.5, weight: .medium)).foregroundStyle(.white.opacity(0.5))
+            Circle().fill(hue).frame(width: 6, height: 6)
             if let terminal {
-                AgentGlyphView(agent: terminal.agent, size: 11).foregroundStyle(.white)
-                TerminalAppIcon(bundleID: TerminalApp.owner(of: terminal.pid)?.bundleIdentifier, size: 11)
-                Text(terminal.name).font(.system(size: 11, weight: .bold)).foregroundStyle(.white).lineLimit(1)
+                AgentGlyphView(agent: terminal.agent, size: 10).foregroundStyle(.white.opacity(0.85))
+                Text(terminal.name).font(.system(size: 11, weight: .semibold)).foregroundStyle(.white.opacity(0.9)).lineLimit(1)
             } else if let several {
-                Text("\(several) \(L10n.t("sessions"))").font(.system(size: 11, weight: .bold)).foregroundStyle(.white)
+                Text("\(several) \(L10n.t("sessions"))").font(.system(size: 11, weight: .semibold)).foregroundStyle(.white.opacity(0.9))
             } else {
-                Text(L10n.t("No destination")).font(.system(size: 11, weight: .bold)).foregroundStyle(.white)
+                Text(L10n.t("No destination")).font(.system(size: 11, weight: .semibold)).foregroundStyle(.white.opacity(0.9))
             }
             Spacer(minLength: 4)
-            Image(systemName: "chevron.up.chevron.down").font(.system(size: 9, weight: .bold))
-                .foregroundStyle(.white.opacity(hovered ? 0.95 : 0.6))
+            Text(L10n.t("Change")).font(.system(size: 10, weight: .medium)).foregroundStyle(.white.opacity(hovered ? 0.9 : 0.5))
+            Image(systemName: "chevron.up.chevron.down").font(.system(size: 8.5, weight: .bold))
+                .foregroundStyle(.white.opacity(hovered ? 0.9 : 0.5))
         }
-        .padding(.horizontal, 8).frame(height: 26)
-        .background(RoundedRectangle(cornerRadius: 7).fill(Color.white.opacity(hovered ? 0.14 : 0.07)))
-        .overlay(RoundedRectangle(cornerRadius: 7).strokeBorder(hovered ? hue.opacity(0.9) : Color.white.opacity(0.18), lineWidth: 1))
+        .padding(.horizontal, 8).frame(height: 24)
+        .background(RoundedRectangle(cornerRadius: 7).fill(Color.white.opacity(hovered ? 0.06 : 0)))
+        .overlay(RoundedRectangle(cornerRadius: 7).strokeBorder(Color.white.opacity(hovered ? 0.45 : 0.2), style: StrokeStyle(lineWidth: 1, dash: [3, 2])))
         .contentShape(Rectangle())
         .onHover { inside in
             withAnimation(.easeOut(duration: 0.12)) { hovered = inside }

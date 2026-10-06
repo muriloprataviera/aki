@@ -1,7 +1,8 @@
 // Portuguese (Brazil) strings for Aki's interface (keys are the English text).
 extension L10n {
     static let portuguese: [String: String] = [
-        "Nothing in the queue. Marks you save with “Queue it” wait here.": "Nada na fila. As marcas que você guarda com “Pra fila” esperam aqui.",
+        "They go to your agent when you send them.": "Vão para o seu agente quando você enviar.",
+        "To": "Para",
         "See the queue": "Ver a fila",
         "Update": "Atualizar",
         "updates once the queue is sent": "atualiza assim que a fila for enviada",

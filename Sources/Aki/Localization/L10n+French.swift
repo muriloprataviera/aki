@@ -1,7 +1,8 @@
 // French strings for Aki's interface (keys are the English text).
 extension L10n {
     static let french: [String: String] = [
-        "Nothing in the queue. Marks you save with “Queue it” wait here.": "Rien dans la file. Les marques gardées avec « En file » attendent ici.",
+        "They go to your agent when you send them.": "Elles partent vers votre agent quand vous les envoyez.",
+        "To": "Vers",
         "See the queue": "Voir la file",
         "Update": "Mettre à jour",
         "updates once the queue is sent": "mise à jour dès que la file est envoyée",

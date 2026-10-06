@@ -764,6 +764,10 @@ struct GripDots: View {
     let vertical: Bool
     let hovered: Bool
     let scale: CGFloat
+    /// The dots' colour (the marking's cards are always dark: white there).
+    var tint: Color = AkiPalette.fg
+    /// The dark pill behind them under the pointer.
+    var backdrop: Color = AkiPalette.bg
 
     var body: some View {
         let dot = 3.4 * scale * (hovered ? 1.2 : 1)
@@ -771,7 +775,7 @@ struct GripDots: View {
             ForEach(0..<(vertical ? 3 : 2), id: \.self) { _ in
                 GridRow {
                     ForEach(0..<(vertical ? 2 : 3), id: \.self) { _ in
-                        Circle().fill(AkiPalette.fg.opacity(hovered ? 1 : 0.5)).frame(width: dot, height: dot)
+                        Circle().fill(tint.opacity(hovered ? 1 : 0.5)).frame(width: dot, height: dot)
                     }
                 }
             }
@@ -779,8 +783,8 @@ struct GripDots: View {
         return grid
             .padding(.horizontal, 9 * scale)
             .padding(.vertical, 6 * scale)
-            .background(Capsule().fill(hovered ? AkiPalette.bg : Color.clear))
-            .overlay(Capsule().strokeBorder(AkiPalette.fg.opacity(hovered ? 0.35 : 0), lineWidth: 1))
+            .background(Capsule().fill(hovered ? backdrop : Color.clear))
+            .overlay(Capsule().strokeBorder(tint.opacity(hovered ? 0.35 : 0), lineWidth: 1))
             .shadow(color: .black.opacity(hovered ? 0.5 : 0), radius: 6, y: 2)
             .animation(.spring(response: 0.25, dampingFraction: 0.6), value: hovered)
     }

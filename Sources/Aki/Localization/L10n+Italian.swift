@@ -1,7 +1,8 @@
 // Italian strings for Aki's interface (keys are the English text).
 extension L10n {
     static let italian: [String: String] = [
-        "Nothing in the queue. Marks you save with “Queue it” wait here.": "Niente in coda. I segni salvati con “In coda” aspettano qui.",
+        "They go to your agent when you send them.": "Vanno al tuo agente quando le invii.",
+        "To": "A",
         "See the queue": "Vedi la coda",
         "Update": "Aggiorna",
         "updates once the queue is sent": "si aggiorna appena la coda è inviata",
