@@ -3,6 +3,19 @@
     <channel>
         <title>Aki</title>
         <item>
+            <title>0.4.0-beta.8</title>
+            <pubDate>Tue, 06 Oct 2026 15:33:40 -0300</pubDate>
+            <sparkle:channel>beta</sparkle:channel>
+            <sparkle:version>20261006183340</sparkle:version>
+            <sparkle:shortVersionString>0.4.0-beta.8</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
+            <description><![CDATA[<h2>Aki 0.4.0 beta 8</h2>
+<ul><li>Click an agent's tab in Orca and the sidebar's destination follows it.</li></ul>
+]]></description>
+            <enclosure url="https://aki-updates.vercel.app/0.4.0-beta.8/Aki-0.4.0-beta.8.zip" length="3393319" type="application/octet-stream" sparkle:edSignature="i+p6Lnt7CdAhPqSEfmnql6BtRKkP9t6NGpB7h4RjoYot51b/pqajgdFGGQ24KgRIcg55dAYYd0KRPYG2RQLxCg=="/>
+        </item>
+        <item>
             <title>0.4.0-beta.7</title>
             <pubDate>Tue, 06 Oct 2026 15:22:24 -0300</pubDate>
             <sparkle:channel>beta</sparkle:channel>
@@ -31,22 +44,6 @@
 </ul>
 ]]></description>
             <enclosure url="https://aki-updates.vercel.app/0.4.0-beta.6/Aki-0.4.0-beta.6.zip" length="3388143" type="application/octet-stream" sparkle:edSignature="vBpl9j238gqFhMYe8KLFdutFqnqQpeIupQmp9YCylkDPeeIto3XteDfa7J/y9Cz54J1uTjW7V+0axQU8/UisAw=="/>
-        </item>
-        <item>
-            <title>0.4.0-beta.5</title>
-            <pubDate>Tue, 06 Oct 2026 13:36:54 -0300</pubDate>
-            <sparkle:channel>beta</sparkle:channel>
-            <sparkle:version>20261006163653</sparkle:version>
-            <sparkle:shortVersionString>0.4.0-beta.5</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
-            <description><![CDATA[<h2>Aki 0.4.0 beta 5</h2>
-<ul>
-<li>⏎ marks what's outlined, after walking with ↑ ↓.</li>
-<li>Search in the "+N" list of sessions: type part of the name or project; ⏎ takes the first.</li>
-</ul>
-]]></description>
-            <enclosure url="https://aki-updates.vercel.app/0.4.0-beta.5/Aki-0.4.0-beta.5.zip" length="3380894" type="application/octet-stream" sparkle:edSignature="z0QSYf6bqgkO4mDDelE+K+T/Zz0M2Hs/+nPT2UNJH/E8p7m0DALdQReKNEhReSkcFfdtT3ZM5TDlAPCES7ovAQ=="/>
         </item>
         <item>
             <title>0.3.3</title>
