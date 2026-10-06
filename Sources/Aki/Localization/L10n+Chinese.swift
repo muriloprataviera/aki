@@ -1,6 +1,11 @@
 // Simplified Chinese strings for Aki's interface (keys are the English text).
 extension L10n {
     static let chinese: [String: String] = [
+        "Anonymous notices": "匿名通知",
+        "Send anonymous notices to the maker": "向作者发送匿名通知",
+        "When Aki is installed and each time it updates: its version (and the one before), your macOS version and language. No account, no identifier, nothing you mark or type.": "安装 Aki 时以及每次更新时:版本(以及之前的版本)、macOS 版本和语言。没有账号、没有标识符,也不含你标记或输入的任何内容。",
+        "Why: to know how many people use Aki and on which version, so the right things get fixed first and old versions can be retired safely.": "原因:了解有多少人在用 Aki、用的是哪个版本,以便先修重要的问题,并安全地停用旧版本。",
+        "Aki checks every hour. Betas bring new things first and may be less steady.": "Aki 每小时检查一次。测试版会更早带来新功能,但可能不够稳定。",
         "Checking for updates…": "正在检查更新…",
         "Downloading": "正在下载",
         "Installing, Aki restarts…": "正在安装，Aki 将重新启动…",
@@ -35,8 +40,6 @@ extension L10n {
         "You circle a broken chart: your agent gets the picture. You mark an error in the terminal: it gets the text.": "圈出一个出错的图表：智能体收到图片。标记终端里的报错：它收到文字。",
         "macOS asks this of any app that looks at the screen. Nothing is recorded; what you mark stays on your Mac until you send it to your agent.": "macOS 会向所有查看屏幕的应用请求此权限。不会录制任何内容；你标记的内容会留在 Mac 上，直到你发送给智能体。",
         "Privacy": "隐私",
-        "Tell the maker you installed Aki": "告诉作者我安装了 Aki",
-        "Once, on first launch: Aki's version, your macOS version and language. No account, no identifier, nothing you mark.": "仅在首次启动时发送一次：Aki 版本、macOS 版本和语言。无账户、无标识符，不含你标记的任何内容。",
         "To point at buttons and rows in any app": "用于指向任意 App 中的按钮和行",
         "You hover a folder in Finder or a layer in Figma: Aki outlines it, and your agent gets its name and what it is.": "将指针悬停在 Finder 中的文件夹或 Figma 中的图层上：Aki 会勾出轮廓，智能体会收到它的名称和类型。",
         "It's how Mac apps describe their buttons and lists to other apps.": "这是 Mac App 向其他 App 描述其按钮和列表的方式。",
@@ -130,7 +133,6 @@ extension L10n {
         "Check now": "立即检查",
         "Install updates by themselves": "自动安装更新",
         "Get beta versions": "获取测试版",
-        "Aki checks once a day. Betas bring new things first and may be less steady.": "Aki 每天检查一次。测试版会抢先带来新功能，但可能不太稳定。",
         "Storage": "存储",
         "How marking works.": "标记的工作方式。",
         "Pictures, cleanup and where your data lives.": "图片、清理以及数据存放位置。",

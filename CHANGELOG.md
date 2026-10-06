@@ -9,6 +9,8 @@ What changed in each version of Aki. Versions follow [semantic versioning](https
 - The comment card can be dragged by its top, off what you want to see.
 
 ### Changed
+- Anonymous notices to the maker, said plainly in Get started with what goes and why: one when Aki is installed and one each time it updates (its version and the one before, macOS version and language; no account, no identifier, nothing you mark). They tell how many people use Aki and on which version. One switch turns them off (Get started or Settings → General → Privacy).
+- The queue's destination is a field you can see is clickable: the AI, the app and the session's whole name, with the menu arrows.
 - Aki looks for a new version every hour (was once a day), so the update pill shows up soon after a release.
 
 ## [0.3.1] — 2026-10-05

@@ -97,10 +97,14 @@ struct GetStartedPane: View {
                         .fixedSize(horizontal: false, vertical: true)
                 }
             }
-            Section {
-                Toggle(L10n.t("Tell the maker you installed Aki"), isOn: Binding(
+            // Said plainly, before anything is sent: what goes, why, and the switch.
+            Section(L10n.t("Anonymous notices")) {
+                Toggle(L10n.t("Send anonymous notices to the maker"), isOn: Binding(
                     get: { Preferences.shared.installPing }, set: { Preferences.shared.installPing = $0 }))
-                Text(L10n.t("Once, on first launch: Aki's version, your macOS version and language. No account, no identifier, nothing you mark."))
+                Text(L10n.t("When Aki is installed and each time it updates: its version (and the one before), your macOS version and language. No account, no identifier, nothing you mark or type."))
+                    .font(.caption).foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+                Text(L10n.t("Why: to know how many people use Aki and on which version, so the right things get fixed first and old versions can be retired safely."))
                     .font(.caption).foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
             }

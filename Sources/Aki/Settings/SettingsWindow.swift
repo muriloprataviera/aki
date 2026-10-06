@@ -744,11 +744,12 @@ struct SettingsView: View {
                 }
                 Toggle(L10n.t("Install updates by themselves"), isOn: $preferences.installUpdatesByThemselves)
                 Toggle(L10n.t("Get beta versions"), isOn: $preferences.betaUpdates)
-                Caption(L10n.t("Aki checks once a day. Betas bring new things first and may be less steady."))
+                Caption(L10n.t("Aki checks every hour. Betas bring new things first and may be less steady."))
             }
             Section(L10n.t("Privacy")) {
-                Toggle(L10n.t("Tell the maker you installed Aki"), isOn: $preferences.installPing)
-                Caption(L10n.t("Once, on first launch: Aki's version, your macOS version and language. No account, no identifier, nothing you mark."))
+                Toggle(L10n.t("Send anonymous notices to the maker"), isOn: $preferences.installPing)
+                Caption(L10n.t("When Aki is installed and each time it updates: its version (and the one before), your macOS version and language. No account, no identifier, nothing you mark or type."))
+                Caption(L10n.t("Why: to know how many people use Aki and on which version, so the right things get fixed first and old versions can be retired safely."))
             }
             Section(L10n.t("About")) {
                 HStack(spacing: 14) {

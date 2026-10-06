@@ -1,6 +1,11 @@
 // Korean strings for Aki's interface (keys are the English text).
 extension L10n {
     static let korean: [String: String] = [
+        "Anonymous notices": "익명 알림",
+        "Send anonymous notices to the maker": "제작자에게 익명 알림 보내기",
+        "When Aki is installed and each time it updates: its version (and the one before), your macOS version and language. No account, no identifier, nothing you mark or type.": "Aki를 설치할 때와 업데이트할 때마다: 버전(과 이전 버전), macOS 버전, 언어. 계정도 식별자도, 표시하거나 입력한 내용도 보내지 않습니다.",
+        "Why: to know how many people use Aki and on which version, so the right things get fixed first and old versions can be retired safely.": "이유: 몇 명이 어떤 버전으로 Aki를 쓰는지 알아서 중요한 것부터 고치고 오래된 버전을 안전하게 정리하기 위해서입니다.",
+        "Aki checks every hour. Betas bring new things first and may be less steady.": "Aki는 매시간 확인합니다. 베타는 새 기능을 먼저 받지만 덜 안정적일 수 있습니다.",
         "Checking for updates…": "업데이트 확인 중…",
         "Downloading": "다운로드 중",
         "Installing, Aki restarts…": "설치 중, Aki가 다시 시작됩니다…",
@@ -35,8 +40,6 @@ extension L10n {
         "You circle a broken chart: your agent gets the picture. You mark an error in the terminal: it gets the text.": "깨진 차트에 동그라미를 치면 에이전트가 이미지를 받습니다. 터미널의 오류를 표시하면 텍스트를 받습니다.",
         "macOS asks this of any app that looks at the screen. Nothing is recorded; what you mark stays on your Mac until you send it to your agent.": "macOS는 화면을 보는 모든 앱에 이 권한을 요청합니다. 아무것도 녹화되지 않으며, 표시한 내용은 에이전트에게 보낼 때까지 Mac에 남습니다.",
         "Privacy": "개인정보",
-        "Tell the maker you installed Aki": "Aki를 설치했다고 제작자에게 알리기",
-        "Once, on first launch: Aki's version, your macOS version and language. No account, no identifier, nothing you mark.": "첫 실행 때 한 번만: Aki 버전, macOS 버전, 언어. 계정도, 식별자도, 표시한 내용도 보내지 않습니다.",
         "To point at buttons and rows in any app": "모든 앱의 버튼과 행을 가리키기 위해",
         "You hover a folder in Finder or a layer in Figma: Aki outlines it, and your agent gets its name and what it is.": "Finder의 폴더나 Figma의 레이어에 포인터를 올리면 Aki가 윤곽을 표시하고, 에이전트는 그 이름과 종류를 받습니다.",
         "It's how Mac apps describe their buttons and lists to other apps.": "Mac 앱이 다른 앱에 버튼과 목록을 설명하는 방식입니다.",
@@ -130,7 +133,6 @@ extension L10n {
         "Check now": "지금 확인",
         "Install updates by themselves": "업데이트 자동 설치",
         "Get beta versions": "베타 버전 받기",
-        "Aki checks once a day. Betas bring new things first and may be less steady.": "Aki는 하루에 한 번 확인합니다. 베타는 새 기능을 먼저 제공하지만 덜 안정적일 수 있습니다.",
         "Storage": "저장 공간",
         "How marking works.": "표시 작동 방식.",
         "Pictures, cleanup and where your data lives.": "이미지, 정리, 데이터 저장 위치.",

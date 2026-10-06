@@ -1,6 +1,11 @@
 // Japanese strings for Aki's interface (keys are the English text).
 extension L10n {
     static let japanese: [String: String] = [
+        "Anonymous notices": "匿名の通知",
+        "Send anonymous notices to the maker": "作者に匿名の通知を送る",
+        "When Aki is installed and each time it updates: its version (and the one before), your macOS version and language. No account, no identifier, nothing you mark or type.": "Aki のインストール時とアップデートのたび:バージョン(と前のバージョン)、macOS のバージョン、言語。アカウントも識別子も、マークや入力した内容も送りません。",
+        "Why: to know how many people use Aki and on which version, so the right things get fixed first and old versions can be retired safely.": "理由:何人がどのバージョンで使っているかを知り、優先して直すべきものを決め、古いバージョンを安全に終了するため。",
+        "Aki checks every hour. Betas bring new things first and may be less steady.": "Aki は1時間ごとに確認します。ベータは新機能が早く届きますが、不安定な場合があります。",
         "Checking for updates…": "アップデートを確認中…",
         "Downloading": "ダウンロード中",
         "Installing, Aki restarts…": "インストール中、Aki が再起動します…",
@@ -35,8 +40,6 @@ extension L10n {
         "You circle a broken chart: your agent gets the picture. You mark an error in the terminal: it gets the text.": "崩れたグラフを囲むと、エージェントには画像が届きます。ターミナルのエラーをマークすると、テキストが届きます。",
         "macOS asks this of any app that looks at the screen. Nothing is recorded; what you mark stays on your Mac until you send it to your agent.": "macOS は画面を見るすべてのアプリにこれを求めます。録画はされず、マークした内容はエージェントに送るまで Mac に残ります。",
         "Privacy": "プライバシー",
-        "Tell the maker you installed Aki": "Aki をインストールしたことを作者に知らせる",
-        "Once, on first launch: Aki's version, your macOS version and language. No account, no identifier, nothing you mark.": "初回起動時に一度だけ：Aki のバージョン、macOS のバージョン、言語。アカウントも識別子も、マークした内容も送りません。",
         "To point at buttons and rows in any app": "どのアプリでもボタンや行を指すため",
         "You hover a folder in Finder or a layer in Figma: Aki outlines it, and your agent gets its name and what it is.": "Finder のフォルダや Figma のレイヤーにポインタを置くと、Aki が枠で示し、エージェントにはその名前と種類が届きます。",
         "It's how Mac apps describe their buttons and lists to other apps.": "Mac のアプリが、ボタンやリストをほかのアプリに伝える仕組みです。",
@@ -130,7 +133,6 @@ extension L10n {
         "Check now": "今すぐ確認",
         "Install updates by themselves": "アップデートを自動でインストール",
         "Get beta versions": "ベータ版を受け取る",
-        "Aki checks once a day. Betas bring new things first and may be less steady.": "Aki は 1 日 1 回確認します。ベータ版は新機能が先に届きますが、不安定な場合があります。",
         "Storage": "ストレージ",
         "How marking works.": "マークの仕組み。",
         "Pictures, cleanup and where your data lives.": "画像、整理、データの保存場所。",

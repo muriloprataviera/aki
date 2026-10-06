@@ -1,6 +1,11 @@
 // Italian strings for Aki's interface (keys are the English text).
 extension L10n {
     static let italian: [String: String] = [
+        "Anonymous notices": "Avvisi anonimi",
+        "Send anonymous notices to the maker": "Invia avvisi anonimi all'autore",
+        "When Aki is installed and each time it updates: its version (and the one before), your macOS version and language. No account, no identifier, nothing you mark or type.": "Quando Aki viene installato e a ogni aggiornamento: la versione (e quella precedente), la versione di macOS e la lingua. Nessun account, nessun identificativo, niente di ciò che segni o scrivi.",
+        "Why: to know how many people use Aki and on which version, so the right things get fixed first and old versions can be retired safely.": "Perché: per sapere quante persone usano Aki e con quale versione, così si corregge prima ciò che conta e le versioni vecchie si ritirano in sicurezza.",
+        "Aki checks every hour. Betas bring new things first and may be less steady.": "Aki controlla ogni ora. Le beta portano le novità prima e possono essere meno stabili.",
         "Checking for updates…": "Ricerca aggiornamenti…",
         "Downloading": "Download di",
         "Installing, Aki restarts…": "Installazione, Aki si riavvia…",
@@ -35,8 +40,6 @@ extension L10n {
         "You circle a broken chart: your agent gets the picture. You mark an error in the terminal: it gets the text.": "Cerchi un grafico rotto: il tuo agente riceve l’immagine. Segni un errore nel terminale: riceve il testo.",
         "macOS asks this of any app that looks at the screen. Nothing is recorded; what you mark stays on your Mac until you send it to your agent.": "macOS lo chiede a qualsiasi app che guarda lo schermo. Non viene registrato nulla; ciò che segni resta sul tuo Mac finché non lo invii al tuo agente.",
         "Privacy": "Privacy",
-        "Tell the maker you installed Aki": "Avvisa il creatore che ho installato Aki",
-        "Once, on first launch: Aki's version, your macOS version and language. No account, no identifier, nothing you mark.": "Una volta, al primo avvio: la versione di Aki, quella di macOS e la lingua. Nessun account, nessun identificativo, niente di ciò che segni.",
         "To point at buttons and rows in any app": "Per indicare pulsanti e righe in ogni app",
         "You hover a folder in Finder or a layer in Figma: Aki outlines it, and your agent gets its name and what it is.": "Passi su una cartella nel Finder o un livello in Figma: Aki la evidenzia, e il tuo agente riceve nome e tipo.",
         "It's how Mac apps describe their buttons and lists to other apps.": "È così che le app del Mac descrivono pulsanti e liste alle altre app.",
@@ -130,7 +133,6 @@ extension L10n {
         "Check now": "Controlla ora",
         "Install updates by themselves": "Installa gli aggiornamenti da solo",
         "Get beta versions": "Ricevi le versioni beta",
-        "Aki checks once a day. Betas bring new things first and may be less steady.": "Aki controlla una volta al giorno. Le beta portano prima le novità e possono essere meno stabili.",
         "Storage": "Archiviazione",
         "How marking works.": "Come funziona la marcatura.",
         "Pictures, cleanup and where your data lives.": "Foto, pulizia e dove sono i tuoi dati.",
