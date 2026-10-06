@@ -584,15 +584,8 @@ struct RingCell: View {
     var body: some View {
         VStack(spacing: SidebarLayout.labelGap * scale) {
             ringView
-                .overlay(alignment: .topLeading) {
-                    // The queue: crops of the marks still waiting, fanned beside the
-                    // ring; they leave as the agent resolves them.
-                    if case .terminal(let terminal) = ring, !terminal.pendingImages.isEmpty {
-                        QueueStack(paths: terminal.pendingImages, scale: scale)
-                            .offset(x: -10 * scale, y: -12 * scale)
-                            .transition(.scale.combined(with: .opacity))
-                    }
-                }
+                // (No crops of waiting marks by the ring: they read as a stray window icon.
+                // The number says how many wait; the card shows them.)
                 .overlay(alignment: .topTrailing) {
                     if ring.pending > 0 {
                         Text("\(ring.pending)")

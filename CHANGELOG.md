@@ -16,6 +16,8 @@ What changed in each version of Aki. Versions follow [semantic versioning](https
 - In the queue, the destination is plainly a chooser ("To: … Change", outlined) and the button plainly says "Send".
 
 ### Fixed
+- Pointing at Orca's own pop-ups (and anything over its terminals) finds the button or text under the pointer; Orca answered with a see-through layer over the whole window.
+- The sidebar's rings no longer show a tiny crop of each waiting mark (it read as a stray window icon); the number says how many wait.
 - The sidebar's pointer (the resize arrows in its corner, the hand on buttons) no longer falls back to the plain arrow when the app below puts it back.
 - Betas now update to the next beta and to the final version: each build carries a number that only grows (Sparkle read "0.3.3-beta.1", "0.3.3-beta.2" and "0.3.3" as the same version).
 - **Marks could go to the wrong conversation**: session names came from a copy of Orca's tab names that Orca stopped updating, so an old name ("ORDERS TAB") showed on a conversation that is now another one. Names now come only from Orca's live list.

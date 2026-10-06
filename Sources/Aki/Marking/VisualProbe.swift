@@ -304,8 +304,11 @@ enum VisualProbe {
         let role = element.role ?? ""
         // "window": what Aki itself says when the app answered nothing at all.
         if ["AXWindow", "AXApplication", "window"].contains(role) { return true }
+        // A see-through layer over a whole window (Orca's terminals answer with
+        // "img.xterm-link-layer" wherever you point, even over its own pop-ups).
+        if element.label.contains("xterm") { return true }
         let area = element.frame.width * element.frame.height
         return area > screen.width * screen.height * 0.25
-            && ["AXGroup", "AXScrollArea", "AXUnknown", "AXLayoutArea", "AXSplitGroup", "AXWebArea", ""].contains(role)
+            && ["AXGroup", "AXScrollArea", "AXUnknown", "AXLayoutArea", "AXSplitGroup", "AXWebArea", "AXImage", ""].contains(role)
     }
 }
