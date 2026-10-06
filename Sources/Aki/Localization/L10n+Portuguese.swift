@@ -1,6 +1,8 @@
 // Portuguese (Brazil) strings for Aki's interface (keys are the English text).
 extension L10n {
     static let portuguese: [String: String] = [
+        "Extra large": "Extra grande",
+        "Huge": "Enorme",
         "In Terminal": "No Terminal",
         "To call Aki from any terminal, short": "Para chamar o Aki de qualquer terminal, curto",
         "Your agent runs `aki list` instead of the long path inside the app: shorter messages, fewer slips.": "Seu agente roda `aki list` em vez do caminho comprido dentro do app: mensagens mais curtas, menos erro.",

@@ -1,6 +1,8 @@
 // Simplified Chinese strings for Aki's interface (keys are the English text).
 extension L10n {
     static let chinese: [String: String] = [
+        "Extra large": "特大",
+        "Huge": "超大",
         "In Terminal": "在终端中",
         "To call Aki from any terminal, short": "从任何终端用简短命令调用 Aki",
         "Your agent runs `aki list` instead of the long path inside the app: shorter messages, fewer slips.": "你的智能体运行 `aki list`，而不是应用内的长路径：消息更短，出错更少。",

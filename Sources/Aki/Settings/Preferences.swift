@@ -22,7 +22,9 @@ enum SidebarEdge: String, CaseIterable, Identifiable {
 }
 
 enum SidebarSize: String, CaseIterable, Identifiable {
-    case tiny, small, medium, large
+    // Two sizes past Large for big monitors (Murilo, 06/10/2026); the bar still shrinks
+    // by itself when it wouldn't fit the screen.
+    case tiny, small, medium, large, extraLarge, huge
     var id: String { rawValue }
     var scale: CGFloat {
         switch self {
@@ -30,6 +32,8 @@ enum SidebarSize: String, CaseIterable, Identifiable {
         case .small: 0.8
         case .medium: 1
         case .large: 1.25
+        case .extraLarge: 1.5
+        case .huge: 1.8
         }
     }
     var title: String {
@@ -38,6 +42,8 @@ enum SidebarSize: String, CaseIterable, Identifiable {
         case .small: L10n.t("Small")
         case .medium: L10n.t("Medium")
         case .large: L10n.t("Large")
+        case .extraLarge: L10n.t("Extra large")
+        case .huge: L10n.t("Huge")
         }
     }
 }

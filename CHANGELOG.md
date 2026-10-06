@@ -5,6 +5,7 @@ What changed in each version of Aki. Versions follow [semantic versioning](https
 ## [Unreleased]
 
 ### Added
+- Two bigger sidebar sizes, Extra large and Huge, for big monitors (the resize corner and Settings).
 - The short `aki` command in Terminal: the one-line installer adds it (your password, once), and Get started offers it to those who came by the DMG.
 
 ### Changed
