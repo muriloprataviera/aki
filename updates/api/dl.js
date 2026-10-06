@@ -47,6 +47,12 @@ function allowed(key, kind, max, windowMs) {
 
 /// Sends one message; false only when Telegram couldn't take it (down, slow) — not when
 /// the hourly cap or a missing setting held it back (those wouldn't go better later).
+/// Gives back the last use of `kind` (a try that didn't get through shouldn't count).
+function giveBack(key, kind) {
+  const list = hits.get(`${kind}:${key}`);
+  if (list && list.length) list.pop();
+}
+
 async function notify(req, text) {
   // However many places send, at most 30 Telegram messages per 10 minutes from here.
   if (!allowed('all', 'telegram', 30, 600e3)) return true;
@@ -114,7 +120,11 @@ async function ping(req, res) {
     ? `${me}🔄 Aki atualizado ${b.from} → ${b.version}`
     : `${me}🎉 Novo Aki instalado ${b.version}`;
   // Telegram didn't take it: say so, and the app tries again next launch.
-  if (!(await notify(req, [head, `${place(req)} · macOS ${b.macos} · ${b.language}`, when()].join('\n')))) res.statusCode = 503;
+  if (!(await notify(req, [head, `${place(req)} · macOS ${b.macos} · ${b.language}`, when()].join('\n')))) {
+    giveBack(from(req), `ping-${event}`);
+    giveBack('all', 'telegram');
+    res.statusCode = 503;
+  }
   return res.end();
 }
 
