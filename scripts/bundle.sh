@@ -19,7 +19,11 @@ cp Resources/Logotype.png "$app/Contents/Resources/"
 # The license and the notices of the code adapted from other projects travel with the app.
 cp LICENSE "$app/Contents/Resources/LICENSE.txt"
 cp THIRD_PARTY_NOTICES "$app/Contents/Resources/THIRD_PARTY_NOTICES.txt"
-sed "s/__VERSION__/$version/g" Resources/Info.plist > "$app/Contents/Info.plist"
+# Two numbers: the version people see (0.3.3-beta.2) and the build, which only ever grows
+# (the time it was built). Sparkle compares the build: it reads "0.3.3-beta.1" and
+# "0.3.3-beta.2" (and "0.3.3") as the same version, so betas would never update.
+build=$(date -u +%Y%m%d%H%M)
+sed -e "s/__VERSION__/$version/g" -e "s/__BUILD__/$build/g" Resources/Info.plist > "$app/Contents/Info.plist"
 
 # Sparkle, for in-app updates: the framework goes in Contents/Frameworks (the
 # binary finds it there), without the XPC services a non-sandboxed app doesn't use.
@@ -45,4 +49,4 @@ codesign --force --sign "$identity" "$fw/Versions/B/Autoupdate" >/dev/null 2>&1
 codesign --force --sign "$identity" "$fw/Versions/B/Updater.app" >/dev/null 2>&1
 codesign --force --sign "$identity" "$fw" >/dev/null 2>&1
 codesign --force --sign "$identity" "$app" >/dev/null 2>&1
-echo "$app ($version, $config)"
+echo "$app ($version, build $build, $config)"
