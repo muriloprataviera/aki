@@ -3,6 +3,22 @@
     <channel>
         <title>Aki</title>
         <item>
+            <title>0.3.3-beta.6</title>
+            <pubDate>Tue, 06 Oct 2026 10:39:06 -0300</pubDate>
+            <sparkle:channel>beta</sparkle:channel>
+            <sparkle:version>202610061339</sparkle:version>
+            <sparkle:shortVersionString>0.3.3-beta.6</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
+            <description><![CDATA[<h2>Aki 0.3.3 beta 6</h2>
+<ul>
+<li>Orca's pop-ups and buttons can be marked (Orca answered with a see-through layer over its whole window).</li>
+<li>The sidebar's rings show just the number of waiting marks, without a tiny crop beside it.</li>
+</ul>
+]]></description>
+            <enclosure url="https://aki-updates.vercel.app/0.3.3-beta.6/Aki-0.3.3-beta.6.zip" length="3361098" type="application/octet-stream" sparkle:edSignature="LqBPSriZR7MHzjYLNuJXhccIZjXKEL6Yiv3T94vkEdSFrCi9dimYccin0p0s3bGaA9jlmUHM+VDBfXH3GN1LBQ=="/>
+        </item>
+        <item>
             <title>0.3.3-beta.5</title>
             <pubDate>Tue, 06 Oct 2026 10:34:10 -0300</pubDate>
             <sparkle:channel>beta</sparkle:channel>
@@ -32,24 +48,6 @@
 </ul>
 ]]></description>
             <enclosure url="https://aki-updates.vercel.app/0.3.3-beta.4/Aki-0.3.3-beta.4.zip" length="3366746" type="application/octet-stream" sparkle:edSignature="Yel7m34urgZ2+3hZaZqZ+gd8EVDlE6WlYv5Kni09cZMePTMJBIGB/aQjCJHbL/IE+xj7z//nqrG45KwVk6FcBg=="/>
-        </item>
-        <item>
-            <title>0.3.3-beta.3</title>
-            <pubDate>Tue, 06 Oct 2026 10:18:11 -0300</pubDate>
-            <sparkle:channel>beta</sparkle:channel>
-            <sparkle:version>202610061318</sparkle:version>
-            <sparkle:shortVersionString>0.3.3-beta.3</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
-            <description><![CDATA[<h2>Aki 0.3.3 beta 3</h2>
-<ul>
-<li><b>Marks could go to the wrong conversation:</b> session names came from a copy of Orca's tab names that Orca stopped updating. Names now come only from Orca's live list.</li>
-<li>Marking opens on the session you chose last — never one guessed from activity.</li>
-<li>Betas now reach the next beta and the final version (each build has a number that only grows).</li>
-<li>The six-dot handles sit centred on the top edge of the card and the queue.</li>
-</ul>
-]]></description>
-            <enclosure url="https://aki-updates.vercel.app/0.3.3-beta.3/Aki-0.3.3-beta.3.zip" length="3366382" type="application/octet-stream" sparkle:edSignature="VngAPIpYEnBOvczGQMHTONz/pFGlmk2zLwYqPEJv7TIjnzGvEfGBdJ/Ir1/FnrK0O3l1HDK0EefE3R70jtTrAg=="/>
         </item>
         <item>
             <title>0.3.2</title>
