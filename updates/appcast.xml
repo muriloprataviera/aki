@@ -3,6 +3,21 @@
     <channel>
         <title>Aki</title>
         <item>
+            <title>0.3.3-beta.5</title>
+            <pubDate>Tue, 06 Oct 2026 10:34:10 -0300</pubDate>
+            <sparkle:channel>beta</sparkle:channel>
+            <sparkle:version>202610061334</sparkle:version>
+            <sparkle:shortVersionString>0.3.3-beta.5</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
+            <description><![CDATA[<h2>Aki 0.3.3 beta 5</h2>
+<ul>
+<li>The sidebar's pointer (the resize arrows in its corner, the hand on buttons) stays right when the app below tries to put its arrow back.</li>
+</ul>
+]]></description>
+            <enclosure url="https://aki-updates.vercel.app/0.3.3-beta.5/Aki-0.3.3-beta.5.zip" length="3367741" type="application/octet-stream" sparkle:edSignature="fN/A5/CkjQOD52f0G20OOiE2dRne1wetc9cOAc730arQL712wHTYKbjFJH2yyQEhaGJz/L4clfc9g757SivtCQ=="/>
+        </item>
+        <item>
             <title>0.3.3-beta.4</title>
             <pubDate>Tue, 06 Oct 2026 10:30:41 -0300</pubDate>
             <sparkle:channel>beta</sparkle:channel>
@@ -35,24 +50,6 @@
 </ul>
 ]]></description>
             <enclosure url="https://aki-updates.vercel.app/0.3.3-beta.3/Aki-0.3.3-beta.3.zip" length="3366382" type="application/octet-stream" sparkle:edSignature="VngAPIpYEnBOvczGQMHTONz/pFGlmk2zLwYqPEJv7TIjnzGvEfGBdJ/Ir1/FnrK0O3l1HDK0EefE3R70jtTrAg=="/>
-        </item>
-        <item>
-            <title>0.3.3-beta.1</title>
-            <pubDate>Mon, 05 Oct 2026 23:50:14 -0300</pubDate>
-            <sparkle:channel>beta</sparkle:channel>
-            <sparkle:version>0.3.3-beta.1</sparkle:version>
-            <sparkle:shortVersionString>0.3.3-beta.1</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
-            <description><![CDATA[<h2>Aki 0.3.3 beta 1</h2>
-<ul>
-<li>Updates wait for your queue: Aki never restarts while marks wait to be sent. Their progress also shows in the menu bar pin's menu and in Settings.</li>
-<li>The History shows the queue in its own block on top; "See the queue" in the menu bar pin's menu; esc closes the History.</li>
-<li>Same six-dot handle wherever something can be dragged; the queue's destination reads as a chooser and the button says "Send".</li>
-<li>Fixes: a dragged card stays on its screen; the queue count on the sidebar stays right.</li>
-</ul>
-]]></description>
-            <enclosure url="https://aki-updates.vercel.app/0.3.3-beta.1/Aki-0.3.3-beta.1.zip" length="3373021" type="application/octet-stream" sparkle:edSignature="hp12tw7k1vfRzcauy+G8VqjJFUTh8jS8Z/lIn8fApddtnfs3m4HgyewfAALtxA5nx9LbrvjfDBpHoQ67e2z5DA=="/>
         </item>
         <item>
             <title>0.3.2</title>
