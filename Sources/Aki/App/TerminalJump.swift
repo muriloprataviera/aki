@@ -89,11 +89,21 @@ enum TerminalJump {
         }
     }
 
-    /// What Aki types into the session when its marks go over.
-    static var deliveryPrompt: String {
-        // The full path works in any conversation, even one opened before the MCP was added.
-        let aki = Bundle.main.executablePath ?? "/Applications/Aki.app/Contents/MacOS/Aki"
-        return "Tem marca nova do Aki para esta sessão. Leia com `'\(aki)' list` (ou read_annotations do MCP aki), resolva cada uma e, ao terminar cada uma, rode `'\(aki)' done <id>`."
+    /// What Aki types into the session when its marks go over: how many and what they're
+    /// about (the agent starts knowing, and so do you, watching the terminal), how to read
+    /// them, to open a picture only when it matters, and to close them all in one go.
+    /// One line (a line break would send it early), short `aki` when that command is there.
+    static func deliveryPrompt(for terminal: AgentTerminal) -> String {
+        let aki = AkiCommand.invocation
+        let count = max(terminal.undelivered, terminal.pending, 1)
+        let about = terminal.pendingComments.filter { $0 != "(no text)" }.prefix(3).map { comment -> String in
+            let line = comment.replacingOccurrences(of: "\n", with: " ")
+                .replacingOccurrences(of: "`", with: "'").trimmingCharacters(in: .whitespaces)
+            return "“" + (line.count > 50 ? String(line.prefix(50)) + "…" : line) + "”"
+        }.joined(separator: " · ")
+        let marks = count == 1 ? "1 marca nova" : "\(count) marcas novas"
+        return "📍 Aki: \(marks) para esta sessão" + (about.isEmpty ? "." : " — \(about).")
+            + " Leia com `\(aki) list` (abra a foto só se o pedido for visual), resolva e feche com `\(aki) done <ids>`."
     }
 
     enum Delivery { case sent, failed }
@@ -115,7 +125,8 @@ enum TerminalJump {
         return await Task.detached(priority: .userInitiated) {
             guard let handle = orcaTab(for: terminal) ?? { cacheLock.withLock { cachedTabs = nil }; return orcaTab(for: terminal) }()
             else { return .failed }
-            let text = hasDraft(handle) ? "\n\n" + deliveryPrompt : deliveryPrompt
+            let prompt = deliveryPrompt(for: terminal)
+            let text = hasDraft(handle) ? "\n\n" + prompt : prompt
             return run(orcaCLI, ["terminal", "send", "--terminal", handle, "--text", text, "--enter", "--json"]) != nil
                 ? .sent : .failed
         }.value

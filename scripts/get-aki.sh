@@ -51,5 +51,12 @@ fi
 # Downloaded by this script you just ran: no "app from the internet" prompt.
 xattr -dr com.apple.quarantine "$target" 2>/dev/null || true
 
+# The short `aki` command for your agents (aki list, aki done): a link in /usr/local/bin.
+if [ "$(readlink /usr/local/bin/aki 2>/dev/null)" != "$target/Contents/MacOS/Aki" ]; then
+  say "Your password also adds the short aki command for your agents"
+  { sudo mkdir -p /usr/local/bin && sudo ln -sf "$target/Contents/MacOS/Aki" /usr/local/bin/aki; } \
+    || say "Skipped the aki command (you can add it later in Aki's Get started)."
+fi
+
 say "Opening Aki — it shows its first steps (two permissions, one click each)."
 open "$target"

@@ -1,6 +1,11 @@
 // Japanese strings for Aki's interface (keys are the English text).
 extension L10n {
     static let japanese: [String: String] = [
+        "In Terminal": "ターミナル",
+        "To call Aki from any terminal, short": "どのターミナルからも短く Aki を呼ぶために",
+        "Your agent runs `aki list` instead of the long path inside the app: shorter messages, fewer slips.": "エージェントはアプリ内の長いパスの代わりに `aki list` を実行します。メッセージが短く、ミスも減ります。",
+        "The aki command": "aki コマンド",
+        "macOS asks for your password once: the command goes in a system folder (/usr/local/bin).": "macOS がパスワードを一度だけ求めます。コマンドはシステムフォルダ (/usr/local/bin) に入ります。",
         "↑ bigger · ↓ smaller": "↑ 大きく · ↓ 小さく",
         "They go to your agent when you send them.": "送信するとエージェントに届きます。",
         "To": "送信先",

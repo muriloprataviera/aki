@@ -10,6 +10,7 @@ struct GetStartedPane: View {
     @State private var screen = CGPreflightScreenCaptureAccess()
     @State private var access = AXIsProcessTrusted()
     @State private var browser: Bool?
+    @State private var command = AkiCommand.installed
     @State private var agent = false
     @State private var askedScreen = false
 
@@ -89,6 +90,18 @@ struct GetStartedPane: View {
                 Link(L10n.t("Automation settings (if you said no to Aki controlling the browser)"),
                      destination: Self.pane("Privacy_Automation"))
                     .font(.caption)
+            }
+            Section(L10n.t("In Terminal")) {
+                SetupStep(
+                    number: 5, done: command,
+                    goal: L10n.t("To call Aki from any terminal, short"),
+                    example: L10n.t("Your agent runs `aki list` instead of the long path inside the app: shorter messages, fewer slips."),
+                    permission: L10n.t("The aki command"),
+                    why: L10n.t("macOS asks for your password once: the command goes in a system folder (/usr/local/bin)."),
+                    action: L10n.t("Install"), reopen: L10n.t("Installed"), reopenIcon: "checkmark"
+                ) {
+                    command = AkiCommand.install()
+                }
             }
             Section(L10n.t("Try it")) {
                 HStack(spacing: 10) {

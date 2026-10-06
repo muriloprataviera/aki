@@ -1,6 +1,11 @@
 // Portuguese (Brazil) strings for Aki's interface (keys are the English text).
 extension L10n {
     static let portuguese: [String: String] = [
+        "In Terminal": "No Terminal",
+        "To call Aki from any terminal, short": "Para chamar o Aki de qualquer terminal, curto",
+        "Your agent runs `aki list` instead of the long path inside the app: shorter messages, fewer slips.": "Seu agente roda `aki list` em vez do caminho comprido dentro do app: mensagens mais curtas, menos erro.",
+        "The aki command": "O comando aki",
+        "macOS asks for your password once: the command goes in a system folder (/usr/local/bin).": "O macOS pede sua senha uma vez: o comando fica numa pasta do sistema (/usr/local/bin).",
         "↑ bigger · ↓ smaller": "↑ maior · ↓ menor",
         "They go to your agent when you send them.": "Vão para o seu agente quando você enviar.",
         "To": "Para",

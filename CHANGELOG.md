@@ -4,6 +4,12 @@ What changed in each version of Aki. Versions follow [semantic versioning](https
 
 ## [Unreleased]
 
+### Added
+- The short `aki` command in Terminal: the one-line installer adds it (your password, once), and Get started offers it to those who came by the DMG.
+
+### Changed
+- What Aki types to your agent is shorter and says what the marks are about ("📍 Aki: 2 new marks — “…” · “…”"), uses `aki` when it's there, asks to open a picture only when it matters, and to close all marks in one go.
+
 ## [0.3.3] — 2026-10-06
 
 ### Added

@@ -1,6 +1,11 @@
 // Korean strings for Aki's interface (keys are the English text).
 extension L10n {
     static let korean: [String: String] = [
+        "In Terminal": "터미널에서",
+        "To call Aki from any terminal, short": "어느 터미널에서나 짧게 Aki를 부르려면",
+        "Your agent runs `aki list` instead of the long path inside the app: shorter messages, fewer slips.": "에이전트가 앱 안의 긴 경로 대신 `aki list`를 실행합니다. 메시지가 짧아지고 실수가 줄어듭니다.",
+        "The aki command": "aki 명령",
+        "macOS asks for your password once: the command goes in a system folder (/usr/local/bin).": "macOS가 암호를 한 번 묻습니다. 명령은 시스템 폴더(/usr/local/bin)에 들어갑니다.",
         "↑ bigger · ↓ smaller": "↑ 크게 · ↓ 작게",
         "They go to your agent when you send them.": "보내면 에이전트에게 전달됩니다.",
         "To": "보낼 곳",
