@@ -637,16 +637,14 @@ struct RingCell: View {
                 .animation(.spring(response: 0.35, dampingFraction: 0.5), value: model.finished)
                 .overlay {
                     if isDestination {
-                        // Where new marks go: Aki's own aurora, thick and glowing, so it
-                        // can't be mistaken for a project's colour.
-                        Circle().strokeBorder(AkiPalette.auroraAngular, lineWidth: 3 * scale)
-                            .padding(-6 * scale)
-                            .shadow(color: AkiPalette.aurora[2].opacity(0.8), radius: 8)
+                        // Where new marks go: Aki's own pin stands over it — the "here".
+                        PinMark(size: 17 * scale, bobbing: false)
+                            .offset(y: -(SidebarLayout.ring / 2 + 9) * scale)
                     } else if pinned {
                         Circle().strokeBorder(AkiPalette.fg.opacity(0.4), lineWidth: 1).padding(-6 * scale)
                     }
                 }
-                .scaleEffect(launching ? 1.3 : justReceived ? 1.22 : hovered ? (isDestination ? 1.26 : 1.08) : isDestination ? 1.22 : 1)
+                .scaleEffect(launching ? 1.3 : justReceived ? 1.22 : hovered ? (isDestination ? 1.16 : 1.08) : isDestination ? 1.1 : 1)
                 .shadow(color: justReceived || launching ? receivedGlow : .clear, radius: launching ? 16 : 10)
                 .animation(.spring(response: 0.25, dampingFraction: 0.5), value: launching)
                 .animation(.spring(response: 0.22, dampingFraction: 0.55), value: hovered)
@@ -669,16 +667,17 @@ struct RingCell: View {
                 (Text(model.number(of: terminal.id).map { "\($0) " } ?? "")
                     .font(.system(size: SidebarLayout.labelFont * scale * (isDestination ? 1.15 : 1), weight: .heavy,
                                   design: .rounded).monospacedDigit())
-                    .foregroundColor(isDestination ? .black : AkiPalette.textPrimary)
+                    .foregroundColor(isDestination ? AkiPalette.bg : AkiPalette.textPrimary)
                     + Text(terminal.name))
                     .font(.system(size: SidebarLayout.labelFont * scale * (isDestination ? 1.15 : 1),
                                   weight: isDestination ? .bold : .semibold))
-                    .foregroundStyle(hovered || isDestination ? AkiPalette.textPrimary : AkiPalette.textSecondary)
+                    .foregroundStyle(isDestination ? AkiPalette.bg : hovered ? AkiPalette.textPrimary : AkiPalette.textSecondary)
                     .lineLimit(1)
                     .truncationMode(.tail)
                     .padding(.horizontal, isDestination ? 5 * scale : 0)
+                    // The destination's name on paper: plain, no gradient (the brand's black and paper).
                     .background {
-                        if isDestination { Capsule().fill(AkiPalette.auroraDiagonal) }
+                        if isDestination { Capsule().fill(AkiPalette.fg) }
                     }
                     .frame(width: (SidebarLayout.ring + 22) * scale, height: SidebarLayout.labelHeight * scale)
             }
@@ -721,9 +720,8 @@ struct RingCell: View {
             RingView(agent: terminal.agent, pending: terminal.pending,
                      working: terminal.state == .working || terminal.state == .shell,
                      listening: terminal.state == .listening, dim: false, scale: scale,
-                     monogram: model.monogram(for: terminal.name),
-                     hue: model.hue(of: terminal),
-                     waiting: terminal.state == .waiting, appIcon: model.appIcon(of: terminal))
+                     waiting: terminal.state == .waiting, appIcon: model.appIcon(of: terminal),
+                     brandCenter: true)
         case .hidden(let sessions):
             // A small button, not a ring: it's the way back to hidden sessions.
             HStack(spacing: 4 * scale) {
@@ -849,6 +847,9 @@ struct RingView: View {
     var appIcon: NSImage? = nil
     /// Shows the state without moving (the +N ring: it shouldn't blink).
     var calm = false
+    /// A session's ring: the AI in the middle in its own colours (Claude's orange ✳,
+    /// Codex's black on white), so it's known at a glance; the ring tells the state.
+    var brandCenter = false
     @State private var turning = false
     @State private var breathing = false
 
@@ -859,32 +860,37 @@ struct RingView: View {
         ZStack {
             Circle().strokeBorder(hue.map { $0.opacity(0.6) } ?? AkiPalette.ringTrack, lineWidth: track)
 
+            // The ring is the state, in Aki's colours: red when it waits for you (the one
+            // thing that asks), a light arc turning slowly while it works, quiet otherwise.
             if waiting {
                 Circle()
                     .inset(by: track / 2)
-                    .stroke(AkiPalette.aurora[0], style: StrokeStyle(lineWidth: progress + 1, lineCap: .round))
-                    .opacity(calm ? 0.7 : (breathing ? 1 : 0.5))
+                    .stroke(AkiPalette.red, style: StrokeStyle(lineWidth: progress + 1, lineCap: .round))
+                    .opacity(calm ? 0.8 : (breathing ? 1 : 0.45))
+            } else if working {
+                // One turn in ~5 s: clearly running, calm enough to have on screen all day.
+                Circle()
+                    .inset(by: track / 2)
+                    .trim(from: 0, to: 0.28)
+                    .stroke(AkiPalette.fg, style: StrokeStyle(lineWidth: progress, lineCap: .round))
+                    .rotationEffect(.degrees(calm ? -90 : (turning ? 270 : -90)))
             } else if pending > 0 {
                 Circle()
                     .inset(by: track / 2)
-                    .stroke(AkiPalette.auroraAngular, style: StrokeStyle(lineWidth: progress, lineCap: .round))
-                    .rotationEffect(.degrees(-90))
-            } else if working {
-                // Working: an arc going round slowly (one turn in ~3.5 s) — clearly
-                // running, calm enough to have on screen all day.
-                Circle()
-                    .inset(by: track / 2)
-                    .trim(from: 0, to: 0.3)
-                    .stroke(AkiPalette.auroraAngular, style: StrokeStyle(lineWidth: progress, lineCap: .round))
-                    .rotationEffect(.degrees(calm ? -90 : (turning ? 270 : -90)))
+                    .stroke(AkiPalette.fg.opacity(0.75), style: StrokeStyle(lineWidth: progress, lineCap: .round))
             } else if listening {
                 Circle()
                     .inset(by: track / 2)
-                    .stroke(AkiPalette.auroraAngular, style: StrokeStyle(lineWidth: progress, lineCap: .round))
-                    .opacity(breathing ? 0.9 : 0.25)
+                    .stroke(AkiPalette.fg, style: StrokeStyle(lineWidth: progress, lineCap: .round))
+                    .opacity(breathing ? 0.7 : 0.2)
             }
 
-            if let monogram {
+            if brandCenter {
+                Circle().fill(agent.brand.fill)
+                    .padding(track + 4 * scale)
+                    .overlay(AgentGlyphView(agent: agent, size: SidebarLayout.glyph * scale * 0.82)
+                        .foregroundStyle(agent.brand.glyph))
+            } else if let monogram {
                 // An empty monogram draws only the ring's state (the +N ring uses it).
                 Text(monogram)
                     .font(.system(size: 13 * scale, weight: .bold, design: .rounded))
@@ -922,9 +928,9 @@ struct RingView: View {
         breathing = false
         if calm { return }
         if waiting {
-            withAnimation(.easeInOut(duration: 1.1).repeatForever(autoreverses: true)) { breathing = true }
+            withAnimation(.easeInOut(duration: 1.4).repeatForever(autoreverses: true)) { breathing = true }
         } else if working {
-            withAnimation(.linear(duration: 3.5).repeatForever(autoreverses: false)) { turning = true }
+            withAnimation(.linear(duration: 5).repeatForever(autoreverses: false)) { turning = true }
         } else if listening {
             withAnimation(.easeInOut(duration: 0.9).repeatForever(autoreverses: true)) { breathing = true }
         }
