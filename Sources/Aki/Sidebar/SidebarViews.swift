@@ -404,7 +404,10 @@ struct SidebarRoot: View {
                 // Under the pointer it rises out of the bar, like a tab, to be grabbed.
                 let lift: CGFloat = model.gripHovered ? 14 * layout.scale : 0
                 // Size, like a window: a handle in the far corner, shown with the pointer on the bar.
-                if model.pointerInside || model.resizing {
+                // Always there, only faded in and out: shown and hidden with a transition, a
+                // pointer going back and forth fast cut the fade midway and could leave it invisible.
+                do {
+                    let shown = model.pointerInside || model.resizing || model.resizeHovered
                     let c = layout.resizeCenter
                     let lit = model.resizeHovered || model.resizing
                     Image(systemName: layout.resizeDirection.dx * layout.resizeDirection.dy < 0
@@ -418,7 +421,8 @@ struct SidebarRoot: View {
                         .scaleEffect(lit ? 1.1 : 1)
                         .animation(.spring(response: 0.25, dampingFraction: 0.7), value: lit)
                         .position(c)
-                        .transition(.opacity)
+                        .opacity(shown ? 1 : 0)
+                        .animation(.easeOut(duration: 0.15), value: shown)
                         .allowsHitTesting(false)
                 }
                 GripDots(vertical: preferences.edge.isVertical, hovered: model.gripHovered, scale: layout.scale)

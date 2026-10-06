@@ -16,6 +16,7 @@ What changed in each version of Aki. Versions follow [semantic versioning](https
 - In the queue, the destination is plainly a chooser ("To: … Change", outlined) and the button plainly says "Send".
 
 ### Fixed
+- The sidebar's resize corner no longer vanishes after the pointer goes back and forth over it.
 - Pointing at Orca's own pop-ups (and anything over its terminals) finds the button or text under the pointer; Orca answered with a see-through layer over the whole window.
 - The sidebar's rings no longer show a tiny crop of each waiting mark (it read as a stray window icon); the number says how many wait.
 - The sidebar's pointer (the resize arrows in its corner, the hand on buttons) no longer falls back to the plain arrow when the app below puts it back.
