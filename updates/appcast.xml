@@ -3,6 +3,24 @@
     <channel>
         <title>Aki</title>
         <item>
+            <title>0.4.0-beta.1</title>
+            <pubDate>Tue, 06 Oct 2026 12:59:20 -0300</pubDate>
+            <sparkle:channel>beta</sparkle:channel>
+            <sparkle:version>20261006155919</sparkle:version>
+            <sparkle:shortVersionString>0.4.0-beta.1</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
+            <description><![CDATA[<h2>Aki 0.4.0 beta 1</h2>
+<ul>
+<li>The sidebar's rings, redrawn: the AI in the middle in its own colours, and the ring tells the state — a light arc turning slowly while it works, red when it waits for you. Aki's pin stands over the session your marks go to.</li>
+<li>The short <code>aki</code> command in Terminal (Get started → In Terminal → Install).</li>
+<li>What Aki types to your agent is shorter and says what the marks are about.</li>
+<li>Aki also looks for updates when the Mac wakes up.</li>
+</ul>
+]]></description>
+            <enclosure url="https://aki-updates.vercel.app/0.4.0-beta.1/Aki-0.4.0-beta.1.zip" length="3365873" type="application/octet-stream" sparkle:edSignature="c3150VZy4S2B6QRLvLqB/6WWoIY1i1ZLm2aP5TvtSfWrfeEdf8tHMeM5gy9mg25a8xrpuSnvmu+Q76G3TaUdDw=="/>
+        </item>
+        <item>
             <title>0.3.3</title>
             <pubDate>Tue, 06 Oct 2026 12:34:36 -0300</pubDate>
             <sparkle:version>20261006153435</sparkle:version>
