@@ -1,6 +1,7 @@
 // Japanese strings for Aki's interface (keys are the English text).
 extension L10n {
     static let japanese: [String: String] = [
+        "↑ bigger · ↓ smaller": "↑ 大きく · ↓ 小さく",
         "They go to your agent when you send them.": "送信するとエージェントに届きます。",
         "To": "送信先",
         "See the queue": "キューを見る",

@@ -1,6 +1,7 @@
 // Spanish strings for Aki's interface (keys are the English text).
 extension L10n {
     static let spanish: [String: String] = [
+        "↑ bigger · ↓ smaller": "↑ más grande · ↓ más pequeño",
         "They go to your agent when you send them.": "Van a tu agente cuando las envíes.",
         "To": "Para",
         "See the queue": "Ver la cola",

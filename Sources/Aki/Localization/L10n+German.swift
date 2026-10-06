@@ -1,6 +1,7 @@
 // German strings for Aki's interface (keys are the English text).
 extension L10n {
     static let german: [String: String] = [
+        "↑ bigger · ↓ smaller": "↑ größer · ↓ kleiner",
         "They go to your agent when you send them.": "Sie gehen an deinen Agenten, wenn du sie sendest.",
         "To": "An",
         "See the queue": "Warteschlange ansehen",

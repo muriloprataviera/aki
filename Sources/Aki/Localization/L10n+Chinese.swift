@@ -1,6 +1,7 @@
 // Simplified Chinese strings for Aki's interface (keys are the English text).
 extension L10n {
     static let chinese: [String: String] = [
+        "↑ bigger · ↓ smaller": "↑ 放大 · ↓ 缩小",
         "They go to your agent when you send them.": "发送后会交给你的智能体。",
         "To": "发送到",
         "See the queue": "查看队列",

@@ -1,6 +1,7 @@
 // Italian strings for Aki's interface (keys are the English text).
 extension L10n {
     static let italian: [String: String] = [
+        "↑ bigger · ↓ smaller": "↑ più grande · ↓ più piccolo",
         "They go to your agent when you send them.": "Vanno al tuo agente quando le invii.",
         "To": "A",
         "See the queue": "Vedi la coda",

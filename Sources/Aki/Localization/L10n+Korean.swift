@@ -1,6 +1,7 @@
 // Korean strings for Aki's interface (keys are the English text).
 extension L10n {
     static let korean: [String: String] = [
+        "↑ bigger · ↓ smaller": "↑ 크게 · ↓ 작게",
         "They go to your agent when you send them.": "보내면 에이전트에게 전달됩니다.",
         "To": "보낼 곳",
         "See the queue": "대기열 보기",

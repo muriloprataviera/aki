@@ -1,6 +1,7 @@
 // French strings for Aki's interface (keys are the English text).
 extension L10n {
     static let french: [String: String] = [
+        "↑ bigger · ↓ smaller": "↑ plus grand · ↓ plus petit",
         "They go to your agent when you send them.": "Elles partent vers votre agent quand vous les envoyez.",
         "To": "Vers",
         "See the queue": "Voir la file",

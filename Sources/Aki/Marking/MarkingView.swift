@@ -1158,9 +1158,16 @@ struct PickTag: View {
                 .foregroundStyle(Color(red: 1, green: 138 / 255, blue: 115 / 255))
             if let text, !text.isEmpty {
                 Text(text).font(.system(size: 13.5, weight: .semibold)).foregroundStyle(AkiPalette.paperFixed)
+                    .truncationMode(.tail).frame(maxWidth: 280, alignment: .leading).fixedSize(horizontal: false, vertical: true)
             }
+            // Said in words: ↑ takes what holds it (a block, the whole terminal, the window), ↓ comes back.
             if walks {
-                Text("↑↓").font(.system(size: 10, weight: .bold)).foregroundStyle(AkiPalette.paperFixed.opacity(0.5))
+                Text(L10n.t("↑ bigger · ↓ smaller"))
+                    .font(.system(size: 10.5, weight: .semibold))
+                    .foregroundStyle(AkiPalette.paperFixed.opacity(0.85))
+                    .padding(.horizontal, 6).padding(.vertical, 2)
+                    .background(Capsule().fill(Color.white.opacity(0.12)))
+                    .fixedSize()
             }
         }
         .lineLimit(1)

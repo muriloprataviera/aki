@@ -9,6 +9,7 @@ What changed in each version of Aki. Versions follow [semantic versioning](https
 - The History shows the queue (marks saved but not sent) in its own block on top, apart from the rest; the menu bar pin's menu has "See the queue". esc closes the History even from the search field.
 
 ### Changed
+- The tag over what you point at says "↑ bigger · ↓ smaller": ↑ takes what holds it (a block, the whole terminal, the window).
 - Updates never restart Aki while marks wait to be sent: it downloads, says "updates once the queue is sent", and restarts after. The update's state also shows in the menu bar pin's menu and in Settings, for those who hide the sidebar. Checking for updates only shows what's new; installing is always a click.
 
 ### Changed
