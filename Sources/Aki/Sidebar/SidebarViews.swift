@@ -88,8 +88,6 @@ enum CardType {
 /// Everything inside the fixed-size panel. Opening, closing, the card and the orb
 /// are animated here; the window itself never moves on hover.
 struct SidebarRoot: View {
-    /// Half the update card's height: it stands above the pill's spot, not over the bar.
-    @State private var cardLift: CGFloat = 70
     static let space = "akiPanel"
     static let debugTargets = ProcessInfo.processInfo.environment["AKI_DEBUG_TARGETS"] == "1"
     let model: SidebarModel
@@ -392,15 +390,7 @@ struct SidebarRoot: View {
 
             // A new version, like Orca: click it, it downloads right in the pill, and
             // Aki restarts on the new version by itself.
-            if model.showsUpdateCard {
-                // Like Orca: a card that says what's new and asks once; × leaves just the pill.
-                UpdateCard(state: model.update, hovered: model.hoveredTarget, scale: layout.scale)
-                    .clickTarget("update|card")
-                    .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { cardLift = $0 / 2 - 12 * layout.scale }
-                    .position(layout.updatePillCenter(expanded: model.expanded))
-                    .offset(y: -cardLift)
-                    .transition(.scale(scale: 0.9, anchor: .bottom).combined(with: .opacity))
-            } else if model.update != .idle {
+            if model.update != .idle {
                 // On a side edge the pill sits close to the screen's border: longer messages
                 // wrap onto two lines instead of running off it.
                 UpdatePill(state: model.update, hot: model.hoveredTarget == "update|now", scale: layout.scale,
@@ -2044,70 +2034,3 @@ struct PinMark: View {
     }
 }
 
-/// A new version, told like Orca does: what it is, that nothing is lost, the notes, and
-/// one button; × leaves just the pill. Clicked, the button becomes the download's bar.
-struct UpdateCard: View {
-    let state: UpdateState
-    /// The part under the pointer ("update|now", "update|close", "update|notes").
-    let hovered: String?
-    let scale: CGFloat
-
-    private var version: String { UpdateState.shown(state.version ?? "") }
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 8 * scale) {
-            HStack {
-                Text(L10n.t("Update available")).font(.system(size: 13 * scale, weight: .bold))
-                Spacer()
-                Image(systemName: "xmark").font(.system(size: 10 * scale, weight: .bold))
-                    .foregroundStyle(.white.opacity(hovered == "update|close" ? 1 : 0.6))
-                    .frame(width: 20 * scale, height: 20 * scale)
-                    .background(Circle().fill(Color.white.opacity(hovered == "update|close" ? 0.15 : 0)))
-                    .clickTarget("update|close")
-            }
-            Text("Aki \(version) " + L10n.t("is ready.")).font(.system(size: 12 * scale)).foregroundStyle(.white.opacity(0.85))
-            Text(L10n.t("Marks in your queue won't be lost.")).font(.system(size: 10.5 * scale)).foregroundStyle(.white.opacity(0.55))
-            Text(L10n.t("What's new")).font(.system(size: 10.5 * scale)).underline()
-                .foregroundStyle(.white.opacity(hovered == "update|notes" ? 1 : 0.7))
-                .clickTarget("update|notes")
-            action.padding(.top, 2 * scale)
-        }
-        .foregroundStyle(.white)
-        .padding(14 * scale)
-        .frame(width: 250 * scale, alignment: .leading)
-        .background(RoundedRectangle(cornerRadius: 14 * scale, style: .continuous).fill(Color(white: 0.09).opacity(0.97)))
-        .overlay(RoundedRectangle(cornerRadius: 14 * scale, style: .continuous).strokeBorder(Color.white.opacity(0.12), lineWidth: 1))
-        .shadow(color: .black.opacity(0.45), radius: 14, y: 6)
-    }
-
-    /// "Update", or how far it got (the bar fills, Aki's pin riding its tip).
-    @ViewBuilder private var action: some View {
-        let height = 30 * scale
-        if case .available = state {
-            Text(L10n.t("Update")).font(.system(size: 12 * scale, weight: .semibold))
-                .foregroundStyle(.black)
-                .frame(maxWidth: .infinity).frame(height: height)
-                .background(RoundedRectangle(cornerRadius: 8 * scale).fill(Color.white.opacity(hovered == "update|now" ? 1 : 0.88)))
-                .clickTarget("update|now")
-        } else {
-            let fraction: Double = { if case .downloading(_, let f) = state { return f ?? 0.04 } else { return 1 } }()
-            ZStack(alignment: .leading) {
-                RoundedRectangle(cornerRadius: 8 * scale).fill(Color.white.opacity(0.1))
-                GeometryReader { box in
-                    let width = max(height, box.size.width * fraction)
-                    RoundedRectangle(cornerRadius: 8 * scale).fill(AkiPalette.red)
-                        .frame(width: width)
-                        .animation(.easeOut(duration: 0.2), value: fraction)
-                    if case .downloading = state {
-                        PinMark(size: 15 * scale, bobbing: true)
-                            .position(x: width - 4 * scale, y: -2 * scale)
-                    }
-                }
-                Text(state.text).font(.system(size: 11 * scale, weight: .semibold)).monospacedDigit()
-                    .contentTransition(.numericText())
-                    .frame(maxWidth: .infinity)
-            }
-            .frame(height: height)
-        }
-    }
-}

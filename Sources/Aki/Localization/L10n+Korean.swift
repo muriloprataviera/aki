@@ -1,10 +1,6 @@
 // Korean strings for Aki's interface (keys are the English text).
 extension L10n {
     static let korean: [String: String] = [
-        "Update available": "업데이트 가능",
-        "is ready.": "준비됐습니다.",
-        "Marks in your queue won't be lost.": "대기열의 표시는 사라지지 않습니다.",
-        "What's new": "새로운 기능",
         "They go to your agent when you send them.": "보내면 에이전트에게 전달됩니다.",
         "To": "보낼 곳",
         "See the queue": "대기열 보기",
