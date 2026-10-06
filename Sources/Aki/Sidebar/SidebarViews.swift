@@ -391,7 +391,10 @@ struct SidebarRoot: View {
             // A new version, like Orca: click it, it downloads right in the pill, and
             // Aki restarts on the new version by itself.
             if model.update != .idle {
-                UpdatePill(state: model.update, hot: model.hoveredTarget == "update|now", scale: layout.scale)
+                // On a side edge the pill sits close to the screen's border: longer messages
+                // wrap onto two lines instead of running off it.
+                UpdatePill(state: model.update, hot: model.hoveredTarget == "update|now", scale: layout.scale,
+                           maxWidth: preferences.edge.isVertical ? 150 * layout.scale : nil)
                     .clickTarget("update|now")
                     .position(layout.updatePillCenter(expanded: model.expanded))
                     .transition(.scale.combined(with: .opacity))
@@ -1922,6 +1925,8 @@ struct UpdatePill: View {
     let state: UpdateState
     let hot: Bool
     let scale: CGFloat
+    /// Narrow places (a side edge): the words wrap within this.
+    var maxWidth: CGFloat? = nil
 
     private var clickable: Bool {
         switch state {
@@ -1984,24 +1989,28 @@ struct UpdatePill: View {
             // The percentage rolls like a counter instead of fading over itself.
             Text(text).font(.system(size: 11 * scale, weight: .semibold)).monospacedDigit()
                 .contentTransition(.numericText())
+                .lineLimit(maxWidth == nil ? 1 : 2)
+                .fixedSize(horizontal: maxWidth == nil, vertical: true)
         }
         .foregroundStyle(.white)
-        .padding(.horizontal, 10 * scale).frame(height: 24 * scale)
+        .padding(.horizontal, 10 * scale).padding(.vertical, 4 * scale)
+        .frame(minHeight: 24 * scale)
+        .frame(maxWidth: maxWidth)
         .background {
             ZStack(alignment: .leading) {
-                Capsule().fill(asks ? AkiPalette.red.opacity(hot ? 1 : 0.92) : Color(white: 0.12).opacity(0.96))
+                RoundedRectangle(cornerRadius: 12 * scale, style: .continuous).fill(asks ? AkiPalette.red.opacity(hot ? 1 : 0.92) : Color(white: 0.12).opacity(0.96))
                 // The download filling the pill from the left.
                 if case .downloading(_, let fraction) = state {
                     GeometryReader { box in
                         let width = max(box.size.height, box.size.width * (fraction ?? 0.04))
-                        Capsule().fill(AkiPalette.red)
+                        RoundedRectangle(cornerRadius: 12 * scale, style: .continuous).fill(AkiPalette.red)
                             .frame(width: width)
                             .animation(.easeOut(duration: 0.2), value: fraction)
                     }
                 }
-                if case .installing = state { Capsule().fill(AkiPalette.red) }
+                if case .installing = state { RoundedRectangle(cornerRadius: 12 * scale, style: .continuous).fill(AkiPalette.red) }
             }
-            .clipShape(Capsule())
+            .clipShape(RoundedRectangle(cornerRadius: 12 * scale, style: .continuous))
         }
         .overlay(alignment: .leading) {
             // Over the pill, unclipped: the pin riding the download's tip.
@@ -2014,12 +2023,12 @@ struct UpdatePill: View {
                 }
             }
         }
-        .overlay(Capsule().strokeBorder(Color.white.opacity(asks ? 0 : 0.18), lineWidth: 1))
+        .overlay(RoundedRectangle(cornerRadius: 12 * scale, style: .continuous).strokeBorder(Color.white.opacity(asks ? 0 : 0.18), lineWidth: 1))
         .shadow(color: AkiPalette.red.opacity(asks ? 0.45 : 0.2), radius: hot && clickable ? 10 : 6)
         .scaleEffect(hot && clickable ? 1.05 : 1)
         .animation(.spring(response: 0.25, dampingFraction: 0.7), value: hot)
         .animation(.easeOut(duration: 0.2), value: state)
-        .fixedSize()
+        .fixedSize(horizontal: maxWidth == nil, vertical: true)
     }
 }
 

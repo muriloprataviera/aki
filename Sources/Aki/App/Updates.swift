@@ -77,6 +77,9 @@ final class Updates: NSObject, SPUUserDriver, SPUUpdaterDelegate {
 
     /// Sparkle's question for the update found, answered when you click the pill.
     private var answer: ((SPUUserUpdateChoice) -> Void)?
+    /// The update found was already downloaded and unpacked (from an earlier session):
+    /// answering it restarts straight away, so it goes through the queue check too.
+    private var answerRestarts = false
     /// Whether restarting now would lose nothing (no marking open, nothing in the queue).
     var canRestart: () -> Bool = { true }
     /// The go-ahead to restart, held while marks wait in the queue.
@@ -124,14 +127,25 @@ final class Updates: NSObject, SPUUserDriver, SPUUpdaterDelegate {
     private func install() {
         guard case .available(let version) = state else { return }
         if fake != nil { pretend(version); return }
-        state = .downloading(version, nil)
         let reply = answer
         answer = nil
+        if answerRestarts {
+            // Ready from before: this answer is the restart itself.
+            answerRestarts = false
+            state = .installing(version)
+            restart = reply
+            restartWhenSafe()
+            return
+        }
+        state = .downloading(version, nil)
         reply?(.install)
     }
 
     /// Kept for Settings: an update found is downloaded and installed with no click.
-    func setInstallsByThemselves(_ on: Bool) {}
+    func setInstallsByThemselves(_ on: Bool) {
+        // Turned on with one already waiting: take it now.
+        if on, case .available = state { install() }
+    }
 
     // MARK: SPUUserDriver — every step, drawn by Aki
 
@@ -150,6 +164,7 @@ final class Updates: NSObject, SPUUserDriver, SPUUpdaterDelegate {
         MainActor.assumeIsolated {
             if appcastItem.isInformationOnlyUpdate { reply(.dismiss); return }
             answer = reply
+            answerRestarts = updateState.stage == .installing
             state = .available(version)
             if Preferences.shared.installUpdatesByThemselves { install() }
         }
@@ -243,7 +258,12 @@ final class Updates: NSObject, SPUUserDriver, SPUUpdaterDelegate {
 
     nonisolated func dismissUpdateInstallation() {
         MainActor.assumeIsolated {
+            // The session is over: nothing of it may answer a later one.
             answer = nil
+            answerRestarts = false
+            restart = nil
+            restartTimer?.invalidate()
+            restartTimer = nil
             switch state {
             case .checking, .downloading, .installing, .waitingForQueue, .available: state = .idle
             default: break
