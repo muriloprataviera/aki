@@ -1,7 +1,7 @@
 import Foundation
 
 public enum Aki {
-    public static let version = "0.4.0-beta.1"
+    public static let version = "0.4.0-beta.2"
     /// Next to Vibe Annotations' 3846, so both can run side by side.
     public static let defaultPort: UInt16 = 3850
 }
