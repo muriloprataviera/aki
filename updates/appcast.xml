@@ -21,6 +21,23 @@
             <enclosure url="https://aki-updates.vercel.app/0.3.3-beta.1/Aki-0.3.3-beta.1.zip" length="3373021" type="application/octet-stream" sparkle:edSignature="hp12tw7k1vfRzcauy+G8VqjJFUTh8jS8Z/lIn8fApddtnfs3m4HgyewfAALtxA5nx9LbrvjfDBpHoQ67e2z5DA=="/>
         </item>
         <item>
+            <title>0.3.3-beta.2</title>
+            <pubDate>Tue, 06 Oct 2026 10:12:51 -0300</pubDate>
+            <sparkle:channel>beta</sparkle:channel>
+            <sparkle:version>0.3.3-beta.2</sparkle:version>
+            <sparkle:shortVersionString>0.3.3-beta.2</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
+            <description><![CDATA[<h2>Aki 0.3.3 beta 2</h2>
+<ul>
+<li><b>Marks could go to the wrong conversation:</b> session names came from a copy of Orca's tab names that Orca stopped updating. Names now come only from Orca's live list.</li>
+<li>Marking opens on the session you chose last — never one guessed from activity.</li>
+<li>The six-dot handles sit centred on the top edge of the card and the queue.</li>
+</ul>
+]]></description>
+            <enclosure url="https://aki-updates.vercel.app/0.3.3-beta.2/Aki-0.3.3-beta.2.zip" length="3366378" type="application/octet-stream" sparkle:edSignature="bUi3wE4OLa3B/7F0+2atUu4RcN3i/csEgbN0en0NKyeCc7gUOXluOLib7byFT+tSMitITUJsnBeQZ9O1ZWEiDQ=="/>
+        </item>
+        <item>
             <title>0.3.2</title>
             <pubDate>Mon, 05 Oct 2026 22:47:29 -0300</pubDate>
             <sparkle:version>0.3.2</sparkle:version>
