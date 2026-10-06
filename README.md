@@ -107,6 +107,17 @@ Apple Silicon, macOS 14 or later.
 | Hand your marks to Claude Code or Codex | **Aki's MCP server** in the agent (Settings → Agents → *Connect*) | It's how agents get new tools. Sessions already open see it after a restart. |
 | Pick the exact element on a web page | In the browser: **View → Developer → Allow JavaScript from Apple Events**, then allow Aki to control it | Aki asks the page itself which element is under the pointer — no extension. |
 
+### Anonymous notices (telemetry)
+
+Aki sends no usage data and no crash reports. The one exception is two small, anonymous notices, so the maker knows how many people use Aki and on which version (what to fix first, when an old version can be retired):
+
+| When | What is sent |
+|---|---|
+| Aki is installed (about two minutes after the first launch) | Aki's version, macOS version, chip, preferred language |
+| Aki updates to a new version | the same, plus the version it updated from |
+
+The download host (`aki-updates.vercel.app`, on Vercel) adds the approximate city, region and country. **No account, no identifier, no IP address kept, nothing you mark or type.** They're on by default and explained in **Get started**; turn them off there or in **Settings → General → Privacy** — when off, nothing is sent. The code is short and readable: [`Sources/Aki/App/InstallPing.swift`](Sources/Aki/App/InstallPing.swift). Details in the [privacy notice](https://useaki.vercel.app/privacy).
+
 ### Where Aki lives
 
 Aki is always on: the **bar at the edge of your screen** and the **pin in the menu bar** (mark, history, sidebar, settings). It stays out of the Dock and ⌘Tab, and shows there while Settings or History is open. Search "Aki" in Spotlight to open Settings; want it in the Dock? **Settings → General → App icon**.
