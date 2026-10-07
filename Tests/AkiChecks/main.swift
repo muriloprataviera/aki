@@ -256,7 +256,17 @@ let rich = Annotation([
     "screenshot": ["data_url": .string("data:image/png;base64," + pixel)],
 ])
 let rendered = AnnotationText.render(rich, home: home)
-check(rendered.contains("## r1  (2026-10-03 10:20)"), "header with id and date")
+check(rendered.contains("## #r1 · r1  (2026-10-03 10:20)"), "header with code, id and date")
+// Short codes: the same everywhere, found from any terminal.
+check(MarkFolder.code("aki_1791339895884_df9f68ee") == "df9f68", "short code of a mark")
+check(markCode("aki_1791339895884_df9f68ee") == "#df9f68", "short code as people read it")
+let coded = [Annotation(["id": "aki_1_df9f68ee"]), Annotation(["id": "aki_2_e8a1b2c3"]), Annotation(["id": "aki_3_e8a1ffff"])]
+check(MarkFolder.resolve(["#df9f68"], in: coded).found.map(\.id) == ["aki_1_df9f68ee"], "finds a mark by #code")
+check(MarkFolder.resolve(["e8a1b2"], in: coded).found.map(\.id) == ["aki_2_e8a1b2c3"], "finds a mark by bare code")
+check(MarkFolder.resolve(["e8a1"], in: coded).problems.count == 1, "an ambiguous code says so")
+check(MarkFolder.resolve(["zzzzzz"], in: coded).problems.count == 1, "an unknown code says so")
+check(MarkFolder.url(for: "aki_1_df9f68ee", created: Date(timeIntervalSince1970: 1_791_374_400), home: home).path
+        .hasSuffix("/marks/2026-10-07/df9f68"), "a mark's folder is its day and code")
 check(rendered.contains("comment:  (no text)") && rendered.contains("<button> #save"), "comment and element")
 check(rendered.contains("change:   color: red → blue"), "pending style change")
 let imageFile = AnnotationImage.file(for: rich, home: home)

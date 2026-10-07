@@ -263,7 +263,7 @@ extension L10n {
         "forever": "sempre",
         "Pictures at most": "Immagini al massimo",
         "Done marks are deleted after": "I segni fatti vengono eliminati dopo",
-        "Pending marks always stay. Pictures live in ~/.aki/images/<project>/<session>/ and never pass the limit: the oldest no mark needs go first.": "I segni in sospeso restano sempre. Le immagini stanno in ~/.aki/images/<progetto>/<sessione>/ e non superano mai il limite: le più vecchie che nessun segno usa vanno via per prime.",
+        "Pending marks always stay. Each mark has its folder, ~/.aki/marks/<day>/<code>/ (the picture and what was asked); pictures never pass the limit: the oldest no mark needs go first.": "I segni in attesa restano sempre. Ogni segno ha la sua cartella, ~/.aki/marks/<giorno>/<codice>/ (l’immagine e la richiesta); le immagini non superano mai il limite: se ne vanno prima le più vecchie che nessun segno usa.",
         "marks saved in the queue": "segni salvati in coda",
         "Sent": "Inviato",
         "on this Mac now": "su questo Mac ora",

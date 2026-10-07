@@ -114,17 +114,25 @@ enum TerminalJump {
     static func deliveryPrompt(for terminal: AgentTerminal) -> String {
         let aki = AkiCommand.invocation
         let count = max(terminal.undelivered, terminal.pending, 1)
-        // Each with its short code (also shown in the History): which marks went.
+        let codes = terminal.pendingIDs.map(MarkFolder.code).filter { !$0.isEmpty }
+        // What they're about (newest first, as the sidebar lists them), each with its code.
+        let newestFirst = Array(terminal.pendingIDs.reversed())
         let about = terminal.pendingComments.enumerated().prefix(3).map { i, comment -> String in
-            let code = i < terminal.pendingIDs.count ? markCode(terminal.pendingIDs[i]) : ""
+            let code = i < newestFirst.count ? markCode(newestFirst[i]) : ""
             guard comment != "(no text)" else { return code }
             let line = comment.replacingOccurrences(of: "\n", with: " ")
                 .replacingOccurrences(of: "`", with: "'").trimmingCharacters(in: .whitespaces)
             return (code.isEmpty ? "" : code + " ") + "“" + (line.count > 50 ? String(line.prefix(50)) + "…" : line) + "”"
         }.filter { !$0.isEmpty }.joined(separator: " · ")
         let marks = count == 1 ? "1 marca nova" : "\(count) marcas novas"
-        return "📍 Aki: \(marks) para esta sessão" + (about.isEmpty ? "." : " — \(about).")
-            + " Leia com `\(aki) list` (abra a foto só se o pedido for visual), resolva e feche com `\(aki) done <ids>`."
+        let head = "📍 Aki: \(marks) para esta sessão" + (about.isEmpty ? "." : " — \(about).")
+        // By code (no "#" in the command: a shell takes it as a comment): works pasted
+        // into any terminal. Many marks: the session's list instead.
+        guard !codes.isEmpty, codes.count <= 8 else {
+            return head + " Leia com `\(aki) list` (abra a foto só se o pedido for visual), resolva e feche com `\(aki) done <códigos>`."
+        }
+        let list = codes.joined(separator: " ")
+        return head + " Leia com `\(aki) show \(list)` (abra a foto só se o pedido for visual), resolva e feche com `\(aki) done \(list)`."
     }
 
     enum Delivery { case sent, failed }

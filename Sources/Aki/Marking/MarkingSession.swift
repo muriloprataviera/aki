@@ -499,8 +499,6 @@ final class MarkingSession {
     /// couldn't be saved (disk full, no permission), which stay in the queue.
     func save(_ toSave: [Mark], into store: AnnotationStore, home: AkiHome = .default) async -> (sentTo: [String], failed: [UUID]) {
         let batch = "batch_\(Int(Date().timeIntervalSince1970 * 1000))"
-        let images = home.url.appending(path: "images")
-        try? FileManager.default.createDirectory(at: images, withIntermediateDirectories: true)
         var sentTo: [String] = []
         var failed: [UUID] = []
         for mark in toSave {
@@ -551,21 +549,20 @@ final class MarkingSession {
             fields["session_id"] = .string(terminal.id)
             fields["worktree"] = .string(terminal.worktree)
             fields.merge(terminal.identityFields) { _, new in new }
-            if mark.sendsImage, let crop = grab.crop(cropRect(for: mark, in: grab)), let jpeg = jpegData(crop) {
-                // Tidy on disk: images/<project>/<session>/<id>.jpg
-                let folder = images
-                    .appending(path: Self.folderName(projects[terminal.id].map { URL(filePath: $0).lastPathComponent } ?? "other"))
-                    .appending(path: Self.folderName(terminal.name))
-                try? FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
-                let file = folder.appending(path: "\(id).jpg")
+            // Its own folder: marks/<day>/<code>/ with the crop and a record of the request.
+            let folder = MarkFolder.make(for: id, home: home)
+            if mark.sendsImage, let folder, let crop = grab.crop(cropRect(for: mark, in: grab)), let jpeg = jpegData(crop) {
+                let file = folder.appending(path: "crop.jpg")
                 if (try? jpeg.write(to: file, options: .atomic)) != nil { fields["image_path"] = .string(file.path) }
             }
             // The crop was asked for and couldn't be written: not sent without it.
             if mark.sendsImage, fields["image_path"] == nil {
+                if let folder { try? FileManager.default.removeItem(at: folder) }
                 failed.append(mark.id)
                 continue
             }
-            if (try? await store.upsert(Annotation(fields))) != nil {
+            if let saved = try? await store.upsert(Annotation(fields)) {
+                if let folder { MarkFolder.writeRecord(of: saved, in: folder) }
                 if let session = fields["session_id"]?.string { sentTo.append(session) }
             } else {
                 failed.append(mark.id)

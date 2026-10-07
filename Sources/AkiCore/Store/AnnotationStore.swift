@@ -110,14 +110,55 @@ public actor AnnotationStore {
         return removed
     }
 
-    /// Once an annotation is done or deleted its picture goes too (only files
-    /// Aki saved itself, in `<home>/images/`).
+    /// Once an annotation is done or deleted its picture goes too, and its folder
+    /// (only what Aki saved itself, under `<home>/marks/` or the old `images/`).
     private func removeImage(of annotation: Annotation) {
-        guard let path = annotation["image_path"]?.string else { return }
-        let images = fileURL.deletingLastPathComponent().appending(path: "images").standardizedFileURL.path + "/"
-        let file = URL(filePath: path).standardizedFileURL
-        guard file.path.hasPrefix(images) else { return }
-        try? FileManager.default.removeItem(at: file)
+        let home = AkiHome(url: fileURL.deletingLastPathComponent())
+        MarkFolder.remove(annotation, home: home)
+        guard let path = annotation["image_path"]?.string, MarkFolder.isAkis(path, home: home) else { return }
+        try? FileManager.default.removeItem(at: URL(filePath: path))
+    }
+
+    /// Once: pictures from the old layout (images/<project>/<session>/<id>.jpg, named
+    /// after tabs that change) move to each mark's own folder, marks/<day>/<code>/.
+    /// Returns how many moved.
+    @discardableResult
+    public func moveToMarkFolders() throws -> Int {
+        try locked {
+            let home = AkiHome(url: fileURL.deletingLastPathComponent())
+            let old = home.url.appending(path: "images").standardizedFileURL.path + "/"
+            var all = load()
+            var moved = 0
+            for i in all.indices {
+                let annotation = all[i]
+                guard let path = annotation["image_path"]?.string,
+                      URL(filePath: path).standardizedFileURL.path.hasPrefix(old),
+                      FileManager.default.fileExists(atPath: path),
+                      let folder = MarkFolder.make(for: annotation.id, created: MarkFolder.created(annotation), home: home)
+                else { continue }
+                let ext = URL(filePath: path).pathExtension.isEmpty ? "jpg" : URL(filePath: path).pathExtension
+                let target = folder.appending(path: "crop.\(ext)")
+                try? FileManager.default.removeItem(at: target)
+                guard (try? FileManager.default.moveItem(at: URL(filePath: path), to: target)) != nil else { continue }
+                var fields = annotation.fields
+                fields["image_path"] = .string(target.path)
+                all[i] = Annotation(fields)
+                MarkFolder.writeRecord(of: all[i], in: folder)
+                moved += 1
+            }
+            if moved > 0 { try save(all) }
+            // Folders left empty in the old place go.
+            let imagesURL = home.url.appending(path: "images")
+            if let walker = FileManager.default.enumerator(at: imagesURL, includingPropertiesForKeys: [.isDirectoryKey]) {
+                let folders = walker.compactMap { $0 as? URL }
+                    .filter { (try? $0.resourceValues(forKeys: [.isDirectoryKey]).isDirectory) == true }
+                    .sorted { $0.path.count > $1.path.count }
+                for folder in folders + [imagesURL] where (try? FileManager.default.contentsOfDirectory(atPath: folder.path))?.filter({ $0 != ".DS_Store" }).isEmpty == true {
+                    try? FileManager.default.removeItem(at: folder)
+                }
+            }
+            return moved
+        }
     }
 
     /// Forgets marks that were done more than `days` days ago (pictures too).

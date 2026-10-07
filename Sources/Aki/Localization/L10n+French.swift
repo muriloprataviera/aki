@@ -263,7 +263,7 @@ extension L10n {
         "forever": "toujours",
         "Pictures at most": "Photos au maximum",
         "Done marks are deleted after": "Les annotations traitées sont supprimées après",
-        "Pending marks always stay. Pictures live in ~/.aki/images/<project>/<session>/ and never pass the limit: the oldest no mark needs go first.": "Les annotations en attente restent toujours. Les photos sont dans ~/.aki/images/<projet>/<session>/ et ne dépassent jamais la limite : les plus anciennes inutilisées partent en premier.",
+        "Pending marks always stay. Each mark has its folder, ~/.aki/marks/<day>/<code>/ (the picture and what was asked); pictures never pass the limit: the oldest no mark needs go first.": "Les marques en attente restent toujours. Chaque marque a son dossier, ~/.aki/marks/<jour>/<code>/ (l’image et la demande) ; les images ne dépassent jamais la limite : les plus anciennes dont aucune marque n’a besoin partent en premier.",
         "marks saved in the queue": "annotations dans la file",
         "Sent": "Envoyé",
         "on this Mac now": "sur ce Mac",

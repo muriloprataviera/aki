@@ -49,15 +49,18 @@ public struct DiskUsage: Sendable, Equatable {
         return freed
     }
 
-    /// Every picture, in every project / session folder.
+    /// Every picture: each mark's folder (marks/<day>/<code>/) and the old images/.
+    /// Pictures only: a mark's record (mark.json) stays with it.
     private static func files(home: AkiHome) -> [URL] {
-        let folder = home.url.appending(path: "images")
-        guard let walker = FileManager.default.enumerator(
-            at: folder, includingPropertiesForKeys: [.fileSizeKey, .isRegularFileKey, .contentModificationDateKey],
-            options: [.skipsHiddenFiles])
-        else { return [] }
-        return walker.compactMap { $0 as? URL }.filter {
-            (try? $0.resourceValues(forKeys: [.isRegularFileKey]).isRegularFile) == true
+        ["marks", "images"].flatMap { name -> [URL] in
+            guard let walker = FileManager.default.enumerator(
+                at: home.url.appending(path: name), includingPropertiesForKeys: [.fileSizeKey, .isRegularFileKey, .contentModificationDateKey],
+                options: [.skipsHiddenFiles])
+            else { return [] }
+            return walker.compactMap { $0 as? URL }.filter {
+                ["jpg", "jpeg", "png", "webp"].contains($0.pathExtension.lowercased())
+                    && (try? $0.resourceValues(forKeys: [.isRegularFileKey]).isRegularFile) == true
+            }
         }
     }
 

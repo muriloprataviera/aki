@@ -167,7 +167,14 @@ final class MarkingController {
                                                  width: rect.width * f.width, height: rect.height * f.height))
                         }
                     }
-                    changed.removeAll { region in moving.contains { $0.intersects(region) } }
+                    // Only what is itself still moving (about the same patch): a menu that
+                    // closed over a video is bigger than the video's own change, and stays.
+                    changed.removeAll { region in
+                        moving.contains { m in
+                            let both = m.intersection(region), all = m.union(region)
+                            return !both.isNull && both.width * both.height >= all.width * all.height * 0.6
+                        }
+                    }
                 }
             }
             if changed.isEmpty { session.live = true } else { session.menus += changed }

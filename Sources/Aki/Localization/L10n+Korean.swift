@@ -263,7 +263,7 @@ extension L10n {
         "forever": "영구",
         "Pictures at most": "최대 이미지 수",
         "Done marks are deleted after": "완료된 표시 삭제 시점",
-        "Pending marks always stay. Pictures live in ~/.aki/images/<project>/<session>/ and never pass the limit: the oldest no mark needs go first.": "대기 중인 표시는 항상 남습니다. 이미지는 ~/.aki/images/<project>/<session>/에 저장되며 한도를 넘지 않습니다. 어떤 표시에도 쓰이지 않는 가장 오래된 것부터 삭제됩니다.",
+        "Pending marks always stay. Each mark has its folder, ~/.aki/marks/<day>/<code>/ (the picture and what was asked); pictures never pass the limit: the oldest no mark needs go first.": "대기 중인 표시는 항상 남습니다. 표시마다 폴더 ~/.aki/marks/<날짜>/<코드>/(이미지와 요청)가 있고, 이미지는 한도를 넘지 않습니다. 어떤 표시도 쓰지 않는 오래된 것부터 지워집니다.",
         "marks saved in the queue": "개의 표시가 대기열에 저장됨",
         "Sent": "보냄",
         "on this Mac now": "현재 이 Mac에",

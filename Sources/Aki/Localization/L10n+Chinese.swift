@@ -263,7 +263,7 @@ extension L10n {
         "forever": "永久",
         "Pictures at most": "图片上限",
         "Done marks are deleted after": "已完成标记的删除时间",
-        "Pending marks always stay. Pictures live in ~/.aki/images/<project>/<session>/ and never pass the limit: the oldest no mark needs go first.": "待处理的标记始终保留。图片存放在 ~/.aki/images/<project>/<session>/，且不会超过上限：最早且不再被任何标记使用的图片会先被删除。",
+        "Pending marks always stay. Each mark has its folder, ~/.aki/marks/<day>/<code>/ (the picture and what was asked); pictures never pass the limit: the oldest no mark needs go first.": "待处理的标记始终保留。每个标记都有自己的文件夹 ~/.aki/marks/<日期>/<代码>/（图片和请求）；图片不会超过上限：没有标记需要的最旧图片先删除。",
         "marks saved in the queue": "个标记保存在队列中",
         "Sent": "已发送",
         "on this Mac now": "当前在此 Mac 上",

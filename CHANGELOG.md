@@ -14,9 +14,10 @@ What changed in each version of Aki. Versions follow [semantic versioning](https
 ## [Unreleased]
 
 ### Added
+- Each mark has a folder of its own, ~/.aki/marks/<day>/<code>/ (its picture and a record of the request); older pictures move there once.
+- The message typed to the agent names the marks by code (`aki show df9f68`), so it works pasted into any terminal; `aki done` takes codes too.
 - The comment card's buttons show their keys: ⏎ queues, ⌘⏎ sends.
 - While marking, the arrows walk the screen (the thing above, below or beside, about the same size); ⇧↑ / ⇧↓ make it bigger or smaller.
-- Each mark has a short code (#df9f) in the message typed to the agent and in the History, to tell which ones went.
 - The History's queue sends right there (all, or one), and each mark's session can be changed from a menu.
 - Drag a project by its name on the sidebar to move all its sessions together.
 - The sidebar's destination follows the agent tab you click in Orca (other apps and tabs keep it; Settings turns it off).

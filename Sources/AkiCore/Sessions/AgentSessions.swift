@@ -241,7 +241,7 @@ public struct AgentTerminal: Identifiable, Equatable, Sendable {
     public var lastMessage: String?
     public var pending: Int
     public var pendingComments: [String]
-    /// The ids of those same marks, in the same order.
+    /// Every pending mark's id, oldest first.
     public var pendingIDs: [String] = []
     public var updatedAt: Date?
     /// Crops of the marks still waiting, newest first (up to 4): the ring's queue.
@@ -293,7 +293,10 @@ extension AgentSessions {
         func comments(_ list: [Annotation]) -> [String] {
             newest(list).map { $0["comment"]?.string.flatMap { $0.isEmpty ? nil : $0 } ?? "(no text)" }
         }
-        func ids(_ list: [Annotation]) -> [String] { newest(list).map { $0["id"]?.string ?? "" } }
+        // Every pending mark's id, oldest first (the message to the agent names them all).
+        func ids(_ list: [Annotation]) -> [String] {
+            list.sorted { ($0["created_at"]?.string ?? "") < ($1["created_at"]?.string ?? "") }.map(\.id)
+        }
 
         var result: [AgentTerminal] = []
         for session in ClaudeSessions.live() {
@@ -339,9 +342,3 @@ extension AgentSessions {
     }
 }
 
-/// A mark's short code ("aki_1791339895884_df9f68ee" → "#df9f"): the same in the
-/// message typed to the agent and in the History, so you can tell which went where.
-public func markCode(_ id: String) -> String {
-    guard let tail = id.split(separator: "_").last, !tail.isEmpty else { return "" }
-    return "#" + tail.prefix(4)
-}

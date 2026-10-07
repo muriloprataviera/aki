@@ -30,6 +30,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         // This build's icon, not one the Mac cached from an older version.
         NSApp.applicationIconImage = AkiBrand.appIcon
         let store = AnnotationStore(directory: home.url)
+        // Once: pictures from the old layout move into each mark's own folder.
+        if !UserDefaults.standard.bool(forKey: "movedToMarkFolders") {
+            Task.detached {
+                if (try? await store.moveToMarkFolders()) != nil {
+                    await MainActor.run { UserDefaults.standard.set(true, forKey: "movedToMarkFolders") }
+                }
+            }
+        }
         model = SidebarModel(store: store, preferences: preferences)
         sidebar = SidebarController(model: model)
         settings = SettingsWindowController(preferences: preferences, model: model)

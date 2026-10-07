@@ -647,7 +647,7 @@ struct SettingsView: View {
                     Text("500 MB").tag(500)
                     Text("1 GB").tag(1000)
                 }
-                Caption(L10n.t("Pending marks always stay. Pictures live in ~/.aki/images/<project>/<session>/ and never pass the limit: the oldest no mark needs go first."))
+                Caption(L10n.t("Pending marks always stay. Each mark has its folder, ~/.aki/marks/<day>/<code>/ (the picture and what was asked); pictures never pass the limit: the oldest no mark needs go first."))
             }
             Section(L10n.t("Data")) {
                 LabeledContent(L10n.t("Server"), value: model.serverStatus.label)

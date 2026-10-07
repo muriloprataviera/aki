@@ -10,7 +10,7 @@ public enum AnnotationText {
     }
 
     public static func render(_ a: Annotation, home: AkiHome = .default) -> String {
-        var lines = ["## \(a.id)  (\(shortDate(a["created_at"]?.string)))"]
+        var lines = ["## \(markCode(a.id)) · \(a.id)  (\(shortDate(a["created_at"]?.string)))"]
         if let url = a["url"]?.string, !url.isEmpty { lines.append("page:     \(url)") }
         if let app = a["app"]?.object {
             let name = app["name"]?.string ?? app["bundle_id"]?.string ?? "?"
@@ -69,12 +69,10 @@ public enum AnnotationImage {
         else { return nil }
         let header = dataURL[..<comma]
         let ext = header.contains("png") ? "png" : header.contains("jpeg") ? "jpg" : "webp"
-        let safeID = a.id.filter { $0.isLetter || $0.isNumber || $0 == "_" || $0 == "-" }
-        let file = home.url.appending(path: "images/\(safeID).\(ext)")
+        // In the mark's own folder, like Aki's own marks.
+        guard let folder = MarkFolder.make(for: a.id, created: MarkFolder.created(a), home: home) else { return nil }
+        let file = folder.appending(path: "crop.\(ext)")
         if !FileManager.default.fileExists(atPath: file.path) {
-            try? FileManager.default.createDirectory(
-                at: file.deletingLastPathComponent(), withIntermediateDirectories: true,
-                attributes: [.posixPermissions: 0o700])
             guard (try? data.write(to: file, options: .atomic)) != nil else { return nil }
         }
         return file

@@ -8,7 +8,8 @@ let usage = """
     usage:
       aki list [--all] [--status S]   pending marks for this worktree (--all: every worktree and site)
       aki wait [--idle N]             block until new marks arrive here and the user pauses N s (default 5)
-      aki done ID...                  mark as resolved
+      aki show CODE...                these marks, from any terminal (codes like df9f68, or ids)
+      aki done CODE...                mark as resolved (codes or ids)
       aki delete ID...                delete
       aki sessions                    agents running now, grouped by worktree (what the sidebar shows)
       aki mcp                         MCP server over stdio (add with: claude mcp add aki -- aki mcp)
@@ -85,10 +86,40 @@ do {
         print("# \(fresh.count) new annotation(s)\n")
         print(AnnotationText.render(fresh))
 
-    case "done", "delete":
-        let ids = Array(arguments.dropFirst())
-        guard !ids.isEmpty else { fail("which id?") }
+    case "move-to-mark-folders":
+        // What the app does once on launch: pictures from the old layout into each mark's folder.
+        let moved = try await AnnotationStore(directory: AkiHome.default.url).moveToMarkFolders()
+        print("moved \(moved)")
+
+    case "show":
+        // By code: the message typed to the agent names them, so any terminal can read them.
+        let tokens = Array(arguments.dropFirst())
+        guard !tokens.isEmpty else { fail("which marks? (codes like df9f68)") }
         let client = makeClient()
+        var all = try await client.list(status: "pending")
+        all += try await client.list(status: "completed").filter { done in !all.contains { $0.id == done.id } }
+        let (found, problems) = MarkFolder.resolve(tokens, in: all)
+        problems.forEach { print("# \($0)") }
+        guard !found.isEmpty else { fail("no marks found") }
+        print("# \(found.count) mark(s)")
+        print("\n" + AnnotationText.render(found))
+        await client.markRead(found.filter { $0.status != "completed" })
+
+    case "done", "delete":
+        let tokens = Array(arguments.dropFirst())
+        guard !tokens.isEmpty else { fail("which id?") }
+        let client = makeClient()
+        // Codes (df9f68, #df9f68) or full ids.
+        var ids = tokens.filter { $0.hasPrefix("aki_") }
+        let codes = tokens.filter { !$0.hasPrefix("aki_") }
+        if !codes.isEmpty {
+            var all = try await client.list(status: "pending")
+            all += try await client.list(status: "completed").filter { done in !all.contains { $0.id == done.id } }
+            let (found, problems) = MarkFolder.resolve(codes, in: all)
+            problems.forEach { print("# \($0)") }
+            ids += found.map(\.id)
+        }
+        guard !ids.isEmpty else { fail("no marks found") }
         for id in ids {
             if arguments.first == "done" {
                 try await client.update(
