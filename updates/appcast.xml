@@ -3,6 +3,19 @@
     <channel>
         <title>Aki</title>
         <item>
+            <title>0.4.0-beta.19</title>
+            <pubDate>Tue, 06 Oct 2026 23:32:36 -0300</pubDate>
+            <sparkle:channel>beta</sparkle:channel>
+            <sparkle:version>20261007023235</sparkle:version>
+            <sparkle:shortVersionString>0.4.0-beta.19</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
+            <description><![CDATA[<h2>Aki 0.4.0 beta 19</h2>
+<ul><li>While marking, the arrows walk the screen; ⇧↑ / ⇧↓ make the outline bigger or smaller.</li></ul>
+]]></description>
+            <enclosure url="https://aki-updates.vercel.app/0.4.0-beta.19/Aki-0.4.0-beta.19.zip" length="3436269" type="application/octet-stream" sparkle:edSignature="b5BbfwjnCz6Wz/SlPot0d3JUfjjYdpzb5Ld4GWLFQiJrLTaQh85xGwOwx5B8rgMSQYVgzmZAjOEshIJojtOKDA=="/>
+        </item>
+        <item>
             <title>0.4.0-beta.18</title>
             <pubDate>Tue, 06 Oct 2026 23:28:37 -0300</pubDate>
             <sparkle:channel>beta</sparkle:channel>
@@ -28,19 +41,6 @@
 <li>⌘Tab works while marking.</li></ul>
 ]]></description>
             <enclosure url="https://aki-updates.vercel.app/0.4.0-beta.17/Aki-0.4.0-beta.17.zip" length="3430353" type="application/octet-stream" sparkle:edSignature="RsW7b3a1v+t4JbzyoHGNAIXpodxxSSTvCoKQX4FVD2KfnJcf7vsdfuABQ7n5B7tNQByhvtD/2CHwDgCcw3lQDg=="/>
-        </item>
-        <item>
-            <title>0.4.0-beta.16</title>
-            <pubDate>Tue, 06 Oct 2026 23:06:42 -0300</pubDate>
-            <sparkle:channel>beta</sparkle:channel>
-            <sparkle:version>20261007020642</sparkle:version>
-            <sparkle:shortVersionString>0.4.0-beta.16</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
-            <description><![CDATA[<h2>Aki 0.4.0 beta 16</h2>
-<ul><li>On a page, ↑ walks the page's own boxes again everywhere (no more half-page outlines).</li></ul>
-]]></description>
-            <enclosure url="https://aki-updates.vercel.app/0.4.0-beta.16/Aki-0.4.0-beta.16.zip" length="3410125" type="application/octet-stream" sparkle:edSignature="9mlYGVs0Q7bz89ivRK1ceRJ2uX92uc0NYZW4odK/iUqi7WIvdoeTMMlvDBgwVDsNin6Gq4hn0WbthraM8iEGBw=="/>
         </item>
         <item>
             <title>0.3.3</title>
