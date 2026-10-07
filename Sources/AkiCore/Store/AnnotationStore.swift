@@ -129,6 +129,7 @@ public actor AnnotationStore {
             let old = home.url.appending(path: "images").standardizedFileURL.path + "/"
             var all = load()
             var moved = 0
+            var originals: [URL] = []
             for i in all.indices {
                 let annotation = all[i]
                 guard let path = annotation["image_path"]?.string,
@@ -138,8 +139,10 @@ public actor AnnotationStore {
                 else { continue }
                 let ext = URL(filePath: path).pathExtension.isEmpty ? "jpg" : URL(filePath: path).pathExtension
                 let target = folder.appending(path: "crop.\(ext)")
+                // A copy first: the old file goes only once the index points to the new one.
                 try? FileManager.default.removeItem(at: target)
-                guard (try? FileManager.default.moveItem(at: URL(filePath: path), to: target)) != nil else { continue }
+                guard (try? FileManager.default.copyItem(at: URL(filePath: path), to: target)) != nil else { continue }
+                originals.append(URL(filePath: path))
                 var fields = annotation.fields
                 fields["image_path"] = .string(target.path)
                 all[i] = Annotation(fields)
@@ -147,6 +150,7 @@ public actor AnnotationStore {
                 moved += 1
             }
             if moved > 0 { try save(all) }
+            originals.forEach { try? FileManager.default.removeItem(at: $0) }
             // Folders left empty in the old place go.
             let imagesURL = home.url.appending(path: "images")
             if let walker = FileManager.default.enumerator(at: imagesURL, includingPropertiesForKeys: [.isDirectoryKey]) {

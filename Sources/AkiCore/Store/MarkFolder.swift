@@ -2,7 +2,7 @@ import Foundation
 
 /// Every mark has a folder of its own, found by its day and its short code:
 ///
-///     ~/.aki/marks/2026-10-07/df9f68/
+///     ~/.aki/marks/2026-10-07/df9f68ee/
 ///         mark.json   what was asked, where, for which session
 ///         crop.jpg    the piece of screen marked
 ///
@@ -16,12 +16,20 @@ public enum MarkFolder {
         return String(clean.prefix(6))
     }
 
-    /// `<home>/marks/<day>/<code>/`.
+    /// The folder's own name: the id's whole random part ("df9f68ee"), so two marks
+    /// never share one; it starts with the code, so the code finds it by eye.
+    static func folderName(_ id: String) -> String {
+        let tail = id.split(separator: "_").last.map(String.init) ?? id
+        let clean = tail.lowercased().filter { $0.isLetter || $0.isNumber || $0 == "-" }
+        return clean.isEmpty ? "mark" : clean
+    }
+
+    /// `<home>/marks/<day>/<id's random part>/`.
     public static func url(for id: String, created: Date = Date(), home: AkiHome = .default) -> URL {
         let day = DateFormatter()
         day.locale = Locale(identifier: "en_US_POSIX")
         day.dateFormat = "yyyy-MM-dd"
-        return home.url.appending(path: "marks").appending(path: day.string(from: created)).appending(path: code(id))
+        return home.url.appending(path: "marks").appending(path: day.string(from: created)).appending(path: folderName(id))
     }
 
     /// The folder, made private (only you read it).
