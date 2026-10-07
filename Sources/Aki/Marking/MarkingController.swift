@@ -92,6 +92,13 @@ final class MarkingController {
     /// stays, frozen, and what changed is found on it. Small changes (a caret) don't count.
     private func watchForClosedMenus(_ session: MarkingSession, first: [ScreenGrab]) {
         let overlays = overlayIDs
+        // The front window's title bar and toolbar change look when Aki comes forward:
+        // never a menu that closed.
+        let pid = session.context.pid
+        let windows = CGWindowListCopyWindowInfo([.optionOnScreenOnly, .excludeDesktopElements], kCGNullWindowID) as? [[String: Any]] ?? []
+        let front = windows.first { ($0[kCGWindowOwnerPID as String] as? Int32) == pid && ($0[kCGWindowLayer as String] as? Int) == 0 }
+            .flatMap { ($0[kCGWindowBounds as String] as? NSDictionary).flatMap { CGRect(dictionaryRepresentation: $0) } }
+        let toolbar = front.map { CGRect(x: $0.minX, y: $0.minY, width: $0.width, height: 96) }
         Task { [weak session] in
             try? await Task.sleep(for: .milliseconds(350))
             guard let session else { return }
@@ -104,10 +111,13 @@ final class MarkingController {
             let primary = NSScreen.screens.first?.frame.height ?? 0
             var changed: [CGRect] = []
             for (a, b) in zip(first, now) {
-                guard let rect = ScreenGrab.changedRegion(a.image, b.image) else { continue }
                 let f = a.screen.frame
-                changed.append(CGRect(x: f.minX + rect.minX * f.width, y: primary - f.maxY + rect.minY * f.height,
-                                      width: rect.width * f.width, height: rect.height * f.height))
+                for rect in ScreenGrab.changedRegions(a.image, b.image) {
+                    let global = CGRect(x: f.minX + rect.minX * f.width, y: primary - f.maxY + rect.minY * f.height,
+                                        width: rect.width * f.width, height: rect.height * f.height)
+                    if let toolbar, toolbar.insetBy(dx: -4, dy: -4).contains(global) { continue }
+                    changed.append(global)
+                }
             }
             if changed.isEmpty { session.live = true } else { session.menus += changed }
         }

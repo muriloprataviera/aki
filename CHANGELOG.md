@@ -3,6 +3,7 @@
 What changed in each version of Aki. Versions follow [semantic versioning](https://semver.org); betas end in `-beta.N`. The release notes inside the app are written from this file.
 
 ### Fixed
+- A page's elements are asked to the page again where Aki wrongly thought a menu had closed (the picture-only lookup and its half-page outlines are gone there).
 - On a page, ↑ reaches the whole page at last (some sites, like Airtable, stopped short of it).
 - The outline of something as big as the screen (a whole page) stays inside it, all four corners in sight.
 - A ring no longer spins for a session that's resting while a background task runs (Orca's tab says so).

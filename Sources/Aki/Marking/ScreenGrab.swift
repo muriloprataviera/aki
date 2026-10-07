@@ -21,9 +21,11 @@ struct ScreenGrab {
 
     /// Every display. Leaves out the given windows (marking's own overlays), or
     /// all of Aki's when none are given. Nil when Screen Recording isn't allowed.
-    /// Where two pictures of one screen differ enough to matter (something opened or
-    /// closed), as a fraction of the screen (top-left origin); nil when they match.
-    static func changedRegion(_ a: CGImage, _ b: CGImage) -> CGRect? {
+    /// What appeared or vanished between two pictures of one screen (a menu that
+    /// closed, a hover card): each solid patch of change, as fractions of the screen
+    /// (top-left origin). Scattered changes don't count: a window going inactive dims
+    /// its toolbar's words here and there, a caret blinks, a tooltip is a speck.
+    static func changedRegions(_ a: CGImage, _ b: CGImage) -> [CGRect] {
         let width = 240, height = max(1, Int(CGFloat(width) * CGFloat(a.height) / CGFloat(max(a.width, 1))))
         func pixels(_ image: CGImage) -> [UInt8]? {
             var data = [UInt8](repeating: 0, count: width * height)
@@ -37,20 +39,46 @@ struct ScreenGrab {
             }
             return ok ? data : nil
         }
-        guard let pa = pixels(a), let pb = pixels(b) else { return nil }
-        var minX = width, minY = height, maxX = -1, maxY = -1, count = 0
-        for y in 0..<height {
-            for x in 0..<width where abs(Int(pa[y * width + x]) - Int(pb[y * width + x])) > 40 {
-                count += 1
-                minX = min(minX, x); maxX = max(maxX, x); minY = min(minY, y); maxY = max(maxY, y)
-            }
+        guard let pa = pixels(a), let pb = pixels(b) else { return [] }
+        // Changed at all (a white menu over a light grey page differs by ~20), and
+        // strongly (its words): a patch needs both.
+        var changed = [Bool](repeating: false, count: width * height)
+        var strong = [Bool](repeating: false, count: width * height)
+        for k in 0..<(width * height) {
+            let d = abs(Int(pa[k]) - Int(pb[k]))
+            changed[k] = d > 12
+            strong[k] = d > 40
         }
-        // Strong changes only: a window going inactive just greys its title bar a little.
-        // A caret or a ticking clock changes a few dots; a menu, hundreds.
-        guard count >= 60, maxX - minX >= 8, maxY - minY >= 6 else { return nil }
-        // Row 0 in memory is the picture's top.
-        return CGRect(x: CGFloat(minX) / CGFloat(width), y: CGFloat(minY) / CGFloat(height),
-                      width: CGFloat(maxX - minX + 1) / CGFloat(width), height: CGFloat(maxY - minY + 1) / CGFloat(height))
+        // Patches: changed dots joined across gaps of up to 2 (words of one menu item).
+        var seen = [Bool](repeating: false, count: width * height)
+        var regions: [CGRect] = []
+        for start in 0..<(width * height) where changed[start] && !seen[start] {
+            var queue = [start], head = 0, count = 0, strongCount = 0
+            var minX = width, minY = height, maxX = -1, maxY = -1
+            seen[start] = true
+            while head < queue.count {
+                let k = queue[head]; head += 1
+                let x = k % width, y = k / width
+                count += 1
+                if strong[k] { strongCount += 1 }
+                minX = min(minX, x); maxX = max(maxX, x); minY = min(minY, y); maxY = max(maxY, y)
+                for dy in -2...2 {
+                    for dx in -2...2 {
+                        let nx = x + dx, ny = y + dy
+                        guard nx >= 0, nx < width, ny >= 0, ny < height else { continue }
+                        let n = ny * width + nx
+                        if changed[n] && !seen[n] { seen[n] = true; queue.append(n) }
+                    }
+                }
+            }
+            let w = maxX - minX + 1, h = maxY - minY + 1
+            // A menu: big enough and mostly changed inside (its background came or went).
+            guard count >= 60, strongCount >= 20, w >= 8, h >= 6, Double(count) >= Double(w * h) * 0.3 else { continue }
+            // Row 0 in memory is the picture's top.
+            regions.append(CGRect(x: CGFloat(minX) / CGFloat(width), y: CGFloat(minY) / CGFloat(height),
+                                  width: CGFloat(w) / CGFloat(width), height: CGFloat(h) / CGFloat(height)))
+        }
+        return regions
     }
 
     static func captureAll(excluding windowNumbers: Set<CGWindowID>? = nil) async -> [ScreenGrab]? {
