@@ -523,11 +523,16 @@ final class SidebarModel {
         var changed = false
         for session in live {
             guard let i = updated.firstIndex(where: { $0.id == session.sessionId }) else { continue }
-            let state: AgentTerminal.State = switch session.status {
+            var state: AgentTerminal.State = switch session.status {
             case .waiting: .waiting
             case .busy: .working
             case .shell: .shell
             default: updated[i].state == .listening ? .listening : .idle
+            }
+            // "Running a command" (or busy) long after Orca's tab went back to "✳": a
+            // background task, the conversation itself is waiting for you.
+            if state == .working || state == .shell, TerminalJump.restsByTab(updated[i], since: session.updatedAt) == true {
+                state = .idle
             }
             if updated[i].state != state {
                 updated[i].state = state

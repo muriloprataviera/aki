@@ -3,6 +3,7 @@
 What changed in each version of Aki. Versions follow [semantic versioning](https://semver.org); betas end in `-beta.N`. The release notes inside the app are written from this file.
 
 ### Fixed
+- A ring no longer spins for a session that's resting while a background task runs (Orca's tab says so).
 - In a frozen picture, ↓ goes from a menu item down to one line of its words (a subtitle).
 - An open menu (a page's drop-down or <select>, a right-click menu) stays in the picture when you press the shortcut, and its items can be marked.
 

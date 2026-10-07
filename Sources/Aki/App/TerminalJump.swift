@@ -85,8 +85,26 @@ enum TerminalJump {
             var named = terminal
             named.name = title.trimmingCharacters(in: .whitespacesAndNewlines)
             named.named = true
+            if restingTitle(title), named.state == .working || named.state == .shell { named.state = .idle }
             return named
         }
+    }
+
+    /// Claude Code marks its tab's title "✳" while it waits for you to type (a spinner
+    /// while it works). Its session file can stay on "running a command" while a
+    /// background task goes on: the title says it's resting.
+    static func restingTitle(_ title: String) -> Bool {
+        title.trimmingCharacters(in: .whitespaces).hasPrefix("✳")
+    }
+
+    /// Whether Orca's tab says this session rests, by a look newer than `since`
+    /// (the session file's last change); nil when it can't tell. Never runs Orca.
+    static func restsByTab(_ terminal: AgentTerminal, since: Date?) -> Bool? {
+        guard let handle = terminal.orcaHandle, let cached = cacheLock.withLock({ cachedTabs }),
+              since.map({ cached.at > $0 }) ?? true,
+              let title = cached.tabs.first(where: { ($0["handle"] as? String) == handle })?["title"] as? String
+        else { return nil }
+        return restingTitle(title)
     }
 
     /// What Aki types into the session when its marks go over: how many and what they're
