@@ -3,6 +3,19 @@
     <channel>
         <title>Aki</title>
         <item>
+            <title>0.4.0-beta.18</title>
+            <pubDate>Tue, 06 Oct 2026 23:28:37 -0300</pubDate>
+            <sparkle:channel>beta</sparkle:channel>
+            <sparkle:version>20261007022836</sparkle:version>
+            <sparkle:shortVersionString>0.4.0-beta.18</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
+            <description><![CDATA[<h2>Aki 0.4.0 beta 18</h2>
+<ul><li>Each mark has a short code (#df9f) in the message to the agent and in the History.</li></ul>
+]]></description>
+            <enclosure url="https://aki-updates.vercel.app/0.4.0-beta.18/Aki-0.4.0-beta.18.zip" length="3431844" type="application/octet-stream" sparkle:edSignature="e9SPgDJJhM9scAlzpXch8z52U3s24BazHeigwWcmEly6LdmMMuDHYoisP6a+1zDBawZmpYL7ih5Bj17aEqApCQ=="/>
+        </item>
+        <item>
             <title>0.4.0-beta.17</title>
             <pubDate>Tue, 06 Oct 2026 23:25:19 -0300</pubDate>
             <sparkle:channel>beta</sparkle:channel>
@@ -28,19 +41,6 @@
 <ul><li>On a page, ↑ walks the page's own boxes again everywhere (no more half-page outlines).</li></ul>
 ]]></description>
             <enclosure url="https://aki-updates.vercel.app/0.4.0-beta.16/Aki-0.4.0-beta.16.zip" length="3410125" type="application/octet-stream" sparkle:edSignature="9mlYGVs0Q7bz89ivRK1ceRJ2uX92uc0NYZW4odK/iUqi7WIvdoeTMMlvDBgwVDsNin6Gq4hn0WbthraM8iEGBw=="/>
-        </item>
-        <item>
-            <title>0.4.0-beta.15</title>
-            <pubDate>Tue, 06 Oct 2026 22:59:26 -0300</pubDate>
-            <sparkle:channel>beta</sparkle:channel>
-            <sparkle:version>20261007015925</sparkle:version>
-            <sparkle:shortVersionString>0.4.0-beta.15</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
-            <description><![CDATA[<h2>Aki 0.4.0 beta 15</h2>
-<ul><li>On a page, ↑ reaches the whole page at last.</li></ul>
-]]></description>
-            <enclosure url="https://aki-updates.vercel.app/0.4.0-beta.15/Aki-0.4.0-beta.15.zip" length="3406599" type="application/octet-stream" sparkle:edSignature="vohUJQV0qbIDz/nu1+hyRd0cZJhYTEos0/gjNdCQeWG2eRu86b04T4xflulu6GjVw3HSDpMC4dZsaMY23KGsAA=="/>
         </item>
         <item>
             <title>0.3.3</title>
