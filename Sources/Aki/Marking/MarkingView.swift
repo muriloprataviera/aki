@@ -182,8 +182,14 @@ struct MarkingView: View {
                 // As on the site: four corners around it (in the session's colour), and the selector on a
                 // dark tag above (below when there's no room), gliding between elements.
                 let above = rect.minY > 40
-                // A touch outside the element, so the corners don't sit on its edge.
+                // A touch outside the element, so the corners don't sit on its edge; but
+                // never past the screen's edges (a whole page fills the screen: all four
+                // sides must still show).
+                let screenSize = grab.screen.frame.size
                 let box = rect.insetBy(dx: -3, dy: -3)
+                    .intersection(CGRect(origin: .zero, size: screenSize).insetBy(dx: 4, dy: 4))
+                // No room above nor below: the tag goes inside, at the top.
+                let tagInside = !above && box.maxY + 44 > screenSize.height
                 ZStack(alignment: .topLeading) {
                     // A faint tint and a thin line show the whole box; the corners make
                     // it read at a glance, with a dark halo so they show on any page.
@@ -199,7 +205,7 @@ struct MarkingView: View {
                     PickTag(label: hovered.label, walks: !(session.hovered?.ancestors.isEmpty ?? true), above: above)
                         .fixedSize()
                         // About 26 pt tall, 8 pt off the frame (an offset leaves the frame where it is).
-                        .offset(y: above ? -36 : max(box.height, 8) + 8)
+                        .offset(x: tagInside ? 10 : 0, y: above ? -36 : tagInside ? 10 : max(box.height, 8) + 8)
                 }
                 .offset(x: box.minX, y: box.minY)
                 .allowsHitTesting(false)
