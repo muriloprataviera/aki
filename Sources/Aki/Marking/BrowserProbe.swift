@@ -74,7 +74,9 @@ enum BrowserProbe {
               function out(n){var p=n.parentElement;while(p&&p.parentElement&&p!==document.body&&same(p,n))p=p.parentElement;return p}
               function sibling(n,fwd){var s=fwd?n.nextElementSibling:n.previousElementSibling;while(s&&!vis(s))s=fwd?s.nextElementSibling:s.previousElementSibling;return s}
               var n=null;
-              if(d==='up'){n=out(el);if(n&&n!==document.body)trail.push(el)}
+              // Up to the whole page at last: the body, when it's bigger than where you are
+              // (a page drawn in a box hung right on the body never reached it).
+              if(d==='up'){n=out(el);if(n===document.body&&(el===document.body||same(n,el)))n=null;if(n)trail.push(el)}
               else if(d==='down'){
                 // Back where you came from first (like DevTools), else the child under the pointer, else the first.
                 while(trail.length&&!(el.contains(trail[trail.length-1])&&trail[trail.length-1]!==el))trail.pop();
@@ -85,7 +87,7 @@ enum BrowserProbe {
                 // Next / previous: a sibling, or, at the end of a row, the next one up the tree.
                 var fwd=d==='next',cur=el;trail.length=0;
                 while(cur&&cur!==document.body){var s=sibling(cur,fwd);if(s){n=settle(s);break}cur=out(cur)}}
-              if(!n||n===document.documentElement||n===document.body) return '';
+              if(!n||n===document.documentElement||(n===document.body&&d!=='up')) return '';
               window.__akiSel=n;
               return AKI.result(n);
             })('\(step.rawValue)',(\(Int(point.x))-AKI.vx)/AKI.Z,(\(Int(point.y))-AKI.vy)/AKI.Z)
