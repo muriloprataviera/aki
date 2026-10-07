@@ -21,6 +21,38 @@ struct ScreenGrab {
 
     /// Every display. Leaves out the given windows (marking's own overlays), or
     /// all of Aki's when none are given. Nil when Screen Recording isn't allowed.
+    /// Where two pictures of one screen differ enough to matter (something opened or
+    /// closed), as a fraction of the screen (top-left origin); nil when they match.
+    static func changedRegion(_ a: CGImage, _ b: CGImage) -> CGRect? {
+        let width = 240, height = max(1, Int(CGFloat(width) * CGFloat(a.height) / CGFloat(max(a.width, 1))))
+        func pixels(_ image: CGImage) -> [UInt8]? {
+            var data = [UInt8](repeating: 0, count: width * height)
+            let ok = data.withUnsafeMutableBytes { buffer -> Bool in
+                guard let context = CGContext(data: buffer.baseAddress, width: width, height: height, bitsPerComponent: 8,
+                                              bytesPerRow: width, space: CGColorSpaceCreateDeviceGray(),
+                                              bitmapInfo: CGImageAlphaInfo.none.rawValue) else { return false }
+                context.interpolationQuality = .medium
+                context.draw(image, in: CGRect(x: 0, y: 0, width: width, height: height))
+                return true
+            }
+            return ok ? data : nil
+        }
+        guard let pa = pixels(a), let pb = pixels(b) else { return nil }
+        var minX = width, minY = height, maxX = -1, maxY = -1, count = 0
+        for y in 0..<height {
+            for x in 0..<width where abs(Int(pa[y * width + x]) - Int(pb[y * width + x])) > 40 {
+                count += 1
+                minX = min(minX, x); maxX = max(maxX, x); minY = min(minY, y); maxY = max(maxY, y)
+            }
+        }
+        // Strong changes only: a window going inactive just greys its title bar a little.
+        // A caret or a ticking clock changes a few dots; a menu, hundreds.
+        guard count >= 60, maxX - minX >= 8, maxY - minY >= 6 else { return nil }
+        // Row 0 in memory is the picture's top.
+        return CGRect(x: CGFloat(minX) / CGFloat(width), y: CGFloat(minY) / CGFloat(height),
+                      width: CGFloat(maxX - minX + 1) / CGFloat(width), height: CGFloat(maxY - minY + 1) / CGFloat(height))
+    }
+
     static func captureAll(excluding windowNumbers: Set<CGWindowID>? = nil) async -> [ScreenGrab]? {
         guard CGPreflightScreenCaptureAccess() else {
             CGRequestScreenCaptureAccess()

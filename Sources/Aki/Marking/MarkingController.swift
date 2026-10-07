@@ -86,6 +86,31 @@ final class MarkingController {
         }
     }
 
+    /// Live marking shows the real screen through the overlay. Something that closed as
+    /// Aki came forward (a page's menu, a hover card) would be gone from it: a second
+    /// look tells, and then the first picture is kept, frozen, and what changed is
+    /// found on it. Small changes (a caret blinking) don't count.
+    private func watchForClosedMenus(_ session: MarkingSession, first: [ScreenGrab]) {
+        let overlays = overlayIDs
+        Task { [weak session] in
+            try? await Task.sleep(for: .milliseconds(450))
+            guard let session, session.live, session.marks.isEmpty,
+                  let now = await ScreenGrab.captureAll(excluding: overlays), now.count == first.count
+            else { return }
+            let primary = NSScreen.screens.first?.frame.height ?? 0
+            var changed: [CGRect] = []
+            for (a, b) in zip(first, now) {
+                guard let rect = ScreenGrab.changedRegion(a.image, b.image) else { continue }
+                let f = a.screen.frame
+                changed.append(CGRect(x: f.minX + rect.minX * f.width, y: primary - f.maxY + rect.minY * f.height,
+                                      width: rect.width * f.width, height: rect.height * f.height))
+            }
+            guard !changed.isEmpty, session.live, session.marks.isEmpty else { return }
+            session.menus += changed
+            session.live = false
+        }
+    }
+
     func toggle() {
         isActive ? close() : start()
     }
@@ -104,13 +129,11 @@ final class MarkingController {
         setAside = fromAki ? [] : NSApp.windows.filter { $0.isVisible && $0.styleMask.contains(.titled) }
         setAside.forEach { $0.orderOut(nil) }
         BackgroundCursor.enable()
-        // A menu open (a page's <select>, a right-click menu): Aki coming forward would
-        // close it before the picture, so the picture comes first and stays frozen.
+        // Aki comes forward only after the picture: the app below losing the focus closes
+        // what's open in it (a page's menu, a <select>, a right-click menu), and that
+        // must be in the picture. Native menus are known at once; a page's, by comparing.
         let menus = Self.menusOnScreen()
         let menuOpen = !menus.isEmpty
-        // Aki to the front right away: the app below (Chrome…) would keep setting its
-        // own cursor otherwise. It gets the focus back when marking ends.
-        if !menuOpen { NSApp.activate(ignoringOtherApps: true) }
         AkiCursor.pin.set()
         holdCursor()
         Task {
@@ -146,7 +169,10 @@ final class MarkingController {
             followTerminals(session)
             session.live = !model.preferences.freezeScreen && !menuOpen
             session.menus = menus
-            if menuOpen { NSApp.activate(ignoringOtherApps: true) }
+            // Now Aki to the front: the app below (Chrome…) would keep setting its own
+            // cursor otherwise. It gets the focus back when marking ends.
+            NSApp.activate(ignoringOtherApps: true)
+            if session.live { watchForClosedMenus(session, first: grabs) }
             session.markAdded = { [weak session, weak self] mark in
                 guard let session, session.live else { return }
                 let overlays = self?.overlayIDs ?? []
