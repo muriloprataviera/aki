@@ -662,14 +662,24 @@ private struct QueueSection: View {
                         .font(.system(size: 9.5)).foregroundStyle(.white.opacity(0.5))
                 }
                 Spacer()
+                Button { model.sendQueued(nil) } label: {
+                    Label(model.queuedList.count > 1 ? "\(L10n.t("Send all")) (\(model.queuedList.count))" : L10n.t("Send"),
+                          systemImage: "paperplane.fill")
+                        .font(.system(size: 10.5, weight: .semibold)).foregroundStyle(.black)
+                        .padding(.horizontal, 8).frame(height: 22)
+                        .background(Capsule().fill(Color.white))
+                }
+                .buttonStyle(.plain)
+                .hoverLift()
+                .help(L10n.t("Send them to their sessions now"))
                 Button {
                     close()
                     model.resumeQueue()
                 } label: {
                     Label(L10n.t("Keep marking"), systemImage: "scope")
-                        .font(.system(size: 10.5, weight: .semibold)).foregroundStyle(.black)
+                        .font(.system(size: 10.5, weight: .semibold)).foregroundStyle(.white.opacity(0.85))
                         .padding(.horizontal, 8).frame(height: 22)
-                        .background(Capsule().fill(Color.white))
+                        .background(Capsule().fill(Color.white.opacity(0.1)))
                 }
                 .buttonStyle(.plain)
                 .hoverLift()
@@ -701,16 +711,41 @@ private struct QueueSection: View {
                     VStack(alignment: .leading, spacing: 1) {
                         Text(mark.comment.isEmpty ? (mark.text ?? L10n.t("(no comment)")) : mark.comment)
                             .font(.system(size: 11.5, weight: .medium)).foregroundStyle(.white.opacity(0.92)).lineLimit(2)
-                        if let id = mark.destination, let terminal = model.allTerminals.first(where: { $0.id == id }) {
-                            HStack(spacing: 4) {
-                                SessionIdentityView(identity: SessionIdentity(terminal: terminal), size: 11,
-                                                    showAppName: false, showAgentName: false)
-                                Text(terminal.name).lineLimit(1)
+                        // Where it goes: a menu of the sessions, to send it elsewhere.
+                        Menu {
+                            ForEach(model.markableTerminals) { terminal in
+                                Button { model.moveQueued(mark.id, terminal.id) } label: {
+                                    if terminal.id == mark.destination { Label(terminal.name, systemImage: "checkmark") } else { Text(terminal.name) }
+                                }
                             }
-                            .font(.system(size: 9.5)).foregroundStyle(.white.opacity(0.55))
+                        } label: {
+                            HStack(spacing: 4) {
+                                if let id = mark.destination, let terminal = model.allTerminals.first(where: { $0.id == id }) {
+                                    SessionIdentityView(identity: SessionIdentity(terminal: terminal), size: 11,
+                                                        showAppName: false, showAgentName: false)
+                                    Text(terminal.name).lineLimit(1)
+                                } else {
+                                    Text(L10n.t("Choose where it goes")).foregroundStyle(AkiPalette.red)
+                                }
+                                Image(systemName: "chevron.up.chevron.down").font(.system(size: 7, weight: .bold))
+                            }
+                            .font(.system(size: 9.5)).foregroundStyle(.white.opacity(0.7))
+                            .padding(.horizontal, 6).frame(height: 18)
+                            .background(Capsule().fill(Color.white.opacity(0.08)))
                         }
+                        .menuStyle(.button)
+                        .buttonStyle(.plain)
+                        .fixedSize()
+                        .help(L10n.t("Change where it goes"))
                     }
                     Spacer(minLength: 0)
+                    Button { model.sendQueued(mark.id) } label: {
+                        Image(systemName: "paperplane.fill").font(.system(size: 9, weight: .bold)).foregroundStyle(.black)
+                            .frame(width: 20, height: 20).background(Circle().fill(Color.white))
+                    }
+                    .buttonStyle(.plain)
+                    .hoverLift()
+                    .help(L10n.t("Send only this one"))
                     Button { model.removeQueued(mark.id) } label: {
                         Image(systemName: "xmark").font(.system(size: 9, weight: .bold)).foregroundStyle(.white.opacity(0.7))
                             .frame(width: 20, height: 20).background(Circle().fill(Color.white.opacity(0.1)))

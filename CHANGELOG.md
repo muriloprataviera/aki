@@ -3,6 +3,7 @@
 What changed in each version of Aki. Versions follow [semantic versioning](https://semver.org); betas end in `-beta.N`. The release notes inside the app are written from this file.
 
 ### Fixed
+- ⌘Tab works while marking: holding ⌘ lets the app switcher show over the marking screen.
 - A page's elements are asked to the page again where Aki wrongly thought a menu had closed (the picture-only lookup and its half-page outlines are gone there).
 - On a page, ↑ reaches the whole page at last (some sites, like Airtable, stopped short of it).
 - The outline of something as big as the screen (a whole page) stays inside it, all four corners in sight.
@@ -13,6 +14,7 @@ What changed in each version of Aki. Versions follow [semantic versioning](https
 ## [Unreleased]
 
 ### Added
+- The History's queue sends right there (all, or one), and each mark's session can be changed from a menu.
 - Drag a project by its name on the sidebar to move all its sessions together.
 - The sidebar's destination follows the agent tab you click in Orca (other apps and tabs keep it; Settings turns it off).
 - ⏎ marks what's outlined (after walking with ↑ ↓), as a click would.

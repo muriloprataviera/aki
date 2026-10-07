@@ -53,6 +53,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         model.resumeQueue = { [weak self] in self?.marking.start() }
         model.removeQueued = { [weak self] id in self?.marking.removeQueued(id) }
         model.clearQueue = { [weak self] in self?.marking.clearQueued() }
+        model.sendQueued = { [weak self] id in self?.marking.sendQueued(only: id) }
+        model.moveQueued = { [weak self] id, terminal in self?.marking.moveQueued(id, to: terminal) }
         installMainMenu()
         // `AKI_FAKE_UPDATE=0.9.9` shows the pill and a pretend download (design work and screenshots).
         Updates.shared.onChange = { [weak self] state in

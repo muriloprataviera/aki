@@ -554,6 +554,9 @@ final class SidebarModel {
     var resumeQueue: () -> Void = {}
     var removeQueued: (UUID) -> Void = { _ in }
     var clearQueue: () -> Void = {}
+    /// Send the queue (nil) or one mark of it, and change where one goes.
+    var sendQueued: (UUID?) -> Void = { _ in }
+    var moveQueued: (UUID, String) -> Void = { _, _ in }
     /// Marking is on screen (the sidebar keeps its hands off the cursor).
     @ObservationIgnored var marking = false
     /// Bytes and marks sent to each session (by session id).

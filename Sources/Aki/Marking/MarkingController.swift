@@ -56,6 +56,36 @@ final class MarkingController {
     /// Marks that a restart would lose: marking open, or saved in the queue (memory only).
     var hasUnsentMarks: Bool { isActive || starting || !queued.isEmpty }
 
+    /// Sends the waiting queue (or one mark of it) from the History, marking closed:
+    /// each mark kept its own picture. Whatever couldn't be saved stays queued.
+    func sendQueued(only id: UUID? = nil) {
+        guard session == nil, !starting else { return }
+        let terminals = model.markableTerminals
+        let batch = queued.filter { id == nil || $0.id == id }
+        guard !batch.isEmpty else { return }
+        guard batch.allSatisfy({ mark in terminals.contains { $0.id == mark.destination } }) else {
+            NSSound.beep()
+            return
+        }
+        let sender = MarkingSession(grabs: [], context: MarkContext.current(), terminals: terminals, destination: nil)
+        sender.projects = Dictionary(uniqueKeysWithValues: terminals.map { ($0.id, model.projectKey(of: $0)) })
+        Task {
+            let (sentTo, failed) = await sender.save(batch, into: model.store)
+            let sent = Set(batch.map(\.id)).subtracting(failed)
+            queued.removeAll { sent.contains($0.id) }
+            if !failed.isEmpty { NSSound.beep() }
+            if let destination = batch.last?.destination, !sentTo.isEmpty { model.selectedTerminal = destination }
+            await model.refresh()
+            if !sentTo.isEmpty { didSend(sentTo) }
+        }
+    }
+
+    /// The History's destination picker: a queued mark goes to another session.
+    func moveQueued(_ id: UUID, to terminal: String) {
+        guard let i = queued.firstIndex(where: { $0.id == id }) else { return }
+        queued[i].destination = terminal
+    }
+
     /// Empties the waiting queue (from the History, with marking closed).
     func clearQueued() {
         if isActive { discard() } else { queued = [] }
@@ -325,8 +355,8 @@ final class MarkingController {
                 session.hovered = nil
                 // A frozen screen shows the app you just switched to (live ones already do).
                 if !session.live { session.scrolling = true; self.scrollStopped() }
-                // The overlay stays over everything, with the pin.
-                self.panels.forEach { $0.orderFrontRegardless() }
+                // The overlay stays over everything, with the pin (back up from under ⌘Tab).
+                self.panels.forEach { $0.level = .screenSaver; $0.orderFrontRegardless() }
                 AkiCursor.pin.set()
             }
         }
@@ -480,6 +510,10 @@ final class MarkingController {
                     for screen in session.pointer.keys { session.updateLineHover(screen: screen) }
                 }
                 self.followShift(event.modifierFlags.contains(.shift))
+                // ⌘ held: the overlay steps down below the app switcher, so ⌘Tab shows it
+                // (it sits over everything otherwise, the switcher hidden under it).
+                let level: NSWindow.Level = event.modifierFlags.contains(.command) ? .floating : .screenSaver
+                for panel in self.panels where panel.level != level { panel.level = level }
                 return event
             }
             switch event.keyCode {
