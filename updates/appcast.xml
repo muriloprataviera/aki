@@ -3,6 +3,19 @@
     <channel>
         <title>Aki</title>
         <item>
+            <title>0.4.0-beta.14</title>
+            <pubDate>Tue, 06 Oct 2026 22:55:27 -0300</pubDate>
+            <sparkle:channel>beta</sparkle:channel>
+            <sparkle:version>20261007015526</sparkle:version>
+            <sparkle:shortVersionString>0.4.0-beta.14</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
+            <description><![CDATA[<h2>Aki 0.4.0 beta 14</h2>
+<ul><li>The outline of a whole page stays inside the screen, all four corners in sight.</li></ul>
+]]></description>
+            <enclosure url="https://aki-updates.vercel.app/0.4.0-beta.14/Aki-0.4.0-beta.14.zip" length="3406553" type="application/octet-stream" sparkle:edSignature="fpuYgDkmidwD3/16PeK/DE5wUOX0ecFe7J5SSwBS6uPy+uuUSnt2aUTp5brOTl1mAI1/HSY88zViVusUX23qAA=="/>
+        </item>
+        <item>
             <title>0.4.0-beta.13</title>
             <pubDate>Tue, 06 Oct 2026 22:48:28 -0300</pubDate>
             <sparkle:channel>beta</sparkle:channel>
@@ -28,19 +41,6 @@
 <ul><li>A page's open menu no longer blinks out and back when you press the shortcut.</li></ul>
 ]]></description>
             <enclosure url="https://aki-updates.vercel.app/0.4.0-beta.12/Aki-0.4.0-beta.12.zip" length="3405076" type="application/octet-stream" sparkle:edSignature="N+4TG0BY1+N3/PbFFvWQLmQfAq51hEbc81lRSFkiXlK0L9qxRHMAle2rIK2glw9jCzdJd2+wEbIsK97QGYCuCA=="/>
-        </item>
-        <item>
-            <title>0.4.0-beta.11</title>
-            <pubDate>Tue, 06 Oct 2026 22:38:43 -0300</pubDate>
-            <sparkle:channel>beta</sparkle:channel>
-            <sparkle:version>20261007013842</sparkle:version>
-            <sparkle:shortVersionString>0.4.0-beta.11</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
-            <description><![CDATA[<h2>Aki 0.4.0 beta 11</h2>
-<ul><li>A page's own menus (drop-downs drawn by the site) also stay in the picture when you press the shortcut.</li></ul>
-]]></description>
-            <enclosure url="https://aki-updates.vercel.app/0.4.0-beta.11/Aki-0.4.0-beta.11.zip" length="3405178" type="application/octet-stream" sparkle:edSignature="jzejHqegxOmrs7TpElaRlYKGWi6uwVHJoPnohSPjNenbGTC8m7kT17u67ySvggzV2dQ4xHcIo0wKPxOVWwUSAg=="/>
         </item>
         <item>
             <title>0.3.3</title>
