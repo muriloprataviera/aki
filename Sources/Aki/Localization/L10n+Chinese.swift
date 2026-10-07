@@ -12,7 +12,7 @@ extension L10n {
         "Your agent runs `aki list` instead of the long path inside the app: shorter messages, fewer slips.": "你的智能体运行 `aki list`，而不是应用内的长路径：消息更短，出错更少。",
         "The aki command": "aki 命令",
         "macOS asks for your password once: the command goes in a system folder (/usr/local/bin).": "macOS 会询问一次密码：命令放在系统文件夹 (/usr/local/bin) 中。",
-        "arrows: move · ⇧↑ bigger · ⇧↓ smaller": "方向键：移动 · ⇧↑ 放大 · ⇧↓ 缩小",
+        "↑↓←→ move · ⇧↑ bigger · ⇧↓ smaller": "↑↓←→ 移动 · ⇧↑ 放大 · ⇧↓ 缩小",
         "They go to your agent when you send them.": "发送后会交给你的智能体。",
         "To": "发送到",
         "See the queue": "查看队列",

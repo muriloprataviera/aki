@@ -58,8 +58,11 @@ final class MarkingController {
 
     /// Sends the waiting queue (or one mark of it) from the History, marking closed:
     /// each mark kept its own picture. Whatever couldn't be saved stays queued.
+    /// The History is sending the queue: no second send, no marking round, until it's done.
+    private var sendingQueue = false
+
     func sendQueued(only id: UUID? = nil) {
-        guard session == nil, !starting else { return }
+        guard session == nil, !starting, !sendingQueue else { return }
         let terminals = model.markableTerminals
         let batch = queued.filter { id == nil || $0.id == id }
         guard !batch.isEmpty else { return }
@@ -69,7 +72,9 @@ final class MarkingController {
         }
         let sender = MarkingSession(grabs: [], context: MarkContext.current(), terminals: terminals, destination: nil)
         sender.projects = Dictionary(uniqueKeysWithValues: terminals.map { ($0.id, model.projectKey(of: $0)) })
+        sendingQueue = true
         Task {
+            defer { sendingQueue = false }
             let (sentTo, failed) = await sender.save(batch, into: model.store)
             let sent = Set(batch.map(\.id)).subtracting(failed)
             queued.removeAll { sent.contains($0.id) }
@@ -121,7 +126,6 @@ final class MarkingController {
     /// look tells. Nothing closed: the screen goes live. Something did: the first picture
     /// stays, frozen, and what changed is found on it. Small changes (a caret) don't count.
     private func watchForClosedMenus(_ session: MarkingSession, first: [ScreenGrab]) {
-        let overlays = overlayIDs
         // The front window's title bar and toolbar change look when Aki comes forward:
         // never a menu that closed.
         let pid = session.context.pid
@@ -134,7 +138,9 @@ final class MarkingController {
             guard let session else { return }
             // Scrolled already: the page moved on, the first picture no longer matters.
             if session.scrolling { session.live = true; return }
-            guard let now = await ScreenGrab.captureAll(excluding: overlays), now.count == first.count else {
+            // The overlay's own windows left out (they exist by now): it shows the first
+            // picture, which would hide what closed, and its outline would count as change.
+            guard let now = await ScreenGrab.captureAll(excluding: overlayIDs), now.count == first.count else {
                 session.live = true
                 return
             }
@@ -159,7 +165,7 @@ final class MarkingController {
 
     func start() {
         // Aki is restarting on a new version: marks made now would be lost.
-        guard !isActive, !starting, !Updates.shared.restarting else { return }
+        guard !isActive, !starting, !sendingQueue, !Updates.shared.restarting else { return }
         starting = true
         previousApp = NSWorkspace.shared.frontmostApplication
         let context = MarkContext.current()

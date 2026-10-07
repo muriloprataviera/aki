@@ -290,6 +290,11 @@ final class MarkingSession {
         grabs[screen] = grab
         generation[screen, default: 0] += 1
         texts[screen] = nil
+        // A new picture: the menus that had closed belong to the old one.
+        let primary = NSScreen.screens.first?.frame.height ?? 0
+        let f = grab.screen.frame
+        let bounds = CGRect(x: f.minX, y: primary - f.maxY, width: f.width, height: f.height)
+        menus.removeAll { bounds.intersects($0) }
         hovered = nil
         hoveredLine = nil
         lastProbe = .zero
@@ -400,10 +405,18 @@ final class MarkingSession {
     func markTarget() {
         guard let target, !flying, !sending, editing == nil else { return }
         let primary = NSScreen.screens.first?.frame.height ?? 0
-        for (index, grab) in grabs.enumerated() {
-            let frame = grab.screen.frame
+        // The screen where you're pointing first (an outline across two displays goes
+        // on the one you were looking at), cut to it, as the outline is drawn.
+        let pointed = grabs.indices.first { i in
+            let f = grabs[i].screen.frame
+            return CGRect(x: f.minX, y: primary - f.maxY, width: f.width, height: f.height).contains(lastProbe)
+        }
+        let order = (pointed.map { [$0] } ?? []) + grabs.indices.filter { $0 != pointed }
+        for index in order {
+            let frame = grabs[index].screen.frame
             let local = target.frame.offsetBy(dx: -frame.minX, dy: -(primary - frame.maxY))
-            guard CGRect(origin: .zero, size: frame.size).intersects(local) else { continue }
+                .intersection(CGRect(origin: .zero, size: frame.size))
+            guard !local.isNull, !local.isEmpty else { continue }
             add(screen: index, rect: local, element: target, anchor: CGPoint(x: local.maxX, y: local.maxY))
             focusScreen(index)
             return

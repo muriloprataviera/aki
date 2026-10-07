@@ -1203,7 +1203,7 @@ struct PickTag: View {
             }
             // Said in words: ↑ takes what holds it (a block, the whole terminal, the window), ↓ comes back.
             if walks {
-                Text(L10n.t("arrows: move · ⇧↑ bigger · ⇧↓ smaller"))
+                Text(L10n.t("↑↓←→ move · ⇧↑ bigger · ⇧↓ smaller"))
                     .font(.system(size: 10.5, weight: .semibold))
                     .foregroundStyle(AkiPalette.paperFixed.opacity(0.85))
                     .padding(.horizontal, 6).padding(.vertical, 2)
