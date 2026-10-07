@@ -202,7 +202,7 @@ struct MarkingView: View {
                         .stroke(hue, style: StrokeStyle(lineWidth: 3.5, lineCap: .round, lineJoin: .round))
                         .shadow(color: .black.opacity(0.5), radius: 1.5)
                         .frame(width: max(box.width, 8), height: max(box.height, 8))
-                    PickTag(label: hovered.label, walks: !(session.hovered?.ancestors.isEmpty ?? true), above: above)
+                    PickTag(label: hovered.label, walks: true, above: above)
                         .fixedSize()
                         // About 26 pt tall, 8 pt off the frame (an offset leaves the frame where it is).
                         .offset(x: tagInside ? 10 : 0, y: above ? -36 : tagInside ? 10 : max(box.height, 8) + 8)
@@ -1119,7 +1119,7 @@ struct MarkingView: View {
     }
 
     private static var allHintItems: [(keys: String, label: String)] {
-        L10n.t("Click: element · ↑↓ bigger/smaller · ⌥: lines of text · ⌘ click: point · ⇧ click: normal click · Drag: area · ⌘⏎: send")
+        L10n.t("Click: element · Arrows: move · ⇧↑↓: bigger/smaller · ⌥: lines of text · ⌘ click: point · ⇧ click: normal click · Drag: area · ⌘⏎: send")
             .components(separatedBy: " · ").map { part in
                 if let colon = part.firstIndex(of: ":") {
                     return (String(part[..<colon]).trimmingCharacters(in: .whitespaces),
@@ -1203,7 +1203,7 @@ struct PickTag: View {
             }
             // Said in words: ↑ takes what holds it (a block, the whole terminal, the window), ↓ comes back.
             if walks {
-                Text(L10n.t("↑ bigger · ↓ smaller"))
+                Text(L10n.t("arrows: move · ⇧↑ bigger · ⇧↓ smaller"))
                     .font(.system(size: 10.5, weight: .semibold))
                     .foregroundStyle(AkiPalette.paperFixed.opacity(0.85))
                     .padding(.horizontal, 6).padding(.vertical, 2)

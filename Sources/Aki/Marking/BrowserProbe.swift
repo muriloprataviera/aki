@@ -95,6 +95,21 @@ enum BrowserProbe {
         return parse(execute(js, bundle: bundle, title: title, at: point), windowFrame: windowFrame, appName: appName)
     }
 
+    /// After an arrow moved to a container (k levels above the element found at a
+    /// point), the page's own pick climbs there too, so ⇧↑ / ⇧↓ go on from it.
+    static func climb(_ levels: Int) {
+        guard levels > 0, let (bundle, _, _, title, point) = lock.withLock({ last }) else { return }
+        let js = prelude + """
+            (function(k){
+              var n=window.__akiSel; if(!n||!n.isConnected) return '';
+              function same(a,b){var p=a.getBoundingClientRect(),q=b.getBoundingClientRect();return Math.abs(p.width-q.width)<4&&Math.abs(p.height-q.height)<4}
+              for(var i=0;i<k;i++){var p=n.parentElement;while(p&&p.parentElement&&p!==document.body&&same(p,n))p=p.parentElement;if(!p||p===document.documentElement)break;n=p}
+              window.__akiSel=n;window.__akiTrail=[];return '';
+            })(\(levels))
+            """
+        _ = execute(js, bundle: bundle, title: title, at: point)
+    }
+
     /// The browser the pointer was last over (for the arrow keys).
     nonisolated(unsafe) private static var last: (bundle: String, appName: String?, windowFrame: CGRect, title: String?, point: CGPoint)?
 

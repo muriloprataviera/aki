@@ -175,6 +175,74 @@ final class MarkingSession {
     /// as Aki came forward, so what's in them is found on the picture.
     var menus: [CGRect] = []
 
+    /// What's at a point, as the pointer would find it: the app's own answer, or the
+    /// picture's when that says too little (or a menu closed there).
+    private func lookup(at point: CGPoint) async -> ProbedElement? {
+        let front = context.pid
+        let primary = NSScreen.screens.first?.frame.height ?? 0
+        let screen = grabs.indices.first { i in
+            let f = grabs[i].screen.frame
+            return CGRect(x: f.minX, y: primary - f.maxY, width: f.width, height: f.height).contains(point)
+        }
+        guard let screen else { return nil }
+        let grab = grabs[screen]
+        let size = grab.screen.frame.size
+        let origin = CGPoint(x: grab.screen.frame.minX, y: primary - grab.screen.frame.maxY)
+        let text = texts[screen]
+        let inMenu = menus.contains { $0.contains(point) }
+        return await Task.detached(priority: .userInitiated) {
+            var found = inMenu ? nil : ElementProbe.element(at: point, preferring: front)
+            if VisualProbe.tooVague(found, screen: CGRect(origin: .zero, size: size)) {
+                found = VisualProbe.element(at: point, found: found, image: grab.image, screenSize: size, origin: origin, text: text)
+            }
+            return found
+        }.value
+    }
+
+    enum Direction { case up, down, left, right }
+    private var moving = false
+
+    /// The arrows walk the screen: the next thing above, below or beside the outlined
+    /// one, about its size (a card goes to the next card, a word to the next word).
+    func move(_ direction: Direction) {
+        guard !moving, let current = target else { return }
+        moving = true
+        let from = current.frame
+        let center = CGPoint(x: from.midX, y: from.midY)
+        let wanted = max(from.width * from.height, 1)
+        Task {
+            defer { moving = false }
+            for distance in [6.0, 18, 40, 80, 140, 220] as [CGFloat] {
+                let point: CGPoint = switch direction {
+                case .up: CGPoint(x: from.midX, y: from.minY - distance)
+                case .down: CGPoint(x: from.midX, y: from.maxY + distance)
+                case .left: CGPoint(x: from.minX - distance, y: from.midY)
+                case .right: CGPoint(x: from.maxX + distance, y: from.midY)
+                }
+                guard let found = await lookup(at: point) else { continue }
+                let options = [found] + found.ancestors
+                // Elsewhere: not holding where you are, not inside it.
+                let valid = options.indices.filter { i in
+                    let f = options[i].frame
+                    return !f.contains(center) && !from.contains(CGPoint(x: f.midX, y: f.midY)) && f.width > 4 && f.height > 4
+                }
+                // The one closest to the size you had.
+                guard let best = valid.min(by: { a, b in
+                    abs(log(options[a].frame.width * options[a].frame.height / wanted))
+                        < abs(log(options[b].frame.width * options[b].frame.height / wanted))
+                }) else { continue }
+                if options[best].fromBrowser { await Task.detached { BrowserProbe.climb(best) }.value }
+                var picked = options[best]
+                picked.ancestors = Array(options.dropFirst(best + 1))
+                keyboardHold = lastProbe
+                hovered = picked
+                level = 0
+                return
+            }
+            NSSound.beep()
+        }
+    }
+
     func probe(at point: CGPoint) {
         // Picked with the arrow keys: a small nudge of the pointer keeps it.
         if let hold = keyboardHold {

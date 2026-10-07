@@ -520,18 +520,26 @@ final class MarkingController {
             case 53:  // esc (also a system shortcut while marking; whichever comes first)
                 self.escape()
                 return nil
-            // On a web page the arrows walk its elements; elsewhere ↑ / ↓ go out and back in.
-            case 126 where session.editing == nil:  // ↑: the container around it
+            // ⇧↑ / ⇧↓: bigger (what holds it) and smaller (back in). On a web page they
+            // walk its elements; elsewhere the boxes found around the pointer.
+            case 126 where session.editing == nil && event.modifierFlags.contains(.shift):
                 if session.hovered?.fromBrowser == true { session.step(.up) } else { session.widen() }
                 return nil
-            case 125 where session.editing == nil:  // ↓: inside it
+            case 125 where session.editing == nil && event.modifierFlags.contains(.shift):
                 if session.hovered?.fromBrowser == true { session.step(.down) } else { session.narrow() }
                 return nil
-            case 123 where session.editing == nil && session.hovered?.fromBrowser == true:  // ←: the one before
-                session.step(.previous)
+            // The plain arrows walk the screen: the thing above, below, on either side.
+            case 126 where session.editing == nil:
+                session.move(.up)
                 return nil
-            case 124 where session.editing == nil && session.hovered?.fromBrowser == true:  // →: the one after
-                session.step(.next)
+            case 125 where session.editing == nil:
+                session.move(.down)
+                return nil
+            case 123 where session.editing == nil:
+                session.move(.left)
+                return nil
+            case 124 where session.editing == nil:
+                session.move(.right)
                 return nil
             case 48:  // tab
                 session.cycleDestination(by: event.modifierFlags.contains(.shift) ? -1 : 1)

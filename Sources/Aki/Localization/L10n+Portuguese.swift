@@ -12,7 +12,7 @@ extension L10n {
         "Your agent runs `aki list` instead of the long path inside the app: shorter messages, fewer slips.": "Seu agente roda `aki list` em vez do caminho comprido dentro do app: mensagens mais curtas, menos erro.",
         "The aki command": "O comando aki",
         "macOS asks for your password once: the command goes in a system folder (/usr/local/bin).": "O macOS pede sua senha uma vez: o comando fica numa pasta do sistema (/usr/local/bin).",
-        "↑ bigger · ↓ smaller": "↑ maior · ↓ menor",
+        "arrows: move · ⇧↑ bigger · ⇧↓ smaller": "setas: andar · ⇧↑ maior · ⇧↓ menor",
         "They go to your agent when you send them.": "Vão para o seu agente quando você enviar.",
         "To": "Para",
         "See the queue": "Ver a fila",
@@ -240,8 +240,8 @@ extension L10n {
         "⇥ next session · esc leave": "⇥ próxima sessão · esc sair",
         "Allow Accessibility to outline buttons and page elements":
             "Libere a Acessibilidade para destacar botões e elementos da página",
-        "Click: element · ↑↓ bigger/smaller · ⌥: lines of text · ⌘ click: point · ⇧ click: normal click · Drag: area · ⌘⏎: send":
-            "Clique: elemento · ↑↓ maior/menor · ⌥: linhas de texto · ⌘ clique: ponto · ⇧ clique: clique normal · Arraste: área · ⌘⏎: enviar", "mark": "marcação", "Send": "Enviar", "Cancel": "Cancelar",
+        "Click: element · Arrows: move · ⇧↑↓: bigger/smaller · ⌥: lines of text · ⌘ click: point · ⇧ click: normal click · Drag: area · ⌘⏎: send":
+            "Clique: elemento · Setas: andar · ⇧↑↓ maior/menor · ⌥: linhas de texto · ⌘ clique: ponto · ⇧ clique: clique normal · Arraste: área · ⌘⏎: enviar", "mark": "marcação", "Send": "Enviar", "Cancel": "Cancelar",
         "Click: point · Drag: area · ⏎ on empty or ⌘⏎: send · esc: leave":
             "Clique: ponto · Arraste: área · ⏎ vazio ou ⌘⏎: enviar · esc: sair",
         "Aki needs Screen Recording": "O Aki precisa da Gravação de Tela",
