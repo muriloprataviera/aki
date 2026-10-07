@@ -3,6 +3,19 @@
     <channel>
         <title>Aki</title>
         <item>
+            <title>0.4.0-beta.16</title>
+            <pubDate>Tue, 06 Oct 2026 23:06:42 -0300</pubDate>
+            <sparkle:channel>beta</sparkle:channel>
+            <sparkle:version>20261007020642</sparkle:version>
+            <sparkle:shortVersionString>0.4.0-beta.16</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
+            <description><![CDATA[<h2>Aki 0.4.0 beta 16</h2>
+<ul><li>On a page, ↑ walks the page's own boxes again everywhere (no more half-page outlines).</li></ul>
+]]></description>
+            <enclosure url="https://aki-updates.vercel.app/0.4.0-beta.16/Aki-0.4.0-beta.16.zip" length="3410125" type="application/octet-stream" sparkle:edSignature="9mlYGVs0Q7bz89ivRK1ceRJ2uX92uc0NYZW4odK/iUqi7WIvdoeTMMlvDBgwVDsNin6Gq4hn0WbthraM8iEGBw=="/>
+        </item>
+        <item>
             <title>0.4.0-beta.15</title>
             <pubDate>Tue, 06 Oct 2026 22:59:26 -0300</pubDate>
             <sparkle:channel>beta</sparkle:channel>
@@ -27,20 +40,6 @@
 <ul><li>The outline of a whole page stays inside the screen, all four corners in sight.</li></ul>
 ]]></description>
             <enclosure url="https://aki-updates.vercel.app/0.4.0-beta.14/Aki-0.4.0-beta.14.zip" length="3406553" type="application/octet-stream" sparkle:edSignature="fpuYgDkmidwD3/16PeK/DE5wUOX0ecFe7J5SSwBS6uPy+uuUSnt2aUTp5brOTl1mAI1/HSY88zViVusUX23qAA=="/>
-        </item>
-        <item>
-            <title>0.4.0-beta.13</title>
-            <pubDate>Tue, 06 Oct 2026 22:48:28 -0300</pubDate>
-            <sparkle:channel>beta</sparkle:channel>
-            <sparkle:version>20261007014828</sparkle:version>
-            <sparkle:shortVersionString>0.4.0-beta.13</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
-            <description><![CDATA[<h2>Aki 0.4.0 beta 13</h2>
-<ul><li>In a frozen picture, ↓ goes from a menu item down to one line of its words.</li>
-<li>A ring no longer spins for a session that's resting while a background task runs.</li></ul>
-]]></description>
-            <enclosure url="https://aki-updates.vercel.app/0.4.0-beta.13/Aki-0.4.0-beta.13.zip" length="3405919" type="application/octet-stream" sparkle:edSignature="yxOah5uVD8PnvLlS9P4yvadrGqMPSIJNkW5rwfRWmPA2xaiXTGfAjFCgNGuic1/kcwic8c9KkInmN5PmwXAgAQ=="/>
         </item>
         <item>
             <title>0.3.3</title>
