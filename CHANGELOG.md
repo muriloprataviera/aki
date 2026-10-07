@@ -14,6 +14,7 @@ What changed in each version of Aki. Versions follow [semantic versioning](https
 ## [Unreleased]
 
 ### Added
+- The comment card's buttons show their keys: ⏎ queues, ⌘⏎ sends.
 - While marking, the arrows walk the screen (the thing above, below or beside, about the same size); ⇧↑ / ⇧↓ make it bigger or smaller.
 - Each mark has a short code (#df9f) in the message typed to the agent and in the History, to tell which ones went.
 - The History's queue sends right there (all, or one), and each mark's session can be changed from a menu.

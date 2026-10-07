@@ -843,8 +843,12 @@ struct MarkingView: View {
             // Queue it and keep marking (more text, more pictures), or send the lot now.
             // Three buttons need shorter words to fit the card.
             let crowded = session.marks.contains { $0.id != session.editing }
+            // Each button shows its key: ⏎ queues, ⌘⏎ sends.
             Button { withAnimation(.easeOut(duration: 0.15)) { session.commitDraft() } } label: {
-                Label(L10n.t(crowded ? "Queue it" : "Add to queue"), systemImage: "plus.square.on.square")
+                HStack(spacing: 5) {
+                    Label(L10n.t(crowded ? "Queue it" : "Add to queue"), systemImage: "plus.square.on.square")
+                    Keycap(key: "⏎", size: 8)
+                }
             }
             .buttonStyle(SettingsButtonStyle(compact: true))
             .focusable(false)
@@ -863,7 +867,10 @@ struct MarkingView: View {
                 .help(L10n.t("Send just this mark; the rest stay in the queue"))
             }
             Button { send() } label: {
-                Label(others > 0 ? "\(L10n.t("Send all")) (\(others + 1))" : L10n.t("Send now"), systemImage: "paperplane.fill")
+                HStack(spacing: 5) {
+                    Label(others > 0 ? "\(L10n.t("Send all")) (\(others + 1))" : L10n.t("Send now"), systemImage: "paperplane.fill")
+                    Keycap(key: "⌘⏎", size: 8)
+                }
             }
             .buttonStyle(SettingsButtonStyle(kind: .prominent, compact: true))
             .disabled(session.hasUnavailableDestinations)
