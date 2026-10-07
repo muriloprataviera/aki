@@ -3,6 +3,19 @@
     <channel>
         <title>Aki</title>
         <item>
+            <title>0.4.0-beta.23</title>
+            <pubDate>Wed, 07 Oct 2026 10:50:30 -0300</pubDate>
+            <sparkle:channel>beta</sparkle:channel>
+            <sparkle:version>20261007135029</sparkle:version>
+            <sparkle:shortVersionString>0.4.0-beta.23</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
+            <description><![CDATA[<h2>Aki 0.4.0 beta 23</h2>
+<ul><li>Notices and dialogs over an Orca terminal are found more reliably.</li></ul>
+]]></description>
+            <enclosure url="https://aki-updates.vercel.app/0.4.0-beta.23/Aki-0.4.0-beta.23.zip" length="3464045" type="application/octet-stream" sparkle:edSignature="fx0yogzJ2+FoTnx6zx0WZaQioHukkXdVu99pbsk7G7V2EwJ7bndqwz/tHiZLZWZYoRmNcADcdPMshdGOTk0ZAg=="/>
+        </item>
+        <item>
             <title>0.4.0-beta.22</title>
             <pubDate>Wed, 07 Oct 2026 10:35:59 -0300</pubDate>
             <sparkle:channel>beta</sparkle:channel>
@@ -29,20 +42,6 @@
 <li>Fixes from a code review: the destination no longer changes when a session starts working.</li></ul>
 ]]></description>
             <enclosure url="https://aki-updates.vercel.app/0.4.0-beta.21/Aki-0.4.0-beta.21.zip" length="3462952" type="application/octet-stream" sparkle:edSignature="5RubNM89b+j7pcUpNeylgDnPh+0uh/WG6bmAL7FpS7GLSfceSiPArYEDlTiOLRXOBNGhjt+ECqW5sPFTvqtDCA=="/>
-        </item>
-        <item>
-            <title>0.4.0-beta.20</title>
-            <pubDate>Wed, 07 Oct 2026 00:05:29 -0300</pubDate>
-            <sparkle:channel>beta</sparkle:channel>
-            <sparkle:version>20261007030529</sparkle:version>
-            <sparkle:shortVersionString>0.4.0-beta.20</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
-            <description><![CDATA[<h2>Aki 0.4.0 beta 20</h2>
-<ul><li>The comment card's buttons show their keys: ⏎ queues, ⌘⏎ sends.</li>
-<li>Fixes from a code review: no double send from the History, menus and screens handled right.</li></ul>
-]]></description>
-            <enclosure url="https://aki-updates.vercel.app/0.4.0-beta.20/Aki-0.4.0-beta.20.zip" length="3440953" type="application/octet-stream" sparkle:edSignature="I3Z3SsAlNEOiEdiDrw6lxgjHDiFVeQsnwXq8/ws/qinwJ30K0S0X3/DQLDJzbWNnu+9rZHW81Gw+mMFAjnNUCg=="/>
         </item>
         <item>
             <title>0.3.3</title>
