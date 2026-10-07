@@ -159,6 +159,9 @@ enum ElementProbe {
         // Chrome often answers with a big container (the page, a dialog): go down
         // through the children to the smallest one under the point.
         element = deepest(under: point, from: element)
+        // A terminal's see-through layer answers even over what floats on it (Orca's
+        // update notice, a dialog): look for that in the window, the terminal left out.
+        if isTerminalLayer(element), let floating = floating(over: point, in: element) { element = floating }
         // Tiny leaves (a text run inside a label) say little: climb to something sizeable.
         for _ in 0..<4 {
             guard let frame = frame(of: element), frame.width < 24 || frame.height < 14,
@@ -196,6 +199,50 @@ enum ElementProbe {
             element = next.0
         }
         return element
+    }
+
+    private static func classes(of element: AXUIElement) -> [String] {
+        (value(element, "AXDOMClassList") as [String]?) ?? []
+    }
+
+    private static func isTerminalLayer(_ element: AXUIElement) -> Bool {
+        classes(of: element).contains { $0.hasPrefix("xterm") }
+    }
+
+    /// The smallest thing under the point in the element's window that isn't part of a
+    /// terminal (its subtree skipped): a notice, a dialog, a button drawn over it.
+    private static func floating(over point: CGPoint, in element: AXUIElement) -> AXUIElement? {
+        var root = element
+        for _ in 0..<30 {
+            guard let parent: AXUIElement = value(root, kAXParentAttribute) else { break }
+            if (value(parent, kAXRoleAttribute) as String?) == "AXApplication" { break }
+            root = parent
+        }
+        var best: (AXUIElement, CGFloat)?
+        var visited = 0
+        func walk(_ node: AXUIElement, depth: Int) {
+            guard depth < 40, visited < 3000 else { return }
+            visited += 1
+            let names = classes(of: node)
+            // The terminal itself, and the pane holding it, are what we look past.
+            if names.contains(where: { $0.hasPrefix("xterm") || $0 == "pane" }) { return }
+            guard let frame = frame(of: node), frame.width > 2, frame.height > 2 else {
+                for child in (value(node, kAXChildrenAttribute) as [AXUIElement]?) ?? [] { walk(child, depth: depth + 1) }
+                return
+            }
+            guard frame.contains(point) else { return }
+            let role = (value(node, kAXRoleAttribute) as String?) ?? ""
+            if !["AXWindow", "AXWebArea", "AXScrollArea", "AXSplitGroup"].contains(role) {
+                let area = frame.width * frame.height
+                if best == nil || area < best!.1 { best = (node, area) }
+            }
+            for child in (value(node, kAXChildrenAttribute) as [AXUIElement]?) ?? [] { walk(child, depth: depth + 1) }
+        }
+        walk(root, depth: 0)
+        guard let found = best?.0, let box = frame(of: found), box.width >= 12, box.height >= 10 else { return nil }
+        // Only something that sits over the terminal: smaller than the terminal's pane.
+        if let pane = frame(of: element), box.width * box.height > pane.width * pane.height * 0.6 { return nil }
+        return found
     }
 
     private static func describe(_ element: AXUIElement, appName: String?) -> ProbedElement? {
