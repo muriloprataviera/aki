@@ -218,28 +218,25 @@ enum ElementProbe {
             if (value(parent, kAXRoleAttribute) as String?) == "AXApplication" { break }
             root = parent
         }
-        var best: (AXUIElement, CGFloat)?
-        var visited = 0
-        func walk(_ node: AXUIElement, depth: Int) {
-            guard depth < 40, visited < 3000 else { return }
-            visited += 1
-            let names = classes(of: node)
-            // The terminal itself, and the pane holding it, are what we look past.
-            if names.contains(where: { $0.hasPrefix("xterm") || $0 == "pane" }) { return }
-            guard let frame = frame(of: node), frame.width > 2, frame.height > 2 else {
-                for child in (value(node, kAXChildrenAttribute) as [AXUIElement]?) ?? [] { walk(child, depth: depth + 1) }
-                return
+        // Down through what's drawn on top (the last sibling under the point, as
+        // `deepest` does), never into a terminal or its pane, keeping the last thing
+        // big enough to outline.
+        func isTerminal(_ node: AXUIElement) -> Bool { classes(of: node).contains { $0.hasPrefix("xterm") || $0 == "pane" } }
+        var node = root
+        var found: AXUIElement?
+        for _ in 0..<40 {
+            let children = ((value(node, kAXChildrenAttribute) as [AXUIElement]?) ?? []).prefix(400)
+            guard let next = children.last(where: { child in
+                guard !isTerminal(child), let f = frame(of: child) else { return false }
+                return f.width > 2 && f.height > 2 && f.contains(point)
+            }) else { break }
+            node = next
+            if let f = frame(of: node), f.width >= 12, f.height >= 10,
+               !["AXWindow", "AXWebArea", "AXScrollArea", "AXSplitGroup"].contains((value(node, kAXRoleAttribute) as String?) ?? "") {
+                found = node
             }
-            guard frame.contains(point) else { return }
-            let role = (value(node, kAXRoleAttribute) as String?) ?? ""
-            if !["AXWindow", "AXWebArea", "AXScrollArea", "AXSplitGroup"].contains(role) {
-                let area = frame.width * frame.height
-                if best == nil || area < best!.1 { best = (node, area) }
-            }
-            for child in (value(node, kAXChildrenAttribute) as [AXUIElement]?) ?? [] { walk(child, depth: depth + 1) }
         }
-        walk(root, depth: 0)
-        guard let found = best?.0, let box = frame(of: found), box.width >= 12, box.height >= 10 else { return nil }
+        guard let found, let box = frame(of: found) else { return nil }
         // Only something that sits over the terminal: smaller than the terminal's pane.
         if let pane = frame(of: element), box.width * box.height > pane.width * pane.height * 0.6 { return nil }
         return found
