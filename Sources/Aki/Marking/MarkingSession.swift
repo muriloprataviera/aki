@@ -167,6 +167,10 @@ final class MarkingSession {
 
     /// Looks up what's under the pointer (global point, top-left origin), at most
     /// one lookup at a time and only when the pointer really moved.
+    /// Menus that were open when marking began (global top-left points): they closed
+    /// as Aki came forward, so what's in them is found on the picture.
+    var menus: [CGRect] = []
+
     func probe(at point: CGPoint) {
         // Picked with the arrow keys: a small nudge of the pointer keeps it.
         if let hold = keyboardHold {
@@ -190,8 +194,9 @@ final class MarkingSession {
         let size = grab?.screen.frame.size ?? .zero
         let origin = grab.map { CGPoint(x: $0.screen.frame.minX, y: primary - $0.screen.frame.maxY) } ?? .zero
         let text = screen.flatMap { texts[$0] }
+        let inMenu = menus.contains { $0.contains(point) }
         Task.detached(priority: .userInitiated) {
-            var found = ElementProbe.element(at: point, preferring: front)
+            var found = inMenu ? nil : ElementProbe.element(at: point, preferring: front)
             if let grab, VisualProbe.tooVague(found, screen: CGRect(origin: .zero, size: size)) {
                 found = VisualProbe.element(at: point, found: found, image: grab.image, screenSize: size, origin: origin, text: text)
             }

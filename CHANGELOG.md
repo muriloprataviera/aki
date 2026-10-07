@@ -2,6 +2,9 @@
 
 What changed in each version of Aki. Versions follow [semantic versioning](https://semver.org); betas end in `-beta.N`. The release notes inside the app are written from this file.
 
+### Fixed
+- An open menu (a page's drop-down, a right-click menu) stays in the picture when you press the shortcut, and its items can be marked.
+
 ## [Unreleased]
 
 ### Added

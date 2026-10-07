@@ -71,6 +71,21 @@ final class MarkingController {
         self.model = model
     }
 
+    /// Pop-up menus on screen (any app's, global top-left points): menus live at
+    /// their own window level.
+    static func menusOnScreen() -> [CGRect] {
+        let level = Int(CGWindowLevelForKey(.popUpMenuWindow))
+        let windows = CGWindowListCopyWindowInfo([.optionOnScreenOnly, .excludeDesktopElements], kCGNullWindowID) as? [[String: Any]] ?? []
+        return windows.compactMap { w in
+            guard (w[kCGWindowLayer as String] as? Int) == level,
+                  (w[kCGWindowOwnerPID as String] as? Int32) != ProcessInfo.processInfo.processIdentifier,
+                  let bounds = w[kCGWindowBounds as String] as? NSDictionary,
+                  let rect = CGRect(dictionaryRepresentation: bounds), rect.height > 20
+            else { return nil }
+            return rect
+        }
+    }
+
     func toggle() {
         isActive ? close() : start()
     }
@@ -89,9 +104,13 @@ final class MarkingController {
         setAside = fromAki ? [] : NSApp.windows.filter { $0.isVisible && $0.styleMask.contains(.titled) }
         setAside.forEach { $0.orderOut(nil) }
         BackgroundCursor.enable()
+        // A menu open (a page's <select>, a right-click menu): Aki coming forward would
+        // close it before the picture, so the picture comes first and stays frozen.
+        let menus = Self.menusOnScreen()
+        let menuOpen = !menus.isEmpty
         // Aki to the front right away: the app below (Chrome…) would keep setting its
         // own cursor otherwise. It gets the focus back when marking ends.
-        NSApp.activate(ignoringOtherApps: true)
+        if !menuOpen { NSApp.activate(ignoringOtherApps: true) }
         AkiCursor.pin.set()
         holdCursor()
         Task {
@@ -125,7 +144,9 @@ final class MarkingController {
             queued = []
             self.session = session
             followTerminals(session)
-            session.live = !model.preferences.freezeScreen
+            session.live = !model.preferences.freezeScreen && !menuOpen
+            session.menus = menus
+            if menuOpen { NSApp.activate(ignoringOtherApps: true) }
             session.markAdded = { [weak session, weak self] mark in
                 guard let session, session.live else { return }
                 let overlays = self?.overlayIDs ?? []
