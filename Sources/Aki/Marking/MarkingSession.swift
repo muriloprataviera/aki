@@ -231,8 +231,11 @@ final class MarkingSession {
                     abs(log(options[a].frame.width * options[a].frame.height / wanted))
                         < abs(log(options[b].frame.width * options[b].frame.height / wanted))
                 }) else { continue }
-                if options[best].fromBrowser { await Task.detached { BrowserProbe.climb(best) }.value }
+                // From a page: its containers came from the page too (only the first
+                // carries the flag), and the page's own pick climbs to the chosen one.
+                if found.fromBrowser { await Task.detached { BrowserProbe.climb(best) }.value }
                 var picked = options[best]
+                picked.fromBrowser = found.fromBrowser
                 picked.ancestors = Array(options.dropFirst(best + 1))
                 keyboardHold = lastProbe
                 hovered = picked

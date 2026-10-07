@@ -155,6 +155,21 @@ final class MarkingController {
                     changed.append(global)
                 }
             }
+            // Still changing a moment later: a video or an animation, not a menu that closed.
+            if !changed.isEmpty {
+                try? await Task.sleep(for: .milliseconds(180))
+                if let later = await ScreenGrab.captureAll(excluding: overlayIDs), later.count == now.count {
+                    var moving: [CGRect] = []
+                    for (b, c) in zip(now, later) {
+                        let f = b.screen.frame
+                        for rect in ScreenGrab.changedRegions(b.image, c.image) {
+                            moving.append(CGRect(x: f.minX + rect.minX * f.width, y: primary - f.maxY + rect.minY * f.height,
+                                                 width: rect.width * f.width, height: rect.height * f.height))
+                        }
+                    }
+                    changed.removeAll { region in moving.contains { $0.intersects(region) } }
+                }
+            }
             if changed.isEmpty { session.live = true } else { session.menus += changed }
         }
     }

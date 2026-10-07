@@ -506,12 +506,16 @@ final class SidebarModel {
     /// doubt (two sessions with that name) leaves the destination as it was.
     private func followOrcaFocus() {
         guard preferences.followOrcaTab, let title = OrcaFocus.focusedTabTitle() else { return }
-        guard title != lastOrcaTab else { return }
-        lastOrcaTab = title
+        // The name without the status sign in front (✳ resting, a spinner working): a
+        // session starting to work isn't you clicking its tab.
         let wanted = TerminalJump.normalized(title)
+        guard wanted != lastOrcaTab else { return }
         let matches = markableTerminals.filter { $0.orcaHandle != nil && TerminalJump.normalized($0.name) == wanted }
-        guard matches.count == 1, selectedTerminal != matches[0].id else { return }
-        selectedTerminal = matches[0].id
+        // Remembered only once it's found: a session just opened or renamed shows up
+        // in the list a moment later, and then it's picked.
+        guard matches.count == 1 else { return }
+        lastOrcaTab = wanted
+        if selectedTerminal != matches[0].id { selectedTerminal = matches[0].id }
     }
 
     /// Claude Code writes its state (working, waiting for you, idle) to its session
