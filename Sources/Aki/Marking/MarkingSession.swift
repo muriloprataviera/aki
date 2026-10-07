@@ -104,11 +104,15 @@ final class MarkingSession {
     /// What a click would mark: the hovered element or one of its containers.
     var target: ProbedElement? {
         guard let hovered else { return nil }
+        if level < 0 { return hovered.finer.first ?? hovered }
         return level == 0 ? hovered : hovered.ancestors[min(level, hovered.ancestors.count) - 1]
     }
 
     func widen() { if let hovered, level < hovered.ancestors.count { level += 1 } }
-    func narrow() { if level > 0 { level -= 1 } }
+    /// Down to the container below, or past the hovered thing to what's inside (−1).
+    func narrow() {
+        if level > 0 { level -= 1 } else if level == 0, hovered?.finer.isEmpty == false { level = -1 }
+    }
     private var probing = false
     private var keyboardHold: CGPoint?
     private var probeStarted = Date.distantPast

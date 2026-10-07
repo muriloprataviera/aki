@@ -70,7 +70,7 @@ enum VisualProbe {
         let screenRect = CGRect(origin: .zero, size: screenSize)
         // Inside what was found (the window, the canvas), else the whole screen.
         let bounds = found.map { $0.frame.offsetBy(dx: -origin.x, dy: -origin.y).intersection(screenRect) } ?? screenRect
-        let boxes = boxes(at: local, in: pixels, within: bounds, lines: text?.lines ?? [])
+        let (boxes, finer) = levels(at: local, in: pixels, within: bounds, lines: text?.lines ?? [])
         guard !boxes.isEmpty else { return found }
         var frames = boxes
         // A spreadsheet: after the cell, its whole row.
@@ -86,6 +86,13 @@ enum VisualProbe {
             return element
         }
         var first = elements[0]
+        if let finer {
+            let words = text?.text(in: finer).replacingOccurrences(of: "\n", with: " ").trimmingCharacters(in: .whitespaces) ?? ""
+            var piece = ProbedElement(frame: finer.offsetBy(dx: origin.x, dy: origin.y),
+                                      label: words.isEmpty ? L10n.t("area") : "“\(words.count > 32 ? String(words.prefix(32)) + "…" : words)”")
+            piece.appName = found?.appName
+            first.finer = [piece]
+        }
         first.ancestors = Array(elements.dropFirst()) + (found.map { [$0] } ?? []) + (found?.ancestors ?? [])
         return first
     }
@@ -94,8 +101,17 @@ enum VisualProbe {
     /// each one holding the one before; all inside `bounds` (the app's window).
     /// `lines` (text read off the screen) keep a box from cutting through words.
     static func boxes(at point: CGPoint, in pixels: Pixels, within bounds: CGRect, lines: [ScreenText.Line] = []) -> [CGRect] {
+        levels(at: point, in: pixels, within: bounds, lines: lines).boxes
+    }
+
+    /// The boxes, plus the words under the pointer when they aren't a level of their own
+    /// (a menu item's subtitle: the item comes first, ↓ reaches the line).
+    static func levels(at point: CGPoint, in pixels: Pixels, within bounds: CGRect, lines: [ScreenText.Line] = [])
+        -> (boxes: [CGRect], finer: CGRect?)
+    {
         let limit = bounds.intersection(CGRect(x: 0, y: 0, width: pixels.width, height: pixels.height))
-        guard limit.width > 4, limit.height > 4, limit.contains(point) else { return [] }
+        guard limit.width > 4, limit.height > 4, limit.contains(point) else { return ([], nil) }
+        var finer: CGRect?
         var levels: [CGRect] = []
         var start = CGRect(x: point.x - 3, y: point.y - 3, width: 6, height: 6)
         if let line = lines.first(where: { $0.rect.insetBy(dx: -2, dy: -2).contains(point) }) {
@@ -130,6 +146,7 @@ enum VisualProbe {
         if let first = levels.first {
             let piece = first.intersection(current)
             levels = current.width * current.height < piece.width * piece.height * 6 || piece.isEmpty ? [] : [piece]
+            if levels.isEmpty, !piece.isEmpty, current.width * current.height > piece.width * piece.height * 2 { finer = piece }
         }
         levels.append(current)
         for _ in 0..<4 {
@@ -140,7 +157,7 @@ enum VisualProbe {
             levels.append(next)
             current = next
         }
-        return levels
+        return (levels, finer)
     }
 
     /// The drawing under (or right next to) the pointer when it isn't text: the pixels

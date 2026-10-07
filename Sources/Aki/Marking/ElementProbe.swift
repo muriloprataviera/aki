@@ -17,6 +17,9 @@ struct ProbedElement: Equatable {
     var appName: String?
     /// The elements containing this one, innermost first (↑ selects them).
     var ancestors: [ProbedElement] = []
+    /// Something smaller inside it that ↓ reaches (a line of words in a menu item),
+    /// when it isn't shown first.
+    var finer: [ProbedElement] = []
     /// A web page's component source ("src/components/Menu.tsx:42"), when the
     /// browser could tell (React dev builds).
     var source: String?
