@@ -3,6 +3,21 @@
     <channel>
         <title>Aki</title>
         <item>
+            <title>0.4.0-beta.21</title>
+            <pubDate>Wed, 07 Oct 2026 00:22:15 -0300</pubDate>
+            <sparkle:channel>beta</sparkle:channel>
+            <sparkle:version>20261007032215</sparkle:version>
+            <sparkle:shortVersionString>0.4.0-beta.21</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
+            <description><![CDATA[<h2>Aki 0.4.0 beta 21</h2>
+<ul><li>Each mark has a folder of its own: ~/.aki/marks/&lt;day&gt;/&lt;code&gt;/ with its picture and the request.</li>
+<li>The message to the agent names the marks by code (aki show df9f68): it works pasted into any terminal.</li>
+<li>Fixes from a code review: the destination no longer changes when a session starts working.</li></ul>
+]]></description>
+            <enclosure url="https://aki-updates.vercel.app/0.4.0-beta.21/Aki-0.4.0-beta.21.zip" length="3462952" type="application/octet-stream" sparkle:edSignature="5RubNM89b+j7pcUpNeylgDnPh+0uh/WG6bmAL7FpS7GLSfceSiPArYEDlTiOLRXOBNGhjt+ECqW5sPFTvqtDCA=="/>
+        </item>
+        <item>
             <title>0.4.0-beta.20</title>
             <pubDate>Wed, 07 Oct 2026 00:05:29 -0300</pubDate>
             <sparkle:channel>beta</sparkle:channel>
@@ -28,19 +43,6 @@
 <ul><li>While marking, the arrows walk the screen; ⇧↑ / ⇧↓ make the outline bigger or smaller.</li></ul>
 ]]></description>
             <enclosure url="https://aki-updates.vercel.app/0.4.0-beta.19/Aki-0.4.0-beta.19.zip" length="3436269" type="application/octet-stream" sparkle:edSignature="b5BbfwjnCz6Wz/SlPot0d3JUfjjYdpzb5Ld4GWLFQiJrLTaQh85xGwOwx5B8rgMSQYVgzmZAjOEshIJojtOKDA=="/>
-        </item>
-        <item>
-            <title>0.4.0-beta.18</title>
-            <pubDate>Tue, 06 Oct 2026 23:28:37 -0300</pubDate>
-            <sparkle:channel>beta</sparkle:channel>
-            <sparkle:version>20261007022836</sparkle:version>
-            <sparkle:shortVersionString>0.4.0-beta.18</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
-            <description><![CDATA[<h2>Aki 0.4.0 beta 18</h2>
-<ul><li>Each mark has a short code (#df9f) in the message to the agent and in the History.</li></ul>
-]]></description>
-            <enclosure url="https://aki-updates.vercel.app/0.4.0-beta.18/Aki-0.4.0-beta.18.zip" length="3431844" type="application/octet-stream" sparkle:edSignature="e9SPgDJJhM9scAlzpXch8z52U3s24BazHeigwWcmEly6LdmMMuDHYoisP6a+1zDBawZmpYL7ih5Bj17aEqApCQ=="/>
         </item>
         <item>
             <title>0.3.3</title>
