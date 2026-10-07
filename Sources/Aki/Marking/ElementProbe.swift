@@ -219,23 +219,30 @@ enum ElementProbe {
             root = parent
         }
         // Down through what's drawn on top (the last sibling under the point, as
-        // `deepest` does), never into a terminal or its pane, keeping the last thing
-        // big enough to outline.
+        // `deepest` does), never into a terminal or its pane.
         func isTerminal(_ node: AXUIElement) -> Bool { classes(of: node).contains { $0.hasPrefix("xterm") || $0 == "pane" } }
-        var node = root
-        var found: AXUIElement?
-        for _ in 0..<40 {
-            let children = ((value(node, kAXChildrenAttribute) as [AXUIElement]?) ?? []).prefix(400)
-            guard let next = children.last(where: { child in
-                guard !isTerminal(child), let f = frame(of: child) else { return false }
-                return f.width > 2 && f.height > 2 && f.contains(point)
-            }) else { break }
-            node = next
-            if let f = frame(of: node), f.width >= 12, f.height >= 10,
-               !["AXWindow", "AXWebArea", "AXScrollArea", "AXSplitGroup"].contains((value(node, kAXRoleAttribute) as String?) ?? "") {
-                found = node
-            }
+        func outlinable(_ node: AXUIElement) -> Bool {
+            guard let f = frame(of: node), f.width >= 12, f.height >= 10 else { return false }
+            return !["AXWindow", "AXWebArea", "AXScrollArea", "AXSplitGroup"].contains((value(node, kAXRoleAttribute) as String?) ?? "")
         }
+        var visited = 0
+        // Topmost first (the last children); through containers with no size of their
+        // own; the innermost thing big enough to outline wins.
+        func search(_ node: AXUIElement, depth: Int) -> AXUIElement? {
+            guard depth < 40 else { return nil }
+            let children = ((value(node, kAXChildrenAttribute) as [AXUIElement]?) ?? []).prefix(400)
+            for child in children.reversed() {
+                visited += 1
+                guard visited < 3000, !isTerminal(child) else { continue }
+                if let f = frame(of: child), f.width > 2, f.height > 2 {
+                    guard f.contains(point) else { continue }
+                    return search(child, depth: depth + 1) ?? (outlinable(child) ? child : nil)
+                }
+                if let inside = search(child, depth: depth + 1) { return inside }
+            }
+            return nil
+        }
+        let found = search(root, depth: 0)
         guard let found, let box = frame(of: found) else { return nil }
         // Only something that sits over the terminal: smaller than the terminal's pane.
         if let pane = frame(of: element), box.width * box.height > pane.width * pane.height * 0.6 { return nil }
