@@ -3,6 +3,19 @@
     <channel>
         <title>Aki</title>
         <item>
+            <title>0.4.0-beta.10</title>
+            <pubDate>Tue, 06 Oct 2026 21:07:12 -0300</pubDate>
+            <sparkle:channel>beta</sparkle:channel>
+            <sparkle:version>20261007000712</sparkle:version>
+            <sparkle:shortVersionString>0.4.0-beta.10</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
+            <description><![CDATA[<h2>Aki 0.4.0 beta 10</h2>
+<ul><li>An open menu (a page's drop-down, a right-click menu) stays in the picture when you press the shortcut, and its items can be marked.</li></ul>
+]]></description>
+            <enclosure url="https://aki-updates.vercel.app/0.4.0-beta.10/Aki-0.4.0-beta.10.zip" length="3403233" type="application/octet-stream" sparkle:edSignature="G79I4dyQzF7vuM2LscwYpu0GeXwp8EvRxQ/i1B2aHD1X5r1K5iSz7BENxariFt54a+1z0+z6i7O5cS99S5DcDA=="/>
+        </item>
+        <item>
             <title>0.4.0-beta.9</title>
             <pubDate>Tue, 06 Oct 2026 18:52:25 -0300</pubDate>
             <sparkle:channel>beta</sparkle:channel>
@@ -27,19 +40,6 @@
 <ul><li>Click an agent's tab in Orca and the sidebar's destination follows it.</li></ul>
 ]]></description>
             <enclosure url="https://aki-updates.vercel.app/0.4.0-beta.8/Aki-0.4.0-beta.8.zip" length="3393319" type="application/octet-stream" sparkle:edSignature="i+p6Lnt7CdAhPqSEfmnql6BtRKkP9t6NGpB7h4RjoYot51b/pqajgdFGGQ24KgRIcg55dAYYd0KRPYG2RQLxCg=="/>
-        </item>
-        <item>
-            <title>0.4.0-beta.7</title>
-            <pubDate>Tue, 06 Oct 2026 15:22:24 -0300</pubDate>
-            <sparkle:channel>beta</sparkle:channel>
-            <sparkle:version>20261006182223</sparkle:version>
-            <sparkle:shortVersionString>0.4.0-beta.7</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
-            <description><![CDATA[<h2>Aki 0.4.0 beta 7</h2>
-<ul><li>The update pill says which beta: "0.4.0 beta 7".</li></ul>
-]]></description>
-            <enclosure url="https://aki-updates.vercel.app/0.4.0-beta.7/Aki-0.4.0-beta.7.zip" length="3388054" type="application/octet-stream" sparkle:edSignature="WQ3DlffvgSLmoJJAOOnVUnrlSYO5P48cya5hl+TKrJbgLymmW3c32Sr7Ci+94aB5fxWSm7fuPdcMkxL1pAcoDg=="/>
         </item>
         <item>
             <title>0.3.3</title>
