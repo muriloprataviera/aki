@@ -3,6 +3,19 @@
     <channel>
         <title>Aki</title>
         <item>
+            <title>0.4.0-beta.12</title>
+            <pubDate>Tue, 06 Oct 2026 22:41:46 -0300</pubDate>
+            <sparkle:channel>beta</sparkle:channel>
+            <sparkle:version>20261007014146</sparkle:version>
+            <sparkle:shortVersionString>0.4.0-beta.12</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
+            <description><![CDATA[<h2>Aki 0.4.0 beta 12</h2>
+<ul><li>A page's open menu no longer blinks out and back when you press the shortcut.</li></ul>
+]]></description>
+            <enclosure url="https://aki-updates.vercel.app/0.4.0-beta.12/Aki-0.4.0-beta.12.zip" length="3405076" type="application/octet-stream" sparkle:edSignature="N+4TG0BY1+N3/PbFFvWQLmQfAq51hEbc81lRSFkiXlK0L9qxRHMAle2rIK2glw9jCzdJd2+wEbIsK97QGYCuCA=="/>
+        </item>
+        <item>
             <title>0.4.0-beta.11</title>
             <pubDate>Tue, 06 Oct 2026 22:38:43 -0300</pubDate>
             <sparkle:channel>beta</sparkle:channel>
@@ -27,19 +40,6 @@
 <ul><li>An open menu (a page's drop-down, a right-click menu) stays in the picture when you press the shortcut, and its items can be marked.</li></ul>
 ]]></description>
             <enclosure url="https://aki-updates.vercel.app/0.4.0-beta.10/Aki-0.4.0-beta.10.zip" length="3403233" type="application/octet-stream" sparkle:edSignature="G79I4dyQzF7vuM2LscwYpu0GeXwp8EvRxQ/i1B2aHD1X5r1K5iSz7BENxariFt54a+1z0+z6i7O5cS99S5DcDA=="/>
-        </item>
-        <item>
-            <title>0.4.0-beta.9</title>
-            <pubDate>Tue, 06 Oct 2026 18:52:25 -0300</pubDate>
-            <sparkle:channel>beta</sparkle:channel>
-            <sparkle:version>20261006215224</sparkle:version>
-            <sparkle:shortVersionString>0.4.0-beta.9</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
-            <description><![CDATA[<h2>Aki 0.4.0 beta 9</h2>
-<ul><li>Drag a project by its name on the sidebar to move all its sessions together.</li></ul>
-]]></description>
-            <enclosure url="https://aki-updates.vercel.app/0.4.0-beta.9/Aki-0.4.0-beta.9.zip" length="3402161" type="application/octet-stream" sparkle:edSignature="oomd1XRMMxCiNLeZmlXycKVZpt8TmdEWRUmrdHTdqi+fiBCf5y2cs8iGzkCptd2vT5JjENV6j8pUcOd4CM8OBw=="/>
         </item>
         <item>
             <title>0.3.3</title>
