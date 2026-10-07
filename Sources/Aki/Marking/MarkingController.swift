@@ -88,15 +88,19 @@ final class MarkingController {
 
     /// Live marking shows the real screen through the overlay. Something that closed as
     /// Aki came forward (a page's menu, a hover card) would be gone from it: a second
-    /// look tells, and then the first picture is kept, frozen, and what changed is
-    /// found on it. Small changes (a caret blinking) don't count.
+    /// look tells. Nothing closed: the screen goes live. Something did: the first picture
+    /// stays, frozen, and what changed is found on it. Small changes (a caret) don't count.
     private func watchForClosedMenus(_ session: MarkingSession, first: [ScreenGrab]) {
         let overlays = overlayIDs
         Task { [weak session] in
-            try? await Task.sleep(for: .milliseconds(450))
-            guard let session, session.live, session.marks.isEmpty,
-                  let now = await ScreenGrab.captureAll(excluding: overlays), now.count == first.count
-            else { return }
+            try? await Task.sleep(for: .milliseconds(350))
+            guard let session else { return }
+            // Scrolled already: the page moved on, the first picture no longer matters.
+            if session.scrolling { session.live = true; return }
+            guard let now = await ScreenGrab.captureAll(excluding: overlays), now.count == first.count else {
+                session.live = true
+                return
+            }
             let primary = NSScreen.screens.first?.frame.height ?? 0
             var changed: [CGRect] = []
             for (a, b) in zip(first, now) {
@@ -105,9 +109,7 @@ final class MarkingController {
                 changed.append(CGRect(x: f.minX + rect.minX * f.width, y: primary - f.maxY + rect.minY * f.height,
                                       width: rect.width * f.width, height: rect.height * f.height))
             }
-            guard !changed.isEmpty, session.live, session.marks.isEmpty else { return }
-            session.menus += changed
-            session.live = false
+            if changed.isEmpty { session.live = true } else { session.menus += changed }
         }
     }
 
@@ -167,12 +169,14 @@ final class MarkingController {
             queued = []
             self.session = session
             followTerminals(session)
-            session.live = !model.preferences.freezeScreen && !menuOpen
+            // The picture shows first, even for live marking: the screen through the
+            // overlay goes live only once nothing closed (no menu blinking out and back).
+            session.live = false
             session.menus = menus
             // Now Aki to the front: the app below (Chrome…) would keep setting its own
             // cursor otherwise. It gets the focus back when marking ends.
             NSApp.activate(ignoringOtherApps: true)
-            if session.live { watchForClosedMenus(session, first: grabs) }
+            if !model.preferences.freezeScreen && !menuOpen { watchForClosedMenus(session, first: grabs) }
             session.markAdded = { [weak session, weak self] mark in
                 guard let session, session.live else { return }
                 let overlays = self?.overlayIDs ?? []
