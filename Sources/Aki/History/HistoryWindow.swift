@@ -529,6 +529,8 @@ private struct HistoryRow: View {
 
     private var details: String {
         var parts: [String] = []
+        // Its short code, as in the message typed to the agent.
+        if let id = annotation["id"]?.string, !markCode(id).isEmpty { parts.append(markCode(id)) }
         if let selector = annotation["selector"]?.string, !selector.isEmpty { parts.append(selector) }
         if let url = annotation["url"]?.string, let host = URL(string: url)?.host() { parts.append(host) }
         else if let app = annotation["app"]?.object?["name"]?.string { parts.append(app) }

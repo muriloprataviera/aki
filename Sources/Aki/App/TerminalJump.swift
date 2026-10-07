@@ -114,11 +114,14 @@ enum TerminalJump {
     static func deliveryPrompt(for terminal: AgentTerminal) -> String {
         let aki = AkiCommand.invocation
         let count = max(terminal.undelivered, terminal.pending, 1)
-        let about = terminal.pendingComments.filter { $0 != "(no text)" }.prefix(3).map { comment -> String in
+        // Each with its short code (also shown in the History): which marks went.
+        let about = terminal.pendingComments.enumerated().prefix(3).map { i, comment -> String in
+            let code = i < terminal.pendingIDs.count ? markCode(terminal.pendingIDs[i]) : ""
+            guard comment != "(no text)" else { return code }
             let line = comment.replacingOccurrences(of: "\n", with: " ")
                 .replacingOccurrences(of: "`", with: "'").trimmingCharacters(in: .whitespaces)
-            return "“" + (line.count > 50 ? String(line.prefix(50)) + "…" : line) + "”"
-        }.joined(separator: " · ")
+            return (code.isEmpty ? "" : code + " ") + "“" + (line.count > 50 ? String(line.prefix(50)) + "…" : line) + "”"
+        }.filter { !$0.isEmpty }.joined(separator: " · ")
         let marks = count == 1 ? "1 marca nova" : "\(count) marcas novas"
         return "📍 Aki: \(marks) para esta sessão" + (about.isEmpty ? "." : " — \(about).")
             + " Leia com `\(aki) list` (abra a foto só se o pedido for visual), resolva e feche com `\(aki) done <ids>`."

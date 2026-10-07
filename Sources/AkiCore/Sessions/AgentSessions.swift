@@ -241,6 +241,8 @@ public struct AgentTerminal: Identifiable, Equatable, Sendable {
     public var lastMessage: String?
     public var pending: Int
     public var pendingComments: [String]
+    /// The ids of those same marks, in the same order.
+    public var pendingIDs: [String] = []
     public var updatedAt: Date?
     /// Crops of the marks still waiting, newest first (up to 4): the ring's queue.
     public var pendingImages: [String] = []
@@ -285,10 +287,13 @@ extension AgentSessions {
         func unsent(_ list: [Annotation]) -> Int {
             list.filter { $0["delivered_at"]?.string == nil && $0["read_at"]?.string == nil }.count
         }
-        func comments(_ list: [Annotation]) -> [String] {
-            list.sorted { ($0["created_at"]?.string ?? "") > ($1["created_at"]?.string ?? "") }
-                .prefix(3).map { $0["comment"]?.string.flatMap { $0.isEmpty ? nil : $0 } ?? "(no text)" }
+        func newest(_ list: [Annotation]) -> [Annotation] {
+            Array(list.sorted { ($0["created_at"]?.string ?? "") > ($1["created_at"]?.string ?? "") }.prefix(3))
         }
+        func comments(_ list: [Annotation]) -> [String] {
+            newest(list).map { $0["comment"]?.string.flatMap { $0.isEmpty ? nil : $0 } ?? "(no text)" }
+        }
+        func ids(_ list: [Annotation]) -> [String] { newest(list).map { $0["id"]?.string ?? "" } }
 
         var result: [AgentTerminal] = []
         for session in ClaudeSessions.live() {
@@ -307,7 +312,7 @@ extension AgentSessions {
                 name: title ?? URL(filePath: worktree).lastPathComponent, named: title != nil,
                 worktree: worktree, branch: branchOf(worktree), state: state,
                 lastMessage: ClaudeSessions.lastAgentMessage(sessionId: session.sessionId, cwd: session.cwd),
-                pending: mine.count, pendingComments: comments(mine), updatedAt: session.updatedAt,
+                pending: mine.count, pendingComments: comments(mine), pendingIDs: ids(mine), updatedAt: session.updatedAt,
                 pendingImages: images(mine), undelivered: unsent(mine), orcaHandle: terminalHandle(of: session.pid)))
         }
         // Other agents keep no registry: one entry per process, named after its folder.
@@ -324,7 +329,7 @@ extension AgentSessions {
             result.append(AgentTerminal(
                 id: id, agent: agent, pid: process.pid, name: URL(filePath: worktree).lastPathComponent, named: false,
                 worktree: worktree, branch: branchOf(worktree), state: process.cpu >= 8 ? .working : .idle,
-                lastMessage: nil, pending: mine.count, pendingComments: comments(mine), updatedAt: nil,
+                lastMessage: nil, pending: mine.count, pendingComments: comments(mine), pendingIDs: ids(mine), updatedAt: nil,
                 pendingImages: images(mine), undelivered: unsent(mine), orcaHandle: terminalHandle(of: process.pid)))
         }
         return result.sorted { a, b in
@@ -332,4 +337,11 @@ extension AgentSessions {
             return (a.updatedAt ?? .distantPast) > (b.updatedAt ?? .distantPast)
         }
     }
+}
+
+/// A mark's short code ("aki_1791339895884_df9f68ee" → "#df9f"): the same in the
+/// message typed to the agent and in the History, so you can tell which went where.
+public func markCode(_ id: String) -> String {
+    guard let tail = id.split(separator: "_").last, !tail.isEmpty else { return "" }
+    return "#" + tail.prefix(4)
 }
