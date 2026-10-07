@@ -3,6 +3,19 @@
     <channel>
         <title>Aki</title>
         <item>
+            <title>0.4.0-beta.15</title>
+            <pubDate>Tue, 06 Oct 2026 22:59:26 -0300</pubDate>
+            <sparkle:channel>beta</sparkle:channel>
+            <sparkle:version>20261007015925</sparkle:version>
+            <sparkle:shortVersionString>0.4.0-beta.15</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
+            <description><![CDATA[<h2>Aki 0.4.0 beta 15</h2>
+<ul><li>On a page, ↑ reaches the whole page at last.</li></ul>
+]]></description>
+            <enclosure url="https://aki-updates.vercel.app/0.4.0-beta.15/Aki-0.4.0-beta.15.zip" length="3406599" type="application/octet-stream" sparkle:edSignature="vohUJQV0qbIDz/nu1+hyRd0cZJhYTEos0/gjNdCQeWG2eRu86b04T4xflulu6GjVw3HSDpMC4dZsaMY23KGsAA=="/>
+        </item>
+        <item>
             <title>0.4.0-beta.14</title>
             <pubDate>Tue, 06 Oct 2026 22:55:27 -0300</pubDate>
             <sparkle:channel>beta</sparkle:channel>
@@ -28,19 +41,6 @@
 <li>A ring no longer spins for a session that's resting while a background task runs.</li></ul>
 ]]></description>
             <enclosure url="https://aki-updates.vercel.app/0.4.0-beta.13/Aki-0.4.0-beta.13.zip" length="3405919" type="application/octet-stream" sparkle:edSignature="yxOah5uVD8PnvLlS9P4yvadrGqMPSIJNkW5rwfRWmPA2xaiXTGfAjFCgNGuic1/kcwic8c9KkInmN5PmwXAgAQ=="/>
-        </item>
-        <item>
-            <title>0.4.0-beta.12</title>
-            <pubDate>Tue, 06 Oct 2026 22:41:46 -0300</pubDate>
-            <sparkle:channel>beta</sparkle:channel>
-            <sparkle:version>20261007014146</sparkle:version>
-            <sparkle:shortVersionString>0.4.0-beta.12</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
-            <description><![CDATA[<h2>Aki 0.4.0 beta 12</h2>
-<ul><li>A page's open menu no longer blinks out and back when you press the shortcut.</li></ul>
-]]></description>
-            <enclosure url="https://aki-updates.vercel.app/0.4.0-beta.12/Aki-0.4.0-beta.12.zip" length="3405076" type="application/octet-stream" sparkle:edSignature="N+4TG0BY1+N3/PbFFvWQLmQfAq51hEbc81lRSFkiXlK0L9qxRHMAle2rIK2glw9jCzdJd2+wEbIsK97QGYCuCA=="/>
         </item>
         <item>
             <title>0.3.3</title>
