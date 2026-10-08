@@ -612,9 +612,22 @@ final class MarkingController {
     /// The wheel scrolls the page below, as if Aki weren't there: the overlays let
     /// the pointer through and hide the frozen picture while it moves; when it
     /// stops, the screens are captured again (marks already made keep theirs).
+    /// The wheel is over something of Aki's that scrolls (a list in the card).
+    private static func overOwnScrollView(_ event: NSEvent) -> Bool {
+        guard let content = event.window?.contentView else { return false }
+        var view = content.hitTest(content.convert(event.locationInWindow, from: nil))
+        while let current = view {
+            if current is NSScrollView { return true }
+            view = current.superview
+        }
+        return false
+    }
+
     private func watchScroll() {
         let local = NSEvent.addLocalMonitorForEvents(matching: .scrollWheel) { [weak self] event in
             guard let self, let session = self.session, !session.flying else { return event }
+            // Over one of Aki's own lists (other sessions, the queue): that list scrolls.
+            if !session.scrolling, Self.overOwnScrollView(event) { return event }
             if !session.scrolling {
                 session.scrolling = true
                 self.panels.forEach { $0.ignoresMouseEvents = true }
