@@ -83,7 +83,10 @@ enum TerminalJump {
                   !title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
             else { return terminal }
             var named = terminal
-            named.name = title.trimmingCharacters(in: .whitespacesAndNewlines)
+            // Without the status sign Claude Code puts in front (✳ resting, a spinner
+            // working): a copy of it would sit frozen; the ring shows the state live.
+            let bare = String(title.trimmingCharacters(in: .whitespacesAndNewlines).drop { !$0.isLetter && !$0.isNumber })
+            named.name = bare.isEmpty ? title.trimmingCharacters(in: .whitespacesAndNewlines) : bare
             named.named = true
             if restingTitle(title), named.state == .working || named.state == .shell { named.state = .idle }
             return named

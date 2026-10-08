@@ -3,6 +3,7 @@
 What changed in each version of Aki. Versions follow [semantic versioning](https://semver.org); betas end in `-beta.N`. The release notes inside the app are written from this file.
 
 ### Fixed
+- Session names no longer carry a frozen copy of the tab's status sign (✳); the ring shows the state live.
 - What floats over an Orca terminal (its update notice, a dialog) can be outlined: Aki looks past the terminal's see-through layer.
 - ⌘Tab works while marking: holding ⌘ lets the app switcher show over the marking screen.
 - A page's elements are asked to the page again where Aki wrongly thought a menu had closed (the picture-only lookup and its half-page outlines are gone there).
