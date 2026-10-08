@@ -346,6 +346,9 @@ final class MarkingController {
         }
         let here = terminals.filter { $0.worktree == worktree }
         if let hit = named(here) { return hit.id }
+        // The session may run in a folder above the one serving (opened in the project's
+        // root, the server in one of its worktrees): its name still tells.
+        if let hit = named(terminals) { return hit.id }
         if let selected, here.contains(where: { $0.id == selected }) { return selected }
         return here.max { ($0.updatedAt ?? .distantPast) < ($1.updatedAt ?? .distantPast) }?.id
     }
