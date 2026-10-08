@@ -309,3 +309,9 @@ check(AgentSessions.classify("claude -p hi") == nil && AgentSessions.classify("c
 
 print(failures == 0 ? "\nall checks passed" : "\n\(failures) check(s) failed")
 exit(failures == 0 ? 0 : 1)
+
+// A tab's status sign goes, a name's own first character stays.
+check(tabNameWithoutStatus("✳ SEO AKI") == "SEO AKI", "status sign taken off a name")
+check(tabNameWithoutStatus("⠂ MENU") == "MENU", "spinner taken off a name")
+check(tabNameWithoutStatus("🐛 Login") == "🐛 Login", "an emoji in a name stays")
+check(tabNameWithoutStatus("[API] auth") == "[API] auth", "brackets in a name stay")

@@ -342,3 +342,14 @@ extension AgentSessions {
     }
 }
 
+
+/// A tab's title without the status sign Claude Code puts in front (✳ ✶ ✻ ✽ ✢ ·,
+/// ◐◓◑◒, a braille spinner) and the space after it; anything else stays ("🐛 Login").
+public func tabNameWithoutStatus(_ title: String) -> String {
+    let trimmed = title.trimmingCharacters(in: .whitespacesAndNewlines)
+    guard let first = trimmed.unicodeScalars.first,
+          "✳✶✻✽✢·◐◓◑◒".unicodeScalars.contains(first) || (0x2800...0x28FF).contains(first.value),
+          trimmed.unicodeScalars.dropFirst().first == " "
+    else { return trimmed }
+    return String(String.UnicodeScalarView(trimmed.unicodeScalars.dropFirst())).trimmingCharacters(in: .whitespaces)
+}
