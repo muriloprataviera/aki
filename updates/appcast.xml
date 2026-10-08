@@ -3,6 +3,19 @@
     <channel>
         <title>Aki</title>
         <item>
+            <title>0.4.0-beta.24</title>
+            <pubDate>Thu, 08 Oct 2026 13:56:52 -0300</pubDate>
+            <sparkle:channel>beta</sparkle:channel>
+            <sparkle:version>20261008165651</sparkle:version>
+            <sparkle:shortVersionString>0.4.0-beta.24</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
+            <description><![CDATA[<h2>Aki 0.4.0 beta 24</h2>
+<ul><li>Session names no longer carry a frozen copy of the tab's status sign (✳).</li></ul>
+]]></description>
+            <enclosure url="https://aki-updates.vercel.app/0.4.0-beta.24/Aki-0.4.0-beta.24.zip" length="3467435" type="application/octet-stream" sparkle:edSignature="HR+jOZ4RkIs2dDws3cLM8Iya9SDwo5X+c1GwQ2w+QCbauhr6e9Oa1BgDISrHJfV0qOXgSAhENpSA85Wa3pSABA=="/>
+        </item>
+        <item>
             <title>0.4.0-beta.23</title>
             <pubDate>Wed, 07 Oct 2026 10:50:30 -0300</pubDate>
             <sparkle:channel>beta</sparkle:channel>
@@ -27,21 +40,6 @@
 <ul><li>What floats over an Orca terminal (its update notice, a dialog) can be outlined.</li></ul>
 ]]></description>
             <enclosure url="https://aki-updates.vercel.app/0.4.0-beta.22/Aki-0.4.0-beta.22.zip" length="3464032" type="application/octet-stream" sparkle:edSignature="8nSMMUpDlFF8RyIVi1TQE9Sn77vn18vrMx95kOfeFq0z6rLdOLiB55KT6qWh9LdneCMCLEdhARObqMKVilMaDg=="/>
-        </item>
-        <item>
-            <title>0.4.0-beta.21</title>
-            <pubDate>Wed, 07 Oct 2026 00:22:15 -0300</pubDate>
-            <sparkle:channel>beta</sparkle:channel>
-            <sparkle:version>20261007032215</sparkle:version>
-            <sparkle:shortVersionString>0.4.0-beta.21</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
-            <description><![CDATA[<h2>Aki 0.4.0 beta 21</h2>
-<ul><li>Each mark has a folder of its own: ~/.aki/marks/&lt;day&gt;/&lt;code&gt;/ with its picture and the request.</li>
-<li>The message to the agent names the marks by code (aki show df9f68): it works pasted into any terminal.</li>
-<li>Fixes from a code review: the destination no longer changes when a session starts working.</li></ul>
-]]></description>
-            <enclosure url="https://aki-updates.vercel.app/0.4.0-beta.21/Aki-0.4.0-beta.21.zip" length="3462952" type="application/octet-stream" sparkle:edSignature="5RubNM89b+j7pcUpNeylgDnPh+0uh/WG6bmAL7FpS7GLSfceSiPArYEDlTiOLRXOBNGhjt+ECqW5sPFTvqtDCA=="/>
         </item>
         <item>
             <title>0.3.3</title>
