@@ -17,6 +17,8 @@ What changed in each version of Aki. Versions follow [semantic versioning](https
 ## [Unreleased]
 
 ### Added
+- The message typed to the agent says which session it's for and where the marks came from ("→ 3001 CONTACTS (from localhost:3001)"), and asks the agent to speak up if they aren't its own.
+- Marking a localhost page picks the session named with its port ("3001 …"), even when the folder serving it can't be found.
 - Each mark has a folder of its own, ~/.aki/marks/<day>/<code>/ (its picture and a record of the request); older pictures move there once.
 - The message typed to the agent names the marks by code (`aki show df9f68`), so it works pasted into any terminal; `aki done` takes codes too.
 - The comment card's buttons show their keys: ⏎ queues, ⌘⏎ sends.

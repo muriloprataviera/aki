@@ -128,14 +128,21 @@ enum TerminalJump {
             return (code.isEmpty ? "" : code + " ") + "“" + (line.count > 50 ? String(line.prefix(50)) + "…" : line) + "”"
         }.filter { !$0.isEmpty }.joined(separator: " · ")
         let marks = count == 1 ? "1 marca nova" : "\(count) marcas novas"
-        let head = "📍 Aki: \(marks) para esta sessão" + (about.isEmpty ? "." : " — \(about).")
+        // Which session it was meant for, and where the marks came from: a wrong one
+        // shows at once, to you and to the agent.
+        let session = terminal.name.replacingOccurrences(of: "`", with: "'")
+        let places = terminal.pendingPlaces.prefix(2).joined(separator: ", ")
+        let head = "📍 Aki → \(session): \(marks)" + (places.isEmpty ? "" : " (de \(places))")
+            + (about.isEmpty ? "." : " — \(about).")
         // By code (no "#" in the command: a shell takes it as a comment): works pasted
         // into any terminal. Many marks: the session's list instead.
         guard !codes.isEmpty, codes.count <= 8 else {
             return head + " Leia com `\(aki) list` (abra a foto só se o pedido for visual), resolva e feche com `\(aki) done <códigos>`."
+                + " Se não forem para esta sessão, avise antes de mexer."
         }
         let list = codes.joined(separator: " ")
         return head + " Leia com `\(aki) show \(list)` (abra a foto só se o pedido for visual), resolva e feche com `\(aki) done \(list)`."
+            + " Se não forem para esta sessão, avise antes de mexer."
     }
 
     enum Delivery { case sent, failed }

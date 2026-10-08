@@ -334,10 +334,19 @@ final class MarkingController {
         guard let url, let parts = URL(string: url), let port = parts.port,
             ["localhost", "127.0.0.1", "0.0.0.0"].contains(parts.host() ?? "")
         else { return nil }
-        guard let worktree = await Task.detached(operation: { Worktree.forPort(port) }).value else { return nil }
+        // A session named with the port ("3001 CONTACTS") says it outright: the one,
+        // when only one is. Its number alone, not part of a longer one (13001).
+        func named(_ list: [AgentTerminal]) -> AgentTerminal? {
+            let hits = list.filter { $0.name.range(of: "(?<![0-9])\(port)(?![0-9])", options: .regularExpression) != nil }
+            return hits.count == 1 ? hits[0] : nil
+        }
+        guard let worktree = await Task.detached(operation: { Worktree.forPort(port) }).value else {
+            // The folder serving it unknown (a container, another machine): the name still tells.
+            return named(terminals)?.id
+        }
         let here = terminals.filter { $0.worktree == worktree }
+        if let hit = named(here) { return hit.id }
         if let selected, here.contains(where: { $0.id == selected }) { return selected }
-        if let named = here.first(where: { $0.name.contains(String(port)) }) { return named.id }
         return here.max { ($0.updatedAt ?? .distantPast) < ($1.updatedAt ?? .distantPast) }?.id
     }
 

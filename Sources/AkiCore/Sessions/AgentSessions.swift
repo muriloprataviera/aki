@@ -243,6 +243,8 @@ public struct AgentTerminal: Identifiable, Equatable, Sendable {
     public var pendingComments: [String]
     /// Every pending mark's id, oldest first.
     public var pendingIDs: [String] = []
+    /// Where those marks were made ("localhost:3001", "Orca"), once each.
+    public var pendingPlaces: [String] = []
     public var updatedAt: Date?
     /// Crops of the marks still waiting, newest first (up to 4): the ring's queue.
     public var pendingImages: [String] = []
@@ -294,6 +296,17 @@ extension AgentSessions {
             newest(list).map { $0["comment"]?.string.flatMap { $0.isEmpty ? nil : $0 } ?? "(no text)" }
         }
         // Every pending mark's id, oldest first (the message to the agent names them all).
+        // Where the marks were made ("localhost:3001", "Orca"), once each.
+        func places(_ list: [Annotation]) -> [String] {
+            var seen: [String] = []
+            for a in list {
+                let place: String? = a["url"]?.string.flatMap(URL.init(string:)).flatMap { u in
+                    u.host().map { $0 + (u.port.map { ":\($0)" } ?? "") }
+                } ?? a["app"]?.object?["name"]?.string
+                if let place, !seen.contains(place) { seen.append(place) }
+            }
+            return seen
+        }
         func ids(_ list: [Annotation]) -> [String] {
             list.sorted { ($0["created_at"]?.string ?? "") < ($1["created_at"]?.string ?? "") }.map(\.id)
         }
@@ -315,7 +328,7 @@ extension AgentSessions {
                 name: title ?? URL(filePath: worktree).lastPathComponent, named: title != nil,
                 worktree: worktree, branch: branchOf(worktree), state: state,
                 lastMessage: ClaudeSessions.lastAgentMessage(sessionId: session.sessionId, cwd: session.cwd),
-                pending: mine.count, pendingComments: comments(mine), pendingIDs: ids(mine), updatedAt: session.updatedAt,
+                pending: mine.count, pendingComments: comments(mine), pendingIDs: ids(mine), pendingPlaces: places(mine), updatedAt: session.updatedAt,
                 pendingImages: images(mine), undelivered: unsent(mine), orcaHandle: terminalHandle(of: session.pid)))
         }
         // Other agents keep no registry: one entry per process, named after its folder.
@@ -332,7 +345,7 @@ extension AgentSessions {
             result.append(AgentTerminal(
                 id: id, agent: agent, pid: process.pid, name: URL(filePath: worktree).lastPathComponent, named: false,
                 worktree: worktree, branch: branchOf(worktree), state: process.cpu >= 8 ? .working : .idle,
-                lastMessage: nil, pending: mine.count, pendingComments: comments(mine), pendingIDs: ids(mine), updatedAt: nil,
+                lastMessage: nil, pending: mine.count, pendingComments: comments(mine), pendingIDs: ids(mine), pendingPlaces: places(mine), updatedAt: nil,
                 pendingImages: images(mine), undelivered: unsent(mine), orcaHandle: terminalHandle(of: process.pid)))
         }
         return result.sorted { a, b in
