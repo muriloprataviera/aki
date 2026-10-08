@@ -3,6 +3,19 @@
     <channel>
         <title>Aki</title>
         <item>
+            <title>0.4.0-beta.27</title>
+            <pubDate>Thu, 08 Oct 2026 19:01:09 -0300</pubDate>
+            <sparkle:channel>beta</sparkle:channel>
+            <sparkle:version>20261008220108</sparkle:version>
+            <sparkle:shortVersionString>0.4.0-beta.27</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
+            <description><![CDATA[<h2>Aki 0.4.0 beta 27</h2>
+<ul><li>A localhost page picks the session named with its port even when that session runs in the project's root folder.</li></ul>
+]]></description>
+            <enclosure url="https://aki-updates.vercel.app/0.4.0-beta.27/Aki-0.4.0-beta.27.zip" length="3469825" type="application/octet-stream" sparkle:edSignature="MfJKdGPoNp8Y+46GTyvBgj7qGakXr2Kmd/DOe9oVSUKD6Q9+nknJjeZgVyMUoq6WID7j8ttsIXD9mkJYlUiMAg=="/>
+        </item>
+        <item>
             <title>0.4.0-beta.26</title>
             <pubDate>Thu, 08 Oct 2026 18:49:45 -0300</pubDate>
             <sparkle:channel>beta</sparkle:channel>
@@ -28,19 +41,6 @@
 <ul><li>While marking, scrolling over Aki's own lists scrolls them, not the page below.</li></ul>
 ]]></description>
             <enclosure url="https://aki-updates.vercel.app/0.4.0-beta.25/Aki-0.4.0-beta.25.zip" length="3467218" type="application/octet-stream" sparkle:edSignature="dmS+A7xq5IwldfQrQG2HVdFkv9yo/KfE5mQRo3OV70IIVIHAP2LfqZMptqhDWdFtuhOB79yvmcD2w31pDVUuBg=="/>
-        </item>
-        <item>
-            <title>0.4.0-beta.24</title>
-            <pubDate>Thu, 08 Oct 2026 13:56:52 -0300</pubDate>
-            <sparkle:channel>beta</sparkle:channel>
-            <sparkle:version>20261008165651</sparkle:version>
-            <sparkle:shortVersionString>0.4.0-beta.24</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
-            <description><![CDATA[<h2>Aki 0.4.0 beta 24</h2>
-<ul><li>Session names no longer carry a frozen copy of the tab's status sign (✳).</li></ul>
-]]></description>
-            <enclosure url="https://aki-updates.vercel.app/0.4.0-beta.24/Aki-0.4.0-beta.24.zip" length="3467435" type="application/octet-stream" sparkle:edSignature="HR+jOZ4RkIs2dDws3cLM8Iya9SDwo5X+c1GwQ2w+QCbauhr6e9Oa1BgDISrHJfV0qOXgSAhENpSA85Wa3pSABA=="/>
         </item>
         <item>
             <title>0.3.3</title>
