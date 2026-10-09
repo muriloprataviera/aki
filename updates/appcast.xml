@@ -3,6 +3,20 @@
     <channel>
         <title>Aki</title>
         <item>
+            <title>0.4.0-beta.29</title>
+            <pubDate>Fri, 09 Oct 2026 18:30:20 -0300</pubDate>
+            <sparkle:channel>beta</sparkle:channel>
+            <sparkle:version>20261009213019</sparkle:version>
+            <sparkle:shortVersionString>0.4.0-beta.29</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
+            <description><![CDATA[<h2>Aki 0.4.0 beta 29</h2>
+<ul><li>A mark says the app and page where it was made, even when marking began in another app.</li>
+<li>The comment card's buttons fit again with three of them.</li></ul>
+]]></description>
+            <enclosure url="https://aki-updates.vercel.app/0.4.0-beta.29/Aki-0.4.0-beta.29.zip" length="3474906" type="application/octet-stream" sparkle:edSignature="EfNQnSbWXYVC1l+KkpvAyz5W9LcX9IK/Q7LuA591FdNyCFduWmmDStN144gx5doAV/VdnShq1g9WRICaWZ5WCQ=="/>
+        </item>
+        <item>
             <title>0.4.0-beta.28</title>
             <pubDate>Thu, 08 Oct 2026 23:29:18 -0300</pubDate>
             <sparkle:channel>beta</sparkle:channel>
@@ -27,20 +41,6 @@
 <ul><li>A localhost page picks the session named with its port even when that session runs in the project's root folder.</li></ul>
 ]]></description>
             <enclosure url="https://aki-updates.vercel.app/0.4.0-beta.27/Aki-0.4.0-beta.27.zip" length="3469825" type="application/octet-stream" sparkle:edSignature="MfJKdGPoNp8Y+46GTyvBgj7qGakXr2Kmd/DOe9oVSUKD6Q9+nknJjeZgVyMUoq6WID7j8ttsIXD9mkJYlUiMAg=="/>
-        </item>
-        <item>
-            <title>0.4.0-beta.26</title>
-            <pubDate>Thu, 08 Oct 2026 18:49:45 -0300</pubDate>
-            <sparkle:channel>beta</sparkle:channel>
-            <sparkle:version>20261008214944</sparkle:version>
-            <sparkle:shortVersionString>0.4.0-beta.26</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
-            <description><![CDATA[<h2>Aki 0.4.0 beta 26</h2>
-<ul><li>The message to the agent says which session it's for and where the marks came from.</li>
-<li>Marking a localhost page picks the session named with its port.</li></ul>
-]]></description>
-            <enclosure url="https://aki-updates.vercel.app/0.4.0-beta.26/Aki-0.4.0-beta.26.zip" length="3469459" type="application/octet-stream" sparkle:edSignature="suUiEeZWDwg5y0C86jTxf16vuAE06aB/DnOl5PD7nk7qrUDmNgeMKc2pTzNKapvlwaiGY8Imc782biTnrzYcCA=="/>
         </item>
         <item>
             <title>0.3.3</title>
