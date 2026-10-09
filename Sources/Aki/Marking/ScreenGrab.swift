@@ -137,12 +137,16 @@ struct MarkContext {
     /// The app of the window under a point (global, top-left origin), with its window's
     /// title and, for a browser, its page: where a mark was made, whichever app was in
     /// front when marking began. Nil over nothing (or only Aki).
-    static func at(_ point: CGPoint) -> MarkContext? {
+    /// `appName`: the app whose element was found there (the probe already settled
+    /// which window is really on top; Orca's, shown on every Space, can list first).
+    static func at(_ point: CGPoint, appName: String? = nil) -> MarkContext? {
         let me = ProcessInfo.processInfo.processIdentifier
         let windows = CGWindowListCopyWindowInfo([.optionOnScreenOnly, .excludeDesktopElements], kCGNullWindowID)
             as? [[String: Any]] ?? []
+        let named = appName.flatMap { name in NSWorkspace.shared.runningApplications.first { $0.localizedName == name } }
         guard let window = windows.first(where: { w in
             guard let pid = w[kCGWindowOwnerPID as String] as? Int32, pid != me,
+                  named == nil || pid == named!.processIdentifier,
                   (w[kCGWindowLayer as String] as? Int) == 0,
                   let bounds = w[kCGWindowBounds as String] as? NSDictionary,
                   let frame = CGRect(dictionaryRepresentation: bounds) else { return false }
@@ -152,17 +156,29 @@ struct MarkContext {
         else { return nil }
         var context = MarkContext(appName: app.localizedName, bundleID: app.bundleIdentifier, pid: pid)
         context.windowTitle = window[kCGWindowName as String] as? String
-        context.url = browserURL(bundleID: app.bundleIdentifier)
+        context.url = browserURL(bundleID: app.bundleIdentifier, windowTitle: context.windowTitle)
         return context
     }
 
     /// The front tab's address, asked over Apple Events (macOS asks once to allow it).
-    private static func browserURL(bundleID: String?) -> String? {
+    /// With a window's title, that window's tab (not whichever window is in front).
+    private static func browserURL(bundleID: String?, windowTitle: String? = nil) -> String? {
         let script: String
         switch bundleID {
         case "com.google.Chrome", "com.google.Chrome.canary", "com.brave.Browser", "com.microsoft.edgemac",
             "company.thebrowser.Browser":
-            script = "tell application id \"\(bundleID!)\" to get URL of active tab of front window"
+            if let windowTitle, !windowTitle.isEmpty {
+                let title = windowTitle.replacingOccurrences(of: "\\", with: "\\\\").replacingOccurrences(of: "\"", with: "\\\"")
+                script = """
+                    tell application id "\(bundleID!)"
+                      set found to (every window whose title is "\(title)")
+                      if (count of found) > 0 then return URL of active tab of item 1 of found
+                      return URL of active tab of front window
+                    end tell
+                    """
+            } else {
+                script = "tell application id \"\(bundleID!)\" to get URL of active tab of front window"
+            }
         case "com.apple.Safari":
             script = "tell application id \"com.apple.Safari\" to get URL of front document"
         default:

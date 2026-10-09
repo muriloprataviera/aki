@@ -328,13 +328,18 @@ final class MarkingSession {
                         anchor: anchor ?? CGPoint(x: rect.maxX, y: rect.maxY), text: text)
         mark.grab = screen < grabs.count ? grabs[screen] : nil
         // The app (and page) where it was made: marking may have begun in another one.
-        if screen < grabs.count {
+        // Told by the element found there; an area dragged over nothing found keeps the
+        // app marking began in (window order alone can mislead).
+        mark.context = context
+        if screen < grabs.count, let app = element?.appName, app != context.appName {
             let frame = grabs[screen].screen.frame
             let primary = NSScreen.screens.first?.frame.height ?? 0
             let center = CGPoint(x: frame.minX + rect.midX, y: primary - frame.maxY + rect.midY)
-            if let here = MarkContext.at(center), here.pid != context.pid { context = here }
+            if let here = MarkContext.at(center, appName: app) {
+                mark.context = here
+                context = here  // the next marks start from that app too
+            }
         }
-        mark.context = context
         mark.generation = generation[screen, default: 0]
         switch Preferences.shared.markContent {
         case .automatic: mark.sendsImage = Self.looksVisual(mark, text: self.text(of: mark))
