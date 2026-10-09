@@ -17,6 +17,7 @@ What changed in each version of Aki. Versions follow [semantic versioning](https
 ## [Unreleased]
 
 ### Added
+- Sessions untouched for more than two days wait in "+N" by themselves and come back when they move (never one with marks, the destination, or one working or waiting for you).
 - The message typed to the agent says which session it's for and where the marks came from ("→ 3001 CONTACTS (from localhost:3001)"), and asks the agent to speak up if they aren't its own.
 - Marking a localhost page picks the session named with its port ("3001 …"), even when the folder serving it can't be found.
 - Each mark has a folder of its own, ~/.aki/marks/<day>/<code>/ (its picture and a record of the request); older pictures move there once.

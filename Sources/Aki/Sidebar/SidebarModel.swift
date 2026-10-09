@@ -251,12 +251,19 @@ final class SidebarModel {
     /// Every session you can mark for: the sidebar's, then the ones hidden from it.
     /// Hiding a ring tidies the sidebar; it doesn't take the session off the picker.
     var markableTerminals: [AgentTerminal] {
-        visibleTerminals + terminals.filter { preferences.hiddenTerminals.contains($0.id) && !switchedOff($0) }
+        visibleTerminals + terminals.filter { (preferences.hiddenTerminals.contains($0.id) || resting($0)) && !switchedOff($0) }
+    }
+
+    /// Untouched for more than two days, with nothing for it and not the destination:
+    /// it waits in "+N" and comes back by itself when it moves again.
+    func resting(_ t: AgentTerminal) -> Bool {
+        guard let updated = t.updatedAt, Date().timeIntervalSince(updated) > 2 * 86_400 else { return false }
+        return t.pending == 0 && t.id != selectedTerminal && t.state != .waiting && t.state != .working && t.state != .shell
     }
 
     /// Conversations of tracked agents that aren't hidden, in sidebar order.
     var visibleTerminals: [AgentTerminal] {
-        let shown = terminals.filter { !preferences.hiddenTerminals.contains($0.id) && !switchedOff($0) }
+        let shown = terminals.filter { !preferences.hiddenTerminals.contains($0.id) && !switchedOff($0) && !resting($0) }
         // Your dragged order first; sessions you never moved keep their place after.
         let rank = Dictionary(preferences.ringOrder.enumerated().map { ($1, $0) }, uniquingKeysWith: { a, _ in a })
         let ordered = shown.enumerated().sorted { a, b in
@@ -368,7 +375,7 @@ final class SidebarModel {
         case .terminals:
             // Hidden sessions live in the "+N" ring, with the ones past the limit.
             let hidden = terminals.filter {
-                preferences.hiddenTerminals.contains($0.id) && preferences.tracks($0.agent)
+                (preferences.hiddenTerminals.contains($0.id) || resting($0)) && preferences.tracks($0.agent)
             }
             let all = visibleTerminals
             let limit = max(2, preferences.maxTerminals)
