@@ -19,6 +19,7 @@ What changed in each version of Aki. Versions follow [semantic versioning](https
 ## [Unreleased]
 
 ### Added
+- A mark on a localhost page switches the destination to that port's session right then (unless you chose one yourself); two sessions named with the port: the one used last.
 - Sessions untouched for more than two days wait in "+N" by themselves and come back when they move (never one with marks, the destination, or one working or waiting for you).
 - The message typed to the agent says which session it's for and where the marks came from ("→ 3001 CONTACTS (from localhost:3001)"), and asks the agent to speak up if they aren't its own.
 - Marking a localhost page picks the session named with its port ("3001 …"), even when the folder serving it can't be found.

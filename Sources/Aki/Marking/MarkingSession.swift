@@ -340,6 +340,15 @@ final class MarkingSession {
                 context = here  // the next marks start from that app too
             }
         }
+        // A page on localhost picks its session (by port), unless you chose one yourself.
+        if !destinationChosen, let url = mark.context?.url, url.contains("://localhost:") || url.contains("://127.0.0.1:") {
+            let id = mark.id
+            Task {
+                guard let found = await destinationForPage(url), !destinationChosen, found != destination else { return }
+                destination = found
+                if let i = marks.firstIndex(where: { $0.id == id }) { marks[i].destination = found }
+            }
+        }
         mark.generation = generation[screen, default: 0]
         switch Preferences.shared.markContent {
         case .automatic: mark.sendsImage = Self.looksVisual(mark, text: self.text(of: mark))
@@ -491,13 +500,21 @@ final class MarkingSession {
         }
     }
 
+    /// You chose the destination yourself in this round (⇥, the picker, the list):
+    /// the page you mark on no longer changes it.
+    var destinationChosen = false
+    /// Set by the controller: the session serving a page (localhost:3000 → "3000 …").
+    var destinationForPage: (String?) async -> String? = { _ in nil }
+
     /// Every mark in the queue (and the next ones) to one session.
     func setDestinationForAll(_ id: String) {
+        destinationChosen = true
         destination = id
         for i in marks.indices { marks[i].destination = id }
     }
 
     func setDestination(_ id: String) {
+        destinationChosen = true
         destination = id
         if let editing, let index = marks.firstIndex(where: { $0.id == editing }) {
             marks[index].destination = id

@@ -230,6 +230,10 @@ final class MarkingController {
             let byPortID = await byPort
             let session = MarkingSession(
                 grabs: grabs, context: context, terminals: terminals, destination: byPortID ?? model.markingDestination)
+            session.destinationForPage = { [weak self] url in
+                guard let self else { return nil }
+                return await Self.sessionServing(url, among: self.model.markableTerminals, selected: nil)
+            }
             session.hues = Dictionary(uniqueKeysWithValues: terminals.map { ($0.id, model.hue(of: $0)) })
             session.projects = Dictionary(uniqueKeysWithValues: terminals.map { ($0.id, model.projectKey(of: $0)) })
             // Marks saved in an earlier round (esc keeps them): back in the queue.
@@ -338,7 +342,8 @@ final class MarkingController {
         // when only one is. Its number alone, not part of a longer one (13001).
         func named(_ list: [AgentTerminal]) -> AgentTerminal? {
             let hits = list.filter { $0.name.range(of: "(?<![0-9])\(port)(?![0-9])", options: .regularExpression) != nil }
-            return hits.count == 1 ? hits[0] : nil
+            // Two named with it: the one used last.
+            return hits.max { ($0.updatedAt ?? .distantPast) < ($1.updatedAt ?? .distantPast) }
         }
         guard let worktree = await Task.detached(operation: { Worktree.forPort(port) }).value else {
             // The folder serving it unknown (a container, another machine): the name still tells.
