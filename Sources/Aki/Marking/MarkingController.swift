@@ -21,6 +21,9 @@ final class MarkingController {
     private var keyMonitor: Any?
     /// The keys while Aki doesn't have the focus (the app below keeps it).
     private var keyTap: KeyTap?
+    /// A comment just started and Aki is taking the keyboard (after the picture):
+    /// what's typed meanwhile goes into it.
+    private var takingFocus = false
     /// esc and ⌘⏎ as system-wide shortcuts while marking: they work even when the
     /// overlay hasn't got the keyboard (the app below would take them otherwise).
     private var modalKeys: [HotKey] = []
@@ -268,7 +271,9 @@ final class MarkingController {
                 // Writing takes the keyboard, and the app below loses the focus (a menu of
                 // its closes): the mark's picture first, then Aki comes forward. Meanwhile
                 // what you type goes into the comment all the same (`typeIntoDraft`).
+                self.takingFocus = true
                 Task { @MainActor in
+                    defer { self.takingFocus = false }
                     for _ in 0..<16 where (session?.capturing ?? 0) > 0 { try? await Task.sleep(for: .milliseconds(50)) }
                     guard self.session != nil, index < self.panels.count else { return }
                     self.panels.forEach { $0.acceptsKeyboard = true }
@@ -484,6 +489,7 @@ final class MarkingController {
         keyMonitor = nil
         keyTap?.stop()
         keyTap = nil
+        takingFocus = false
         let hadFocus = NSApp.isActive
         scrollMonitors.forEach(NSEvent.removeMonitor)
         scrollMonitors.removeAll()
@@ -569,7 +575,10 @@ final class MarkingController {
                 return false
             }
             // A comment just started, Aki still taking the keyboard: what you type goes into it.
-            if session.editing != nil { return self.typeIntoDraft(event) }
+            if session.editing != nil {
+                // Otherwise (you switched apps while writing): the keys are that app's.
+                return self.takingFocus ? self.typeIntoDraft(event) : false
+            }
             if self.handleKey(event) { return true }
             // Other keys don't reach the page below (as when Aki had the focus); shortcuts do.
             return !event.modifierFlags.contains(.command) && !event.modifierFlags.contains(.control)
@@ -658,6 +667,14 @@ final class MarkingController {
                  29 where event.modifierFlags.contains(.command) && session.editing == nil,
                  69 where event.modifierFlags.contains(.command) && session.editing == nil,
                  78 where event.modifierFlags.contains(.command) && session.editing == nil:
+                // The app below has the focus: the key goes straight to it (never posted
+                // again, the tap would take it once more); the screens are captured after.
+                if !NSApp.isActive {
+                    session.scrolling = true
+                    self.panels.forEach { $0.ignoresMouseEvents = true }
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) { [weak self] in self?.scrollMoved() }
+                    return false
+                }
                 self.passKey(event)
                 return true
             case 51 where session.editing == nil && !session.queueSelected.isEmpty:  // ⌫: the ticked marks out
