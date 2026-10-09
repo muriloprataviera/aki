@@ -19,6 +19,8 @@ final class MarkingController {
     private var panels: [MarkingPanel] = []
     private var session: MarkingSession?
     private var keyMonitor: Any?
+    /// The keys while Aki doesn't have the focus (the app below keeps it).
+    private var keyTap: KeyTap?
     /// esc and ⌘⏎ as system-wide shortcuts while marking: they work even when the
     /// overlay hasn't got the keyboard (the app below would take them otherwise).
     private var modalKeys: [HotKey] = []
@@ -245,9 +247,8 @@ final class MarkingController {
             // overlay goes live only once nothing closed (no menu blinking out and back).
             session.live = false
             session.menus = menus
-            // Now Aki to the front: the app below (Chrome…) would keep setting its own
-            // cursor otherwise. It gets the focus back when marking ends.
-            NSApp.activate(ignoringOtherApps: true)
+            // Aki stays in the background, as the Mac's ⌘⇧4 does: the app below keeps
+            // the focus (its menu open, its selection blue); the keys come by `KeyTap`.
             if !model.preferences.freezeScreen && !menuOpen { watchForClosedMenus(session, first: grabs) }
             session.markAdded = { [weak session, weak self] mark in
                 guard let session, session.live else { return }
@@ -262,13 +263,19 @@ final class MarkingController {
                     session.refreshPicture(of: mark.id, grab: grab, text: text)
                 }
             }
-            session.focusScreen = { [weak self] index in
+            session.focusScreen = { [weak self, weak session] index in
                 guard let self, index < self.panels.count else { return }
-                // The panel takes the keyboard without bringing Aki forward, so the
-                // comment field gets what you type (not the app underneath).
-                self.panels[index].makeKeyAndOrderFront(nil)
-                NSApp.activate(ignoringOtherApps: true)
-                self.panels[index].makeKey()
+                // Writing takes the keyboard, and the app below loses the focus (a menu of
+                // its closes): the mark's picture first, then Aki comes forward. Meanwhile
+                // what you type goes into the comment all the same (`typeIntoDraft`).
+                Task { @MainActor in
+                    for _ in 0..<16 where (session?.capturing ?? 0) > 0 { try? await Task.sleep(for: .milliseconds(50)) }
+                    guard self.session != nil, index < self.panels.count else { return }
+                    self.panels.forEach { $0.acceptsKeyboard = true }
+                    self.panels[index].makeKeyAndOrderFront(nil)
+                    NSApp.activate(ignoringOtherApps: true)
+                    self.panels[index].makeKey()
+                }
             }
             for (index, grab) in grabs.enumerated() {
                 let panel = MarkingPanel(screen: grab.screen)
@@ -292,18 +299,18 @@ final class MarkingController {
             // The agent may just have changed in Orca: a fresh look, after the overlay is up
             // (it takes about half a second; followTerminals brings the result in).
             Task { await model.refresh() }
-            // The panel under the pointer takes the keyboard.
-            let mouse = NSEvent.mouseLocation
-            (panels.first { $0.frame.contains(mouse) } ?? panels.first)?.makeKey()
             AkiCursor.pin.set()
             holdCursor()
             watchKeys()
             watchScroll()
             followFrontApp()
-            modalKeys = [
-                HotKey(keyCode: UInt32(kVK_Escape), modifiers: 0) { [weak self] in self?.escape() },
-                HotKey(keyCode: UInt32(kVK_Return), modifiers: UInt32(cmdKey)) { [weak self] in self?.send() },
-            ]
+            // Without the key tap (no Accessibility): esc and ⌘⏎ at least, system-wide.
+            if keyTap == nil {
+                modalKeys = [
+                    HotKey(keyCode: UInt32(kVK_Escape), modifiers: 0) { [weak self] in self?.escape() },
+                    HotKey(keyCode: UInt32(kVK_Return), modifiers: UInt32(cmdKey)) { [weak self] in self?.send() },
+                ]
+            }
             // Read the text on each screen in the background, for ⌥ and for marks.
             for (index, grab) in grabs.enumerated() {
                 Task { [weak session] in
@@ -475,6 +482,9 @@ final class MarkingController {
         modalKeys.removeAll()
         if let keyMonitor { NSEvent.removeMonitor(keyMonitor) }
         keyMonitor = nil
+        keyTap?.stop()
+        keyTap = nil
+        let hadFocus = NSApp.isActive
         scrollMonitors.forEach(NSEvent.removeMonitor)
         scrollMonitors.removeAll()
         scrollIdle?.cancel()
@@ -483,7 +493,8 @@ final class MarkingController {
         panels.forEach { $0.orderOut(nil) }
         panels.removeAll()
         session = nil
-        if let previousApp, previousApp.processIdentifier != ProcessInfo.processInfo.processIdentifier {
+        // Only when Aki took the focus (a comment was written): back to where you were.
+        if hadFocus, let previousApp, previousApp.processIdentifier != ProcessInfo.processInfo.processIdentifier {
             previousApp.activate()
         }
         previousApp = nil
@@ -545,8 +556,47 @@ final class MarkingController {
     /// Esc leaves (or drops the mark being written), Tab changes the destination,
     /// ⌘⏎ sends. Typing itself goes to the comment field.
     private func watchKeys() {
+        // Aki has the focus (writing a comment): its own window gets the keys.
         keyMonitor = NSEvent.addLocalMonitorForEvents(matching: [.keyDown, .flagsChanged]) { [weak self] event in
-            guard let self, let session = self.session else { return event }
+            guard let self else { return event }
+            return self.handleKey(event) ? nil : event
+        }
+        // The app below has it: the keys are read on their way, and the ones Aki uses stop here.
+        keyTap = KeyTap { [weak self] event in
+            guard let self, let session = self.session, !NSApp.isActive else { return false }
+            if event.type == .flagsChanged {
+                _ = self.handleKey(event)
+                return false
+            }
+            // A comment just started, Aki still taking the keyboard: what you type goes into it.
+            if session.editing != nil { return self.typeIntoDraft(event) }
+            if self.handleKey(event) { return true }
+            // Other keys don't reach the page below (as when Aki had the focus); shortcuts do.
+            return !event.modifierFlags.contains(.command) && !event.modifierFlags.contains(.control)
+        }
+    }
+
+    /// While the comment field isn't ready yet (the picture first): letters into the draft.
+    private func typeIntoDraft(_ event: NSEvent) -> Bool {
+        guard let session, event.type == .keyDown else { return false }
+        if event.modifierFlags.contains(.command) { return handleKey(event) }
+        switch event.keyCode {
+        case 51:  // ⌫
+            if !session.draft.isEmpty { session.draft.removeLast() }
+        case 36:  // ⏎: as the field does (empty sends, else queues)
+            if session.draft.trimmingCharacters(in: .whitespaces).isEmpty { send() } else { session.commitDraft() }
+        case 53, 48:
+            return handleKey(event)
+        default:
+            guard let text = event.characters, !text.isEmpty, text.unicodeScalars.allSatisfy({ !CharacterSet.controlCharacters.contains($0) }) else { return true }
+            session.draft += text
+        }
+        return true
+    }
+
+    /// One key while marking; true when Aki used it.
+    private func handleKey(_ event: NSEvent) -> Bool {
+            guard let session = self.session else { return false }
             if event.type == .flagsChanged {
                 // ⌥ switches between UI elements and lines of text, right away.
                 let held = event.modifierFlags.contains(.option)
@@ -559,36 +609,36 @@ final class MarkingController {
                 // (it sits over everything otherwise, the switcher hidden under it).
                 let level: NSWindow.Level = event.modifierFlags.contains(.command) ? .floating : .screenSaver
                 for panel in self.panels where panel.level != level { panel.level = level }
-                return event
+                return false
             }
             switch event.keyCode {
             case 53:  // esc (also a system shortcut while marking; whichever comes first)
                 self.escape()
-                return nil
+                return true
             // ⇧↑ / ⇧↓: bigger (what holds it) and smaller (back in). On a web page they
             // walk its elements; elsewhere the boxes found around the pointer.
             case 126 where session.editing == nil && event.modifierFlags.contains(.shift):
                 if session.hovered?.fromBrowser == true { session.step(.up) } else { session.widen() }
-                return nil
+                return true
             case 125 where session.editing == nil && event.modifierFlags.contains(.shift):
                 if session.hovered?.fromBrowser == true { session.step(.down) } else { session.narrow() }
-                return nil
+                return true
             // The plain arrows walk the screen: the thing above, below, on either side.
             case 126 where session.editing == nil:
                 session.move(.up)
-                return nil
+                return true
             case 125 where session.editing == nil:
                 session.move(.down)
-                return nil
+                return true
             case 123 where session.editing == nil:
                 session.move(.left)
-                return nil
+                return true
             case 124 where session.editing == nil:
                 session.move(.right)
-                return nil
+                return true
             case 48:  // tab
                 session.cycleDestination(by: event.modifierFlags.contains(.shift) ? -1 : 1)
-                return nil
+                return true
             // ⌘1–⌘9: that session (plain digits are typed into the comment).
             case 18 where event.modifierFlags.contains(.command), 19 where event.modifierFlags.contains(.command),
                  20 where event.modifierFlags.contains(.command), 21 where event.modifierFlags.contains(.command),
@@ -601,7 +651,7 @@ final class MarkingController {
                         session.setDestination(session.terminals[n - 1].id)
                     }
                 }
-                return nil
+                return true
             // ⌘+ / ⌘− / ⌘0: the page's own zoom, on the app below; the screen is captured again.
             case 24 where event.modifierFlags.contains(.command) && session.editing == nil,
                  27 where event.modifierFlags.contains(.command) && session.editing == nil,
@@ -609,21 +659,20 @@ final class MarkingController {
                  69 where event.modifierFlags.contains(.command) && session.editing == nil,
                  78 where event.modifierFlags.contains(.command) && session.editing == nil:
                 self.passKey(event)
-                return nil
+                return true
             case 51 where session.editing == nil && !session.queueSelected.isEmpty:  // ⌫: the ticked marks out
                 withAnimation(.easeOut(duration: 0.15)) { session.removeSelected() }
-                return nil
+                return true
             // ⏎ with nothing being written: mark what's outlined (after walking with ↑ ↓).
             case 36 where !event.modifierFlags.contains(.command) && session.editing == nil && !session.listOpen && session.target != nil:
                 withAnimation(.spring(response: 0.3, dampingFraction: 0.75)) { session.markTarget() }
-                return nil
+                return true
             case 36 where event.modifierFlags.contains(.command):  // ⌘⏎
                 self.send()
-                return nil
+                return true
             default:
-                return event
+                return false
             }
-        }
     }
 
     /// The wheel scrolls the page below, as if Aki weren't there: the overlays let
@@ -758,12 +807,8 @@ final class MarkingController {
             }
             session.scrolling = false
             self.panels.forEach { $0.ignoresMouseEvents = false }
-            if self.reactivateAfterCapture {
-                self.reactivateAfterCapture = false
-                NSApp.activate(ignoringOtherApps: true)
-            }
-            let mouse = NSEvent.mouseLocation
-            (self.panels.first { $0.frame.contains(mouse) } ?? self.panels.first)?.makeKey()
+            // The key went to the app below: it keeps the focus (Aki reads keys anyway).
+            self.reactivateAfterCapture = false
         }
     }
 
@@ -810,7 +855,9 @@ final class MarkingPanel: NSPanel {
         setFrame(screen.frame, display: false)
     }
 
-    override var canBecomeKey: Bool { true }
+    /// Off until you write a comment: until then the app below keeps the focus.
+    var acceptsKeyboard = false
+    override var canBecomeKey: Bool { acceptsKeyboard }
     override var canBecomeMain: Bool { false }
 }
 
