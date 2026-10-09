@@ -343,8 +343,11 @@ final class MarkingSession {
         // A page on localhost picks its session (by port), unless you chose one yourself.
         if !destinationChosen, let url = mark.context?.url, url.contains("://localhost:") || url.contains("://127.0.0.1:") {
             let id = mark.id
+            // Counted like a picture being taken: a send waits for it.
+            capturing += 1
             Task {
-                guard let found = await destinationForPage(url), !destinationChosen, found != destination else { return }
+                defer { capturing -= 1 }
+                guard let found = await destinationForPage(url), !destinationChosen else { return }
                 destination = found
                 if let i = marks.firstIndex(where: { $0.id == id }) { marks[i].destination = found }
             }
