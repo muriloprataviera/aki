@@ -375,7 +375,7 @@ final class SidebarModel {
         case .terminals:
             // Hidden sessions live in the "+N" ring, with the ones past the limit.
             let hidden = terminals.filter {
-                (preferences.hiddenTerminals.contains($0.id) || resting($0)) && preferences.tracks($0.agent)
+                (preferences.hiddenTerminals.contains($0.id) || (resting($0) && !switchedOff($0))) && preferences.tracks($0.agent)
             }
             let all = visibleTerminals
             let limit = max(2, preferences.maxTerminals)
@@ -723,7 +723,8 @@ final class SidebarModel {
     func select(_ session: AgentSession, agent: AgentSession.Agent? = nil) {
         selected = session.worktree
         // Marking goes by terminal: the latest one open in that folder (of that agent).
-        if let terminal = visibleTerminals.filter({ $0.worktree == session.worktree && (agent == nil || $0.agent == agent) })
+        // Resting sessions count too (a project shown only by its older ones).
+        if let terminal = markableTerminals.filter({ $0.worktree == session.worktree && (agent == nil || $0.agent == agent) })
             .max(by: { ($0.updatedAt ?? .distantPast) < ($1.updatedAt ?? .distantPast) }) {
             selectedTerminal = terminal.id
         }
