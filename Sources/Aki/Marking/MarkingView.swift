@@ -847,7 +847,8 @@ struct MarkingView: View {
             Button { withAnimation(.easeOut(duration: 0.15)) { session.commitDraft() } } label: {
                 HStack(spacing: 5) {
                     Label(L10n.t(crowded ? "Queue it" : "Add to queue"), systemImage: "plus.square.on.square")
-                    Keycap(key: "⏎", size: 8)
+                    // Three buttons: no room for the keys (the tips still say them).
+                    if !crowded { Keycap(key: "⏎", size: 8) }
                 }
             }
             .buttonStyle(SettingsButtonStyle(compact: true))
@@ -869,7 +870,7 @@ struct MarkingView: View {
             Button { send() } label: {
                 HStack(spacing: 5) {
                     Label(others > 0 ? "\(L10n.t("Send all")) (\(others + 1))" : L10n.t("Send now"), systemImage: "paperplane.fill")
-                    Keycap(key: "⌘⏎", size: 8)
+                    if !crowded { Keycap(key: "⌘⏎", size: 8) }
                 }
             }
             .buttonStyle(SettingsButtonStyle(kind: .prominent, compact: true))

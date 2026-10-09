@@ -134,6 +134,28 @@ struct MarkContext {
         return context
     }
 
+    /// The app of the window under a point (global, top-left origin), with its window's
+    /// title and, for a browser, its page: where a mark was made, whichever app was in
+    /// front when marking began. Nil over nothing (or only Aki).
+    static func at(_ point: CGPoint) -> MarkContext? {
+        let me = ProcessInfo.processInfo.processIdentifier
+        let windows = CGWindowListCopyWindowInfo([.optionOnScreenOnly, .excludeDesktopElements], kCGNullWindowID)
+            as? [[String: Any]] ?? []
+        guard let window = windows.first(where: { w in
+            guard let pid = w[kCGWindowOwnerPID as String] as? Int32, pid != me,
+                  (w[kCGWindowLayer as String] as? Int) == 0,
+                  let bounds = w[kCGWindowBounds as String] as? NSDictionary,
+                  let frame = CGRect(dictionaryRepresentation: bounds) else { return false }
+            return frame.contains(point)
+        }), let pid = window[kCGWindowOwnerPID as String] as? Int32,
+              let app = NSRunningApplication(processIdentifier: pid)
+        else { return nil }
+        var context = MarkContext(appName: app.localizedName, bundleID: app.bundleIdentifier, pid: pid)
+        context.windowTitle = window[kCGWindowName as String] as? String
+        context.url = browserURL(bundleID: app.bundleIdentifier)
+        return context
+    }
+
     /// The front tab's address, asked over Apple Events (macOS asks once to allow it).
     private static func browserURL(bundleID: String?) -> String? {
         let script: String

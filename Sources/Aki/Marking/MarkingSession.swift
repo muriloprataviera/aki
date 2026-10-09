@@ -327,6 +327,13 @@ final class MarkingSession {
         var mark = Mark(screen: screen, rect: rect, destination: destination, number: marks.count + 1, element: element,
                         anchor: anchor ?? CGPoint(x: rect.maxX, y: rect.maxY), text: text)
         mark.grab = screen < grabs.count ? grabs[screen] : nil
+        // The app (and page) where it was made: marking may have begun in another one.
+        if screen < grabs.count {
+            let frame = grabs[screen].screen.frame
+            let primary = NSScreen.screens.first?.frame.height ?? 0
+            let center = CGPoint(x: frame.minX + rect.midX, y: primary - frame.maxY + rect.midY)
+            if let here = MarkContext.at(center), here.pid != context.pid { context = here }
+        }
         mark.context = context
         mark.generation = generation[screen, default: 0]
         switch Preferences.shared.markContent {
