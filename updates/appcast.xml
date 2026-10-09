@@ -3,6 +3,19 @@
     <channel>
         <title>Aki</title>
         <item>
+            <title>0.4.0-beta.28</title>
+            <pubDate>Thu, 08 Oct 2026 23:29:18 -0300</pubDate>
+            <sparkle:channel>beta</sparkle:channel>
+            <sparkle:version>20261009022917</sparkle:version>
+            <sparkle:shortVersionString>0.4.0-beta.28</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
+            <description><![CDATA[<h2>Aki 0.4.0 beta 28</h2>
+<ul><li>Sessions untouched for more than two days wait in "+N" and come back when they move.</li></ul>
+]]></description>
+            <enclosure url="https://aki-updates.vercel.app/0.4.0-beta.28/Aki-0.4.0-beta.28.zip" length="3471249" type="application/octet-stream" sparkle:edSignature="HvHb013/wg2MIdn8/Q3TJUBS+l9+FJznWgYxNd6im/caUl8BEk7zdBGNkpVcxcAwRN/JBFXEnSzx8myvQ2chAA=="/>
+        </item>
+        <item>
             <title>0.4.0-beta.27</title>
             <pubDate>Thu, 08 Oct 2026 19:01:09 -0300</pubDate>
             <sparkle:channel>beta</sparkle:channel>
@@ -28,19 +41,6 @@
 <li>Marking a localhost page picks the session named with its port.</li></ul>
 ]]></description>
             <enclosure url="https://aki-updates.vercel.app/0.4.0-beta.26/Aki-0.4.0-beta.26.zip" length="3469459" type="application/octet-stream" sparkle:edSignature="suUiEeZWDwg5y0C86jTxf16vuAE06aB/DnOl5PD7nk7qrUDmNgeMKc2pTzNKapvlwaiGY8Imc782biTnrzYcCA=="/>
-        </item>
-        <item>
-            <title>0.4.0-beta.25</title>
-            <pubDate>Thu, 08 Oct 2026 17:18:14 -0300</pubDate>
-            <sparkle:channel>beta</sparkle:channel>
-            <sparkle:version>20261008201813</sparkle:version>
-            <sparkle:shortVersionString>0.4.0-beta.25</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
-            <description><![CDATA[<h2>Aki 0.4.0 beta 25</h2>
-<ul><li>While marking, scrolling over Aki's own lists scrolls them, not the page below.</li></ul>
-]]></description>
-            <enclosure url="https://aki-updates.vercel.app/0.4.0-beta.25/Aki-0.4.0-beta.25.zip" length="3467218" type="application/octet-stream" sparkle:edSignature="dmS+A7xq5IwldfQrQG2HVdFkv9yo/KfE5mQRo3OV70IIVIHAP2LfqZMptqhDWdFtuhOB79yvmcD2w31pDVUuBg=="/>
         </item>
         <item>
             <title>0.3.3</title>
