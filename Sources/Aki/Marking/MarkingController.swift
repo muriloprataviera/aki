@@ -712,7 +712,7 @@ final class MarkingController {
                 self.passKey(event)
                 return true
             // ⌘Z: undo the last mark (the one just made, while its comment is still empty).
-            case 6 where event.modifierFlags.contains(.command) && (session.editing == nil || session.draft.isEmpty):
+            case 6 where event.modifierFlags.contains(.command) && (session.editing == nil || (session.justMade && session.draft.isEmpty)):
                 withAnimation(.easeOut(duration: 0.15)) { session.undoLast() }
                 return true
             case 51 where session.editing == nil && !session.queueSelected.isEmpty:  // ⌫: the ticked marks out

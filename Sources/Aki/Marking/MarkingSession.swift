@@ -64,11 +64,17 @@ final class MarkingSession {
 
     var marks: [Mark] = []
     var editing: UUID? {
-        didSet { if let oldValue, editing == nil { lastEdited = oldValue } }
+        didSet {
+            if let oldValue, editing == nil { lastEdited = oldValue }
+            justMade = false
+        }
     }
+    /// The card is of a mark just made, nothing typed in it yet: ⌘Z takes the mark back
+    /// (in a comment that had words, ⌘Z undoes the typing instead).
+    var justMade = false
     /// The mark whose card closed last: the queue stays beside where that card was.
     var lastEdited: UUID?
-    var draft = ""
+    var draft = "" { didSet { if !draft.isEmpty { justMade = false } } }
     var destination: String?
     /// Set when sending: marks fly to the ring of their conversation.
     var flying = false
@@ -446,6 +452,7 @@ final class MarkingSession {
         // screen once its own picture is taken (`copyPicture`, from the controller).
         if !live { copyPicture(of: mark.id) }
         editing = mark.id
+        justMade = true
         draft = ""
         focusScreen(screen)
     }
