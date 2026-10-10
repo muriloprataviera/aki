@@ -102,7 +102,8 @@ struct MarkingView: View {
                             }
                             let point = NSEvent.modifierFlags.contains(.command)
                             // ⇧-click: a normal click on what's below (another sheet, a link), no mark.
-                            if moved < 5, NSEvent.modifierFlags.contains(.shift) {
+                            // (Not while ⇧ is held to gather with the arrows: the pin says it marks.)
+                            if moved < 5, NSEvent.modifierFlags.contains(.shift), session.shiftHeld {
                                 dragStart = nil
                                 dragNow = nil
                                 passClick(globalPoint(start))
