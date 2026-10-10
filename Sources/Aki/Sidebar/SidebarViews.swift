@@ -837,9 +837,15 @@ struct UsageRing: View {
     let limits: UsageLimits
     let scale: CGFloat
 
-    /// Paper while there's room; Aki's red once the week is nearly gone.
+    /// How full the limit is, in Codenotch's bands: green under half, yellow to 70%,
+    /// orange to 90%, then Aki's red.
     static func tint(_ percent: Int, hovered: Bool = false) -> Color {
-        percent >= 90 ? AkiPalette.red : hovered ? AkiPalette.textPrimary : AkiPalette.fg.opacity(0.9)
+        switch percent {
+        case ..<50: Color(red: 0, green: 0.88, blue: 0.48)       // #00E07A
+        case ..<70: Color(red: 0.95, green: 0.9, blue: 0)        // #F2E600
+        case ..<90: Color(red: 1, green: 0.55, blue: 0)          // #FF8C00
+        default: AkiPalette.red
+        }
     }
 
     var body: some View {
@@ -990,7 +996,7 @@ struct LimitBar: View {
         GeometryReader { geo in
             ZStack(alignment: .leading) {
                 Capsule().fill(AkiPalette.fg.opacity(0.1))
-                Capsule().fill(fraction >= 0.9 ? AnyShapeStyle(AkiPalette.red) : AnyShapeStyle(AkiPalette.auroraDiagonal))
+                Capsule().fill(UsageRing.tint(Int((fraction * 100).rounded())))
                     .frame(width: max(4, geo.size.width * CGFloat(min(max(fraction, 0), 1))))
             }
         }
