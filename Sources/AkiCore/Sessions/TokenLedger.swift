@@ -281,9 +281,10 @@ public final class TokenLedger: @unchecked Sendable {
         let all = Self.int(last["input_tokens"]), output = Self.int(last["output_tokens"])
         let cached = Self.int(last["cached_input_tokens"])
         guard all + output > 0 else { return false }
-        // The same report again (a limits update, no new request): the running total didn't grow.
+        // The same report again (a limits update, no new request): the running total didn't
+        // change. It can also drop (the context compacted): that's a new reference, not a repeat.
         if let total = (info["total_token_usage"] as? [String: Any]).map({ Self.int($0["total_tokens"]) }), total > 0 {
-            if let before = cursor.total, total <= before { return false }
+            if cursor.total == total { return false }
             cursor.total = total
         }
         let key = "c:\(path):\(stamp):\(all):\(output)"
