@@ -549,10 +549,11 @@ final class SidebarModel {
         // The name without the status sign in front (✳ resting, a spinner working): a
         // session starting to work isn't you clicking its tab.
         let wanted = TerminalJump.normalized(title)
-        // Still in it: the pick stays fresh (two minutes count from when you left).
-        if wanted == lastOrcaTab, let pick = lastTabPick { lastTabPick = (pick.id, Date()) }
-        guard wanted != lastOrcaTab else { return }
         let matches = markableTerminals.filter { $0.orcaHandle != nil && TerminalJump.normalized($0.name) == wanted }
+        // While you're in an agent's tab, "you're here" is kept fresh (even after marks
+        // went elsewhere): marking now, or within two minutes of leaving, starts on it.
+        if matches.count == 1 { lastTabPick = (matches[0].id, Date()) }
+        guard wanted != lastOrcaTab else { return }
         // A tab with no session (yet): noted as passed through ("?"), so coming back to
         // the one before counts as a click; a session that appears for it is picked then.
         guard matches.count == 1 else {
@@ -560,8 +561,8 @@ final class SidebarModel {
             return
         }
         lastOrcaTab = wanted
-        lastTabPick = (matches[0].id, Date())
         if selectedTerminal != matches[0].id { selectedTerminal = matches[0].id }
+        lastTabPick = (matches[0].id, Date())
     }
 
     /// Claude Code writes its state (working, waiting for you, idle) to its session

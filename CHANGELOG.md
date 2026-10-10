@@ -4,6 +4,13 @@ What changed in each version of Aki. Versions follow [semantic versioning](https
 
 ## [Unreleased]
 
+### Added
+- ⌘Z undoes the last mark; Space held while dragging moves the whole area (as the Mac's ⌘⇧4).
+
+### Fixed
+- Marking starts on the agent tab you're in even after marks went to another session from it.
+- ⇧ pressed in the middle of a drag no longer turns the screen see-through.
+
 ### Changed
 - Marking starts on the agent tab you were in a moment ago (the last two minutes), before the page's port; coming back to the same Orca tab counts as a click again. A session you pick on the sidebar still wins.
 

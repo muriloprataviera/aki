@@ -364,7 +364,7 @@ extension L10n {
         "Leave": "終了",
         "⇥ next session · esc leave": "⇥ 次のセッション · esc 終了",
         "Allow Accessibility to outline buttons and page elements": "ボタンやページの要素を枠で示すには、アクセシビリティを許可してください",
-        "Click: element · Arrows: move · ⇧ arrows: add · ⌘↑↓: bigger/smaller · ⌥: lines of text · ⌘ click: point · ⇧ click: normal click · Drag: area · ⌘⏎: send": "クリック:要素 · 矢印:移動 · ⇧ 矢印:追加 · ⌘↑↓ 大きく/小さく · ⌥:テキスト行 · ⌘ クリック:点 · ⇧ クリック:通常のクリック · ドラッグ:範囲 · ⌘⏎:送信",
+        "Click: element · Arrows: move · ⇧ arrows: add · ⌘↑↓: bigger/smaller · ⌥: lines of text · ⌘ click: point · ⇧ click: normal click · Drag: area (space moves it) · ⌘Z: undo · ⌘⏎: send": "クリック:要素 · 矢印:移動 · ⇧ 矢印:追加 · ⌘↑↓ 大きく/小さく · ⌥:テキスト行 · ⌘ クリック:点 · ⇧ クリック:通常のクリック · ドラッグ:範囲(スペースで移動) · ⌘Z:取り消す · ⌘⏎:送信",
         "mark": "マーク",
         "Send": "送信",
         "Cancel": "キャンセル",

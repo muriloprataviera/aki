@@ -89,10 +89,18 @@ struct MarkingView: View {
                     DragGesture(minimumDistance: 0)
                         .onChanged { value in
                             if dragStart == nil { dragStart = value.startLocation }
+                            // Space held while dragging moves the whole area (as the Mac's ⌘⇧4).
+                            if CGEventSource.keyState(.combinedSessionState, key: 0x31), let start = dragStart, let now = dragNow {
+                                dragStart = CGPoint(x: start.x + value.location.x - now.x, y: start.y + value.location.y - now.y)
+                            }
                             dragNow = value.location
+                            if !session.dragging, let start = dragStart, hypot(value.location.x - start.x, value.location.y - start.y) > 5 {
+                                session.dragging = true
+                            }
                         }
                         .onEnded { value in
-                            let start = value.startLocation, end = value.location
+                            session.dragging = false
+                            let start = dragStart ?? value.startLocation, end = value.location
                             let moved = hypot(end.x - start.x, end.y - start.y)
                             // The click that put a zoomed picture away: just that.
                             if ImageZoom.isOpen || Date().timeIntervalSince(ImageZoom.closedAt) < 0.4 {
@@ -1225,7 +1233,7 @@ struct MarkingView: View {
     }
 
     private static var allHintItems: [(keys: String, label: String)] {
-        L10n.t("Click: element · Arrows: move · ⇧ arrows: add · ⌘↑↓: bigger/smaller · ⌥: lines of text · ⌘ click: point · ⇧ click: normal click · Drag: area · ⌘⏎: send")
+        L10n.t("Click: element · Arrows: move · ⇧ arrows: add · ⌘↑↓: bigger/smaller · ⌥: lines of text · ⌘ click: point · ⇧ click: normal click · Drag: area (space moves it) · ⌘Z: undo · ⌘⏎: send")
             .components(separatedBy: " · ").map { part in
                 if let colon = part.firstIndex(of: ":") {
                     return (String(part[..<colon]).trimmingCharacters(in: .whitespaces),

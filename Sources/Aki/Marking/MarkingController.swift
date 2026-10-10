@@ -711,6 +711,9 @@ final class MarkingController {
                 }
                 self.passKey(event)
                 return true
+            case 6 where event.modifierFlags.contains(.command) && session.editing == nil:  // ⌘Z: undo the last mark
+                withAnimation(.easeOut(duration: 0.15)) { session.undoLast() }
+                return true
             case 51 where session.editing == nil && !session.queueSelected.isEmpty:  // ⌫: the ticked marks out
                 withAnimation(.easeOut(duration: 0.15)) { session.removeSelected() }
                 return true
@@ -822,7 +825,7 @@ final class MarkingController {
         session.shiftHeld = held
         AkiCursor.passThrough = held
         (held ? NSCursor.arrow : AkiCursor.pin).set()
-        if held, session.editing == nil, !session.flying, !session.sending {
+        if held, session.editing == nil, !session.dragging, !session.flying, !session.sending {
             seeThrough = true
             scrollIdle?.cancel()
             session.scrolling = true

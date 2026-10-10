@@ -244,8 +244,8 @@ extension L10n {
         "⇥ next session · esc leave": "⇥ próxima sessão · esc sair",
         "Allow Accessibility to outline buttons and page elements":
             "Libere a Acessibilidade para destacar botões e elementos da página",
-        "Click: element · Arrows: move · ⇧ arrows: add · ⌘↑↓: bigger/smaller · ⌥: lines of text · ⌘ click: point · ⇧ click: normal click · Drag: area · ⌘⏎: send":
-            "Clique: elemento · Setas: andar · ⇧ setas: somar · ⌘↑↓ maior/menor · ⌥: linhas de texto · ⌘ clique: ponto · ⇧ clique: clique normal · Arraste: área · ⌘⏎: enviar", "mark": "marcação", "Send": "Enviar", "Cancel": "Cancelar",
+        "Click: element · Arrows: move · ⇧ arrows: add · ⌘↑↓: bigger/smaller · ⌥: lines of text · ⌘ click: point · ⇧ click: normal click · Drag: area (space moves it) · ⌘Z: undo · ⌘⏎: send":
+            "Clique: elemento · Setas: andar · ⇧ setas: somar · ⌘↑↓ maior/menor · ⌥: linhas de texto · ⌘ clique: ponto · ⇧ clique: clique normal · Arraste: área (espaço move) · ⌘Z: desfazer · ⌘⏎: enviar", "mark": "marcação", "Send": "Enviar", "Cancel": "Cancelar",
         "Click: point · Drag: area · ⏎ on empty or ⌘⏎: send · esc: leave":
             "Clique: ponto · Arraste: área · ⏎ vazio ou ⌘⏎: enviar · esc: sair",
         "Aki needs Screen Recording": "O Aki precisa da Gravação de Tela",

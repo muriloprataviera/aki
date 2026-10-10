@@ -364,7 +364,7 @@ extension L10n {
         "Leave": "退出",
         "⇥ next session · esc leave": "⇥ 下一个会话 · esc 退出",
         "Allow Accessibility to outline buttons and page elements": "允许“辅助功能”以勾出按钮和页面元素",
-        "Click: element · Arrows: move · ⇧ arrows: add · ⌘↑↓: bigger/smaller · ⌥: lines of text · ⌘ click: point · ⇧ click: normal click · Drag: area · ⌘⏎: send": "点按：元素 · 方向键：移动 · ⇧ 方向键：添加 · ⌘↑↓ 放大/缩小 · ⌥：文字行 · ⌘ 点按：点 · ⇧ 点按：普通点按 · 拖移：区域 · ⌘⏎：发送",
+        "Click: element · Arrows: move · ⇧ arrows: add · ⌘↑↓: bigger/smaller · ⌥: lines of text · ⌘ click: point · ⇧ click: normal click · Drag: area (space moves it) · ⌘Z: undo · ⌘⏎: send": "点按：元素 · 方向键：移动 · ⇧ 方向键：添加 · ⌘↑↓ 放大/缩小 · ⌥：文字行 · ⌘ 点按：点 · ⇧ 点按：普通点按 · 拖移：区域（空格可移动） · ⌘Z：撤销 · ⌘⏎：发送",
         "mark": "个标记",
         "Send": "发送",
         "Cancel": "取消",

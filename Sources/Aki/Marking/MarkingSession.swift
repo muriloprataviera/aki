@@ -536,6 +536,17 @@ final class MarkingSession {
     /// Marks ticked in the queue, to take out together (button or ⌫).
     var queueSelected: Set<UUID> = []
 
+    /// ⌘Z: the last mark made goes (the one being written first, if it's empty).
+    func undoLast() {
+        if editing != nil { cancelEditing(); return }
+        guard let last = marks.last else { NSSound.beep(); return }
+        remove(last.id)
+        renumber()
+    }
+
+    /// An area being dragged (⇧ then doesn't make the screen see-through).
+    var dragging = false
+
     func removeSelected() {
         let ids = queueSelected
         queueSelected = []
