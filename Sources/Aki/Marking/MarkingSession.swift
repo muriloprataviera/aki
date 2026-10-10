@@ -224,8 +224,10 @@ final class MarkingSession {
     func move(_ direction: Direction, gather: Bool = false) {
         guard !moving, let current = singleTarget, let whole = target else { return }
         moving = true
-        // From the edge of all that's gathered; about the size of one of them.
-        let from = whole.frame
+        // Gathering: from the edge of all that's gathered. A plain arrow lets the group
+        // go and walks from the one outlined (back to one gathered, too).
+        if !gather { gathered = [] }
+        let from = gather ? whole.frame : current.frame
         let center = CGPoint(x: from.midX, y: from.midY)
         let wanted = max(current.frame.width * current.frame.height, 1)
         Task {
