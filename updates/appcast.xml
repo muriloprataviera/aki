@@ -3,6 +3,19 @@
     <channel>
         <title>Aki</title>
         <item>
+            <title>0.4.0-beta.33</title>
+            <pubDate>Sat, 10 Oct 2026 09:13:38 -0300</pubDate>
+            <sparkle:channel>beta</sparkle:channel>
+            <sparkle:version>20261010121337</sparkle:version>
+            <sparkle:shortVersionString>0.4.0-beta.33</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
+            <description><![CDATA[<h2>Aki 0.4.0 beta 33</h2>
+<ul><li>The text read is back on the card, after the crop.</li></ul>
+]]></description>
+            <enclosure url="https://aki-updates.vercel.app/0.4.0-beta.33/Aki-0.4.0-beta.33.zip" length="3495749" type="application/octet-stream" sparkle:edSignature="Mf4gMyCJxrq1+22VoEi4B7IXkhhKncxE49tAFYjUmOZTzr/tr01fdtSYAHKt/ZTPx2q+jbawBSVEEoQ1UjgRCw=="/>
+        </item>
+        <item>
             <title>0.4.0-beta.32</title>
             <pubDate>Sat, 10 Oct 2026 09:08:22 -0300</pubDate>
             <sparkle:channel>beta</sparkle:channel>
@@ -28,20 +41,6 @@
 <ul><li>Each mark's picture also goes to the clipboard: ⌘V pastes it anywhere (Settings turns it off).</li></ul>
 ]]></description>
             <enclosure url="https://aki-updates.vercel.app/0.4.0-beta.31/Aki-0.4.0-beta.31.zip" length="3487780" type="application/octet-stream" sparkle:edSignature="ARfsij8Guukamxe7+0FC1rnHUGzKXFnrwqpnFZJ8oMScxQ8KNRpii55Wm1QZdR9zvv/3Q2ZcP0iCg3fKNzIVAQ=="/>
-        </item>
-        <item>
-            <title>0.4.0-beta.30</title>
-            <pubDate>Fri, 09 Oct 2026 20:49:07 -0300</pubDate>
-            <sparkle:channel>beta</sparkle:channel>
-            <sparkle:version>20261009234907</sparkle:version>
-            <sparkle:shortVersionString>0.4.0-beta.30</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
-            <description><![CDATA[<h2>Aki 0.4.0 beta 30</h2>
-<ul><li>Marking no longer takes the focus from the app below (as the Mac's own ⌘⇧4): its open menu stays open.</li>
-<li>A mark on a localhost page switches the destination to that port's session right then.</li></ul>
-]]></description>
-            <enclosure url="https://aki-updates.vercel.app/0.4.0-beta.30/Aki-0.4.0-beta.30.zip" length="3486720" type="application/octet-stream" sparkle:edSignature="SPF+w1zBYdzF5vwTKlhkpYYfc3LJMg+MSrrmvpc4Eg4zUuF8BsLJqHEKcPKkIsYhrERj9/1RqmI/1+S3hW0YCQ=="/>
         </item>
         <item>
             <title>0.3.3</title>
