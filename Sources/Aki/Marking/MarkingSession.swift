@@ -370,6 +370,8 @@ final class MarkingSession {
 
     /// Arrow keys on a web page: container, first child, sibling before / after.
     func step(_ step: BrowserProbe.Step) {
+        // Still putting the page's pick back (an undone ⇧ arrow): wait for it.
+        guard !moving else { return }
         Task.detached(priority: .userInitiated) {
             let found = BrowserProbe.step(step)
             await MainActor.run {
