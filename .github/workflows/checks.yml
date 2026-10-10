@@ -2,8 +2,15 @@
 name: Checks
 on:
   push:
-    branches: [main]
-    paths: ["Sources/**", "Tests/**", "Package.swift", "Package.resolved", "scripts/check-translations.py", ".github/workflows/checks.yml"]
+    branches:
+      - main
+    paths:
+      - "Sources/**"
+      - "Tests/**"
+      - "Package.swift"
+      - "Package.resolved"
+      - "scripts/check-translations.py"
+      - ".github/workflows/checks.yml"
   pull_request:
   workflow_dispatch:
 # Read-only token: checks never write to the repository.
