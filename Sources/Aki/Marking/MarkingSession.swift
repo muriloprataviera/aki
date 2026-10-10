@@ -236,9 +236,12 @@ final class MarkingSession {
     /// `gather` (⇧): the one outlined stays, and the next joins it (they add up); the
     /// opposite arrow undoes the last one added.
     func move(_ direction: Direction, gather: Bool = false) {
-        if gather, let last = gatherSteps.last, last == direction.opposite, let previous = gathered.last {
+        if gather, !moving, let last = gatherSteps.last, last == direction.opposite, var previous = gathered.last {
             gathered.removeLast()
             if !gatherSteps.isEmpty { gatherSteps.removeLast() }
+            // Its containers for ⌘↑ / ⌘↓ come with it: the page's own pick stayed on the
+            // one just taken out, so it isn't asked.
+            previous.fromBrowser = false
             keyboardHold = lastProbe
             hovered = previous
             level = 0
