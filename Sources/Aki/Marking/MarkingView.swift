@@ -542,6 +542,8 @@ struct MarkingView: View {
                                 .frame(maxWidth: .infinity, alignment: .leading)
                         }
                         .frame(maxHeight: 92)
+                        .onGeometryChange(for: CGRect.self) { $0.frame(in: .global) } action: { session.scrollAreas["text\(screen)"] = $0 }
+                        .onDisappear { session.scrollAreas["text\(screen)"] = nil }
                         .padding(6)
                     } toggle: {
                         session.toggle(mark.id, image: false)

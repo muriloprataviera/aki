@@ -699,9 +699,11 @@ final class MarkingController {
     /// stops, the screens are captured again (marks already made keep theirs).
     /// The wheel is over one of Aki's lists that scroll (the card reports where they are).
     private func overOwnList(_ event: NSEvent, _ session: MarkingSession) -> Bool {
-        guard let window = event.window, let screen = panels.firstIndex(where: { $0 === window }) else { return false }
+        guard let window = event.window else { return false }
+        // Another window of Aki's (a picture opened bigger): it scrolls itself.
+        guard let screen = panels.firstIndex(where: { $0 === window }) else { return true }
         let point = CGPoint(x: event.locationInWindow.x, y: window.frame.height - event.locationInWindow.y)
-        return ["more\(screen)", "queue\(screen)"].contains { session.scrollAreas[$0]?.contains(point) == true }
+        return ["more\(screen)", "queue\(screen)", "text\(screen)"].contains { session.scrollAreas[$0]?.contains(point) == true }
     }
 
     private func watchScroll() {
