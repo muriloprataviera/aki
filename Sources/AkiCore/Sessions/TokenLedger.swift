@@ -87,8 +87,11 @@ public final class TokenLedger: @unchecked Sendable {
         state.events = state.events.filter { $0.value.ts >= cutoff }
         if state.cursors.count != oldCursors || state.events.count != oldEvents { changed = true }
         if changed, let data = try? JSONEncoder().encode(state) {
-            try? FileManager.default.createDirectory(at: file.deletingLastPathComponent(), withIntermediateDirectories: true)
+            // Only you read it: it names your projects and when you worked.
+            try? FileManager.default.createDirectory(at: file.deletingLastPathComponent(), withIntermediateDirectories: true,
+                                                     attributes: [.posixPermissions: 0o700])
             try? data.write(to: file, options: .atomic)
+            try? FileManager.default.setAttributes([.posixPermissions: 0o600], ofItemAtPath: file.path)
         }
         return changed
     }
@@ -365,6 +368,7 @@ public enum TokenPrices {
         ("claude-opus-4-1", Price(input: 15, output: 75, cacheRead: 1.5, cacheWrite: 18.75)),
         ("claude-opus-4-2025", Price(input: 15, output: 75, cacheRead: 1.5, cacheWrite: 18.75)),
         ("claude-sonnet", Price(input: 2, output: 10, cacheRead: 0.2, cacheWrite: 2.5)),
+        ("claude-sonnet-4", Price(input: 3, output: 15, cacheRead: 0.3, cacheWrite: 3.75)),
         ("claude-haiku", Price(input: 1, output: 5, cacheRead: 0.1, cacheWrite: 1.25)),
         ("gpt-6", Price(input: 10, output: 50, cacheRead: 1, cacheWrite: 12.5)),
         ("gpt-5", Price(input: 1.25, output: 10, cacheRead: 0.125, cacheWrite: 1.25)),
