@@ -3,6 +3,22 @@
     <channel>
         <title>Aki</title>
         <item>
+            <title>0.5.0-beta.2</title>
+            <pubDate>Sat, 10 Oct 2026 18:41:30 -0300</pubDate>
+            <sparkle:channel>beta</sparkle:channel>
+            <sparkle:version>20261010214129</sparkle:version>
+            <sparkle:shortVersionString>0.5.0-beta.2</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
+            <description><![CDATA[<h2>Aki 0.5.0 beta 2</h2>
+<ul><li>The limits rings show today's tokens and their cost at API prices.</li>
+<li>Hover a ring: each window with when it renews and the pace, today's share of the week, the last 7 days and the projects that used most.</li>
+<li>Settings → Show in the sidebar: sessions and limits, only limits, or only sessions.</li>
+<li><code>aki usage</code> prints it in the terminal.</li></ul>
+]]></description>
+            <enclosure url="https://aki-updates.vercel.app/0.5.0-beta.2/Aki-0.5.0-beta.2.zip" length="3671678" type="application/octet-stream" sparkle:edSignature="pcu9Q17BmyAhNUIZ1k+O6BMep6xunH+xc+xUq+VXFe//ySVTqPm8ES34GRIRfcZY0j7Yl3KJZ5iKA5zgloR8DQ=="/>
+        </item>
+        <item>
             <title>0.5.0-beta.1</title>
             <pubDate>Sat, 10 Oct 2026 18:01:39 -0300</pubDate>
             <sparkle:channel>beta</sparkle:channel>
