@@ -533,7 +533,7 @@ final class SidebarModel {
 
     /// That session, if you were in its tab in the last two minutes.
     var recentTabPick: String? {
-        guard let pick = lastTabPick, Date().timeIntervalSince(pick.at) < 120,
+        guard preferences.followOrcaTab, let pick = lastTabPick, Date().timeIntervalSince(pick.at) < 120,
               markableTerminals.contains(where: { $0.id == pick.id }) else { return nil }
         return pick.id
     }
