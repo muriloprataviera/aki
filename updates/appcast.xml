@@ -3,6 +3,19 @@
     <channel>
         <title>Aki</title>
         <item>
+            <title>0.4.0-beta.31</title>
+            <pubDate>Fri, 09 Oct 2026 23:33:30 -0300</pubDate>
+            <sparkle:channel>beta</sparkle:channel>
+            <sparkle:version>20261010023329</sparkle:version>
+            <sparkle:shortVersionString>0.4.0-beta.31</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
+            <description><![CDATA[<h2>Aki 0.4.0 beta 31</h2>
+<ul><li>Each mark's picture also goes to the clipboard: ⌘V pastes it anywhere (Settings turns it off).</li></ul>
+]]></description>
+            <enclosure url="https://aki-updates.vercel.app/0.4.0-beta.31/Aki-0.4.0-beta.31.zip" length="3487780" type="application/octet-stream" sparkle:edSignature="ARfsij8Guukamxe7+0FC1rnHUGzKXFnrwqpnFZJ8oMScxQ8KNRpii55Wm1QZdR9zvv/3Q2ZcP0iCg3fKNzIVAQ=="/>
+        </item>
+        <item>
             <title>0.4.0-beta.30</title>
             <pubDate>Fri, 09 Oct 2026 20:49:07 -0300</pubDate>
             <sparkle:channel>beta</sparkle:channel>
@@ -29,19 +42,6 @@
 <li>The comment card's buttons fit again with three of them.</li></ul>
 ]]></description>
             <enclosure url="https://aki-updates.vercel.app/0.4.0-beta.29/Aki-0.4.0-beta.29.zip" length="3474906" type="application/octet-stream" sparkle:edSignature="EfNQnSbWXYVC1l+KkpvAyz5W9LcX9IK/Q7LuA591FdNyCFduWmmDStN144gx5doAV/VdnShq1g9WRICaWZ5WCQ=="/>
-        </item>
-        <item>
-            <title>0.4.0-beta.28</title>
-            <pubDate>Thu, 08 Oct 2026 23:29:18 -0300</pubDate>
-            <sparkle:channel>beta</sparkle:channel>
-            <sparkle:version>20261009022917</sparkle:version>
-            <sparkle:shortVersionString>0.4.0-beta.28</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
-            <description><![CDATA[<h2>Aki 0.4.0 beta 28</h2>
-<ul><li>Sessions untouched for more than two days wait in "+N" and come back when they move.</li></ul>
-]]></description>
-            <enclosure url="https://aki-updates.vercel.app/0.4.0-beta.28/Aki-0.4.0-beta.28.zip" length="3471249" type="application/octet-stream" sparkle:edSignature="HvHb013/wg2MIdn8/Q3TJUBS+l9+FJznWgYxNd6im/caUl8BEk7zdBGNkpVcxcAwRN/JBFXEnSzx8myvQ2chAA=="/>
         </item>
         <item>
             <title>0.3.3</title>
