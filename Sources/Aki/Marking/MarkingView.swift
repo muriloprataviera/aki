@@ -1081,8 +1081,11 @@ struct MarkingView: View {
                             queueDragging = .zero
                             // Moved while the sessions list is open: only for as long as it is.
                             if session.listOpen {
-                                listQueueDrag.width += value.translation.width
-                                listQueueDrag.height += value.translation.height
+                                let spot = queueSpot
+                                listQueueDrag.width = min(max(spot.x + listQueueDrag.width + value.translation.width, 12),
+                                                          grab.screen.frame.width - 242) - spot.x
+                                listQueueDrag.height = min(max(spot.y + listQueueDrag.height + value.translation.height, 12),
+                                                           grab.screen.frame.height - queueHeight - 12) - spot.y
                                 return
                             }
                             let spot = queueAnchor ?? queueSpot
