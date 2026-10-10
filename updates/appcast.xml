@@ -3,6 +3,36 @@
     <channel>
         <title>Aki</title>
         <item>
+            <title>0.4.0</title>
+            <pubDate>Sat, 10 Oct 2026 10:07:44 -0300</pubDate>
+            <sparkle:version>20261010130743</sparkle:version>
+            <sparkle:shortVersionString>0.4.0</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
+            <description><![CDATA[<h2>Aki 0.4.0</h2>
+<h3>New</h3>
+<ul>
+<li><b>Marking leaves the app below alone</b>, like the Mac's own ⌘⇧4: an open menu stays open, a selection stays selected.</li>
+<li><b>The right session, by itself:</b> mark a <code>localhost:3001</code> page and your marks go to the session named "3001"; click an agent's tab in Orca and it becomes the destination.</li>
+<li><b>Each mark's picture is copied</b>: ⌘V pastes it anywhere (Settings turns it off).</li>
+<li><b>Walk the screen with the arrows</b>: ↑ ↓ ← → move to the next thing; ⇧↑ / ⇧↓ make it bigger or smaller; ⏎ marks it.</li>
+<li><b>Messages your agent can trust:</b> they say which session they're for, where the marks came from, and name them by code (<code>aki show df9f68</code>), so they work pasted into any terminal.</li>
+<li><b>The queue in the History sends</b> right there, and each mark's session can be changed.</li>
+<li>A new sidebar: the AI's symbol in each ring, its state in a word, the destination framed. Drag a project by its name; sessions idle for two days tuck themselves into "+N".</li>
+<li>Each mark has its own folder (<code>~/.aki/marks/&lt;day&gt;/&lt;code&gt;/</code>).</li>
+</ul>
+<h3>Fixed</h3>
+<ul>
+<li>Menus, drop-downs and Orca's own notices can be marked.</li>
+<li>↑ reaches the whole page; outlines stay inside the screen.</li>
+<li>⌘Tab works while marking; Aki's lists scroll.</li>
+<li>A ring no longer spins for a session that's resting.</li>
+<li>Clipboard histories (like Raycast's) show the copied picture.</li>
+</ul>
+]]></description>
+            <enclosure url="https://aki-updates.vercel.app/0.4.0/Aki-0.4.0.zip" length="3511089" type="application/octet-stream" sparkle:edSignature="IhaI3gQGMZ0y1RtQeaCsczyWZRt5d/JFhq3o7hUVUGWNhitoeL/Lm0bcDNd3jJbNt7oSuhEdG3EqoTik+qJdAA=="/>
+        </item>
+        <item>
             <title>0.4.0-beta.36</title>
             <pubDate>Sat, 10 Oct 2026 09:48:37 -0300</pubDate>
             <sparkle:channel>beta</sparkle:channel>
@@ -14,32 +44,6 @@
 <ul><li>The sessions list opens to the card's right (below it at the screen's edge), and the queue moves out of its way.</li></ul>
 ]]></description>
             <enclosure url="https://aki-updates.vercel.app/0.4.0-beta.36/Aki-0.4.0-beta.36.zip" length="3510326" type="application/octet-stream" sparkle:edSignature="aypBpNA8/8DJvmChHyw6YQwGJFOPx8gB13BP/hk9VQG/xGhF/A9I70u9gnjvXV/2Xo7jVOcVNkLlNH2ClFJLCw=="/>
-        </item>
-        <item>
-            <title>0.4.0-beta.35</title>
-            <pubDate>Sat, 10 Oct 2026 09:39:00 -0300</pubDate>
-            <sparkle:channel>beta</sparkle:channel>
-            <sparkle:version>20261010123859</sparkle:version>
-            <sparkle:shortVersionString>0.4.0-beta.35</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
-            <description><![CDATA[<h2>Aki 0.4.0 beta 35</h2>
-<ul><li>The sessions list opens over the queue, and the wheel scrolls Aki's own lists while marking.</li></ul>
-]]></description>
-            <enclosure url="https://aki-updates.vercel.app/0.4.0-beta.35/Aki-0.4.0-beta.35.zip" length="3506726" type="application/octet-stream" sparkle:edSignature="iI+HYatP5//5JKjv8SIT9H97Yhq49hpbHxVDeuDqAepZh9zSdZ3qehjmE1F8mya85NKhkzEv9E8r9OKDqnEDAw=="/>
-        </item>
-        <item>
-            <title>0.4.0-beta.34</title>
-            <pubDate>Sat, 10 Oct 2026 09:18:27 -0300</pubDate>
-            <sparkle:channel>beta</sparkle:channel>
-            <sparkle:version>20261010121827</sparkle:version>
-            <sparkle:shortVersionString>0.4.0-beta.34</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
-            <description><![CDATA[<h2>Aki 0.4.0 beta 34</h2>
-<ul><li>A copied mark is one picture on the clipboard, with its preview in clipboard histories like Raycast's.</li></ul>
-]]></description>
-            <enclosure url="https://aki-updates.vercel.app/0.4.0-beta.34/Aki-0.4.0-beta.34.zip" length="3495899" type="application/octet-stream" sparkle:edSignature="iEkezwOj5FSvb85WJi78vCC5r0BnTjaXPgVvAZaxAD7slOVCSgAxty0ooG88vmuRhewFuJHCyId9RIZaJpEfDg=="/>
         </item>
         <item>
             <title>0.3.3</title>
@@ -90,21 +94,6 @@
 </ul>
 ]]></description>
             <enclosure url="https://aki-updates.vercel.app/0.3.2/Aki-0.3.2.zip" length="3354978" type="application/octet-stream" sparkle:edSignature="w+qZF33XhH3CEkiPoOjp/LoViWohQJsGw10lHRHsH8+8etgWWMqlNl3arTQuspNgesms0aLsglrFCi8tC1s0Dw=="/>
-        </item>
-        <item>
-            <title>0.3.1</title>
-            <pubDate>Mon, 05 Oct 2026 20:11:54 -0300</pubDate>
-            <sparkle:version>0.3.1</sparkle:version>
-            <sparkle:shortVersionString>0.3.1</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
-            <description><![CDATA[<h2>Aki 0.3.1</h2>
-<h3>Fix</h3>
-<ul>
-<li>Pointing inside apps that tell macOS nothing about their window (Telegram) now picks the message, button or icon under the pointer. In 0.3.0 it still took the whole window there.</li>
-</ul>
-]]></description>
-            <enclosure url="https://aki-updates.vercel.app/0.3.1/Aki-0.3.1.zip" length="3306186" type="application/octet-stream" sparkle:edSignature="lieVQPZPbQsFispl1rDOZ4UoTsUAaCGsjMT8lRl7eA8u3/MaLi4o0F9GfmWNNtgonF8iIvnZ353e8qlXTrbDDA=="/>
         </item>
     </channel>
 </rss>
