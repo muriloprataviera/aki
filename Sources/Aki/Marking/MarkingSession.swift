@@ -122,7 +122,10 @@ final class MarkingSession {
     }
 
     /// What ⇧ with the arrows added, beside the one outlined now (marked as one area).
-    var gathered: [ProbedElement] = []
+    var gathered: [ProbedElement] = [] { didSet { if gathered.isEmpty { gatherSteps = [] } } }
+    /// The way each one was added: the opposite arrow takes the last one back out,
+    /// as a text selection shrinks.
+    private var gatherSteps: [Direction] = []
 
     func widen() { if let hovered, level < hovered.ancestors.count { level += 1 } }
     /// Down to the container below, or past the hovered thing to what's inside (−1).
@@ -215,13 +218,32 @@ final class MarkingSession {
         }.value
     }
 
-    enum Direction { case up, down, left, right }
+    enum Direction {
+        case up, down, left, right
+        var opposite: Direction {
+            switch self {
+            case .up: .down
+            case .down: .up
+            case .left: .right
+            case .right: .left
+            }
+        }
+    }
     private var moving = false
 
     /// The arrows walk the screen: the next thing above, below or beside the outlined
     /// one, about its size (a card goes to the next card, a word to the next word).
-    /// `gather` (⇧): the one outlined stays, and the next joins it (they add up).
+    /// `gather` (⇧): the one outlined stays, and the next joins it (they add up); the
+    /// opposite arrow undoes the last one added.
     func move(_ direction: Direction, gather: Bool = false) {
+        if gather, let last = gatherSteps.last, last == direction.opposite, let previous = gathered.last {
+            gathered.removeLast()
+            if !gatherSteps.isEmpty { gatherSteps.removeLast() }
+            keyboardHold = lastProbe
+            hovered = previous
+            level = 0
+            return
+        }
         guard !moving, let current = singleTarget, let whole = target else { return }
         moving = true
         // Gathering: from the edge of all that's gathered. A plain arrow lets the group
@@ -259,7 +281,10 @@ final class MarkingSession {
                 picked.ancestors = Array(options.dropFirst(best + 1))
                 keyboardHold = lastProbe
                 if gather {
-                    if !gathered.contains(where: { $0.frame == current.frame }) { gathered.append(current) }
+                    if !gathered.contains(where: { $0.frame == current.frame }) {
+                        gathered.append(current)
+                        gatherSteps.append(direction)
+                    }
                 } else {
                     gathered = []
                 }
