@@ -4,6 +4,8 @@ What changed in each version of Aki. Versions follow [semantic versioning](https
 
 ## [Unreleased]
 
+## [0.4.3] — 2026-10-10
+
 ### Changed
 - Holding ⇧ while marking lets the pointer through to the page below (click, hover, open its menus); let go and Aki is back with a fresh picture.
 - Each session has its own colour (two of one project too), so a mark's colour says which session it goes to.
