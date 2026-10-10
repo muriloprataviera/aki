@@ -3,6 +3,23 @@
     <channel>
         <title>Aki</title>
         <item>
+            <title>0.4.3</title>
+            <pubDate>Sat, 10 Oct 2026 12:46:47 -0300</pubDate>
+            <sparkle:version>20261010154647</sparkle:version>
+            <sparkle:shortVersionString>0.4.3</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
+            <description><![CDATA[<h2>Aki 0.4.3</h2>
+<ul>
+<li><b>Add up with ⇧ and the arrows:</b> the next thing joins what's outlined, and ⏎ marks them as one area. The opposite arrow takes the last one back out.</li>
+<li><b>Bigger and smaller</b> are now ⌘↑ / ⌘↓.</li>
+<li><b>Hold ⇧ to use the page below</b> while marking: click, hover, open its menus. Let go and Aki is back with a fresh picture.</li>
+<li><b>Each session has its own colour</b>, so a mark's colour says where it goes.</li>
+</ul>
+]]></description>
+            <enclosure url="https://aki-updates.vercel.app/0.4.3/Aki-0.4.3.zip" length="3529755" type="application/octet-stream" sparkle:edSignature="vAzHIfHw/bCIzZ44TdNQLz3TVU6Am7VxN3XZDi7tld95JrvoivRFecPFQs5YYvV23Y3iCEJgOmbUkwS8qaQFDA=="/>
+        </item>
+        <item>
             <title>0.4.3-beta.5</title>
             <pubDate>Sat, 10 Oct 2026 12:42:10 -0300</pubDate>
             <sparkle:channel>beta</sparkle:channel>
@@ -14,32 +31,6 @@
 <ul><li>Holding ⇧ while marking lets the pointer through to the page below; let go and Aki is back with a fresh picture.</li></ul>
 ]]></description>
             <enclosure url="https://aki-updates.vercel.app/0.4.3-beta.5/Aki-0.4.3-beta.5.zip" length="3529782" type="application/octet-stream" sparkle:edSignature="NPF05yrG/RQBiHcnlvsn40/up1wZfdIF/9gyOug5/4vJr3YdvsCHJtGbLAaV1bcwa1yhElYA0L2iJYMJiMTeCA=="/>
-        </item>
-        <item>
-            <title>0.4.3-beta.4</title>
-            <pubDate>Sat, 10 Oct 2026 12:35:15 -0300</pubDate>
-            <sparkle:channel>beta</sparkle:channel>
-            <sparkle:version>20261010153515</sparkle:version>
-            <sparkle:shortVersionString>0.4.3-beta.4</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
-            <description><![CDATA[<h2>Aki 0.4.3 beta 4</h2>
-<ul><li>Each session has its own colour, so a mark's colour says which session it goes to.</li></ul>
-]]></description>
-            <enclosure url="https://aki-updates.vercel.app/0.4.3-beta.4/Aki-0.4.3-beta.4.zip" length="3527535" type="application/octet-stream" sparkle:edSignature="RareB49VaISsIiHhJykfEZKKh2wLnmuItCS5xUChEKSOgK3cR5pznnXzcHk/NcPQ103ALTOdSXkqg8tfI/q9DA=="/>
-        </item>
-        <item>
-            <title>0.4.3-beta.3</title>
-            <pubDate>Sat, 10 Oct 2026 12:24:45 -0300</pubDate>
-            <sparkle:channel>beta</sparkle:channel>
-            <sparkle:version>20261010152444</sparkle:version>
-            <sparkle:shortVersionString>0.4.3-beta.3</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
-            <description><![CDATA[<h2>Aki 0.4.3 beta 3</h2>
-<ul><li>⇧ with the opposite arrow takes the last added thing back out, as a text selection shrinks.</li></ul>
-]]></description>
-            <enclosure url="https://aki-updates.vercel.app/0.4.3-beta.3/Aki-0.4.3-beta.3.zip" length="3527463" type="application/octet-stream" sparkle:edSignature="RYYdsUU6a9+6FnzA6bFtWOuf2EBbTc8/TDZNqVB6eFs2rZyj8Fwh+5HiiPsXZfjkGHnPjIZzmT42YbYNnU/FCA=="/>
         </item>
         <item>
             <title>0.4.2</title>
@@ -70,36 +61,6 @@
 </ul>
 ]]></description>
             <enclosure url="https://aki-updates.vercel.app/0.4.1/Aki-0.4.1.zip" length="3516754" type="application/octet-stream" sparkle:edSignature="wHkcFtbFbXBlKeQ3+8Biq8MuFSeECfudQsyv7gtj0fO8oDMQONne9YzwcIT/75zoQz/8U0csw8ge1AMZAgG1Aw=="/>
-        </item>
-        <item>
-            <title>0.4.0</title>
-            <pubDate>Sat, 10 Oct 2026 10:07:44 -0300</pubDate>
-            <sparkle:version>20261010130743</sparkle:version>
-            <sparkle:shortVersionString>0.4.0</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
-            <description><![CDATA[<h2>Aki 0.4.0</h2>
-<h3>New</h3>
-<ul>
-<li><b>Marking leaves the app below alone</b>, like the Mac's own ⌘⇧4: an open menu stays open, a selection stays selected.</li>
-<li><b>The right session, by itself:</b> mark a <code>localhost:3001</code> page and your marks go to the session named "3001"; click an agent's tab in Orca and it becomes the destination.</li>
-<li><b>Each mark's picture is copied</b>: ⌘V pastes it anywhere (Settings turns it off).</li>
-<li><b>Walk the screen with the arrows</b>: ↑ ↓ ← → move to the next thing; ⇧↑ / ⇧↓ make it bigger or smaller; ⏎ marks it.</li>
-<li><b>Messages your agent can trust:</b> they say which session they're for, where the marks came from, and name them by code (<code>aki show df9f68</code>), so they work pasted into any terminal.</li>
-<li><b>The queue in the History sends</b> right there, and each mark's session can be changed.</li>
-<li>A new sidebar: the AI's symbol in each ring, its state in a word, the destination framed. Drag a project by its name; sessions idle for two days tuck themselves into "+N".</li>
-<li>Each mark has its own folder (<code>~/.aki/marks/&lt;day&gt;/&lt;code&gt;/</code>).</li>
-</ul>
-<h3>Fixed</h3>
-<ul>
-<li>Menus, drop-downs and Orca's own notices can be marked.</li>
-<li>↑ reaches the whole page; outlines stay inside the screen.</li>
-<li>⌘Tab works while marking; Aki's lists scroll.</li>
-<li>A ring no longer spins for a session that's resting.</li>
-<li>Clipboard histories (like Raycast's) show the copied picture.</li>
-</ul>
-]]></description>
-            <enclosure url="https://aki-updates.vercel.app/0.4.0/Aki-0.4.0.zip" length="3511089" type="application/octet-stream" sparkle:edSignature="IhaI3gQGMZ0y1RtQeaCsczyWZRt5d/JFhq3o7hUVUGWNhitoeL/Lm0bcDNd3jJbNt7oSuhEdG3EqoTik+qJdAA=="/>
         </item>
     </channel>
 </rss>
