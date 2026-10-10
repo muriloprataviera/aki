@@ -790,9 +790,9 @@ final class MarkingController {
         // Back over the page (⇧ alone had let the pointer through).
         if seeThrough {
             seeThrough = false
+            // A fresh picture of what changed below, then back over the page.
             scrollIdle?.cancel()
-            panels.forEach { $0.ignoresMouseEvents = false }
-            session.scrolling = false
+            scrollStopped()
         }
         AkiCursor.pin.set()
     }
@@ -886,6 +886,8 @@ final class MarkingController {
                     }
                 }
             }
+            // ⇧ still held: the pointer keeps going through (only the picture was renewed).
+            guard !self.seeThrough else { return }
             session.scrolling = false
             self.panels.forEach { $0.ignoresMouseEvents = false }
             // The key went to the app below: it keeps the focus (Aki reads keys anyway).
