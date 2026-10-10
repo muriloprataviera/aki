@@ -67,7 +67,10 @@ final class SidebarModel {
     /// Every agent conversation open (Claude sessions, Codex processes).
     var terminals: [AgentTerminal] = []
     /// The conversation new marks go to.
-    var selectedTerminal: String?
+    var selectedTerminal: String? {
+        // Another session chosen (the sidebar, a send): it wins over the tab you left.
+        didSet { if let pick = lastTabPick, pick.id != selectedTerminal { lastTabPick = nil } }
+    }
     /// Where new marks go: the chosen session while it can be marked for (hidden from
     /// the sidebar too: picked from "+N"), else the first one shown.
     /// The session you chose last (a ring, the marking's picker, where marks went last).
@@ -524,11 +527,30 @@ final class SidebarModel {
 
     /// Clicking an agent's tab in Orca makes it the destination. Any other tab, app or
     /// doubt (two sessions with that name) leaves the destination as it was.
+    /// The agent tab you were in, and when you last were: marking right after picks it
+    /// first (before the page's port), the strongest hint of where a print goes.
+    var lastTabPick: (id: String, at: Date)?
+
+    /// That session, if you were in its tab in the last two minutes.
+    var recentTabPick: String? {
+        guard let pick = lastTabPick, Date().timeIntervalSince(pick.at) < 120,
+              markableTerminals.contains(where: { $0.id == pick.id }) else { return nil }
+        return pick.id
+    }
+
     private func followOrcaFocus() {
-        guard preferences.followOrcaTab, let title = OrcaFocus.focusedTabTitle() else { return }
+        guard preferences.followOrcaTab else { return }
+        // Orca not in front: coming back to the same tab later counts as a click again.
+        if NSWorkspace.shared.frontmostApplication?.bundleIdentifier != OrcaFocus.bundleID {
+            if let tab = lastOrcaTab, !tab.hasPrefix("?") { lastOrcaTab = "?" + tab }
+            return
+        }
+        guard let title = OrcaFocus.focusedTabTitle() else { return }
         // The name without the status sign in front (✳ resting, a spinner working): a
         // session starting to work isn't you clicking its tab.
         let wanted = TerminalJump.normalized(title)
+        // Still in it: the pick stays fresh (two minutes count from when you left).
+        if wanted == lastOrcaTab, let pick = lastTabPick { lastTabPick = (pick.id, Date()) }
         guard wanted != lastOrcaTab else { return }
         let matches = markableTerminals.filter { $0.orcaHandle != nil && TerminalJump.normalized($0.name) == wanted }
         // A tab with no session (yet): noted as passed through ("?"), so coming back to
@@ -538,6 +560,7 @@ final class SidebarModel {
             return
         }
         lastOrcaTab = wanted
+        lastTabPick = (matches[0].id, Date())
         if selectedTerminal != matches[0].id { selectedTerminal = matches[0].id }
     }
 

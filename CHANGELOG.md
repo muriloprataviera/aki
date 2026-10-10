@@ -4,6 +4,9 @@ What changed in each version of Aki. Versions follow [semantic versioning](https
 
 ## [Unreleased]
 
+### Changed
+- Marking starts on the agent tab you were in a moment ago (the last two minutes), before the page's port; coming back to the same Orca tab counts as a click again. A session you pick on the sidebar still wins.
+
 ## [0.4.3] — 2026-10-10
 
 ### Changed
