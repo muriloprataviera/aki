@@ -42,11 +42,13 @@ public struct UsageLimits: Sendable, Equatable {
     /// Any log touched in the last week counts (a resumed session keeps writing to the
     /// folder of the day it began); among them, the report with the latest time wins.
     public static func codex(home: URL = codexHome, now: Date = Date()) -> UsageLimits? {
-        let sessions = home.appending(path: "sessions")
         let since = now.addingTimeInterval(-8 * 24 * 3600)
         var files: [(url: URL, modified: Date)] = []
         let keys: [URLResourceKey] = [.contentModificationDateKey, .isRegularFileKey]
-        if let walk = FileManager.default.enumerator(at: sessions, includingPropertiesForKeys: keys) {
+        // Archived sessions too: the latest report may sit in one Codex just archived.
+        for folder in ["sessions", "archived_sessions"] {
+            guard let walk = FileManager.default.enumerator(at: home.appending(path: folder), includingPropertiesForKeys: keys)
+            else { continue }
             for case let url as URL in walk where url.pathExtension == "jsonl" {
                 let modified = (try? url.resourceValues(forKeys: [.contentModificationDateKey]).contentModificationDate) ?? .distantPast
                 if modified >= since { files.append((url, modified)) }

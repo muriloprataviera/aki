@@ -361,6 +361,9 @@ public enum TokenPrices {
         ("claude-fable-5", Price(input: 10, output: 50, cacheRead: 1, cacheWrite: 12.5)),
         ("claude-opus-5", Price(input: 5, output: 25, cacheRead: 0.5, cacheWrite: 6.25)),
         ("claude-opus-4", Price(input: 5, output: 25, cacheRead: 0.5, cacheWrite: 6.25)),
+        // The first Opus 4 versions (4, 4.1) cost three times as much.
+        ("claude-opus-4-1", Price(input: 15, output: 75, cacheRead: 1.5, cacheWrite: 18.75)),
+        ("claude-opus-4-2025", Price(input: 15, output: 75, cacheRead: 1.5, cacheWrite: 18.75)),
         ("claude-sonnet", Price(input: 2, output: 10, cacheRead: 0.2, cacheWrite: 2.5)),
         ("claude-haiku", Price(input: 1, output: 5, cacheRead: 0.1, cacheWrite: 1.25)),
         ("gpt-6", Price(input: 10, output: 50, cacheRead: 1, cacheWrite: 12.5)),
