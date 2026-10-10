@@ -475,6 +475,7 @@ final class SidebarModel {
     }
 
     func select(_ terminal: AgentTerminal) {
+        choseOnSidebar(terminal.id)
         selectedTerminal = terminal.id
         selected = terminal.worktree
     }
@@ -531,6 +532,16 @@ final class SidebarModel {
     /// first (before the page's port), the strongest hint of where a print goes.
     var lastTabPick: (id: String, at: Date)?
 
+    /// The tab you were in when you chose a session on the sidebar: that choice holds
+    /// until you go to another tab.
+    @ObservationIgnored private var tabChosenAway: String?
+
+    /// A session chosen on the sidebar: it wins over the tab you're in.
+    private func choseOnSidebar(_ id: String) {
+        tabChosenAway = lastOrcaTab
+        if let pick = lastTabPick, pick.id != id { lastTabPick = nil }
+    }
+
     /// That session, if you were in its tab in the last two minutes.
     var recentTabPick: String? {
         guard preferences.followOrcaTab, let pick = lastTabPick, Date().timeIntervalSince(pick.at) < 120,
@@ -552,7 +563,9 @@ final class SidebarModel {
         let matches = markableTerminals.filter { $0.orcaHandle != nil && TerminalJump.normalized($0.name) == wanted }
         // While you're in an agent's tab, "you're here" is kept fresh (even after marks
         // went elsewhere): marking now, or within two minutes of leaving, starts on it.
-        if matches.count == 1 { lastTabPick = (matches[0].id, Date()) }
+        // (Not while you've chosen another session on the sidebar from this same tab.)
+        if matches.count == 1, wanted != tabChosenAway { lastTabPick = (matches[0].id, Date()) }
+        if wanted != lastOrcaTab { tabChosenAway = nil }
         guard wanted != lastOrcaTab else { return }
         // A tab with no session (yet): noted as passed through ("?"), so coming back to
         // the one before counts as a click; a session that appears for it is picked then.
@@ -766,6 +779,7 @@ final class SidebarModel {
         // Resting sessions count too (a project shown only by its older ones).
         if let terminal = markableTerminals.filter({ $0.worktree == session.worktree && (agent == nil || $0.agent == agent) })
             .max(by: { ($0.updatedAt ?? .distantPast) < ($1.updatedAt ?? .distantPast) }) {
+            choseOnSidebar(terminal.id)
             selectedTerminal = terminal.id
         }
     }
