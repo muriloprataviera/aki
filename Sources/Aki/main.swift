@@ -115,16 +115,13 @@ do {
         if !codes.isEmpty {
             var all = try await client.list(status: "pending")
             all += try await client.list(status: "completed").filter { done in !all.contains { $0.id == done.id } }
-            let (found, problems) = MarkFolder.resolve(codes, in: all)
+            let (found, problems, unknown) = MarkFolder.resolveAll(codes, in: all)
             ids += found.map(\.id)
             // Not found as a code among pending and done marks: taken as a full id
-            // (an archived mark, one from the API) — the server says if it exists.
-            let unresolved = codes.filter { code in
-                let bare = code.trimmingCharacters(in: CharacterSet(charactersIn: "#")).lowercased()
-                return !found.contains { $0.id.lowercased() == bare || MarkFolder.code($0.id).hasPrefix(bare) }
-            }
-            for token in unresolved where !token.hasPrefix("#") { ids.append(token) }
-            problems.filter { p in !unresolved.contains { p.hasSuffix($0) || p.contains(" \($0)") } }.forEach { print("# \($0)") }
+            // (an archived mark, one from the API); the server says if it exists.
+            let asIDs = unknown.filter { !$0.hasPrefix("#") }
+            ids += asIDs
+            problems.filter { p in !asIDs.contains { p == "no mark \($0)" } }.forEach { print("# \($0)") }
         }
         guard !ids.isEmpty else { fail("no marks found") }
         for id in ids {

@@ -87,8 +87,18 @@ public enum MarkFolder {
     /// Finds marks by their short codes (with or without "#") or full ids. Unknown or
     /// ambiguous ones come back in `problems`, said plainly.
     public static func resolve(_ tokens: [String], in all: [Annotation]) -> (found: [Annotation], problems: [String]) {
+        let result = resolveAll(tokens, in: all)
+        return (result.found, result.problems)
+    }
+
+    /// The same, plus the tokens that matched nothing (as given), for callers that try
+    /// them another way (a full id of an archived mark).
+    public static func resolveAll(_ tokens: [String], in all: [Annotation])
+        -> (found: [Annotation], problems: [String], unknown: [String])
+    {
         var found: [Annotation] = []
         var problems: [String] = []
+        var unknown: [String] = []
         for raw in tokens {
             let token = raw.trimmingCharacters(in: CharacterSet(charactersIn: "#“”\"', ")).lowercased()
             guard !token.isEmpty else { continue }
@@ -99,11 +109,13 @@ public enum MarkFolder {
             let matches = all.filter { code($0.id) == token || (token.count >= 4 && code($0.id).hasPrefix(token)) }
             switch matches.count {
             case 1: found.append(matches[0])
-            case 0: problems.append("no mark \(raw)")
+            case 0:
+                problems.append("no mark \(raw)")
+                unknown.append(raw)
             default: problems.append("\(raw) matches \(matches.count) marks: \(matches.map(\.id).joined(separator: ", "))")
             }
         }
-        return (found, problems)
+        return (found, problems, unknown)
     }
 }
 
