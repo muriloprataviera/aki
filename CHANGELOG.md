@@ -4,6 +4,8 @@ What changed in each version of Aki. Versions follow [semantic versioning](https
 
 ## [Unreleased]
 
+## [0.4.4] — 2026-10-10
+
 ### Added
 - ⌘Z undoes the last mark; Space held while dragging moves the whole area (as the Mac's ⌘⇧4).
 

@@ -135,6 +135,8 @@ Aki is always on: the **bar at the edge of your screen** and the **pin in the me
 | <kbd>⇧</kbd> + arrows | Add the next one to what's outlined (the opposite arrow takes it back out) |
 | <kbd>⌘↑</kbd> <kbd>⌘↓</kbd> | Bigger (what holds it) · smaller (back inside) |
 | <kbd>⇧</kbd> held | Use the page below as is (click, hover, menus); let go to mark again |
+| <kbd>⌘Z</kbd> | Undo the last mark |
+| <kbd>Space</kbd> while dragging | Move the whole area |
 | <kbd>⏎</kbd> | Mark what's outlined |
 | <kbd>⌥</kbd> | Lines of text instead of elements |
 | <kbd>esc</kbd> | Leave (the queue is kept) |
