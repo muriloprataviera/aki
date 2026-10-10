@@ -765,7 +765,14 @@ final class SidebarModel {
             let pending = await pendingMarks(of: terminal)
             let waiting = pending.filter { $0["delivered_at"]?.string == nil }.map(\.id)
             var current = terminal
-            current.pendingIDs = pending.sorted { ($0["created_at"]?.string ?? "") < ($1["created_at"]?.string ?? "") }.map(\.id)
+            let oldestFirst = pending.sorted { ($0["created_at"]?.string ?? "") < ($1["created_at"]?.string ?? "") }
+            current.pendingIDs = oldestFirst.map(\.id)
+            // The words too, from the same list (each comment beside its own code).
+            current.pendingComments = oldestFirst.reversed().prefix(3).map {
+                $0["comment"]?.string.flatMap { $0.isEmpty ? nil : $0 } ?? "(no text)"
+            }
+            current.pending = pending.count
+            current.undelivered = waiting.count
             let result = await TerminalJump.deliver(to: current)
             delivery[terminal.id] = result == .sent ? .sent : .failed
             if result == .sent { await markDelivered(waiting, for: terminal) }

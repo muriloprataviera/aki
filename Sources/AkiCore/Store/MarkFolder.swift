@@ -110,7 +110,12 @@ public enum MarkFolder {
                 found.append(exact)
                 continue
             }
-            let matches = all.filter { code($0.id) == token || (token.count >= 4 && code($0.id).hasPrefix(token)) }
+            // The short code (6), its start, or the id's whole random part (8, as the
+            // message's commands write it).
+            let matches = all.filter { a in
+                let whole = folderName(a.id).lowercased()
+                return code(a.id) == token || whole == token || (token.count >= 4 && whole.hasPrefix(token))
+            }
             switch matches.count {
             case 1: found.append(matches[0])
             case 0:
