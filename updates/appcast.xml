@@ -3,6 +3,20 @@
     <channel>
         <title>Aki</title>
         <item>
+            <title>0.4.0-beta.32</title>
+            <pubDate>Sat, 10 Oct 2026 09:08:22 -0300</pubDate>
+            <sparkle:channel>beta</sparkle:channel>
+            <sparkle:version>20261010120822</sparkle:version>
+            <sparkle:shortVersionString>0.4.0-beta.32</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
+            <description><![CDATA[<h2>Aki 0.4.0 beta 32</h2>
+<ul><li>The card says when a mark's picture is on the clipboard ("Copied · ⌘V pastes it").</li>
+<li>The crop comes first on the card; with Settings on "Crop" only, the text read is left out.</li></ul>
+]]></description>
+            <enclosure url="https://aki-updates.vercel.app/0.4.0-beta.32/Aki-0.4.0-beta.32.zip" length="3495767" type="application/octet-stream" sparkle:edSignature="MPm7b4RaSywdMRbOZ7z9GhXLH4hFaaM32ONZUiG3KK3Zw2qxGk5H4yaSaQ7q0p6/VSoRCaquCSvpJlVy01DsBw=="/>
+        </item>
+        <item>
             <title>0.4.0-beta.31</title>
             <pubDate>Fri, 09 Oct 2026 23:33:30 -0300</pubDate>
             <sparkle:channel>beta</sparkle:channel>
@@ -28,20 +42,6 @@
 <li>A mark on a localhost page switches the destination to that port's session right then.</li></ul>
 ]]></description>
             <enclosure url="https://aki-updates.vercel.app/0.4.0-beta.30/Aki-0.4.0-beta.30.zip" length="3486720" type="application/octet-stream" sparkle:edSignature="SPF+w1zBYdzF5vwTKlhkpYYfc3LJMg+MSrrmvpc4Eg4zUuF8BsLJqHEKcPKkIsYhrERj9/1RqmI/1+S3hW0YCQ=="/>
-        </item>
-        <item>
-            <title>0.4.0-beta.29</title>
-            <pubDate>Fri, 09 Oct 2026 18:30:20 -0300</pubDate>
-            <sparkle:channel>beta</sparkle:channel>
-            <sparkle:version>20261009213019</sparkle:version>
-            <sparkle:shortVersionString>0.4.0-beta.29</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
-            <description><![CDATA[<h2>Aki 0.4.0 beta 29</h2>
-<ul><li>A mark says the app and page where it was made, even when marking began in another app.</li>
-<li>The comment card's buttons fit again with three of them.</li></ul>
-]]></description>
-            <enclosure url="https://aki-updates.vercel.app/0.4.0-beta.29/Aki-0.4.0-beta.29.zip" length="3474906" type="application/octet-stream" sparkle:edSignature="EfNQnSbWXYVC1l+KkpvAyz5W9LcX9IK/Q7LuA591FdNyCFduWmmDStN144gx5doAV/VdnShq1g9WRICaWZ5WCQ=="/>
         </item>
         <item>
             <title>0.3.3</title>
