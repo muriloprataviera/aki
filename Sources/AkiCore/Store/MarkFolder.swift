@@ -1,3 +1,4 @@
+import CryptoKit
 import Foundation
 
 /// Every mark has a folder of its own, found by its day and its short code:
@@ -22,9 +23,13 @@ public enum MarkFolder {
         // Aki's own ids (aki_<time>_<random>): their random part. Others (the API, the
         // extension): the whole id, so "note_1" and "task_1" never share a folder.
         let tail = id.hasPrefix("aki_") ? (id.split(separator: "_").last.map(String.init) ?? id) : id
-        // Case and "_" kept: "Note", "note", "note_1" and "note1" are four marks.
-        let clean = id.hasPrefix("aki_") ? tail.lowercased().filter { $0.isLetter || $0.isNumber }
-            : String(tail.map { $0.isLetter || $0.isNumber || $0 == "-" || $0 == "_" ? $0 : "-" })
+        // Others: a fingerprint of the whole id (any characters, any case), so no two
+        // ids ever share a folder.
+        guard id.hasPrefix("aki_") else {
+            let digest = SHA256.hash(data: Data(id.utf8)).map { String(format: "%02x", $0) }.joined()
+            return "x" + digest.prefix(15)
+        }
+        let clean = tail.lowercased().filter { $0.isLetter || $0.isNumber }
         return clean.isEmpty ? "mark" : clean
     }
 

@@ -139,7 +139,9 @@ enum TerminalJump {
             + (about.isEmpty ? "." : " — \(about).")
         // By code (no "#" in the command: a shell takes it as a comment): works pasted
         // into any terminal. Many marks: the session's list instead.
-        guard !codes.isEmpty, codes.count <= 8 else {
+        // Codes only for Aki's own marks; one from elsewhere (the extension, the API):
+        // the session's list, never a code that could name another mark.
+        guard !codes.isEmpty, codes.count <= 8, terminal.pendingIDs.allSatisfy({ $0.hasPrefix("aki_") }) else {
             return head + " Leia com `\(aki) list` (abra a foto só se o pedido for visual), resolva e feche com `\(aki) done <códigos>`."
                 + " Se não forem para esta sessão, avise antes de mexer."
         }
