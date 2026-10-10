@@ -4,6 +4,9 @@ What changed in each version of Aki. Versions follow [semantic versioning](https
 
 ## [Unreleased]
 
+### Changed
+- When the sidebar is full, every project still shows (its most active session, with its name); the other places go by activity.
+
 ## [0.4.1] — 2026-10-10
 
 ### Fixed

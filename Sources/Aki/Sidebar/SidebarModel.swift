@@ -393,8 +393,20 @@ final class SidebarModel {
             let ranked = all.enumerated().sorted { a, b in
                 activity(a.element) != activity(b.element) ? activity(a.element) > activity(b.element) : a.offset < b.offset
             }
-            let kept = Set(ranked.prefix(limit - 1).map(\.element.id))
-            return all.filter { kept.contains($0.id) }.map(Ring.terminal) + [.more(all.filter { !kept.contains($0.id) } + hidden)]
+            // Every project shows (its name over it): first the destination and each
+            // project's most active session, then the rest of the room by activity.
+            var kept: [String] = []
+            if let destination = selectedTerminal, all.contains(where: { $0.id == destination }) { kept.append(destination) }
+            if preferences.showProjects {
+                var seen = Set(kept.compactMap { id in all.first { $0.id == id }.map(projectKey(of:)) })
+                for entry in ranked where kept.count < limit - 1 {
+                    let key = projectKey(of: entry.element)
+                    if seen.insert(key).inserted, !kept.contains(entry.element.id) { kept.append(entry.element.id) }
+                }
+            }
+            for entry in ranked where kept.count < limit - 1 && !kept.contains(entry.element.id) { kept.append(entry.element.id) }
+            let keptSet = Set(kept)
+            return all.filter { keptSet.contains($0.id) }.map(Ring.terminal) + [.more(all.filter { !keptSet.contains($0.id) } + hidden)]
         }
     }
 
