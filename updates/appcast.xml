@@ -3,6 +3,23 @@
     <channel>
         <title>Aki</title>
         <item>
+            <title>0.4.4</title>
+            <pubDate>Sat, 10 Oct 2026 13:41:15 -0300</pubDate>
+            <sparkle:version>20261010164115</sparkle:version>
+            <sparkle:shortVersionString>0.4.4</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
+            <description><![CDATA[<h2>Aki 0.4.4</h2>
+<ul>
+<li><b>The right session, by itself:</b> marking starts on the agent tab you're in, or were in a moment ago, before the page's port.</li>
+<li><b>⌘Z</b> undoes the last mark.</li>
+<li><b>Space</b> held while dragging moves the whole area, as the Mac's ⌘⇧4.</li>
+<li>⇧ in the middle of a drag no longer gets in the way.</li>
+</ul>
+]]></description>
+            <enclosure url="https://aki-updates.vercel.app/0.4.4/Aki-0.4.4.zip" length="3535606" type="application/octet-stream" sparkle:edSignature="l1YcgtaAno9dKl+ulV+2wi8kk47fZ3CHlftbFqLzILf3ajBmNsR+g7k9UBxuHDmrKTOBZdKucRTXti9CvZABAg=="/>
+        </item>
+        <item>
             <title>0.4.4-beta.2</title>
             <pubDate>Sat, 10 Oct 2026 13:12:04 -0300</pubDate>
             <sparkle:channel>beta</sparkle:channel>
@@ -15,19 +32,6 @@
 <li>⌘Z undoes the last mark; Space while dragging moves the area.</li></ul>
 ]]></description>
             <enclosure url="https://aki-updates.vercel.app/0.4.4-beta.2/Aki-0.4.4-beta.2.zip" length="3535619" type="application/octet-stream" sparkle:edSignature="7lWsttgcoID3G8RAR/yKgeQvV9aKQ3t/cv+4kC166tdh54iYHbKxiIBQHPii7xJ9vGs5F6XMTLy/onxCYGRADw=="/>
-        </item>
-        <item>
-            <title>0.4.4-beta.1</title>
-            <pubDate>Sat, 10 Oct 2026 12:52:44 -0300</pubDate>
-            <sparkle:channel>beta</sparkle:channel>
-            <sparkle:version>20261010155244</sparkle:version>
-            <sparkle:shortVersionString>0.4.4-beta.1</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
-            <description><![CDATA[<h2>Aki 0.4.4 beta 1</h2>
-<ul><li>Marking starts on the agent tab you were in a moment ago, before the page's port.</li></ul>
-]]></description>
-            <enclosure url="https://aki-updates.vercel.app/0.4.4-beta.1/Aki-0.4.4-beta.1.zip" length="3532712" type="application/octet-stream" sparkle:edSignature="XPMjLe1VwfIRW/EaHbPXH0TRVJkyRz9zaOWs8R7oISKK2wW6EEOUKf6F9anCuqBc2YVZxfCSvzQ27OV382olBA=="/>
         </item>
         <item>
             <title>0.4.3</title>
@@ -47,19 +51,6 @@
             <enclosure url="https://aki-updates.vercel.app/0.4.3/Aki-0.4.3.zip" length="3529755" type="application/octet-stream" sparkle:edSignature="vAzHIfHw/bCIzZ44TdNQLz3TVU6Am7VxN3XZDi7tld95JrvoivRFecPFQs5YYvV23Y3iCEJgOmbUkwS8qaQFDA=="/>
         </item>
         <item>
-            <title>0.4.3-beta.5</title>
-            <pubDate>Sat, 10 Oct 2026 12:42:10 -0300</pubDate>
-            <sparkle:channel>beta</sparkle:channel>
-            <sparkle:version>20261010154209</sparkle:version>
-            <sparkle:shortVersionString>0.4.3-beta.5</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
-            <description><![CDATA[<h2>Aki 0.4.3 beta 5</h2>
-<ul><li>Holding ⇧ while marking lets the pointer through to the page below; let go and Aki is back with a fresh picture.</li></ul>
-]]></description>
-            <enclosure url="https://aki-updates.vercel.app/0.4.3-beta.5/Aki-0.4.3-beta.5.zip" length="3529782" type="application/octet-stream" sparkle:edSignature="NPF05yrG/RQBiHcnlvsn40/up1wZfdIF/9gyOug5/4vJr3YdvsCHJtGbLAaV1bcwa1yhElYA0L2iJYMJiMTeCA=="/>
-        </item>
-        <item>
             <title>0.4.2</title>
             <pubDate>Sat, 10 Oct 2026 11:47:54 -0300</pubDate>
             <sparkle:version>20261010144754</sparkle:version>
@@ -70,24 +61,6 @@
 <ul><li>When the sidebar is full, every project still shows, with its name over its most active session.</li></ul>
 ]]></description>
             <enclosure url="https://aki-updates.vercel.app/0.4.2/Aki-0.4.2.zip" length="3518147" type="application/octet-stream" sparkle:edSignature="bJU1X68hcpjHiiXJmHcZfzMn3M5r6gGd6ceH5d74QWBLKueVMsW4CY6c1xYfi7F/+ma/NXb5IbYZPhjNTsriCA=="/>
-        </item>
-        <item>
-            <title>0.4.1</title>
-            <pubDate>Sat, 10 Oct 2026 10:44:46 -0300</pubDate>
-            <sparkle:version>20261010134445</sparkle:version>
-            <sparkle:shortVersionString>0.4.1</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
-            <description><![CDATA[<h2>Aki 0.4.1</h2>
-<h3>Fixed</h3>
-<ul>
-<li>The message typed to your agent names exactly the marks it records as delivered.</li>
-<li>Coming back to an Orca tab through one with no agent makes it the destination again.</li>
-<li>esc and ⌘⏎ still work after switching apps while writing a comment.</li>
-<li>The commands in the message use each mark's full code, so two marks can't be confused.</li>
-</ul>
-]]></description>
-            <enclosure url="https://aki-updates.vercel.app/0.4.1/Aki-0.4.1.zip" length="3516754" type="application/octet-stream" sparkle:edSignature="wHkcFtbFbXBlKeQ3+8Biq8MuFSeECfudQsyv7gtj0fO8oDMQONne9YzwcIT/75zoQz/8U0csw8ge1AMZAgG1Aw=="/>
         </item>
     </channel>
 </rss>
