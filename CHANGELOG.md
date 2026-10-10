@@ -5,7 +5,7 @@ What changed in each version of Aki. Versions follow [semantic versioning](https
 ## [Unreleased]
 
 ### Changed
-- ⇧ with the arrows adds the next thing to what's outlined (they're marked together as one area); bigger and smaller moved to ⌘↑ / ⌘↓.
+- ⇧ with the arrows adds the next thing to what's outlined (they're marked together as one area); bigger and smaller moved to ⌘↑ / ⌘↓. While ⇧ is held for that, the pin and the outline stay.
 
 ## [0.4.2] — 2026-10-10
 

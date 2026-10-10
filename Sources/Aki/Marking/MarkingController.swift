@@ -492,6 +492,7 @@ final class MarkingController {
         keyTap?.stop()
         keyTap = nil
         takingFocus = false
+        shiftGathering = false
         let hadFocus = NSApp.isActive
         scrollMonitors.forEach(NSEvent.removeMonitor)
         scrollMonitors.removeAll()
@@ -643,15 +644,19 @@ final class MarkingController {
                 return true
             // ⇧ with the arrows: the next one joins what's outlined (they add up).
             case 126 where session.editing == nil && event.modifierFlags.contains(.shift):
+                self.startGathering()
                 session.move(.up, gather: true)
                 return true
             case 125 where session.editing == nil && event.modifierFlags.contains(.shift):
+                self.startGathering()
                 session.move(.down, gather: true)
                 return true
             case 123 where session.editing == nil && event.modifierFlags.contains(.shift):
+                self.startGathering()
                 session.move(.left, gather: true)
                 return true
             case 124 where session.editing == nil && event.modifierFlags.contains(.shift):
+                self.startGathering()
                 session.move(.right, gather: true)
                 return true
             // The plain arrows walk the screen: the thing above, below, on either side.
@@ -776,7 +781,23 @@ final class MarkingController {
     private var reactivateAfterCapture = false
 
     /// ⇧: the computer's own arrow, so it's clear the click goes through; let go, the pin.
+    private func startGathering() {
+        guard let session, !shiftGathering else { return }
+        shiftGathering = true
+        session.shiftHeld = false
+        AkiCursor.passThrough = false
+        AkiCursor.pin.set()
+    }
+
+    /// ⇧ held for gathering (an arrow pressed with it): no "normal click" look until
+    /// it's let go — the pin and the outline stay, so you see what adds up.
+    private var shiftGathering = false
+
     private func followShift(_ held: Bool) {
+        if shiftGathering {
+            if !held { shiftGathering = false }
+            return
+        }
         guard let session, held != session.shiftHeld else { return }
         session.shiftHeld = held
         AkiCursor.passThrough = held
