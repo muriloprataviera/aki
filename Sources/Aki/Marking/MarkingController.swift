@@ -493,6 +493,7 @@ final class MarkingController {
         keyTap = nil
         takingFocus = false
         shiftGathering = false
+        seeThrough = false
         let hadFocus = NSApp.isActive
         scrollMonitors.forEach(NSEvent.removeMonitor)
         scrollMonitors.removeAll()
@@ -786,8 +787,20 @@ final class MarkingController {
         shiftGathering = true
         session.shiftHeld = false
         AkiCursor.passThrough = false
+        // Back over the page (⇧ alone had let the pointer through).
+        if seeThrough {
+            seeThrough = false
+            scrollIdle?.cancel()
+            panels.forEach { $0.ignoresMouseEvents = false }
+            session.scrolling = false
+        }
         AkiCursor.pin.set()
     }
+
+    /// ⇧ held (no comment being written): the marking screen lets the pointer through,
+    /// so the page below is used as is — clicks, hover, its menus. Let go: back on top,
+    /// the screens captured again.
+    private var seeThrough = false
 
     /// ⇧ held for gathering (an arrow pressed with it): no "normal click" look until
     /// it's let go — the pin and the outline stay, so you see what adds up.
@@ -802,6 +815,16 @@ final class MarkingController {
         session.shiftHeld = held
         AkiCursor.passThrough = held
         (held ? NSCursor.arrow : AkiCursor.pin).set()
+        if held, session.editing == nil, !session.flying, !session.sending {
+            seeThrough = true
+            scrollIdle?.cancel()
+            session.scrolling = true
+            panels.forEach { $0.ignoresMouseEvents = true }
+        } else if !held, seeThrough {
+            seeThrough = false
+            // What changed below (a menu opened, a page moved) is captured, then Aki is back.
+            scrollMoved()
+        }
     }
 
     /// ⇧-click: the overlays step aside as when scrolling, a plain click (no ⇧) lands
