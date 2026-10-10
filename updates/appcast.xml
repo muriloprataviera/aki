@@ -3,6 +3,19 @@
     <channel>
         <title>Aki</title>
         <item>
+            <title>0.4.0-beta.36</title>
+            <pubDate>Sat, 10 Oct 2026 09:48:37 -0300</pubDate>
+            <sparkle:channel>beta</sparkle:channel>
+            <sparkle:version>20261010124837</sparkle:version>
+            <sparkle:shortVersionString>0.4.0-beta.36</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
+            <description><![CDATA[<h2>Aki 0.4.0 beta 36</h2>
+<ul><li>The sessions list opens to the card's right (below it at the screen's edge), and the queue moves out of its way.</li></ul>
+]]></description>
+            <enclosure url="https://aki-updates.vercel.app/0.4.0-beta.36/Aki-0.4.0-beta.36.zip" length="3510326" type="application/octet-stream" sparkle:edSignature="aypBpNA8/8DJvmChHyw6YQwGJFOPx8gB13BP/hk9VQG/xGhF/A9I70u9gnjvXV/2Xo7jVOcVNkLlNH2ClFJLCw=="/>
+        </item>
+        <item>
             <title>0.4.0-beta.35</title>
             <pubDate>Sat, 10 Oct 2026 09:39:00 -0300</pubDate>
             <sparkle:channel>beta</sparkle:channel>
@@ -27,19 +40,6 @@
 <ul><li>A copied mark is one picture on the clipboard, with its preview in clipboard histories like Raycast's.</li></ul>
 ]]></description>
             <enclosure url="https://aki-updates.vercel.app/0.4.0-beta.34/Aki-0.4.0-beta.34.zip" length="3495899" type="application/octet-stream" sparkle:edSignature="iEkezwOj5FSvb85WJi78vCC5r0BnTjaXPgVvAZaxAD7slOVCSgAxty0ooG88vmuRhewFuJHCyId9RIZaJpEfDg=="/>
-        </item>
-        <item>
-            <title>0.4.0-beta.33</title>
-            <pubDate>Sat, 10 Oct 2026 09:13:38 -0300</pubDate>
-            <sparkle:channel>beta</sparkle:channel>
-            <sparkle:version>20261010121337</sparkle:version>
-            <sparkle:shortVersionString>0.4.0-beta.33</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
-            <description><![CDATA[<h2>Aki 0.4.0 beta 33</h2>
-<ul><li>The text read is back on the card, after the crop.</li></ul>
-]]></description>
-            <enclosure url="https://aki-updates.vercel.app/0.4.0-beta.33/Aki-0.4.0-beta.33.zip" length="3495749" type="application/octet-stream" sparkle:edSignature="Mf4gMyCJxrq1+22VoEi4B7IXkhhKncxE49tAFYjUmOZTzr/tr01fdtSYAHKt/ZTPx2q+jbawBSVEEoQ1UjgRCw=="/>
         </item>
         <item>
             <title>0.3.3</title>
