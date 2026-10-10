@@ -19,6 +19,7 @@ What changed in each version of Aki. Versions follow [semantic versioning](https
 ## [Unreleased]
 
 ### Added
+- The card says when a mark's picture is on the clipboard ("Copied · ⌘V pastes it").
 - Each mark's picture also goes to the clipboard (⌘V pastes it anywhere); Settings turns it off.
 - A mark on a localhost page switches the destination to that port's session right then (unless you chose one yourself); two sessions named with the port: the one used last.
 - Sessions untouched for more than two days wait in "+N" by themselves and come back when they move (never one with marks, the destination, or one working or waiting for you).
@@ -37,6 +38,7 @@ What changed in each version of Aki. Versions follow [semantic versioning](https
 - The short `aki` command in Terminal: the one-line installer adds it (your password, once), and Get started offers it to those who came by the DMG.
 
 ### Changed
+- The comment card shows the crop first; with Settings on "Crop" only, the text read is left out.
 - Marking no longer takes the focus from the app below (as the Mac's own ⌘⇧4): its open menu stays open, its selection stays. Aki takes the keyboard only when you write a comment.
 - Aki also looks for a new version when the Mac wakes up, not only on the hour.
 - The sidebar's rings, in Aki's colours: the AI's symbol in the middle, and the ring tells the state — a light arc turning slowly while it works, red when it waits for you, quiet otherwise. Under each name, its state in a word (working, idle, waiting for you). The session your marks go to is framed, with "destination" and Aki's pin; your requests an AI hasn't finished show as "1 to do". No more initials, one colour per project or gradients.

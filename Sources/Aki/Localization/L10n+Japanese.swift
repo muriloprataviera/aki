@@ -339,6 +339,7 @@ extension L10n {
         "Send only this one": "これだけ送る",
         "Copy each mark's picture": "マークごとに画像をコピー",
         "The piece you mark also goes to the clipboard: ⌘V pastes it anywhere.": "マークした部分はクリップボードにも入ります。⌘V でどこにでも貼り付けられます。",
+        "Copied · ⌘V pastes it": "コピー済み · ⌘V で貼り付け",
         "Send to the terminal by itself": "ターミナルに自動で送信",
         "Types the request into the session's Orca tab when you stop marking (it waits while the agent is working).": "マークを終えると、セッションの Orca タブに依頼を入力します(エージェントの作業中は待ちます)。",
         "Hide the sidebar": "サイドバーを隠す",

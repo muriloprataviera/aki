@@ -495,14 +495,45 @@ struct MarkingView: View {
                 }
                 .help(context.url ?? context.windowTitle ?? "")
                 Spacer(minLength: 6)
-                Text(L10n.t(mark.sendsImage ? "Visual → picture" : "Text → text only"))
-                    .font(.system(size: 9.5, weight: .semibold))
-                    .foregroundStyle(.white.opacity(0.5))
-                    .fixedSize()
+                if session.copied == mark.id {
+                    // The crop is on the clipboard: ⌘V pastes it anywhere.
+                    Label(L10n.t("Copied · ⌘V pastes it"), systemImage: "checkmark.circle.fill")
+                        .font(.system(size: 9.5, weight: .bold))
+                        .foregroundStyle(.white)
+                        .padding(.horizontal, 7).frame(height: 18)
+                        .background(Capsule().fill(Color.green.opacity(0.75)))
+                        .fixedSize()
+                        .transition(.opacity.combined(with: .scale))
+                } else {
+                    Text(L10n.t(mark.sendsImage ? "Visual → picture" : "Text → text only"))
+                        .font(.system(size: 9.5, weight: .semibold))
+                        .foregroundStyle(.white.opacity(0.5))
+                        .fixedSize()
+                }
             }
-            // The text first (usually what helps the agent most), then the crop.
+            .animation(.easeOut(duration: 0.2), value: session.copied)
+            // The crop first (what most marks are about), then the text read, unless
+            // Settings sends only the picture.
+            let pictureOnly = Preferences.shared.markContent == .image
             HStack(alignment: .top, spacing: 8) {
-                if let text = text ?? (session.texts[mark.screen] == nil && !mark.isPoint ? L10n.t("Reading the text…") : nil) {
+                if let image {
+                    // The picture that goes to the agent; click to leave it out.
+                    PreviewTile(title: L10n.t("Crop"), icon: "photo", on: mark.sendsImage, hue: hue) {
+                        Image(nsImage: image)
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                            .frame(maxWidth: .infinity, maxHeight: pictureOnly ? 140 : 92)
+                            .background(Color.black)
+                    } toggle: {
+                        session.toggle(mark.id, image: true)
+                    } copy: {
+                        NSPasteboard.general.clearContents()
+                        NSPasteboard.general.writeObjects([image])
+                    } zoom: {
+                        ImageZoom.show(image)
+                    }
+                }
+                if !pictureOnly, let text = text ?? (session.texts[mark.screen] == nil && !mark.isPoint ? L10n.t("Reading the text…") : nil) {
                     PreviewTile(title: L10n.t("Text read"), icon: "text.alignleft", on: mark.sendsText, hue: hue) {
                         ScrollView {
                             Text(text)
@@ -517,23 +548,6 @@ struct MarkingView: View {
                     } copy: {
                         NSPasteboard.general.clearContents()
                         NSPasteboard.general.setString(text, forType: .string)
-                    }
-                }
-                if let image {
-                    // The picture that goes to the agent; click to leave it out.
-                    PreviewTile(title: L10n.t("Crop"), icon: "photo", on: mark.sendsImage, hue: hue) {
-                        Image(nsImage: image)
-                            .resizable()
-                            .aspectRatio(contentMode: .fit)
-                            .frame(maxWidth: .infinity, maxHeight: 92)
-                            .background(Color.black)
-                    } toggle: {
-                        session.toggle(mark.id, image: true)
-                    } copy: {
-                        NSPasteboard.general.clearContents()
-                        NSPasteboard.general.writeObjects([image])
-                    } zoom: {
-                        ImageZoom.show(image)
                     }
                 }
             }

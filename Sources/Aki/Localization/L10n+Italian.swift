@@ -339,6 +339,7 @@ extension L10n {
         "Send only this one": "Invia solo questo",
         "Copy each mark's picture": "Copia l’immagine di ogni segno",
         "The piece you mark also goes to the clipboard: ⌘V pastes it anywhere.": "Quello che segni va anche negli appunti: ⌘V lo incolla ovunque.",
+        "Copied · ⌘V pastes it": "Copiato · ⌘V incolla",
         "Send to the terminal by itself": "Invia da solo al terminale",
         "Types the request into the session's Orca tab when you stop marking (it waits while the agent is working).": "Scrive la richiesta nella scheda Orca della sessione quando smetti di segnare (aspetta se l'agente sta lavorando).",
         "Hide the sidebar": "Nascondi la barra laterale",

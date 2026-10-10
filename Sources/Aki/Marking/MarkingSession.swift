@@ -493,8 +493,17 @@ final class MarkingSession {
     func copyPicture(of id: UUID, from grab: ScreenGrab? = nil) {
         guard Preferences.shared.copyCrop, var mark = marks.first(where: { $0.id == id }) else { return }
         if let grab { mark.grab = grab }
-        if let image = previewImage(of: mark) { Self.copy(image) }
+        guard let image = previewImage(of: mark) else { return }
+        Self.copy(image)
+        // Said on the card for a moment: it's on the clipboard.
+        copied = id
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) { [weak self] in
+            if self?.copied == id { self?.copied = nil }
+        }
     }
+
+    /// The mark whose crop was just copied (the card says so for a moment).
+    var copied: UUID?
 
     /// An image on the clipboard, as PNG (what most apps paste) and as an image.
     static func copy(_ image: NSImage) {
