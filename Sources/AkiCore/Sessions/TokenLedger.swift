@@ -6,7 +6,7 @@ import Foundation
 /// Reads only the usage numbers of each request (time, folder, model, token
 /// counts), never what was said. Incremental: each log's read position is kept,
 /// so a pass only reads what was appended, and the state is saved in
-/// `~/.aki/usage-ledger.json` so a relaunch doesn't read the logs again.
+/// `~/.aki/usage-ledger-v2.json` so a relaunch doesn't read the logs again.
 /// Approach adapted from Codenotch (MIT, see LICENSE).
 public final class TokenLedger: @unchecked Sendable {
     public struct Event: Codable, Sendable, Equatable {
@@ -50,7 +50,9 @@ public final class TokenLedger: @unchecked Sendable {
     public init(home: AkiHome = .default,
                 claudeRoot: URL = FileManager.default.homeDirectoryForCurrentUser.appending(path: ".claude/projects"),
                 codexRoot: URL = UsageLimits.codexHome.appending(path: "sessions")) {
-        file = home.url.appending(path: "usage-ledger.json")
+        // v2: Codex reports keyed without their file (betas wrote v1, which goes).
+        file = home.url.appending(path: "usage-ledger-v2.json")
+        try? FileManager.default.removeItem(at: home.url.appending(path: "usage-ledger.json"))
         self.claudeRoot = claudeRoot
         self.codexRoot = codexRoot
     }
@@ -69,7 +71,9 @@ public final class TokenLedger: @unchecked Sendable {
         let since = now.addingTimeInterval(-Self.keep)
         var changed = false
         var seen = Set<String>()
-        for (root, agent) in [(claudeRoot, "claude"), (codexRoot, "codex")] {
+        // Codex moves a session it archives out of `sessions`: its tokens still count.
+        let archived = codexRoot.deletingLastPathComponent().appending(path: "archived_sessions")
+        for (root, agent) in [(claudeRoot, "claude"), (codexRoot, "codex"), (archived, "codex")] {
             for url in Self.logs(in: root, since: since) {
                 seen.insert(url.path)
                 if read(url, agent: agent) { changed = true }
@@ -195,6 +199,7 @@ public final class TokenLedger: @unchecked Sendable {
             let cwd = (lastIndex(of: "\"cwd\":\"", in: bytes).flatMap { $0 > usage ? string(at: $0, in: bytes) : nil }
                 ?? firstIndex(of: "\"cwd\":\"", in: bytes, from: 0).flatMap { $0 < message ? string(at: $0, in: bytes) : nil }) ?? ""
             let key = lastIndex(of: "\"requestId\":\"", in: bytes).flatMap { string(at: $0, in: bytes) }.map { "r:" + $0 }
+                ?? firstIndex(of: "\"id\":\"", in: bytes, from: message).flatMap { $0 < usage ? string(at: $0, in: bytes) : nil }.map { "m:" + $0 }
             return (key, stamp, cwd, model,
                     number("\"input_tokens\":", in: bytes, from: usage) ?? 0, output,
                     number("\"cache_read_input_tokens\":", in: bytes, from: usage) ?? 0,
@@ -289,7 +294,8 @@ public final class TokenLedger: @unchecked Sendable {
             if cursor.total == total { return false }
             cursor.total = total
         }
-        let key = "c:\(path):\(stamp):\(all):\(output)"
+        // Not by file: a forked or archived session carries the same reports under another path.
+        let key = "c:\(stamp):\(all):\(output):\(cached)"
         guard state.events[key] == nil else { return false }
         state.events[key] = Event(
             agent: "codex", ts: Int(date.timeIntervalSince1970), project: Self.project(cursor.cwd ?? ""),
