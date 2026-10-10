@@ -526,8 +526,7 @@ struct MarkingView: View {
                     } toggle: {
                         session.toggle(mark.id, image: true)
                     } copy: {
-                        NSPasteboard.general.clearContents()
-                        NSPasteboard.general.writeObjects([image])
+                        MarkingSession.copy(image)
                     } zoom: {
                         ImageZoom.show(image)
                     }

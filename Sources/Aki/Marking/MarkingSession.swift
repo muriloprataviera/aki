@@ -505,14 +505,18 @@ final class MarkingSession {
     /// The mark whose crop was just copied (the card says so for a moment).
     var copied: UUID?
 
-    /// An image on the clipboard, as PNG (what most apps paste) and as an image.
+    /// An image on the clipboard: one item, as PNG and TIFF (as the Mac's own screenshot
+    /// does), so clipboard histories like Raycast's show one picture with its preview.
     static func copy(_ image: NSImage) {
+        guard let tiff = image.tiffRepresentation else { return }
+        let item = NSPasteboardItem()
+        if let png = NSBitmapImageRep(data: tiff)?.representation(using: .png, properties: [:]) {
+            item.setData(png, forType: .png)
+        }
+        item.setData(tiff, forType: .tiff)
         let board = NSPasteboard.general
         board.clearContents()
-        if let tiff = image.tiffRepresentation, let png = NSBitmapImageRep(data: tiff)?.representation(using: .png, properties: [:]) {
-            board.setData(png, forType: .png)
-        }
-        board.writeObjects([image])
+        board.writeObjects([item])
     }
 
     /// The crop a mark sends, as an image for the preview.

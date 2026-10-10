@@ -3,6 +3,7 @@
 What changed in each version of Aki. Versions follow [semantic versioning](https://semver.org); betas end in `-beta.N`. The release notes inside the app are written from this file.
 
 ### Fixed
+- A copied mark is one picture on the clipboard (PNG and TIFF), so clipboard histories like Raycast's show it with its preview.
 - A mark says the app and page where it was made, even when marking began in another app.
 - The comment card's buttons fit again with three of them (the keys show when there's room).
 - While marking, scrolling over Aki's own lists (other sessions, the queue) scrolls them, not the page below.
