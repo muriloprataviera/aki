@@ -3,6 +3,24 @@
     <channel>
         <title>Aki</title>
         <item>
+            <title>0.4.1</title>
+            <pubDate>Sat, 10 Oct 2026 10:44:46 -0300</pubDate>
+            <sparkle:version>20261010134445</sparkle:version>
+            <sparkle:shortVersionString>0.4.1</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
+            <description><![CDATA[<h2>Aki 0.4.1</h2>
+<h3>Fixed</h3>
+<ul>
+<li>The message typed to your agent names exactly the marks it records as delivered.</li>
+<li>Coming back to an Orca tab through one with no agent makes it the destination again.</li>
+<li>esc and ⌘⏎ still work after switching apps while writing a comment.</li>
+<li>The commands in the message use each mark's full code, so two marks can't be confused.</li>
+</ul>
+]]></description>
+            <enclosure url="https://aki-updates.vercel.app/0.4.1/Aki-0.4.1.zip" length="3516754" type="application/octet-stream" sparkle:edSignature="wHkcFtbFbXBlKeQ3+8Biq8MuFSeECfudQsyv7gtj0fO8oDMQONne9YzwcIT/75zoQz/8U0csw8ge1AMZAgG1Aw=="/>
+        </item>
+        <item>
             <title>0.4.0</title>
             <pubDate>Sat, 10 Oct 2026 10:07:44 -0300</pubDate>
             <sparkle:version>20261010130743</sparkle:version>
@@ -69,31 +87,6 @@
 </ul>
 ]]></description>
             <enclosure url="https://aki-updates.vercel.app/0.3.3/Aki-0.3.3.zip" length="3362090" type="application/octet-stream" sparkle:edSignature="9X4HwbHpFRwI5KWYaObegWYgaJTYSaBCGhtEA2egN2FsJiVW7Yp9K6Xs30Nnfe+ziDSZrNY+/pCbKnN44m/KCA=="/>
-        </item>
-        <item>
-            <title>0.3.2</title>
-            <pubDate>Mon, 05 Oct 2026 22:47:29 -0300</pubDate>
-            <sparkle:version>0.3.2</sparkle:version>
-            <sparkle:shortVersionString>0.3.2</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
-            <description><![CDATA[<h2>Aki 0.3.2</h2>
-<h3>Updates, like they should be</h3>
-<ul>
-<li>A new version shows as a pill by the sidebar. Click it and it downloads right there — a bar filling up, Aki's pin riding its tip — then Aki restarts by itself on the new version and says so. No more update windows.</li>
-<li>Aki looks for a new version every hour.</li>
-</ul>
-<h3>Marking</h3>
-<ul>
-<li>The comment card can be dragged by its top, off what you want to see.</li>
-<li>The queue's destination is a clear field: the AI, the app and the session's whole name.</li>
-</ul>
-<h3>Privacy, said plainly</h3>
-<ul>
-<li>Aki sends anonymous notices to its maker when it's installed and when it updates: its version (and the one before), your macOS version and language. No account, no identifier, nothing you mark. They tell how many people use Aki and on which version, so the right things get fixed first. Get started says so, and one switch turns them off (also in Settings → General → Privacy).</li>
-</ul>
-]]></description>
-            <enclosure url="https://aki-updates.vercel.app/0.3.2/Aki-0.3.2.zip" length="3354978" type="application/octet-stream" sparkle:edSignature="w+qZF33XhH3CEkiPoOjp/LoViWohQJsGw10lHRHsH8+8etgWWMqlNl3arTQuspNgesms0aLsglrFCi8tC1s0Dw=="/>
         </item>
     </channel>
 </rss>
