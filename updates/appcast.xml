@@ -3,6 +3,19 @@
     <channel>
         <title>Aki</title>
         <item>
+            <title>0.4.3-beta.5</title>
+            <pubDate>Sat, 10 Oct 2026 12:42:10 -0300</pubDate>
+            <sparkle:channel>beta</sparkle:channel>
+            <sparkle:version>20261010154209</sparkle:version>
+            <sparkle:shortVersionString>0.4.3-beta.5</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
+            <description><![CDATA[<h2>Aki 0.4.3 beta 5</h2>
+<ul><li>Holding ⇧ while marking lets the pointer through to the page below; let go and Aki is back with a fresh picture.</li></ul>
+]]></description>
+            <enclosure url="https://aki-updates.vercel.app/0.4.3-beta.5/Aki-0.4.3-beta.5.zip" length="3529782" type="application/octet-stream" sparkle:edSignature="NPF05yrG/RQBiHcnlvsn40/up1wZfdIF/9gyOug5/4vJr3YdvsCHJtGbLAaV1bcwa1yhElYA0L2iJYMJiMTeCA=="/>
+        </item>
+        <item>
             <title>0.4.3-beta.4</title>
             <pubDate>Sat, 10 Oct 2026 12:35:15 -0300</pubDate>
             <sparkle:channel>beta</sparkle:channel>
@@ -27,19 +40,6 @@
 <ul><li>⇧ with the opposite arrow takes the last added thing back out, as a text selection shrinks.</li></ul>
 ]]></description>
             <enclosure url="https://aki-updates.vercel.app/0.4.3-beta.3/Aki-0.4.3-beta.3.zip" length="3527463" type="application/octet-stream" sparkle:edSignature="RYYdsUU6a9+6FnzA6bFtWOuf2EBbTc8/TDZNqVB6eFs2rZyj8Fwh+5HiiPsXZfjkGHnPjIZzmT42YbYNnU/FCA=="/>
-        </item>
-        <item>
-            <title>0.4.3-beta.2</title>
-            <pubDate>Sat, 10 Oct 2026 12:05:25 -0300</pubDate>
-            <sparkle:channel>beta</sparkle:channel>
-            <sparkle:version>20261010150524</sparkle:version>
-            <sparkle:shortVersionString>0.4.3-beta.2</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
-            <description><![CDATA[<h2>Aki 0.4.3 beta 2</h2>
-<ul><li>Holding ⇧ to add with the arrows keeps the pin and the outline.</li></ul>
-]]></description>
-            <enclosure url="https://aki-updates.vercel.app/0.4.3-beta.2/Aki-0.4.3-beta.2.zip" length="3523042" type="application/octet-stream" sparkle:edSignature="jiBPtNI8kUr/IYee2ebLm3wFbzCdYucWzRIrbFdomisPdWkJTi3VLoN+o0v8IjF6DgLXTq9eV3OhHC7bMf5iAA=="/>
         </item>
         <item>
             <title>0.4.2</title>
