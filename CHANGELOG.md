@@ -4,6 +4,8 @@ What changed in each version of Aki. Versions follow [semantic versioning](https
 
 ## [Unreleased]
 
+## [0.4.1] — 2026-10-10
+
 ### Fixed
 - The message typed to your agent names exactly the marks it records as delivered (one arriving meanwhile is no longer left out).
 - Coming back to an Orca tab through one with no agent makes it the destination again.
