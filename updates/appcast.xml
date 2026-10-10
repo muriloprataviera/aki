@@ -3,6 +3,18 @@
     <channel>
         <title>Aki</title>
         <item>
+            <title>0.4.2</title>
+            <pubDate>Sat, 10 Oct 2026 11:47:54 -0300</pubDate>
+            <sparkle:version>20261010144754</sparkle:version>
+            <sparkle:shortVersionString>0.4.2</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
+            <description><![CDATA[<h2>Aki 0.4.2</h2>
+<ul><li>When the sidebar is full, every project still shows, with its name over its most active session.</li></ul>
+]]></description>
+            <enclosure url="https://aki-updates.vercel.app/0.4.2/Aki-0.4.2.zip" length="3518147" type="application/octet-stream" sparkle:edSignature="bJU1X68hcpjHiiXJmHcZfzMn3M5r6gGd6ceH5d74QWBLKueVMsW4CY6c1xYfi7F/+ma/NXb5IbYZPhjNTsriCA=="/>
+        </item>
+        <item>
             <title>0.4.2-beta.1</title>
             <pubDate>Sat, 10 Oct 2026 11:43:00 -0300</pubDate>
             <sparkle:channel>beta</sparkle:channel>
@@ -62,44 +74,6 @@
 </ul>
 ]]></description>
             <enclosure url="https://aki-updates.vercel.app/0.4.0/Aki-0.4.0.zip" length="3511089" type="application/octet-stream" sparkle:edSignature="IhaI3gQGMZ0y1RtQeaCsczyWZRt5d/JFhq3o7hUVUGWNhitoeL/Lm0bcDNd3jJbNt7oSuhEdG3EqoTik+qJdAA=="/>
-        </item>
-        <item>
-            <title>0.4.0-beta.36</title>
-            <pubDate>Sat, 10 Oct 2026 09:48:37 -0300</pubDate>
-            <sparkle:channel>beta</sparkle:channel>
-            <sparkle:version>20261010124837</sparkle:version>
-            <sparkle:shortVersionString>0.4.0-beta.36</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
-            <description><![CDATA[<h2>Aki 0.4.0 beta 36</h2>
-<ul><li>The sessions list opens to the card's right (below it at the screen's edge), and the queue moves out of its way.</li></ul>
-]]></description>
-            <enclosure url="https://aki-updates.vercel.app/0.4.0-beta.36/Aki-0.4.0-beta.36.zip" length="3510326" type="application/octet-stream" sparkle:edSignature="aypBpNA8/8DJvmChHyw6YQwGJFOPx8gB13BP/hk9VQG/xGhF/A9I70u9gnjvXV/2Xo7jVOcVNkLlNH2ClFJLCw=="/>
-        </item>
-        <item>
-            <title>0.3.3</title>
-            <pubDate>Tue, 06 Oct 2026 12:34:36 -0300</pubDate>
-            <sparkle:version>20261006153435</sparkle:version>
-            <sparkle:shortVersionString>0.3.3</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
-            <description><![CDATA[<h2>Aki 0.3.3</h2>
-<h3>Fixes that matter</h3>
-<ul>
-<li><b>Marks could go to the wrong conversation.</b> Session names came from a copy of Orca's tab names that Orca stopped updating, so an old name showed on a conversation that is now another one. Names now come only from Orca's live list, and marking opens on the session you chose last.</li>
-<li>Updates never restart Aki while marks wait to be sent: it downloads, waits for the queue, then restarts. Checking only shows what's new; installing is always a click.</li>
-<li>Orca's own pop-ups (and anything over its terminals) can be marked.</li>
-</ul>
-<h3>Smoother</h3>
-<ul>
-<li>The tag over what you point at says "↑ bigger · ↓ smaller": ↑ takes the block, the whole terminal, the window.</li>
-<li>The History shows the queue in its own block on top; "See the queue" in the menu bar pin's menu; esc closes the History.</li>
-<li>One six-dot handle wherever something can be dragged; the queue's destination reads as a chooser and the button says "Send".</li>
-<li>The sidebar's resize corner and pointer stay right; the rings show just the number of waiting marks.</li>
-<li>The update's progress also shows in the menu bar pin's menu and in Settings.</li>
-</ul>
-]]></description>
-            <enclosure url="https://aki-updates.vercel.app/0.3.3/Aki-0.3.3.zip" length="3362090" type="application/octet-stream" sparkle:edSignature="9X4HwbHpFRwI5KWYaObegWYgaJTYSaBCGhtEA2egN2FsJiVW7Yp9K6Xs30Nnfe+ziDSZrNY+/pCbKnN44m/KCA=="/>
         </item>
     </channel>
 </rss>
