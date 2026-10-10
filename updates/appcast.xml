@@ -3,6 +3,25 @@
     <channel>
         <title>Aki</title>
         <item>
+            <title>0.5.0</title>
+            <pubDate>Sat, 10 Oct 2026 19:09:54 -0300</pubDate>
+            <sparkle:version>20261010220954</sparkle:version>
+            <sparkle:shortVersionString>0.5.0</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
+            <description><![CDATA[<h2>Aki 0.5.0</h2>
+<h3>Your week at a glance</h3>
+<ul>
+<li>A ring for Claude and one for Codex at the end of the sidebar: how much of the weekly limit is used and how much of today's share, in colour (green, yellow from 50%, orange from 70%, red from 90%).</li>
+<li>Hover a ring: when each window renews, whether you're over or under the pace, today's tokens and what they'd cost at API prices, the last 7 days and the projects that used most.</li>
+<li>Settings → Show in the sidebar: sessions and limits, only limits (a usage meter) or only sessions.</li>
+<li><code>aki usage</code> prints it in the terminal.</li>
+<li>Read from Claude Code's and Codex's own logs on your Mac — only the token counts, never the conversations.</li>
+</ul>
+]]></description>
+            <enclosure url="https://aki-updates.vercel.app/0.5.0/Aki-0.5.0.zip" length="3673319" type="application/octet-stream" sparkle:edSignature="YzFT2W5XO4UzWGGCuAvubXZaq1Fq2wZ2OEi/I4z7e9vlW/aHgDP59PCJY+f/6jmTzuX/dbUxD4vjJC0HXlUmBA=="/>
+        </item>
+        <item>
             <title>0.5.0-beta.3</title>
             <pubDate>Sat, 10 Oct 2026 18:45:49 -0300</pubDate>
             <sparkle:channel>beta</sparkle:channel>
@@ -14,35 +33,6 @@
 <ul><li>Limits rings and bars change colour as the week fills: green, yellow from 50%, orange from 70%, red from 90%.</li></ul>
 ]]></description>
             <enclosure url="https://aki-updates.vercel.app/0.5.0-beta.3/Aki-0.5.0-beta.3.zip" length="3671532" type="application/octet-stream" sparkle:edSignature="EULuQRrrZwChpIXct5w+oABX49uAcZV0X4ltYwU66t5Spp4I73zQsf/g9HYp9cupQFkYapdpLur3rvXEfuvQDg=="/>
-        </item>
-        <item>
-            <title>0.5.0-beta.2</title>
-            <pubDate>Sat, 10 Oct 2026 18:41:30 -0300</pubDate>
-            <sparkle:channel>beta</sparkle:channel>
-            <sparkle:version>20261010214129</sparkle:version>
-            <sparkle:shortVersionString>0.5.0-beta.2</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
-            <description><![CDATA[<h2>Aki 0.5.0 beta 2</h2>
-<ul><li>The limits rings show today's tokens and their cost at API prices.</li>
-<li>Hover a ring: each window with when it renews and the pace, today's share of the week, the last 7 days and the projects that used most.</li>
-<li>Settings → Show in the sidebar: sessions and limits, only limits, or only sessions.</li>
-<li><code>aki usage</code> prints it in the terminal.</li></ul>
-]]></description>
-            <enclosure url="https://aki-updates.vercel.app/0.5.0-beta.2/Aki-0.5.0-beta.2.zip" length="3671678" type="application/octet-stream" sparkle:edSignature="pcu9Q17BmyAhNUIZ1k+O6BMep6xunH+xc+xUq+VXFe//ySVTqPm8ES34GRIRfcZY0j7Yl3KJZ5iKA5zgloR8DQ=="/>
-        </item>
-        <item>
-            <title>0.5.0-beta.1</title>
-            <pubDate>Sat, 10 Oct 2026 18:01:39 -0300</pubDate>
-            <sparkle:channel>beta</sparkle:channel>
-            <sparkle:version>20261010210138</sparkle:version>
-            <sparkle:shortVersionString>0.5.0-beta.1</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
-            <description><![CDATA[<h2>Aki 0.5.0 beta 1</h2>
-<ul><li>Usage limits in the sidebar: a ring for Claude and one for Codex with how much of the week is used. Hover for the 5-hour window and when each renews.</li></ul>
-]]></description>
-            <enclosure url="https://aki-updates.vercel.app/0.5.0-beta.1/Aki-0.5.0-beta.1.zip" length="3576310" type="application/octet-stream" sparkle:edSignature="29n+tAm16wisVVb7FVaTxP2lpxN34uuRxFq4/oyxiLFGmu2zpwqipvIdtKKy0tTX3nedsPbLwNbnI2VGpfGGAQ=="/>
         </item>
         <item>
             <title>0.4.4</title>
@@ -77,18 +67,6 @@
 </ul>
 ]]></description>
             <enclosure url="https://aki-updates.vercel.app/0.4.3/Aki-0.4.3.zip" length="3529755" type="application/octet-stream" sparkle:edSignature="vAzHIfHw/bCIzZ44TdNQLz3TVU6Am7VxN3XZDi7tld95JrvoivRFecPFQs5YYvV23Y3iCEJgOmbUkwS8qaQFDA=="/>
-        </item>
-        <item>
-            <title>0.4.2</title>
-            <pubDate>Sat, 10 Oct 2026 11:47:54 -0300</pubDate>
-            <sparkle:version>20261010144754</sparkle:version>
-            <sparkle:shortVersionString>0.4.2</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
-            <description><![CDATA[<h2>Aki 0.4.2</h2>
-<ul><li>When the sidebar is full, every project still shows, with its name over its most active session.</li></ul>
-]]></description>
-            <enclosure url="https://aki-updates.vercel.app/0.4.2/Aki-0.4.2.zip" length="3518147" type="application/octet-stream" sparkle:edSignature="bJU1X68hcpjHiiXJmHcZfzMn3M5r6gGd6ceH5d74QWBLKueVMsW4CY6c1xYfi7F/+ma/NXb5IbYZPhjNTsriCA=="/>
         </item>
     </channel>
 </rss>
