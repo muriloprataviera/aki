@@ -1,6 +1,11 @@
 // German strings for Aki's interface (keys are the English text).
 extension L10n {
     static let german: [String: String] = [
+        "Show usage limits": "Nutzungslimits anzeigen",
+        "A ring for Claude and one for Codex: how much of the week's limit is used. Hover for the 5-hour window.": "Ein Ring für Claude und einer für Codex: wie viel vom Wochenlimit verbraucht ist. Darüberfahren zeigt das 5-Stunden-Fenster.",
+        "usage limits": "Nutzungslimits",
+        "Last reported": "Zuletzt gemeldet",
+        "week": "Woche",
         "to do": "offen",
         "destination": "Ziel",
         "Find a session": "Sitzung suchen",

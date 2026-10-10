@@ -314,6 +314,16 @@ check(tabNameWithoutStatus("⠂ MENU") == "MENU", "spinner taken off a name")
 check(tabNameWithoutStatus("🐛 Login") == "🐛 Login", "an emoji in a name stays")
 check(tabNameWithoutStatus("[API] auth") == "[API] auth", "brackets in a name stay")
 
+// Codex's limits, from one of its log lines: the week goes by the window's length.
+let codexLine = #"{"type":"event_msg","payload":{"type":"token_count","rate_limits":{"primary":{"used_percent":17.0,"window_minutes":10080,"resets_at":4102444800},"secondary":{"used_percent":42.4,"window_minutes":300,"resets_at":4102444800}}}}"#
+let codexLimits = UsageLimits.parseCodex(line: Data(codexLine.utf8), updated: Date())
+check(codexLimits?.week?.percent == 17, "Codex week read from the 7-day window")
+check(codexLimits?.fiveHour?.percent == 42, "Codex 5-hour window read")
+check(UsageLimits.parseCodex(line: Data(#"{"payload":{"rate_limits":{"primary":null,"secondary":null}}}"#.utf8), updated: Date()) == nil,
+      "no windows, no limits")
+let renewed = UsageLimits.parseCodex(line: Data(codexLine.replacingOccurrences(of: "4102444800", with: "1000").utf8), updated: Date())?.current()
+check(renewed?.week?.percent == 0, "a window that already renewed reads 0%")
+
 print(failures == 0 ? "\nall checks passed" : "\n\(failures) check(s) failed")
 exit(failures == 0 ? 0 : 1)
 

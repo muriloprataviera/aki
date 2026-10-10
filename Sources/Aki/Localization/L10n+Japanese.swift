@@ -1,6 +1,11 @@
 // Japanese strings for Aki's interface (keys are the English text).
 extension L10n {
     static let japanese: [String: String] = [
+        "Show usage limits": "使用上限を表示",
+        "A ring for Claude and one for Codex: how much of the week's limit is used. Hover for the 5-hour window.": "Claude と Codex それぞれのリング：今週の上限をどれだけ使ったか。ホバーで5時間枠を表示します。",
+        "usage limits": "使用上限",
+        "Last reported": "最終更新",
+        "week": "週",
         "to do": "件 未完了",
         "destination": "送信先",
         "Find a session": "セッションを検索",

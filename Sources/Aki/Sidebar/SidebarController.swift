@@ -939,7 +939,9 @@ final class SidebarPanel: NSPanel {
             view.hitTest(event.locationInWindow) != nil,
             let menu = contextMenuProvider?(event.locationInWindow)
         {
+            NSLog("Aki menu: open (%ld items)", menu.items.count)
             NSMenu.popUpContextMenu(menu, with: event, for: view)
+            NSLog("Aki menu: closed")
             return
         }
         if event.type == .leftMouseDown, startsResize?(event.locationInWindow) == true {
@@ -1031,7 +1033,10 @@ final class ClosureMenuItem: NSMenuItem {
 
     required init(coder: NSCoder) { fatalError("init(coder:) is not used") }
 
-    @objc private func run() { handler() }
+    @objc private func run() {
+        NSLog("Aki menu: %@", title)
+        handler()
+    }
 }
 
 extension NSMenuItem {

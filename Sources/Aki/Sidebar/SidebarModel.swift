@@ -25,6 +25,8 @@ enum Ring: Identifiable, Equatable {
     case more([AgentTerminal])
     /// Sessions you hid, in one small ring at the end, to bring them back.
     case hidden([AgentTerminal])
+    /// How much of an AI account's weekly limit is used (Claude, Codex), at the end.
+    case usage(UsageLimits)
 
     var id: String {
         switch self {
@@ -32,6 +34,7 @@ enum Ring: Identifiable, Equatable {
         case .terminal(let terminal): "terminal:" + terminal.id
         case .more: "more"
         case .hidden: "hidden"
+        case .usage(let limits): "usage:" + limits.agent.rawValue
         }
     }
 
@@ -40,7 +43,7 @@ enum Ring: Identifiable, Equatable {
         case .agent(let group): group.pending
         case .terminal(let terminal): terminal.pending
         case .more(let sessions): sessions.reduce(0) { $0 + $1.pending }
-        case .hidden: 0
+        case .hidden, .usage: 0
         }
     }
 }
@@ -373,7 +376,15 @@ final class SidebarModel {
     }
 
     /// The sidebar's rings, per the "Rings" setting.
-    var rings: [Ring] {
+    var rings: [Ring] { sessionRings + usageRings }
+
+    /// The accounts' limits, one ring each, after the sessions.
+    private var usageRings: [Ring] {
+        guard preferences.showUsage else { return [] }
+        return usage.filter { preferences.tracks($0.agent) }.map(Ring.usage)
+    }
+
+    private var sessionRings: [Ring] {
         switch preferences.ringMode {
         case .agents: return groups.map(Ring.agent)
         case .terminals:
@@ -626,6 +637,8 @@ final class SidebarModel {
     /// Bytes and marks sent to each session (by session id).
     var sentBySession: [String: (bytes: Int, marks: Int)] = [:]
     var accountLimits: ClaudeStatus? { ClaudeStatus.latestLimits(in: claudeStatus) }
+    /// Each AI account's limits (Claude from its status line, Codex from its logs).
+    var usage: [UsageLimits] = []
 
     /// Room Aki's pictures take on this Mac (measured on each refresh).
     var diskUsage = DiskUsage()
@@ -666,6 +679,9 @@ final class SidebarModel {
         if sizes.mapValues({ [$0.bytes, $0.marks] }) != sentBySession.mapValues({ [$0.bytes, $0.marks] }) { sentBySession = sizes }
         let statuses = await Task.detached { ClaudeStatus.all() }.value
         if statuses != claudeStatus { claudeStatus = statuses }
+        let codex = await Task.detached { UsageLimits.codex() }.value
+        let limits = [UsageLimits.claude(from: statuses), codex].compactMap { $0?.current() }
+        if limits != self.usage { self.usage = limits }
         // Every mark of a session resolved by its agent: a ✓ on its ring.
         for terminal in open where terminal.pending == 0 && !movedFrom.contains(terminal.id) {
             if let before = terminals.first(where: { $0.id == terminal.id }), before.pending > 0 {

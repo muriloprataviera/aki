@@ -4,6 +4,9 @@ What changed in each version of Aki. Versions follow [semantic versioning](https
 
 ## [Unreleased]
 
+### Added
+- Usage limits in the sidebar: one ring for Claude and one for Codex with how much of the week's limit is used; hover for the 5-hour window and when each renews (Settings → Show usage limits).
+
 ## [0.4.4] — 2026-10-10
 
 ### Added

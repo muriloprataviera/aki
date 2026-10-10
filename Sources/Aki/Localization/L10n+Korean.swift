@@ -1,6 +1,11 @@
 // Korean strings for Aki's interface (keys are the English text).
 extension L10n {
     static let korean: [String: String] = [
+        "Show usage limits": "사용 한도 표시",
+        "A ring for Claude and one for Codex: how much of the week's limit is used. Hover for the 5-hour window.": "Claude와 Codex 각각의 링: 이번 주 한도를 얼마나 썼는지 보여줍니다. 마우스를 올리면 5시간 창을 봅니다.",
+        "usage limits": "사용 한도",
+        "Last reported": "마지막 보고",
+        "week": "주",
         "to do": "할 일",
         "destination": "대상",
         "Find a session": "세션 찾기",

@@ -1,6 +1,11 @@
 // Simplified Chinese strings for Aki's interface (keys are the English text).
 extension L10n {
     static let chinese: [String: String] = [
+        "Show usage limits": "显示用量限额",
+        "A ring for Claude and one for Codex: how much of the week's limit is used. Hover for the 5-hour window.": "Claude 和 Codex 各一个圆环：本周限额已用了多少。悬停查看 5 小时窗口。",
+        "usage limits": "用量限额",
+        "Last reported": "最后更新",
+        "week": "本周",
         "to do": "待办",
         "destination": "目标",
         "Find a session": "查找会话",

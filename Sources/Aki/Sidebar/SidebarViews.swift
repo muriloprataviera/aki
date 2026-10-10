@@ -318,6 +318,19 @@ struct SidebarRoot: View {
                 }
             }
 
+            // A hairline between the sessions and the limits rings.
+            if model.settled, model.draggingProject == nil,
+                let first = rings.firstIndex(where: { if case .usage = $0 { return true } else { return false } }), first > 0 {
+                let between = (layout.cellAlongCenter(first - 1) + layout.cellAlongCenter(first)) / 2
+                Capsule()
+                    .fill(AkiPalette.fg.opacity(0.18))
+                    .frame(width: preferences.edge.isVertical ? 26 * layout.scale : 1.5,
+                           height: preferences.edge.isVertical ? 1.5 : 26 * layout.scale)
+                    .position(layout.midPoint(between))
+                    .allowsHitTesting(false)
+                    .transition(.opacity)
+            }
+
             // The eye over the bar's start, before the first name (the "+N" card
             // opens over the far end): projects' names on or off.
             if model.settled, rings.count > 1 {
@@ -670,6 +683,20 @@ struct RingCell: View {
                     .foregroundStyle(AkiPalette.textSecondary)
                     .frame(width: (SidebarLayout.ring + 22) * scale, height: SidebarLayout.labelHeight * scale)
             }
+            if case .usage(let limits) = ring {
+                // The week's share in big, what it is in small (the card has the rest).
+                VStack(spacing: 0) {
+                    Text(limits.week.map { "\($0.percent)%" } ?? "–")
+                        .font(.system(size: (SidebarLayout.labelFont + 1) * scale, weight: .heavy, design: .rounded).monospacedDigit())
+                        .foregroundStyle(UsageRing.tint(limits.week?.percent ?? 0, hovered: hovered))
+                    Text(L10n.t("week").uppercased())
+                        .font(.system(size: 7.5 * scale, weight: .bold))
+                        .tracking(0.4 * scale)
+                        .foregroundStyle(AkiPalette.textSecondary)
+                }
+                .lineLimit(1)
+                .frame(width: (SidebarLayout.ring + 22) * scale, height: SidebarLayout.labelHeight * scale)
+            }
             if case .more = ring {
                 Text(L10n.t("more terminals"))
                     .font(.system(size: SidebarLayout.labelFont * scale, weight: .semibold))
@@ -798,6 +825,62 @@ struct RingCell: View {
                     .foregroundStyle(AkiPalette.textPrimary)
             }
             .frame(width: SidebarLayout.ring * scale, height: SidebarLayout.ring * scale)
+        case .usage(let limits):
+            UsageRing(limits: limits, scale: scale)
+        }
+    }
+}
+
+/// An AI account's weekly limit: the share used as an arc, the AI's symbol inside.
+struct UsageRing: View {
+    let limits: UsageLimits
+    let scale: CGFloat
+
+    /// Paper while there's room; Aki's red once the week is nearly gone.
+    static func tint(_ percent: Int, hovered: Bool = false) -> Color {
+        percent >= 90 ? AkiPalette.red : hovered ? AkiPalette.textPrimary : AkiPalette.fg.opacity(0.9)
+    }
+
+    var body: some View {
+        let percent = CGFloat(min(max(limits.week?.percent ?? 0, 0), 100)) / 100
+        ZStack {
+            Circle().strokeBorder(AkiPalette.ringTrack, lineWidth: SidebarLayout.trackStroke * scale)
+            Circle()
+                .inset(by: SidebarLayout.trackStroke * scale / 2)
+                .trim(from: 0, to: percent)
+                .stroke(Self.tint(limits.week?.percent ?? 0), style: StrokeStyle(lineWidth: SidebarLayout.progressStroke * scale, lineCap: .round))
+                .rotationEffect(.degrees(-90))
+                .animation(.easeOut(duration: 0.4), value: percent)
+            AgentGlyphView(agent: limits.agent, size: SidebarLayout.glyph * scale * 0.85)
+                .foregroundStyle(AkiPalette.fg.opacity(0.85))
+        }
+        .frame(width: SidebarLayout.ring * scale, height: SidebarLayout.ring * scale)
+    }
+}
+
+/// The card behind a limits ring: the week and the 5-hour window, and when each renews.
+struct UsageCard: View {
+    let limits: UsageLimits
+    let direction: TailDirection
+    let surface: SurfaceStyle
+
+    private var secondary: Color { surface == .solid ? AkiPalette.textSecondary : AkiPalette.glassTextSecondary }
+
+    var body: some View {
+        TooltipShell(direction: direction, surface: surface) {
+            VStack(alignment: .leading, spacing: 7.5) {
+                Text("\(limits.agent.displayName) · \(L10n.t("usage limits"))")
+                    .font(CardType.title).foregroundStyle(AkiPalette.textPrimary)
+                Hairline()
+                if let week = limits.week {
+                    UsageRow(title: L10n.t("Week"), percent: week.percent, detail: week.resets.map(TerminalCard.renews), secondary: secondary)
+                }
+                if let five = limits.fiveHour {
+                    UsageRow(title: "5h", percent: five.percent, detail: five.resets.map(TerminalCard.renews), secondary: secondary)
+                }
+                Text("\(L10n.t("Last reported")) \(limits.updated.formatted(.relative(presentation: .named)))")
+                    .font(CardType.body).foregroundStyle(secondary)
+            }
         }
     }
 }
@@ -1011,6 +1094,7 @@ struct RingCard: View {
         case .more(let terminals): MoreCard(model: model, terminals: terminals, direction: direction, surface: surface)
         case .hidden(let terminals):
             MoreCard(model: model, terminals: terminals, direction: direction, surface: surface, hidden: true)
+        case .usage(let limits): UsageCard(limits: limits, direction: direction, surface: surface)
         }
     }
 }
