@@ -639,6 +639,7 @@ final class SidebarModel {
     var accountLimits: ClaudeStatus? { ClaudeStatus.latestLimits(in: claudeStatus) }
     /// Each AI account's limits (Claude from its status line, Codex from its logs).
     var usage: [UsageLimits] = []
+    @ObservationIgnored private var codexRead: (limits: UsageLimits?, at: Date) = (nil, .distantPast)
 
     /// Room Aki's pictures take on this Mac (measured on each refresh).
     var diskUsage = DiskUsage()
@@ -679,8 +680,11 @@ final class SidebarModel {
         if sizes.mapValues({ [$0.bytes, $0.marks] }) != sentBySession.mapValues({ [$0.bytes, $0.marks] }) { sentBySession = sizes }
         let statuses = await Task.detached { ClaudeStatus.all() }.value
         if statuses != claudeStatus { claudeStatus = statuses }
-        let codex = await Task.detached { UsageLimits.codex() }.value
-        let limits = [UsageLimits.claude(from: statuses), codex].compactMap { $0?.current() }
+        // Codex's logs are walked once a minute (the week's share barely moves faster).
+        if Date().timeIntervalSince(codexRead.at) > 60 {
+            codexRead = (await Task.detached { UsageLimits.codex() }.value, Date())
+        }
+        let limits = [UsageLimits.claude(from: statuses), codexRead.limits].compactMap { $0?.current() }
         if limits != self.usage { self.usage = limits }
         // Every mark of a session resolved by its agent: a ✓ on its ring.
         for terminal in open where terminal.pending == 0 && !movedFrom.contains(terminal.id) {

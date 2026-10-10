@@ -35,28 +35,37 @@ public struct UsageLimits: Sendable, Equatable {
         return UsageLimits(agent: .claude, fiveHour: latest.fiveHour, week: latest.week, updated: latest.updated)
     }
 
-    /// Codex: the last `rate_limits` it wrote to a session log under `~/.codex/sessions`.
+    /// Codex: the newest `rate_limits` it wrote to a session log under `~/.codex/sessions`.
+    /// Any log touched in the last week counts (a resumed session keeps writing to the
+    /// folder of the day it began); among them, the report with the latest time wins.
     public static func codex(home: URL = codexHome, now: Date = Date()) -> UsageLimits? {
         let sessions = home.appending(path: "sessions")
-        let calendar = Calendar(identifier: .gregorian)
-        // The logs live in year/month/day folders: today's and the week's before it are plenty.
+        let since = now.addingTimeInterval(-8 * 24 * 3600)
         var files: [(url: URL, modified: Date)] = []
-        for back in 0..<8 {
-            guard let day = calendar.date(byAdding: .day, value: -back, to: now) else { continue }
-            let parts = calendar.dateComponents([.year, .month, .day], from: day)
-            guard let y = parts.year, let m = parts.month, let d = parts.day else { continue }
-            let folder = sessions.appending(path: String(format: "%04d/%02d/%02d", y, m, d))
-            let names = (try? FileManager.default.contentsOfDirectory(
-                at: folder, includingPropertiesForKeys: [.contentModificationDateKey])) ?? []
-            for url in names where url.pathExtension == "jsonl" {
+        let keys: [URLResourceKey] = [.contentModificationDateKey, .isRegularFileKey]
+        if let walk = FileManager.default.enumerator(at: sessions, includingPropertiesForKeys: keys) {
+            for case let url as URL in walk where url.pathExtension == "jsonl" {
                 let modified = (try? url.resourceValues(forKeys: [.contentModificationDateKey]).contentModificationDate) ?? .distantPast
-                files.append((url, modified))
+                if modified >= since { files.append((url, modified)) }
             }
         }
-        for file in files.sorted(by: { $0.modified > $1.modified }).prefix(20) {
-            if let limits = lastLimits(in: file.url, updated: file.modified) { return limits }
+        var best: UsageLimits?
+        for file in files.sorted(by: { $0.modified > $1.modified }).prefix(12) {
+            // Logs older than the best report can't hold a newer one.
+            if let best, file.modified < best.updated { break }
+            if let limits = lastLimits(in: file.url, updated: file.modified), limits.updated > (best?.updated ?? .distantPast) {
+                best = limits
+            }
         }
-        return nil
+        return best
+    }
+
+    static func parseTime(_ text: String) -> Date? {
+        let format = ISO8601DateFormatter()
+        format.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        if let date = format.date(from: text) { return date }
+        format.formatOptions = [.withInternetDateTime]
+        return format.date(from: text)
     }
 
     public static var codexHome: URL {
@@ -73,7 +82,10 @@ public struct UsageLimits: Sendable, Equatable {
         let size = (try? handle.seekToEnd()) ?? 0
         let chunk: UInt64 = 512 * 1024
         try? handle.seek(toOffset: size > chunk ? size - chunk : 0)
-        guard let data = try? handle.readToEnd(), let text = String(data: data, encoding: .utf8) else { return nil }
+        guard var data = try? handle.readToEnd() else { return nil }
+        // Started mid-file: the first line is cut (maybe mid-character), so it goes.
+        if size > chunk, let newline = data.firstIndex(of: 0x0A) { data = data[data.index(after: newline)...] }
+        let text = String(decoding: data, as: UTF8.self)
         for line in text.split(separator: "\n").reversed() where line.contains("\"rate_limits\"") {
             if let limits = parseCodex(line: Data(line.utf8), updated: updated) { return limits }
         }
@@ -99,6 +111,8 @@ public struct UsageLimits: Sendable, Equatable {
             if minutes >= 24 * 60 { week = limit } else if minutes > 0 { fiveHour = limit }
         }
         guard fiveHour != nil || week != nil else { return nil }
-        return UsageLimits(agent: .codex, fiveHour: fiveHour, week: week, updated: updated)
+        // When the report was made (the log's own clock), not when the file last changed.
+        let stamp = (json["timestamp"] as? String).flatMap(parseTime) ?? updated
+        return UsageLimits(agent: .codex, fiveHour: fiveHour, week: week, updated: stamp)
     }
 }
