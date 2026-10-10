@@ -1,3 +1,4 @@
+import AkiCore
 import AppKit
 
 /// The short `aki` command in Terminal: a link in /usr/local/bin (on every Mac's path)
@@ -14,9 +15,8 @@ enum AkiCommand {
         let installed = "/Applications/Aki.app/Contents/MacOS/Aki"
         let running = Bundle.main.executablePath ?? installed
         guard FileManager.default.isExecutableFile(atPath: installed) else { return running }
-        let mine = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String
         let theirs = Bundle(path: "/Applications/Aki.app")?.infoDictionary?["CFBundleShortVersionString"] as? String
-        return mine == nil || mine == theirs ? installed : running
+        return theirs == Aki.version ? installed : running
     }
 
     /// The link is there and leads to Aki.

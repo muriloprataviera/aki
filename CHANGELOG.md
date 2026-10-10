@@ -4,6 +4,12 @@ What changed in each version of Aki. Versions follow [semantic versioning](https
 
 ## [Unreleased]
 
+### Fixed
+- The message typed to your agent names exactly the marks it records as delivered (one arriving meanwhile is no longer left out).
+- Coming back to an Orca tab through one with no agent makes it the destination again.
+- esc and ⌘⏎ still work after switching apps while writing a comment.
+- The commands in the message use each mark's full code, so two marks can't be confused.
+
 ## [0.4.0] — 2026-10-10
 
 ### Added

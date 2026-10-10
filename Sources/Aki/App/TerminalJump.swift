@@ -118,7 +118,9 @@ enum TerminalJump {
     static func deliveryPrompt(for terminal: AgentTerminal) -> String {
         let aki = AkiCommand.invocation
         let count = max(terminal.undelivered, terminal.pending, 1)
-        let codes = terminal.pendingIDs.map(MarkFolder.code).filter { !$0.isEmpty }
+        // In the commands, the id's whole random part (8, unique in practice); on screen
+        // the short code people read (its first 6).
+        let codes = terminal.pendingIDs.map { MarkFolder.folderName($0) }.filter { !$0.isEmpty }
         // What they're about (newest first, as the sidebar lists them), each with its code.
         let newestFirst = Array(terminal.pendingIDs.reversed())
         let about = terminal.pendingComments.enumerated().prefix(3).map { i, comment -> String in

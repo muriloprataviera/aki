@@ -579,7 +579,12 @@ final class MarkingController {
             // A comment just started, Aki still taking the keyboard: what you type goes into it.
             if session.editing != nil {
                 // Otherwise (you switched apps while writing): the keys are that app's.
-                return self.takingFocus ? self.typeIntoDraft(event) : false
+                if self.takingFocus { return self.typeIntoDraft(event) }
+                // esc and ⌘⏎ still close or send, as they always did from anywhere.
+                if event.keyCode == 53 || (event.keyCode == 36 && event.modifierFlags.contains(.command)) {
+                    return self.handleKey(event)
+                }
+                return false
             }
             if self.handleKey(event) { return true }
             // Other keys don't reach the page below (as when Aki had the focus); shortcuts do.

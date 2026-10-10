@@ -18,11 +18,13 @@ public enum MarkFolder {
 
     /// The folder's own name: the id's whole random part ("df9f68ee"), so two marks
     /// never share one; it starts with the code, so the code finds it by eye.
-    static func folderName(_ id: String) -> String {
+    public static func folderName(_ id: String) -> String {
         // Aki's own ids (aki_<time>_<random>): their random part. Others (the API, the
         // extension): the whole id, so "note_1" and "task_1" never share a folder.
         let tail = id.hasPrefix("aki_") ? (id.split(separator: "_").last.map(String.init) ?? id) : id
-        let clean = tail.lowercased().filter { $0.isLetter || $0.isNumber || $0 == "-" }
+        // Case and "_" kept: "Note", "note", "note_1" and "note1" are four marks.
+        let clean = id.hasPrefix("aki_") ? tail.lowercased().filter { $0.isLetter || $0.isNumber }
+            : String(tail.map { $0.isLetter || $0.isNumber || $0 == "-" || $0 == "_" ? $0 : "-" })
         return clean.isEmpty ? "mark" : clean
     }
 
@@ -102,7 +104,9 @@ public enum MarkFolder {
         for raw in tokens {
             let token = raw.trimmingCharacters(in: CharacterSet(charactersIn: "#“”\"', ")).lowercased()
             guard !token.isEmpty else { continue }
-            if let exact = all.first(where: { $0.id.lowercased() == token }) {
+            // A full id, exactly as written (ids differ by case); codes, any case.
+            let written = raw.trimmingCharacters(in: CharacterSet(charactersIn: "#“”\"', "))
+            if let exact = all.first(where: { $0.id == written }) {
                 found.append(exact)
                 continue
             }

@@ -518,9 +518,12 @@ final class SidebarModel {
         let wanted = TerminalJump.normalized(title)
         guard wanted != lastOrcaTab else { return }
         let matches = markableTerminals.filter { $0.orcaHandle != nil && TerminalJump.normalized($0.name) == wanted }
-        // Remembered only once it's found: a session just opened or renamed shows up
-        // in the list a moment later, and then it's picked.
-        guard matches.count == 1 else { return }
+        // A tab with no session (yet): noted as passed through ("?"), so coming back to
+        // the one before counts as a click; a session that appears for it is picked then.
+        guard matches.count == 1 else {
+            lastOrcaTab = "?" + wanted
+            return
+        }
         lastOrcaTab = wanted
         if selectedTerminal != matches[0].id { selectedTerminal = matches[0].id }
     }
@@ -757,8 +760,13 @@ final class SidebarModel {
         Task {
             // The marks this request is about, taken before it goes: any arriving
             // meanwhile still count as not delivered (their own wait sends them).
-            let waiting = await undeliveredIDs(of: terminal)
-            let result = await TerminalJump.deliver(to: terminal)
+            // One look at the store for both: the message names exactly the marks
+            // then recorded as delivered (a mark arriving later waits for its own).
+            let pending = await pendingMarks(of: terminal)
+            let waiting = pending.filter { $0["delivered_at"]?.string == nil }.map(\.id)
+            var current = terminal
+            current.pendingIDs = pending.sorted { ($0["created_at"]?.string ?? "") < ($1["created_at"]?.string ?? "") }.map(\.id)
+            let result = await TerminalJump.deliver(to: current)
             delivery[terminal.id] = result == .sent ? .sent : .failed
             if result == .sent { await markDelivered(waiting, for: terminal) }
             try? await Task.sleep(for: .seconds(3))
@@ -780,10 +788,15 @@ final class SidebarModel {
     }
 
     private func undeliveredIDs(of terminal: AgentTerminal) async -> [String] {
+        await pendingMarks(of: terminal).filter { $0["delivered_at"]?.string == nil }.map(\.id)
+    }
+
+    /// The session's pending marks, as the store has them now.
+    private func pendingMarks(of terminal: AgentTerminal) async -> [Annotation] {
         await store.list(.init(status: "pending")).annotations.filter { annotation in
-            annotation["delivered_at"]?.string == nil && (annotation["session_id"]?.string == terminal.id
-                || (annotation["session_id"] == nil && annotation["worktree"]?.string == terminal.worktree))
-        }.map(\.id)
+            annotation["session_id"]?.string == terminal.id
+                || (annotation["session_id"] == nil && annotation["worktree"]?.string == terminal.worktree)
+        }
     }
 
     /// After a send: once you've stopped for the chosen seconds, each session
