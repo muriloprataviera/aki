@@ -230,7 +230,8 @@ struct MarkingView: View {
             // The queue sits beside what you're doing: next to the comment card, or
             // the last mark — not off in a corner.
             if !session.flying, session.marks.contains(where: { $0.id != session.editing }), queueScreen == screen {
-                let spot = queueAnchor ?? queueSpot
+                // With the sessions list open the queue makes way, even when it was anchored.
+                let spot = session.listOpen ? queueSpot : (queueAnchor ?? queueSpot)
                 queuePanel
                     .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { queueHeight = $0 }
                     .offset(x: min(max(spot.x + queueDrag.width + queueDragging.width, 12), grab.screen.frame.width - 242),
@@ -630,8 +631,10 @@ struct MarkingView: View {
             if side != .below, card.maxY + gap + queueHeight <= floor {
                 return CGPoint(x: card.minX, y: card.maxY + gap)
             }
-            if list.maxX + gap + width <= bounds.width - 12 {
-                return CGPoint(x: list.maxX + gap, y: min(max(card.minY, 12), floor - queueHeight))
+            // Past both the card and the list (never on top of the card).
+            let rightEdge = max(card.maxX, list.maxX) + gap
+            if rightEdge + width <= bounds.width - 12 {
+                return CGPoint(x: rightEdge, y: min(max(card.minY, 12), floor - queueHeight))
             }
             let leftEdge = min(card.minX, list.minX) - gap - width
             if leftEdge >= 12 {
@@ -1069,7 +1072,8 @@ struct MarkingView: View {
                         .onChanged { queueDragging = $0.translation; AkiCursor.set(NSCursor.closedHand) }
                         .onEnded { value in
                             // Keep where it shows (stopped at the screen's edge), not where the pointer went.
-                            let spot = queueAnchor ?? queueSpot
+                            // With the sessions list open the queue makes way, even when it was anchored.
+                let spot = session.listOpen ? queueSpot : (queueAnchor ?? queueSpot)
                             queueDrag.width = min(max(spot.x + queueDrag.width + value.translation.width, 12), grab.screen.frame.width - 242) - spot.x
                             queueDrag.height = min(max(spot.y + queueDrag.height + value.translation.height, 12),
                                                    grab.screen.frame.height - queueHeight - 12) - spot.y
