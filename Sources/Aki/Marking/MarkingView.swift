@@ -231,11 +231,14 @@ struct MarkingView: View {
             // the last mark — not off in a corner.
             if !session.flying, session.marks.contains(where: { $0.id != session.editing }), queueScreen == screen {
                 // With the sessions list open the queue makes way, even when it was anchored.
+                // (Where you dragged it is set aside meanwhile: it was beside the old spot.)
                 let spot = session.listOpen ? queueSpot : (queueAnchor ?? queueSpot)
+                let drag = session.listOpen ? CGSize.zero
+                    : CGSize(width: queueDrag.width + queueDragging.width, height: queueDrag.height + queueDragging.height)
                 queuePanel
                     .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { queueHeight = $0 }
-                    .offset(x: min(max(spot.x + queueDrag.width + queueDragging.width, 12), grab.screen.frame.width - 242),
-                            y: min(max(spot.y + queueDrag.height + queueDragging.height, 12), grab.screen.frame.height - queueHeight - 12))
+                    .offset(x: min(max(spot.x + drag.width, 12), grab.screen.frame.width - 242),
+                            y: min(max(spot.y + drag.height, 12), grab.screen.frame.height - queueHeight - 12))
                     .animation(.spring(response: 0.3, dampingFraction: 0.85), value: spot)
                     .transition(.opacity.combined(with: .scale(scale: 0.95)))
                     .onChange(of: session.marks.count) { old, new in if new > old { queueAnchor = nil } }
