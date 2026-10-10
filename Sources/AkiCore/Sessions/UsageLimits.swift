@@ -50,7 +50,8 @@ public struct UsageLimits: Sendable, Equatable {
             }
         }
         var best: UsageLimits?
-        for file in files.sorted(by: { $0.modified > $1.modified }).prefix(12) {
+        // A cap so a Mac whose logs never carry limits (an API key) reads little each minute.
+        for file in files.sorted(by: { $0.modified > $1.modified }).prefix(40) {
             // Logs older than the best report can't hold a newer one.
             if let best, file.modified < best.updated { break }
             if let limits = lastLimits(in: file.url, updated: file.modified), limits.updated > (best?.updated ?? .distantPast) {
