@@ -17,16 +17,19 @@ public struct UsageLimits: Sendable, Equatable {
     }
 
     /// A window that already renewed reads 0%: the agent only reports again when it's used.
+    /// Its next renewal is the old one plus whole windows, so "this week" keeps its start.
     public func current(now: Date = Date()) -> UsageLimits {
-        func fresh(_ limit: ClaudeStatus.Limit?) -> ClaudeStatus.Limit? {
+        func fresh(_ limit: ClaudeStatus.Limit?, length: TimeInterval) -> ClaudeStatus.Limit? {
             guard var limit else { return nil }
-            if let resets = limit.resets, resets <= now {
+            if var resets = limit.resets, resets <= now {
                 limit.percent = 0
-                limit.resets = nil
+                while resets <= now { resets.addTimeInterval(length) }
+                limit.resets = resets
             }
             return limit
         }
-        return UsageLimits(agent: agent, fiveHour: fresh(fiveHour), week: fresh(week), updated: updated)
+        return UsageLimits(agent: agent, fiveHour: fresh(fiveHour, length: 5 * 3600),
+                           week: fresh(week, length: 7 * 24 * 3600), updated: updated)
     }
 
     /// Claude: what its status line last said (account-wide, any session).
@@ -106,16 +109,20 @@ public struct UsageLimits: Sendable, Equatable {
         guard let handle = try? FileHandle(forReadingFrom: file) else { return nil }
         defer { try? handle.close() }
         let size = (try? handle.seekToEnd()) ?? 0
-        let chunk: UInt64 = 512 * 1024
-        try? handle.seek(toOffset: size > chunk ? size - chunk : 0)
-        guard var data = try? handle.readToEnd() else { return nil }
-        // Started mid-file: the first line is cut (maybe mid-character), so it goes.
-        if size > chunk, let newline = data.firstIndex(of: 0x0A) { data = data[data.index(after: newline)...] }
-        let text = String(decoding: data, as: UTF8.self)
-        for line in text.split(separator: "\n").reversed() where line.contains("\"rate_limits\"") {
-            if let limits = parseCodex(line: Data(line.utf8), updated: updated) { return limits }
+        // From the end, a bigger piece each time (a tool output can follow the last report).
+        var chunk: UInt64 = 512 * 1024
+        while true {
+            try? handle.seek(toOffset: size > chunk ? size - chunk : 0)
+            guard var data = try? handle.readToEnd() else { return nil }
+            // Started mid-file: the first line is cut (maybe mid-character), so it goes.
+            if size > chunk, let newline = data.firstIndex(of: 0x0A) { data = data[data.index(after: newline)...] }
+            let text = String(decoding: data, as: UTF8.self)
+            for line in text.split(separator: "\n").reversed() where line.contains("\"rate_limits\"") {
+                if let limits = parseCodex(line: Data(line.utf8), updated: updated) { return limits }
+            }
+            guard size > chunk, chunk < 32 << 20 else { return nil }
+            chunk *= 4
         }
-        return nil
     }
 
     /// One log line: `{"payload": {"type": "token_count", "rate_limits": {"primary": {...}, "secondary": {...}}}}`.

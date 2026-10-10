@@ -683,7 +683,8 @@ struct RingCell: View {
                     .foregroundStyle(AkiPalette.textSecondary)
                     .frame(width: (SidebarLayout.ring + 22) * scale, height: SidebarLayout.labelHeight * scale)
             }
-            if case .usage(let limits) = ring {
+            // (Rings by agent leave no room for labels: there the card says it.)
+            if case .usage(let limits) = ring, model.preferences.ringMode == .terminals {
                 // The week's share in big, what it is in small (the card has the rest).
                 VStack(spacing: 0) {
                     Text(limits.week.map { "\($0.percent)%" } ?? "–")

@@ -191,7 +191,9 @@ public final class TokenLedger: @unchecked Sendable {
                 let model = string(at: modelAt, in: bytes),
                 let output = number("\"output_tokens\":", in: bytes, from: usage)
             else { return nil }
-            let cwd = lastIndex(of: "\"cwd\":\"", in: bytes).flatMap { $0 > usage ? string(at: $0, in: bytes) : nil } ?? ""
+            // The folder sits after the message in recent versions, before it in older ones.
+            let cwd = (lastIndex(of: "\"cwd\":\"", in: bytes).flatMap { $0 > usage ? string(at: $0, in: bytes) : nil }
+                ?? firstIndex(of: "\"cwd\":\"", in: bytes, from: 0).flatMap { $0 < message ? string(at: $0, in: bytes) : nil }) ?? ""
             let key = lastIndex(of: "\"requestId\":\"", in: bytes).flatMap { string(at: $0, in: bytes) }.map { "r:" + $0 }
             return (key, stamp, cwd, model,
                     number("\"input_tokens\":", in: bytes, from: usage) ?? 0, output,

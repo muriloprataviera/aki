@@ -323,6 +323,7 @@ check(UsageLimits.parseCodex(line: Data(#"{"payload":{"rate_limits":{"primary":n
       "no windows, no limits")
 let renewed = UsageLimits.parseCodex(line: Data(codexLine.replacingOccurrences(of: "4102444800", with: "1000").utf8), updated: Date())?.current()
 check(renewed?.week?.percent == 0, "a window that already renewed reads 0%")
+check((renewed?.week?.resets ?? .distantPast) > Date(), "a renewed week keeps a start (its next renewal)")
 check(UsageLimits.parseCodex(line: Data(codexLine.replacingOccurrences(of: #"{"type":"event_msg""#, with: #"{"timestamp":"2026-10-10T20:57:25.894Z","type":"event_msg""#).utf8),
                               updated: .distantPast)?.updated == Date(timeIntervalSince1970: 1791665845.894),
       "a Codex report dated by its own time")
