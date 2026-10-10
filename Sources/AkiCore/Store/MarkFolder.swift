@@ -19,7 +19,9 @@ public enum MarkFolder {
     /// The folder's own name: the id's whole random part ("df9f68ee"), so two marks
     /// never share one; it starts with the code, so the code finds it by eye.
     static func folderName(_ id: String) -> String {
-        let tail = id.split(separator: "_").last.map(String.init) ?? id
+        // Aki's own ids (aki_<time>_<random>): their random part. Others (the API, the
+        // extension): the whole id, so "note_1" and "task_1" never share a folder.
+        let tail = id.hasPrefix("aki_") ? (id.split(separator: "_").last.map(String.init) ?? id) : id
         let clean = tail.lowercased().filter { $0.isLetter || $0.isNumber || $0 == "-" }
         return clean.isEmpty ? "mark" : clean
     }

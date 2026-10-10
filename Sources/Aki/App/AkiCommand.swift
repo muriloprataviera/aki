@@ -8,9 +8,15 @@ enum AkiCommand {
     static let link = "/usr/local/bin/aki"
 
     /// The binary in /Applications (stays put across updates), else this running copy.
+    /// …only when it's this same version (an older one there wouldn't know the newer
+    /// commands the messages name).
     static var target: String {
         let installed = "/Applications/Aki.app/Contents/MacOS/Aki"
-        return FileManager.default.isExecutableFile(atPath: installed) ? installed : (Bundle.main.executablePath ?? installed)
+        let running = Bundle.main.executablePath ?? installed
+        guard FileManager.default.isExecutableFile(atPath: installed) else { return running }
+        let mine = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String
+        let theirs = Bundle(path: "/Applications/Aki.app")?.infoDictionary?["CFBundleShortVersionString"] as? String
+        return mine == nil || mine == theirs ? installed : running
     }
 
     /// The link is there and leads to Aki.

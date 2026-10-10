@@ -88,7 +88,8 @@ enum TerminalJump {
             let bare = tabNameWithoutStatus(title)
             named.name = bare.isEmpty ? title.trimmingCharacters(in: .whitespacesAndNewlines) : bare
             named.named = true
-            if restingTitle(title), named.state == .working || named.state == .shell { named.state = .idle }
+            // Only a look at the tab newer than the session's own state counts.
+            if named.state == .working || named.state == .shell, restsByTab(named, since: named.updatedAt) == true { named.state = .idle }
             return named
         }
     }
