@@ -121,6 +121,19 @@ final class MarkingSession {
         return level == 0 ? hovered : hovered.ancestors[min(level, hovered.ancestors.count) - 1]
     }
 
+    /// The outline as it stands (what's hovered, its level, what ⇧ gathered), to keep
+    /// across a new picture of the screen.
+    var selectionState: (hovered: ProbedElement?, level: Int, gathered: [ProbedElement], hold: CGPoint?, probe: CGPoint) {
+        get { (hovered, level, gathered, keyboardHold, lastProbe) }
+        set {
+            hovered = newValue.hovered
+            level = newValue.level
+            gathered = newValue.gathered
+            keyboardHold = newValue.hold
+            lastProbe = newValue.probe
+        }
+    }
+
     /// What ⇧ with the arrows added, beside the one outlined now (marked as one area).
     var gathered: [ProbedElement] = [] { didSet { if gathered.isEmpty { gatherSteps = [] } } }
     /// The way each one was added: the opposite arrow takes the last one back out,

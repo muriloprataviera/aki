@@ -790,9 +790,10 @@ final class MarkingController {
         // Back over the page (⇧ alone had let the pointer through).
         if seeThrough {
             seeThrough = false
-            // A fresh picture of what changed below, then back over the page.
+            // A fresh picture of what changed below, then back over the page (the
+            // outline being gathered stays).
             scrollIdle?.cancel()
-            scrollStopped()
+            scrollStopped(keepSelection: true)
         }
         AkiCursor.pin.set()
     }
@@ -874,10 +875,13 @@ final class MarkingController {
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.45, execute: work)
     }
 
-    private func scrollStopped() {
+    /// `keepSelection`: the outline (and what ⇧ gathered) stays across the new picture
+    /// (going from ⇧ alone to ⇧ with the arrows).
+    private func scrollStopped(keepSelection: Bool = false) {
         guard let session, session.scrolling else { return }
         Task {
             if let grabs = await ScreenGrab.captureAll(excluding: overlayIDs) {
+                let kept = keepSelection ? session.selectionState : nil
                 for (index, grab) in grabs.enumerated() where index < session.grabs.count {
                     session.replace(grab, on: index)
                     Task { [weak session] in
@@ -885,6 +889,7 @@ final class MarkingController {
                         session?.texts[index] = text
                     }
                 }
+                if let kept { session.selectionState = kept }
             }
             // ⇧ still held: the pointer keeps going through (only the picture was renewed).
             guard !self.seeThrough else { return }
