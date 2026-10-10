@@ -65,7 +65,7 @@ Telling an agent *what* to change is the slow part: take a screenshot, paste it,
 | | |
 |---|---|
 | 🎯 **Exact elements in Chrome, no extension** | Aki asks the page what's under the pointer: the element, a unique CSS selector, its text and HTML, the React component's source in dev builds. Works in Chrome, Brave, Edge, Arc and Vivaldi. |
-| ⌨️ **Walk the page like DevTools** | <kbd>↑</kbd> the container, <kbd>↓</kbd> inside, <kbd>←</kbd> <kbd>→</kbd> the neighbours — even a CSS `::after` arrow. |
+| ⌨️ **Walk the screen with the keyboard** | <kbd>↑</kbd> <kbd>↓</kbd> <kbd>←</kbd> <kbd>→</kbd> move to the next thing above, below or beside, about the same size; <kbd>⇧↑</kbd> takes what holds it, <kbd>⇧↓</kbd> goes back inside — even a CSS `::after` arrow; <kbd>⏎</kbd> marks it. |
 | 🖥️ **Any app** | Elsewhere it uses macOS Accessibility: buttons, rows, tabs, the browser's own bar, floating panels. Areas and points work everywhere. |
 | 📝 **Text first, pictures when they help** | Each mark carries the text it covers; a small crop goes along only when what you marked is visual. You can switch either on or off. |
 | 🧭 **The right terminal, by itself** | A page on `localhost:3000` belongs to a worktree; Aki finds the session running it. Otherwise it goes to the session you picked. |
@@ -131,7 +131,9 @@ Aki is always on: the **bar at the edge of your screen** and the **pin in the me
 | <kbd>⏎</kbd> | Add the mark to the queue |
 | <kbd>⌘⏎</kbd> | Send (with a queue: the whole queue — the card also offers *Only this one*) |
 | <kbd>⇥</kbd> | Next session |
-| <kbd>↑</kbd> <kbd>↓</kbd> <kbd>←</kbd> <kbd>→</kbd> | Walk the page's elements |
+| <kbd>↑</kbd> <kbd>↓</kbd> <kbd>←</kbd> <kbd>→</kbd> | Move to the next thing on screen (above, below, beside) |
+| <kbd>⇧↑</kbd> <kbd>⇧↓</kbd> | Bigger (what holds it) · smaller (back inside) |
+| <kbd>⏎</kbd> | Mark what's outlined |
 | <kbd>⌥</kbd> | Lines of text instead of elements |
 | <kbd>esc</kbd> | Leave (the queue is kept) |
 
