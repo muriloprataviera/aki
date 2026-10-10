@@ -548,6 +548,7 @@ struct MarkingView: View {
                     } copy: {
                         NSPasteboard.general.clearContents()
                         NSPasteboard.general.setString(text, forType: .string)
+                        session.copied = nil  // the clipboard holds the text now
                     }
                 }
             }
