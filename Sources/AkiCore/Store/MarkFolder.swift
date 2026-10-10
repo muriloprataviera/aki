@@ -114,7 +114,8 @@ public enum MarkFolder {
             // message's commands write it).
             let matches = all.filter { a in
                 let whole = folderName(a.id).lowercased()
-                return code(a.id) == token || whole == token || (token.count >= 4 && whole.hasPrefix(token))
+                return code(a.id) == token || whole == token
+                    || (token.count >= 4 && (code(a.id).hasPrefix(token) || whole.hasPrefix(token)))
             }
             switch matches.count {
             case 1: found.append(matches[0])
