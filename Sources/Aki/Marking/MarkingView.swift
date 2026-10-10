@@ -222,6 +222,8 @@ struct MarkingView: View {
                 mark.screen == screen, !session.flying
             {
                 commentCard(for: mark)
+                    // Its "+N" list hangs off it: over the queue while it's open.
+                    .zIndex(session.listOpen ? 2 : 1)
             }
 
             // The queue, bottom-right of the main screen, once there's something in it.
@@ -812,6 +814,9 @@ struct MarkingView: View {
             }
             .frame(maxHeight: 360)
             .fixedSize(horizontal: false, vertical: moreList.count <= 8)
+            // Where it is on screen: the wheel over it scrolls it, not the page below.
+            .onGeometryChange(for: CGRect.self) { $0.frame(in: .global) } action: { session.scrollAreas["more\(screen)"] = $0 }
+            .onDisappear { session.scrollAreas["more\(screen)"] = nil }
         }
         .frame(width: 240, alignment: .leading)
         .onAppear { moreQuery = ""; DispatchQueue.main.async { moreSearchFocused = true } }
@@ -941,6 +946,8 @@ struct MarkingView: View {
                 }
             }
             .frame(maxHeight: count > 5 ? 230 : nil)
+            .onGeometryChange(for: CGRect.self) { $0.frame(in: .global) } action: { session.scrollAreas["queue\(screen)"] = $0 }
+            .onDisappear { session.scrollAreas["queue\(screen)"] = nil }
             .fixedSize(horizontal: false, vertical: count <= 5)
             // Where the whole queue goes, changeable here: a field that reads as one.
             Menu {

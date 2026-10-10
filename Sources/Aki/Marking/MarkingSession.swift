@@ -502,6 +502,10 @@ final class MarkingSession {
         }
     }
 
+    /// Aki's own lists that scroll (other sessions, the queue), per screen, in that
+    /// screen's overlay (top-left origin): the wheel over them scrolls them.
+    @ObservationIgnored var scrollAreas: [String: CGRect] = [:]
+
     /// The mark whose crop was just copied (the card says so for a moment).
     var copied: UUID?
 

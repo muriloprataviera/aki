@@ -6,7 +6,7 @@ What changed in each version of Aki. Versions follow [semantic versioning](https
 - A copied mark is one picture on the clipboard (PNG and TIFF), so clipboard histories like Raycast's show it with its preview.
 - A mark says the app and page where it was made, even when marking began in another app.
 - The comment card's buttons fit again with three of them (the keys show when there's room).
-- While marking, scrolling over Aki's own lists (other sessions, the queue) scrolls them, not the page below.
+- While marking, scrolling over Aki's own lists (other sessions, the queue) scrolls them, not the page below; the sessions list opens over the queue.
 - Session names no longer carry a frozen copy of the tab's status sign (✳); the ring shows the state live.
 - What floats over an Orca terminal (its update notice, a dialog) can be outlined: Aki looks past the terminal's see-through layer.
 - ⌘Tab works while marking: holding ⌘ lets the app switcher show over the marking screen.
