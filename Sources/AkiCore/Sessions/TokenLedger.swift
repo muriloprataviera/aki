@@ -28,6 +28,8 @@ public final class TokenLedger: @unchecked Sendable {
         /// Codex names the folder and model in earlier lines than its token counts.
         var cwd: String?
         var model: String?
+        /// Codex's running total: a token report that doesn't raise it isn't a new request.
+        var total: Int?
     }
 
     struct State: Codable {
@@ -264,7 +266,8 @@ public final class TokenLedger: @unchecked Sendable {
             let json = try? JSONSerialization.jsonObject(with: Data(line)) as? [String: Any],
             let payload = json["payload"] as? [String: Any]
         else { return false }
-        if json["type"] as? String == "session_meta" || payload["type"] as? String == "turn_context" {
+        let kind = json["type"] as? String
+        if kind == "session_meta" || kind == "turn_context" || payload["type"] as? String == "turn_context" {
             if let cwd = payload["cwd"] as? String, !cwd.isEmpty { cursor.cwd = cwd }
             // The model sits in different places by version (even deep in the session's header).
             if let model = payload["model"] as? String ?? Self.firstModel(in: line), !model.isEmpty { cursor.model = model }
@@ -278,6 +281,11 @@ public final class TokenLedger: @unchecked Sendable {
         let all = Self.int(last["input_tokens"]), output = Self.int(last["output_tokens"])
         let cached = Self.int(last["cached_input_tokens"])
         guard all + output > 0 else { return false }
+        // The same report again (a limits update, no new request): the running total didn't grow.
+        if let total = (info["total_token_usage"] as? [String: Any]).map({ Self.int($0["total_tokens"]) }), total > 0 {
+            if let before = cursor.total, total <= before { return false }
+            cursor.total = total
+        }
         let key = "c:\(path):\(stamp):\(all):\(output)"
         guard state.events[key] == nil else { return false }
         state.events[key] = Event(
