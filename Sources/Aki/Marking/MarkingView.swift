@@ -34,6 +34,8 @@ struct MarkingView: View {
     /// Where you dragged the queue to (on top of where it sits by itself).
     @State private var queueDrag: CGSize = .zero
     @State private var queueDragging: CGSize = .zero
+    /// Where the queue was moved while the sessions list is open (gone when it closes).
+    @State private var listQueueDrag: CGSize = .zero
     @State private var queueHandleHovered = false
     /// Words typed in the "+N" list to find a session.
     @State private var moreQuery = ""
@@ -233,8 +235,8 @@ struct MarkingView: View {
                 // With the sessions list open the queue makes way, even when it was anchored.
                 // (Where you dragged it is set aside meanwhile: it was beside the old spot.)
                 let spot = session.listOpen ? queueSpot : (queueAnchor ?? queueSpot)
-                let drag = session.listOpen ? CGSize.zero
-                    : CGSize(width: queueDrag.width + queueDragging.width, height: queueDrag.height + queueDragging.height)
+                let kept = session.listOpen ? listQueueDrag : queueDrag
+                let drag = CGSize(width: kept.width + queueDragging.width, height: kept.height + queueDragging.height)
                 queuePanel
                     .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { queueHeight = $0 }
                     .offset(x: min(max(spot.x + drag.width, 12), grab.screen.frame.width - 242),
@@ -242,6 +244,7 @@ struct MarkingView: View {
                     .animation(.spring(response: 0.3, dampingFraction: 0.85), value: spot)
                     .transition(.opacity.combined(with: .scale(scale: 0.95)))
                     .onChange(of: session.marks.count) { old, new in if new > old { queueAnchor = nil } }
+                    .onChange(of: session.listOpen) { listQueueDrag = .zero }
             }
 
             if isMain && !session.flying {
@@ -1075,12 +1078,17 @@ struct MarkingView: View {
                         .onChanged { queueDragging = $0.translation; AkiCursor.set(NSCursor.closedHand) }
                         .onEnded { value in
                             // Keep where it shows (stopped at the screen's edge), not where the pointer went.
-                            // With the sessions list open the queue makes way, even when it was anchored.
-                let spot = session.listOpen ? queueSpot : (queueAnchor ?? queueSpot)
+                            queueDragging = .zero
+                            // Moved while the sessions list is open: only for as long as it is.
+                            if session.listOpen {
+                                listQueueDrag.width += value.translation.width
+                                listQueueDrag.height += value.translation.height
+                                return
+                            }
+                            let spot = queueAnchor ?? queueSpot
                             queueDrag.width = min(max(spot.x + queueDrag.width + value.translation.width, 12), grab.screen.frame.width - 242) - spot.x
                             queueDrag.height = min(max(spot.y + queueDrag.height + value.translation.height, 12),
                                                    grab.screen.frame.height - queueHeight - 12) - spot.y
-                            queueDragging = .zero
                         })
                     .help(L10n.t("Drag to move"))
         }
