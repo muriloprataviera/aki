@@ -1,6 +1,7 @@
 // Japanese strings for Aki's interface (keys are the English text).
 extension L10n {
     static let japanese: [String: String] = [
+        "today": "今日",
         "Show in the sidebar": "サイドバーに表示",
         "Sessions and limits": "セッションと上限",
         "Only limits": "上限のみ",

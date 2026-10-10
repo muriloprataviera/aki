@@ -1,6 +1,7 @@
 // Korean strings for Aki's interface (keys are the English text).
 extension L10n {
     static let korean: [String: String] = [
+        "today": "오늘",
         "Show in the sidebar": "사이드바에 표시",
         "Sessions and limits": "세션과 한도",
         "Only limits": "한도만",

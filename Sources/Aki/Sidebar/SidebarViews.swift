@@ -689,11 +689,12 @@ struct RingCell: View {
                     Text(limits.week.map { "\($0.percent)%" } ?? "–")
                         .font(.system(size: (SidebarLayout.labelFont + 1) * scale, weight: .heavy, design: .rounded).monospacedDigit())
                         .foregroundStyle(UsageRing.tint(limits.week?.percent ?? 0, hovered: hovered))
-                    Text(model.spend[limits.agent.rawValue].map { "\(TokenSpend.short($0.today.tokens)) · \(TokenSpend.money($0.today.cost))" }
-                         ?? L10n.t("week").uppercased())
+                    // Today's share of the week (the tokens and $ are on the card).
+                    let today = limits.week.flatMap { DayShare(week: $0) }.map { Int(($0.used * 100).rounded()) }
+                    Text(today.map { "\(L10n.t("today").uppercased()) \($0)%" } ?? L10n.t("week").uppercased())
                         .font(.system(size: 7.5 * scale, weight: .bold).monospacedDigit())
                         .tracking(0.4 * scale)
-                        .foregroundStyle(AkiPalette.textSecondary)
+                        .foregroundStyle(today.map { UsageRing.tint($0) } ?? AkiPalette.textSecondary)
                 }
                 .lineLimit(1)
                 .frame(width: (SidebarLayout.ring + 22) * scale, height: SidebarLayout.labelHeight * scale)

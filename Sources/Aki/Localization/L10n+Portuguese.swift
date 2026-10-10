@@ -1,6 +1,7 @@
 // Portuguese (Brazil) strings for Aki's interface (keys are the English text).
 extension L10n {
     static let portuguese: [String: String] = [
+        "today": "hoje",
         "Show in the sidebar": "Mostrar na barrinha",
         "Sessions and limits": "Sessões e limites",
         "Only limits": "Só limites",
