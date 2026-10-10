@@ -3,6 +3,19 @@
     <channel>
         <title>Aki</title>
         <item>
+            <title>0.5.0-beta.1</title>
+            <pubDate>Sat, 10 Oct 2026 18:01:39 -0300</pubDate>
+            <sparkle:channel>beta</sparkle:channel>
+            <sparkle:version>20261010210138</sparkle:version>
+            <sparkle:shortVersionString>0.5.0-beta.1</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
+            <description><![CDATA[<h2>Aki 0.5.0 beta 1</h2>
+<ul><li>Usage limits in the sidebar: a ring for Claude and one for Codex with how much of the week is used. Hover for the 5-hour window and when each renews.</li></ul>
+]]></description>
+            <enclosure url="https://aki-updates.vercel.app/0.5.0-beta.1/Aki-0.5.0-beta.1.zip" length="3576310" type="application/octet-stream" sparkle:edSignature="29n+tAm16wisVVb7FVaTxP2lpxN34uuRxFq4/oyxiLFGmu2zpwqipvIdtKKy0tTX3nedsPbLwNbnI2VGpfGGAQ=="/>
+        </item>
+        <item>
             <title>0.4.4</title>
             <pubDate>Sat, 10 Oct 2026 13:41:15 -0300</pubDate>
             <sparkle:version>20261010164115</sparkle:version>
