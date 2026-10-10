@@ -3,6 +3,20 @@
     <channel>
         <title>Aki</title>
         <item>
+            <title>0.4.4-beta.2</title>
+            <pubDate>Sat, 10 Oct 2026 13:12:04 -0300</pubDate>
+            <sparkle:channel>beta</sparkle:channel>
+            <sparkle:version>20261010161204</sparkle:version>
+            <sparkle:shortVersionString>0.4.4-beta.2</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
+            <description><![CDATA[<h2>Aki 0.4.4 beta 2</h2>
+<ul><li>Marking starts on the agent tab you're in, even after marks went elsewhere.</li>
+<li>⌘Z undoes the last mark; Space while dragging moves the area.</li></ul>
+]]></description>
+            <enclosure url="https://aki-updates.vercel.app/0.4.4-beta.2/Aki-0.4.4-beta.2.zip" length="3535619" type="application/octet-stream" sparkle:edSignature="7lWsttgcoID3G8RAR/yKgeQvV9aKQ3t/cv+4kC166tdh54iYHbKxiIBQHPii7xJ9vGs5F6XMTLy/onxCYGRADw=="/>
+        </item>
+        <item>
             <title>0.4.4-beta.1</title>
             <pubDate>Sat, 10 Oct 2026 12:52:44 -0300</pubDate>
             <sparkle:channel>beta</sparkle:channel>
