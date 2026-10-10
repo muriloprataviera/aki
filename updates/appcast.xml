@@ -3,6 +3,19 @@
     <channel>
         <title>Aki</title>
         <item>
+            <title>0.4.2-beta.1</title>
+            <pubDate>Sat, 10 Oct 2026 11:43:00 -0300</pubDate>
+            <sparkle:channel>beta</sparkle:channel>
+            <sparkle:version>20261010144259</sparkle:version>
+            <sparkle:shortVersionString>0.4.2-beta.1</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
+            <description><![CDATA[<h2>Aki 0.4.2 beta 1</h2>
+<ul><li>When the sidebar is full, every project still shows, with its name.</li></ul>
+]]></description>
+            <enclosure url="https://aki-updates.vercel.app/0.4.2-beta.1/Aki-0.4.2-beta.1.zip" length="3518146" type="application/octet-stream" sparkle:edSignature="jAe6Dk1I92ear7zZaHw72MlStmdzNUS491qrIyrjvkSSP6TZJlpsdlFg555vHiWE4acNGz45WahZLc0IDCFTAA=="/>
+        </item>
+        <item>
             <title>0.4.1</title>
             <pubDate>Sat, 10 Oct 2026 10:44:46 -0300</pubDate>
             <sparkle:version>20261010134445</sparkle:version>
