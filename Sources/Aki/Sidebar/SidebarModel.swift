@@ -215,11 +215,12 @@ final class SidebarModel {
         return visible + rest
     }
 
-    /// A session's colour: its project's when projects are shown (every ring of a
-    /// project alike), else its own by number.
+    /// A session's own colour, by its number on the sidebar: each session its own (two
+    /// of one project too), so a mark's colour says which session it goes to. One past
+    /// the numbered ones gets a steady colour from its id.
     func hue(of terminal: AgentTerminal) -> Color {
-        guard preferences.showProjects else { return AkiPalette.hue(number: number(of: terminal.id)) }
-        return projectHue(projectKey(of: terminal))
+        if let number = number(of: terminal.id) { return AkiPalette.hue(number: number) }
+        return AkiPalette.hue(for: terminal.id)
     }
 
     func hue(ofID id: String?) -> Color {
