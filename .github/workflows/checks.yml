@@ -1,6 +1,9 @@
-# Builds and runs the checks on every pull request (and by hand).
+# Builds and runs the checks on every push to main, every pull request (and by hand).
 name: Checks
 on:
+  push:
+    branches: [main]
+    paths: ["Sources/**", "Tests/**", "Package.swift", "Package.resolved", "scripts/check-translations.py", ".github/workflows/checks.yml"]
   pull_request:
   workflow_dispatch:
 # Read-only token: checks never write to the repository.
