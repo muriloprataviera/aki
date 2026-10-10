@@ -317,6 +317,34 @@ struct MarkingView: View {
 
     // MARK: Comment
 
+    /// Where the "+N" list of other sessions opens beside the card: right; below when the
+    /// card sits against the right edge; left only when neither fits.
+    private enum ListSide { case right, below, left }
+
+    private func listSide(card: CGRect) -> ListSide {
+        let bounds = grab.screen.frame.size
+        if card.maxX + 10 + 240 <= bounds.width - 12 { return .right }
+        if card.maxY + 10 + 380 <= bounds.height - 12 { return .below }
+        return .left
+    }
+
+    /// The card's box on its screen (top-left origin), as drawn.
+    private func cardBox(for mark: Mark) -> CGRect {
+        let width: CGFloat = 340
+        let size = CGSize(width: width, height: max(cardHeight, 200))
+        let origin: CGPoint = queueAnchor.map { q in
+            let bounds = grab.screen.frame.size
+            var x = q.x - 12 - width
+            if x < 12 { x = q.x + 230 + 12 }
+            return CGPoint(x: min(max(x, 12), bounds.width - width - 12),
+                           y: min(max(q.y, 12), bounds.height - bottomReserve - size.height))
+        } ?? placement(near: mark.anchor, size: size)
+        let screenSize = grab.screen.frame.size
+        let x = min(max(origin.x + cardDrag.width + cardDragging.width, 12), screenSize.width - width - 12)
+        let y = min(max(origin.y + cardDrag.height + cardDragging.height, 12), screenSize.height - min(cardHeight, screenSize.height - 24) - 12)
+        return CGRect(x: x, y: y, width: width, height: cardHeight)
+    }
+
     private func commentCard(for mark: Mark) -> some View {
         let hue = Color(session.hue(for: mark.destination))
         let width: CGFloat = 340
@@ -434,12 +462,19 @@ struct MarkingView: View {
         .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous).strokeBorder(hue.opacity(0.6), lineWidth: 1))
         .shadow(color: hue.opacity(0.25), radius: 20, y: 6)
         .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { cardHeight = $0 }
-        // "+N": the other sessions to the card's right, or its left when there's no room.
-        .overlay(alignment: x + width + 10 + 240 <= grab.screen.frame.width - 12 ? .topTrailing : .topLeading) {
+        // "+N": the other sessions to the card's right (below it, or left, when there's no room).
+        .overlay(alignment: {
+            switch listSide(card: CGRect(x: x, y: y, width: width, height: cardHeight)) {
+            case .right: .topTrailing
+            case .below: .bottomLeading
+            case .left: .topLeading
+            }
+        }()) {
             if session.listOpen && !pickerRest.isEmpty {
-                let right = x + width + 10 + 240 <= grab.screen.frame.width - 12
+                let side = listSide(card: CGRect(x: x, y: y, width: width, height: cardHeight))
                 morePanel
-                    .offset(x: (right ? 250 : -250) + moreDrag.width + moreDragging.width,
+                    .alignmentGuide(.bottom) { d in side == .below ? d[.top] - 10 : d[.bottom] }
+                    .offset(x: (side == .right ? 250 : side == .left ? -250 : 0) + moreDrag.width + moreDragging.width,
                             y: moreDrag.height + moreDragging.height)
             }
         }
@@ -580,6 +615,28 @@ struct MarkingView: View {
             box = CGRect(x: last.anchor.x, y: last.anchor.y, width: 1, height: 1)
         } else {
             box = CGRect(x: bounds.width - width - 20, y: bounds.height - queueHeight - 70, width: 0, height: 0)
+        }
+        // The sessions list open beside the card: the queue makes way (below the card,
+        // past the list, or on the card's left — whichever fits).
+        if session.listOpen, let mark = session.editing.flatMap({ id in session.marks.first { $0.id == id } }), mark.screen == screen {
+            let card = cardBox(for: mark)
+            let side = listSide(card: card)
+            let list: CGRect = switch side {
+            case .right: CGRect(x: card.maxX + 10, y: card.minY, width: 240, height: 380)
+            case .below: CGRect(x: card.minX, y: card.maxY + 10, width: 240, height: 380)
+            case .left: CGRect(x: card.minX - 250, y: card.minY, width: 240, height: 380)
+            }
+            let floor = bounds.height - bottomReserve
+            if side != .below, card.maxY + gap + queueHeight <= floor {
+                return CGPoint(x: card.minX, y: card.maxY + gap)
+            }
+            if list.maxX + gap + width <= bounds.width - 12 {
+                return CGPoint(x: list.maxX + gap, y: min(max(card.minY, 12), floor - queueHeight))
+            }
+            let leftEdge = min(card.minX, list.minX) - gap - width
+            if leftEdge >= 12 {
+                return CGPoint(x: leftEdge, y: min(max(card.minY, 12), floor - queueHeight))
+            }
         }
         var x = box.maxX + gap
         if x + width > bounds.width - 12 { x = box.minX - gap - width }
