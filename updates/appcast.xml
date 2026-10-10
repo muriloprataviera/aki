@@ -3,6 +3,19 @@
     <channel>
         <title>Aki</title>
         <item>
+            <title>0.4.3-beta.1</title>
+            <pubDate>Sat, 10 Oct 2026 11:54:07 -0300</pubDate>
+            <sparkle:channel>beta</sparkle:channel>
+            <sparkle:version>20261010145406</sparkle:version>
+            <sparkle:shortVersionString>0.4.3-beta.1</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
+            <description><![CDATA[<h2>Aki 0.4.3 beta 1</h2>
+<ul><li>⇧ with the arrows adds the next thing to what's outlined; bigger and smaller moved to ⌘↑ / ⌘↓.</li></ul>
+]]></description>
+            <enclosure url="https://aki-updates.vercel.app/0.4.3-beta.1/Aki-0.4.3-beta.1.zip" length="3522896" type="application/octet-stream" sparkle:edSignature="sbwgZyYFAuNQKhSMRoomUUH5Y3yMdGceo1nLeJFy/KEsbr0509OKI6zQ7OHeIxeY1zlPToJhmJajcIkITOC9BA=="/>
+        </item>
+        <item>
             <title>0.4.2</title>
             <pubDate>Sat, 10 Oct 2026 11:47:54 -0300</pubDate>
             <sparkle:version>20261010144754</sparkle:version>
