@@ -262,6 +262,8 @@ final class MarkingController {
                     defer { session.capturing -= 1 }
                     guard let grabs = await ScreenGrab.captureAll(excluding: overlays), mark.screen < grabs.count else { return }
                     let grab = grabs[mark.screen]
+                    // Its own picture, taken: to the clipboard before the text is read.
+                    session.copyPicture(of: mark.id, from: grab)
                     let text = mark.isPoint ? nil : await ScreenText.read(grab)
                     session.refreshPicture(of: mark.id, grab: grab, text: text)
                 }

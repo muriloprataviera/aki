@@ -362,15 +362,9 @@ final class MarkingSession {
         }
         marks.append(mark)
         markAdded(mark)
-        // Its crop to the clipboard too (⌘V anywhere), once its picture is taken.
-        if Preferences.shared.copyCrop {
-            let id = mark.id
-            Task {
-                for _ in 0..<20 where capturing > 0 { try? await Task.sleep(for: .milliseconds(50)) }
-                guard let mark = marks.first(where: { $0.id == id }), let image = previewImage(of: mark) else { return }
-                Self.copy(image)
-            }
-        }
+        // Its crop to the clipboard too (⌘V anywhere): now on a frozen picture; on a live
+        // screen once its own picture is taken (`copyPicture`, from the controller).
+        if !live { copyPicture(of: mark.id) }
         editing = mark.id
         draft = ""
         focusScreen(screen)
@@ -493,6 +487,13 @@ final class MarkingSession {
             let read = texts[mark.screen]?.text(in: mark.rect), !read.isEmpty
         else { return nil }
         return read
+    }
+
+    /// A mark's crop to the clipboard (when Settings says so), from `grab` when given.
+    func copyPicture(of id: UUID, from grab: ScreenGrab? = nil) {
+        guard Preferences.shared.copyCrop, var mark = marks.first(where: { $0.id == id }) else { return }
+        if let grab { mark.grab = grab }
+        if let image = previewImage(of: mark) { Self.copy(image) }
     }
 
     /// An image on the clipboard, as PNG (what most apps paste) and as an image.
