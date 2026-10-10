@@ -40,6 +40,8 @@
 
 Telling an agent *what* to change is the slow part: take a screenshot, paste it, describe where to look, switch to the right terminal, hope it finds the element. Aki turns that into **point, say it, send**. The agent receives the exact element (selector, text, HTML, even the React source file), your note, and a crop only when a picture actually helps — so it spends tokens on the fix, not on guessing.
 
+The other question while several agents run is *how am I doing this week?* The same sidebar answers it: how much of Claude's and Codex's weekly limit is gone, today's tokens and what they'd cost, and whether you're ahead of the pace — without another app.
+
 ## How it works
 
 | | | |
@@ -71,6 +73,7 @@ Telling an agent *what* to change is the slow part: take a screenshot, paste it,
 | 🧭 **The right terminal, by itself** | A page on `localhost:3000` belongs to a worktree; Aki finds the session running it. Otherwise it goes to the session you picked. |
 | ⏱️ **Your agent wakes up** | Seconds after you stop, Aki types the request into the session's tab — and never glues it to something you were typing there. |
 | 🟠 **One ring per session** | A sidebar on the screen edge shows every Claude Code / Codex session, grouped by project, with its state, context used, your 5-hour and weekly limits, and what's waiting. |
+| 📊 **Your week at a glance** | A ring each for Claude and Codex with the share of the weekly limit used and today's tokens and cost at API prices. Hover for the 5-hour window, when each renews, the pace, today's share of the week, the last 7 days and the projects that used most. Want only that? Settings → Show in the sidebar → Only limits. `aki usage` prints it in the terminal. |
 | 📬 **Sent, then done** | A countdown on the session's ring until the request goes in; a ✓ when the agent has resolved every mark. |
 | 🕘 **History** | <kbd>⇧⌘H</kbd> lists every mark with its size; move marks between sessions; done marks clean themselves up. |
 | ⚙️ **Yours to set** | Light or dark, Aki's red or your Mac's accent, four sizes, shortcuts you choose, nine languages (English, Português, Español, Français, Deutsch, 日本語, 中文, 한국어, Italiano). |
@@ -192,7 +195,7 @@ file:     src/components/Hero.tsx:42
 
 ## Privacy
 
-Everything you mark stays on your Mac, in `~/.aki`. Aki's local server listens on `127.0.0.1` only and checks every request's origin. Nothing is sent anywhere except the update check and the optional, anonymous notices described in [Anonymous notices](#anonymous-notices-telemetry).
+Everything you mark stays on your Mac, in `~/.aki`. Aki's local server listens on `127.0.0.1` only and checks every request's origin. The usage rings read only the token counts in Claude Code's and Codex's own logs on your Mac, never the conversations. Nothing is sent anywhere except the update check and the optional, anonymous notices described in [Anonymous notices](#anonymous-notices-telemetry).
 
 ## Build from source
 

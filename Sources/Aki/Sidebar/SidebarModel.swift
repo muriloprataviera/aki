@@ -376,7 +376,7 @@ final class SidebarModel {
     }
 
     /// The sidebar's rings, per the "Rings" setting.
-    var rings: [Ring] { sessionRings + usageRings }
+    var rings: [Ring] { (preferences.showSessions ? sessionRings : []) + usageRings }
 
     /// The accounts' limits, one ring each, after the sessions.
     private var usageRings: [Ring] {
@@ -436,8 +436,10 @@ final class SidebarModel {
     /// The project a conversation belongs to, as the sidebar names folders.
     /// The project a session belongs to: the closest numbered folder it lives under
     /// ("08_ACME_LEGACY" for a worktree deep inside it), else its own folder.
-    func projectKey(of terminal: AgentTerminal) -> String {
-        let parts = URL(filePath: terminal.worktree).pathComponents
+    func projectKey(of terminal: AgentTerminal) -> String { projectKey(ofWorktree: terminal.worktree) }
+
+    func projectKey(ofWorktree worktree: String) -> String {
+        let parts = URL(filePath: worktree).pathComponents
         // The innermost one: "04_PROJETOS" above everything isn't a project.
         return parts.last { $0.range(of: #"^\d+_"#, options: .regularExpression) != nil } ?? parts.last ?? ""
     }
@@ -640,6 +642,11 @@ final class SidebarModel {
     /// Each AI account's limits (Claude from its status line, Codex from its logs).
     var usage: [UsageLimits] = []
     @ObservationIgnored private var codexRead: (limits: UsageLimits?, at: Date) = (nil, .distantPast)
+    /// Tokens and their API-price cost per AI ("claude", "codex"), from the local logs.
+    var spend: [String: TokenSpend] = [:]
+    @ObservationIgnored private let ledger = TokenLedger()
+    @ObservationIgnored private var ledgerRead = Date.distantPast
+    @ObservationIgnored private var ledgerBusy = false
 
     /// Room Aki's pictures take on this Mac (measured on each refresh).
     var diskUsage = DiskUsage()
@@ -686,6 +693,25 @@ final class SidebarModel {
         }
         let limits = [UsageLimits.claude(from: statuses), codexRead.limits].compactMap { $0?.current() }
         if limits != self.usage { self.usage = limits }
+        // Tokens: the logs' new lines every 30 s, in the background (the first pass reads the week).
+        if preferences.showUsage, !ledgerBusy, Date().timeIntervalSince(ledgerRead) > 30 {
+            ledgerBusy = true
+            ledgerRead = Date()
+            let ledger = self.ledger
+            Task {
+                let found = await Task.detached(priority: .utility) { () -> [String: TokenSpend] in
+                    ledger.update()
+                    var result: [String: TokenSpend] = [:]
+                    for agent in ["claude", "codex"] {
+                        let week = limits.first { $0.agent.rawValue == agent }?.week?.resets
+                        result[agent] = TokenSpend.of(ledger.events(agent: agent), weekStart: week?.addingTimeInterval(-7 * 24 * 3600))
+                    }
+                    return result
+                }.value
+                if found != spend { spend = found }
+                ledgerBusy = false
+            }
+        }
         // Every mark of a session resolved by its agent: a ✓ on its ring.
         for terminal in open where terminal.pending == 0 && !movedFrom.contains(terminal.id) {
             if let before = terminals.first(where: { $0.id == terminal.id }), before.pending > 0 {

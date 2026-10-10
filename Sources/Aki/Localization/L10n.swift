@@ -20,6 +20,8 @@ enum L10n {
     }
 
     static var isPortuguese: Bool { code == "pt" }
+    /// Dates and numbers in the language in use.
+    static var locale: Locale { code.map { Locale(identifier: $0) } ?? .current }
 
     static func t(_ english: String) -> String {
         let table: [String: String]? = switch code {

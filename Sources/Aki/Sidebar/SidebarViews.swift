@@ -333,7 +333,7 @@ struct SidebarRoot: View {
 
             // The eye over the bar's start, before the first name (the "+N" card
             // opens over the far end): projects' names on or off.
-            if model.settled, rings.count > 1 {
+            if model.settled, rings.count > 1, preferences.showSessions {
                 let along = layout.cellAlongCenter(0) - 40 * layout.scale
                 // Small and quiet: just the eye with a thin rim in Aki's colours (the label
                 // on hover says what it does). Off: eye crossed out, plain rim.
@@ -689,8 +689,9 @@ struct RingCell: View {
                     Text(limits.week.map { "\($0.percent)%" } ?? "–")
                         .font(.system(size: (SidebarLayout.labelFont + 1) * scale, weight: .heavy, design: .rounded).monospacedDigit())
                         .foregroundStyle(UsageRing.tint(limits.week?.percent ?? 0, hovered: hovered))
-                    Text(L10n.t("week").uppercased())
-                        .font(.system(size: 7.5 * scale, weight: .bold))
+                    Text(model.spend[limits.agent.rawValue].map { "\(TokenSpend.short($0.today.tokens)) · \(TokenSpend.money($0.today.cost))" }
+                         ?? L10n.t("week").uppercased())
+                        .font(.system(size: 7.5 * scale, weight: .bold).monospacedDigit())
                         .tracking(0.4 * scale)
                         .foregroundStyle(AkiPalette.textSecondary)
                 }
@@ -858,30 +859,189 @@ struct UsageRing: View {
     }
 }
 
-/// The card behind a limits ring: the week and the 5-hour window, and when each renews.
+/// The card behind a limits ring, after Codenotch's: each window with when it
+/// renews, a bar and the pace; today's share of the week; tokens and their
+/// API-price cost today and this week, day by day; the projects that used most.
 struct UsageCard: View {
+    let model: SidebarModel
     let limits: UsageLimits
     let direction: TailDirection
     let surface: SurfaceStyle
 
     private var secondary: Color { surface == .solid ? AkiPalette.textSecondary : AkiPalette.glassTextSecondary }
+    private var spend: TokenSpend? { model.spend[limits.agent.rawValue] }
+
+    /// Worktrees of one project summed under its name, as the sidebar groups them.
+    private var projects: [(label: String, share: Double, cost: Double)] {
+        var sums: [String: (share: Double, cost: Double)] = [:]
+        for project in spend?.projects ?? [] {
+            let label = project.path.isEmpty ? L10n.t("Other") : model.projectLabel(model.projectKey(ofWorktree: project.path))
+            sums[label, default: (0, 0)].share += project.share
+            sums[label, default: (0, 0)].cost += project.total.cost
+        }
+        return sums.map { ($0.key, $0.value.share, $0.value.cost) }.sorted { $0.share > $1.share }
+    }
 
     var body: some View {
         TooltipShell(direction: direction, surface: surface) {
             VStack(alignment: .leading, spacing: 7.5) {
-                Text("\(limits.agent.displayName) · \(L10n.t("usage limits"))")
-                    .font(CardType.title).foregroundStyle(AkiPalette.textPrimary)
-                Hairline()
+                HStack(spacing: 6) {
+                    AgentGlyphView(agent: limits.agent, size: 14).foregroundStyle(AkiPalette.fg)
+                    Text(limits.agent.displayName).font(CardType.title).foregroundStyle(AkiPalette.textPrimary)
+                    Spacer(minLength: 4)
+                    Text(limits.updated.formatted(.relative(presentation: .named))).font(CardType.body).foregroundStyle(secondary)
+                }
                 if let week = limits.week {
-                    UsageRow(title: L10n.t("Week"), percent: week.percent, detail: week.resets.map(TerminalCard.renews), secondary: secondary)
+                    LimitBlock(title: L10n.t("Week"), limit: week, length: 7 * 24 * 3600, secondary: secondary)
                 }
                 if let five = limits.fiveHour {
-                    UsageRow(title: "5h", percent: five.percent, detail: five.resets.map(TerminalCard.renews), secondary: secondary)
+                    LimitBlock(title: L10n.t("5-hour session"), limit: five, length: 5 * 3600, secondary: secondary)
                 }
-                Text("\(L10n.t("Last reported")) \(limits.updated.formatted(.relative(presentation: .named)))")
-                    .font(CardType.body).foregroundStyle(secondary)
+                if let week = limits.week, let today = DayShare(week: week) {
+                    VStack(alignment: .leading, spacing: 3) {
+                        HStack {
+                            Text(L10n.t("Today's share")).font(CardType.bodyStrong).foregroundStyle(AkiPalette.textPrimary)
+                            Spacer(minLength: 4)
+                            Text(TerminalCard.renews(today.ends)).font(CardType.body).foregroundStyle(secondary)
+                        }
+                        LimitBar(fraction: today.used, secondary: secondary)
+                        Text("\(Int((today.used * 100).rounded()))% \(L10n.t("of today's share (a seventh of the week a day)"))")
+                            .font(CardType.body).foregroundStyle(today.used > 1 ? AkiPalette.red : secondary)
+                            .lineLimit(1).minimumScaleFactor(0.8)
+                    }
+                }
+                if let spend {
+                    Hairline()
+                    SplitRow(L10n.t("Today"), "\(TokenSpend.short(spend.today.tokens)) \(L10n.t("tokens")) · \(TokenSpend.money(spend.today.cost))", secondary)
+                    SplitRow(L10n.t("This week"), "\(TokenSpend.short(spend.week.tokens)) \(L10n.t("tokens")) · \(TokenSpend.money(spend.week.cost))", secondary)
+                    SpendBars(days: spend.days, secondary: secondary)
+                    if !projects.isEmpty {
+                        Hairline()
+                        Text(L10n.t("Used most this week")).font(CardType.bodyStrong).foregroundStyle(AkiPalette.textPrimary)
+                        ForEach(projects.prefix(4), id: \.label) { project in
+                            HStack(spacing: 6) {
+                                Text(project.label)
+                                    .font(CardType.body).foregroundStyle(AkiPalette.textPrimary)
+                                    .lineLimit(1).truncationMode(.middle)
+                                Spacer(minLength: 4)
+                                Text("\(Int((project.share * 100).rounded()))%").font(CardType.body).foregroundStyle(secondary).monospacedDigit()
+                                Text(TokenSpend.money(project.cost)).font(CardType.body).foregroundStyle(secondary).monospacedDigit()
+                                    .frame(minWidth: 38, alignment: .trailing)
+                            }
+                        }
+                    }
+                    Text(L10n.t("$ at API prices, an estimate: your plan is a flat fee."))
+                        .font(CardType.body).foregroundStyle(secondary.opacity(0.8))
+                        .fixedSize(horizontal: false, vertical: true)
+                } else {
+                    Hairline()
+                    Text(L10n.t("Counting tokens…")).font(CardType.body).foregroundStyle(secondary)
+                }
             }
         }
+    }
+}
+
+/// One limit window: its name and when it renews, a bar, then used, left and the pace.
+struct LimitBlock: View {
+    let title: String
+    let limit: ClaudeStatus.Limit
+    /// How long the window is (for the pace).
+    let length: TimeInterval
+    let secondary: Color
+
+    /// Points above (+) or below (−) an even pace: used share minus time gone.
+    private var pace: Double? {
+        guard let resets = limit.resets else { return nil }
+        let left = resets.timeIntervalSinceNow
+        guard left > 0 else { return nil }
+        let gone = 1 - min(left / length, 1)
+        return (Double(min(limit.percent, 100)) / 100 - gone) * 100
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 3) {
+            HStack {
+                Text(title).font(CardType.bodyStrong).foregroundStyle(AkiPalette.textPrimary)
+                Spacer(minLength: 4)
+                if let resets = limit.resets {
+                    Text(TerminalCard.renews(resets)).font(CardType.body).foregroundStyle(secondary)
+                }
+            }
+            LimitBar(fraction: Double(limit.percent) / 100, secondary: secondary)
+            HStack(spacing: 0) {
+                Text("\(limit.percent)% \(L10n.t("used")) · \(max(0, 100 - limit.percent))% \(L10n.t("left"))")
+                    .foregroundStyle(AkiPalette.textPrimary)
+                if let pace, abs(pace) >= 1 {
+                    Text(" · \(Int(abs(pace).rounded()))% " + L10n.t(pace > 0 ? "over the pace" : "under the pace"))
+                        .foregroundStyle(pace > 0 ? AkiPalette.red : secondary)
+                }
+            }
+            .font(CardType.body).lineLimit(1).minimumScaleFactor(0.8)
+        }
+    }
+}
+
+struct LimitBar: View {
+    let fraction: Double
+    let secondary: Color
+
+    var body: some View {
+        GeometryReader { geo in
+            ZStack(alignment: .leading) {
+                Capsule().fill(AkiPalette.fg.opacity(0.1))
+                Capsule().fill(fraction >= 0.9 ? AnyShapeStyle(AkiPalette.red) : AnyShapeStyle(AkiPalette.auroraDiagonal))
+                    .frame(width: max(4, geo.size.width * CGFloat(min(max(fraction, 0), 1))))
+            }
+        }
+        .frame(height: 4)
+    }
+}
+
+/// The week split in seven equal days from its start: today's allowance so far
+/// (n/7) and how much of it is used (Codenotch's "daily pace").
+struct DayShare {
+    let used: Double
+    let ends: Date
+
+    init?(week: ClaudeStatus.Limit, now: Date = Date()) {
+        guard let resets = week.resets else { return nil }
+        let day: TimeInterval = 24 * 3600
+        let start = resets.addingTimeInterval(-7 * day)
+        let gone = min(max(now.timeIntervalSince(start), 0), 7 * day)
+        let index = min(6, Int(gone / day))
+        used = (Double(week.percent) / 100) / (Double(index + 1) / 7)
+        ends = index == 6 ? resets : start.addingTimeInterval(Double(index + 1) * day)
+    }
+}
+
+/// Tokens per day over the last 7, as small bars (today last), with the day's initial.
+struct SpendBars: View {
+    let days: [TokenSpend.Day]
+    let secondary: Color
+
+    var body: some View {
+        let most = max(days.map(\.total.tokens).max() ?? 0, 1)
+        HStack(alignment: .bottom, spacing: 4) {
+            ForEach(Array(days.enumerated()), id: \.offset) { i, day in
+                VStack(spacing: 2) {
+                    RoundedRectangle(cornerRadius: 2)
+                        .fill(i == days.count - 1 ? AnyShapeStyle(AkiPalette.auroraDiagonal) : AnyShapeStyle(secondary.opacity(0.7)))
+                        .frame(height: max(2, 26 * CGFloat(day.total.tokens) / CGFloat(most)))
+                    Text(Self.initial(day.start)).font(.system(size: 7.5, weight: .semibold)).foregroundStyle(secondary)
+                }
+                .frame(maxWidth: .infinity)
+                .help("\(TokenSpend.short(day.total.tokens)) · \(TokenSpend.money(day.total.cost))")
+            }
+        }
+        .frame(height: 38, alignment: .bottom)
+    }
+
+    static func initial(_ date: Date) -> String {
+        let format = DateFormatter()
+        format.locale = L10n.locale
+        format.setLocalizedDateFormatFromTemplate("EEEEE")
+        return format.string(from: date)
     }
 }
 
@@ -1094,7 +1254,7 @@ struct RingCard: View {
         case .more(let terminals): MoreCard(model: model, terminals: terminals, direction: direction, surface: surface)
         case .hidden(let terminals):
             MoreCard(model: model, terminals: terminals, direction: direction, surface: surface, hidden: true)
-        case .usage(let limits): UsageCard(limits: limits, direction: direction, surface: surface)
+        case .usage(let limits): UsageCard(model: model, limits: limits, direction: direction, surface: surface)
         }
     }
 }
@@ -1392,7 +1552,11 @@ struct TerminalCard: View {
             // Within a day: how long ("↻ 2h40").
             return "↻ " + (left >= 60 ? "\(left / 60)h\(String(format: "%02d", left % 60))" : "\(left) min")
         }
-        return "↻ " + date.formatted(.dateTime.weekday(.abbreviated).hour())
+        // Further off: the day and the clock time ("↻ seg. 03:00").
+        let format = DateFormatter()
+        format.locale = L10n.locale
+        format.setLocalizedDateFormatFromTemplate("EEE HH:mm")
+        return "↻ " + format.string(from: date)
     }
 
     private var actionsFirst: Bool { direction == .down }

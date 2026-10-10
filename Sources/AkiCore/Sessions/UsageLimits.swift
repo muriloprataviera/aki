@@ -61,13 +61,38 @@ public struct UsageLimits: Sendable, Equatable {
         return best
     }
 
+    /// "2026-10-10T20:57:25.894Z" read by hand (fast: logs have many of them);
+    /// anything else goes to the system's ISO 8601 reader.
     static func parseTime(_ text: String) -> Date? {
+        let b = Array(text.utf8)
+        func digits(_ from: Int, _ count: Int) -> Int? {
+            guard from + count <= b.count else { return nil }
+            var value = 0
+            for i in from..<(from + count) {
+                guard b[i] >= 0x30, b[i] <= 0x39 else { return nil }
+                value = value * 10 + Int(b[i] - 0x30)
+            }
+            return value
+        }
+        if b.count >= 20, b.last == 0x5A, b[4] == 0x2D, b[10] == 0x54,
+            let y = digits(0, 4), let mo = digits(5, 2), let d = digits(8, 2),
+            let h = digits(11, 2), let mi = digits(14, 2), let s = digits(17, 2)
+        {
+            var parts = tm(tm_sec: Int32(s), tm_min: Int32(mi), tm_hour: Int32(h), tm_mday: Int32(d), tm_mon: Int32(mo - 1),
+                           tm_year: Int32(y - 1900), tm_wday: 0, tm_yday: 0, tm_isdst: 0, tm_gmtoff: 0, tm_zone: nil)
+            var fraction = 0.0
+            if b[19] == 0x2E, let ms = digits(20, min(3, b.count - 21)) { fraction = Double(ms) / pow(10, Double(min(3, b.count - 21))) }
+            return Date(timeIntervalSince1970: TimeInterval(timegm(&parts)) + fraction)
+        }
+        return isoFractional.date(from: text) ?? isoPlain.date(from: text)
+    }
+
+    nonisolated(unsafe) private static let isoFractional: ISO8601DateFormatter = {
         let format = ISO8601DateFormatter()
         format.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-        if let date = format.date(from: text) { return date }
-        format.formatOptions = [.withInternetDateTime]
-        return format.date(from: text)
-    }
+        return format
+    }()
+    nonisolated(unsafe) private static let isoPlain = ISO8601DateFormatter()
 
     public static var codexHome: URL {
         if let custom = ProcessInfo.processInfo.environment["CODEX_HOME"], !custom.isEmpty {

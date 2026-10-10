@@ -195,6 +195,19 @@ enum CardDetail: String, CaseIterable, Identifiable {
     }
 }
 
+/// The sidebar's rings: sessions and limits, only the limits (like a usage meter), or only sessions.
+enum SidebarContent: String, CaseIterable, Identifiable {
+    case both, limits, sessions
+    var id: String { rawValue }
+    var title: String {
+        switch self {
+        case .both: L10n.t("Sessions and limits")
+        case .limits: L10n.t("Only limits")
+        case .sessions: L10n.t("Only sessions")
+        }
+    }
+}
+
 enum AppLanguage: String, CaseIterable, Identifiable {
     // The site's languages, in its order (Italian after them).
     case system, english, portuguese, spanish, french, german, japanese, chinese, korean, italian
@@ -289,8 +302,10 @@ final class Preferences {
     var followOrcaTab: Bool { didSet { defaults.set(followOrcaTab, forKey: Keys.followOrcaTab) } }
     /// Each mark's crop goes to the clipboard too (⌘V anywhere).
     var copyCrop: Bool { didSet { defaults.set(copyCrop, forKey: Keys.copyCrop) } }
-    /// A ring per AI account at the end of the sidebar: how much of the week's limit is used.
-    var showUsage: Bool { didSet { defaults.set(showUsage, forKey: Keys.showUsage) } }
+    /// What the sidebar shows: the sessions, the AI accounts' limits, or both.
+    var sidebarContent: SidebarContent { didSet { defaults.set(sidebarContent.rawValue, forKey: Keys.sidebarContent) } }
+    var showUsage: Bool { sidebarContent != .sessions }
+    var showSessions: Bool { sidebarContent != .limits }
     /// Pictures never take more than this on disk (MB); the oldest unneeded go first.
     var maxPicturesMB: Int { didSet { defaults.set(maxPicturesMB, forKey: Keys.maxPicturesMB) } }
     var presence: AppPresence { didSet { defaults.set(presence.rawValue, forKey: Keys.presence) } }
@@ -400,7 +415,7 @@ final class Preferences {
         installPing = defaults.object(forKey: Keys.installPing) as? Bool ?? true
         followOrcaTab = defaults.object(forKey: Keys.followOrcaTab) as? Bool ?? true
         copyCrop = defaults.object(forKey: Keys.copyCrop) as? Bool ?? true
-        showUsage = defaults.object(forKey: Keys.showUsage) as? Bool ?? true
+        sidebarContent = value(Keys.sidebarContent, SidebarContent.both)
         maxPicturesMB = defaults.object(forKey: Keys.maxPicturesMB) as? Int ?? 200
         presence = value(Keys.presence, AppPresence.menuBar)
         language = value(Keys.language, AppLanguage.system)
@@ -444,7 +459,7 @@ final class Preferences {
         static let installPing = "installPing"
         static let followOrcaTab = "followOrcaTab"
         static let copyCrop = "copyCrop"
-        static let showUsage = "showUsage"
+        static let sidebarContent = "sidebarContent"
         static let maxPicturesMB = "maxPicturesMB"
         static let presence = "appPresence"
         static let language = "appLanguage"

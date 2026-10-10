@@ -12,6 +12,7 @@ let usage = """
       aki done CODE...                mark as resolved (codes or ids)
       aki delete ID...                delete
       aki sessions                    agents running now, grouped by worktree (what the sidebar shows)
+      aki usage                       limits and tokens used by Claude and Codex on this Mac (cost at API prices)
       aki mcp                         MCP server over stdio (add with: claude mcp add aki -- aki mcp)
       aki app                         open the app (sidebar + server)
       aki serve [--port N]            run only the annotations server, in the foreground (default \(Aki.defaultPort))
@@ -201,6 +202,24 @@ do {
         for session in AgentSessions.scan() {
             let state = [session.listening ? "listening" : nil, session.working ? "working" : nil].compactMap { $0 }
             print("\(session.worktree)  [\(session.branch ?? "-")]  \(session.agents.map(\.rawValue).joined(separator: "+"))  \(state.joined(separator: ","))")
+        }
+
+    case "usage":
+        let ledger = TokenLedger()
+        ledger.update()
+        let claude = UsageLimits.claude(from: ClaudeStatus.all())?.current()
+        let codex = UsageLimits.codex()?.current()
+        for (agent, limits) in [("claude", claude), ("codex", codex)] {
+            let weekStart = limits?.week?.resets.map { $0.addingTimeInterval(-7 * 24 * 3600) }
+            let spend = TokenSpend.of(ledger.events(agent: agent), weekStart: weekStart)
+            print(agent)
+            if let week = limits?.week { print("  week      \(week.percent)%") }
+            if let five = limits?.fiveHour { print("  5h        \(five.percent)%") }
+            print("  today     \(TokenSpend.short(spend.today.tokens)) tokens · \(TokenSpend.money(spend.today.cost))")
+            print("  week      \(TokenSpend.short(spend.week.tokens)) tokens · \(TokenSpend.money(spend.week.cost))")
+            for project in spend.projects.prefix(3) {
+                print("    \(URL(filePath: project.path).lastPathComponent)  \(Int(project.share * 100))%  \(TokenSpend.money(project.total.cost))")
+            }
         }
 
     case "mcp":

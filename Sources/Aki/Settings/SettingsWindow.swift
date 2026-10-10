@@ -497,8 +497,10 @@ struct SettingsView: View {
                 Toggle(L10n.t("Show projects"), isOn: $preferences.showProjects)
                 Caption(L10n.t("Sessions of one project side by side, with its name over them."))
 
-                Toggle(L10n.t("Show usage limits"), isOn: $preferences.showUsage)
-                Caption(L10n.t("A ring for Claude and one for Codex: how much of the week's limit is used. Hover for the 5-hour window."))
+                Picker(L10n.t("Show in the sidebar"), selection: $preferences.sidebarContent) {
+                    ForEach(SidebarContent.allCases) { Text($0.title).tag($0) }
+                }
+                Caption(L10n.t("Limits: a ring for Claude and one for Codex with how much of the week is used, today's tokens and their cost. Only limits makes the sidebar a usage meter."))
 
                 Picker(L10n.t("Theme"), selection: $preferences.theme) {
                     ForEach(AppTheme.allCases) { Text($0.title).tag($0) }
