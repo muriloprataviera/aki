@@ -12,7 +12,7 @@ extension L10n {
         "Your agent runs `aki list` instead of the long path inside the app: shorter messages, fewer slips.": "Seu agente roda `aki list` em vez do caminho comprido dentro do app: mensagens mais curtas, menos erro.",
         "The aki command": "O comando aki",
         "macOS asks for your password once: the command goes in a system folder (/usr/local/bin).": "O macOS pede sua senha uma vez: o comando fica numa pasta do sistema (/usr/local/bin).",
-        "↑↓←→ move · ⇧↑ bigger · ⇧↓ smaller": "↑↓←→ andar · ⇧↑ maior · ⇧↓ menor",
+        "↑↓←→ move · ⇧ add · ⌘↑ bigger · ⌘↓ smaller": "↑↓←→ andar · ⇧ somar · ⌘↑ maior · ⌘↓ menor",
         "They go to your agent when you send them.": "Vão para o seu agente quando você enviar.",
         "To": "Para",
         "See the queue": "Ver a fila",
@@ -231,6 +231,7 @@ extension L10n {
         "Copy each mark's picture": "Copiar a imagem de cada marca",
         "The piece you mark also goes to the clipboard: ⌘V pastes it anywhere.": "O pedaço que você marca também vai para a área de transferência: ⌘V cola em qualquer lugar.",
         "Copied · ⌘V pastes it": "Copiado · ⌘V cola",
+        "items": "itens",
         "Send to the terminal by itself": "Mandar sozinho para o terminal",
         "Types the request into the session's Orca tab when you stop marking (it waits while the agent is working).": "Escreve o pedido na aba da sessão no Orca quando você para de marcar (espera se o agente estiver trabalhando).", "Hide the sidebar": "Esconder a barrinha", "Show the sidebar": "Mostrar a barrinha",
         "Connected": "Conectado", "Reconnect": "Reconectar",
@@ -243,8 +244,8 @@ extension L10n {
         "⇥ next session · esc leave": "⇥ próxima sessão · esc sair",
         "Allow Accessibility to outline buttons and page elements":
             "Libere a Acessibilidade para destacar botões e elementos da página",
-        "Click: element · Arrows: move · ⇧↑↓: bigger/smaller · ⌥: lines of text · ⌘ click: point · ⇧ click: normal click · Drag: area · ⌘⏎: send":
-            "Clique: elemento · Setas: andar · ⇧↑↓ maior/menor · ⌥: linhas de texto · ⌘ clique: ponto · ⇧ clique: clique normal · Arraste: área · ⌘⏎: enviar", "mark": "marcação", "Send": "Enviar", "Cancel": "Cancelar",
+        "Click: element · Arrows: move · ⇧ arrows: add · ⌘↑↓: bigger/smaller · ⌥: lines of text · ⌘ click: point · ⇧ click: normal click · Drag: area · ⌘⏎: send":
+            "Clique: elemento · Setas: andar · ⇧ setas: somar · ⌘↑↓ maior/menor · ⌥: linhas de texto · ⌘ clique: ponto · ⇧ clique: clique normal · Arraste: área · ⌘⏎: enviar", "mark": "marcação", "Send": "Enviar", "Cancel": "Cancelar",
         "Click: point · Drag: area · ⏎ on empty or ⌘⏎: send · esc: leave":
             "Clique: ponto · Arraste: área · ⏎ vazio ou ⌘⏎: enviar · esc: sair",
         "Aki needs Screen Recording": "O Aki precisa da Gravação de Tela",

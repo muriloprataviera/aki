@@ -1224,7 +1224,7 @@ struct MarkingView: View {
     }
 
     private static var allHintItems: [(keys: String, label: String)] {
-        L10n.t("Click: element · Arrows: move · ⇧↑↓: bigger/smaller · ⌥: lines of text · ⌘ click: point · ⇧ click: normal click · Drag: area · ⌘⏎: send")
+        L10n.t("Click: element · Arrows: move · ⇧ arrows: add · ⌘↑↓: bigger/smaller · ⌥: lines of text · ⌘ click: point · ⇧ click: normal click · Drag: area · ⌘⏎: send")
             .components(separatedBy: " · ").map { part in
                 if let colon = part.firstIndex(of: ":") {
                     return (String(part[..<colon]).trimmingCharacters(in: .whitespaces),
@@ -1308,7 +1308,7 @@ struct PickTag: View {
             }
             // Said in words: ↑ takes what holds it (a block, the whole terminal, the window), ↓ comes back.
             if walks {
-                Text(L10n.t("↑↓←→ move · ⇧↑ bigger · ⇧↓ smaller"))
+                Text(L10n.t("↑↓←→ move · ⇧ add · ⌘↑ bigger · ⌘↓ smaller"))
                     .font(.system(size: 10.5, weight: .semibold))
                     .foregroundStyle(AkiPalette.paperFixed.opacity(0.85))
                     .padding(.horizontal, 6).padding(.vertical, 2)

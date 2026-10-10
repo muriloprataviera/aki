@@ -103,10 +103,26 @@ final class MarkingSession {
     var level = 0
     /// What a click would mark: the hovered element or one of its containers.
     var target: ProbedElement? {
+        guard let single = singleTarget else { return nil }
+        guard !gathered.isEmpty else { return single }
+        // Several gathered with ⇧ and the arrows: one box around them all.
+        let all = gathered + [single]
+        let box = all.dropFirst().reduce(all[0].frame) { $0.union($1.frame) }
+        var group = ProbedElement(frame: box, label: "“\(all.count) \(L10n.t("items"))”")
+        group.appName = single.appName
+        group.title = all.compactMap(\.title).joined(separator: " · ")
+        return group
+    }
+
+    /// The one outlined element (or its container, ↑ / ↓), before any gathering.
+    private var singleTarget: ProbedElement? {
         guard let hovered else { return nil }
         if level < 0 { return hovered.finer.first ?? hovered }
         return level == 0 ? hovered : hovered.ancestors[min(level, hovered.ancestors.count) - 1]
     }
+
+    /// What ⇧ with the arrows added, beside the one outlined now (marked as one area).
+    var gathered: [ProbedElement] = []
 
     func widen() { if let hovered, level < hovered.ancestors.count { level += 1 } }
     /// Down to the container below, or past the hovered thing to what's inside (−1).
@@ -204,12 +220,14 @@ final class MarkingSession {
 
     /// The arrows walk the screen: the next thing above, below or beside the outlined
     /// one, about its size (a card goes to the next card, a word to the next word).
-    func move(_ direction: Direction) {
-        guard !moving, let current = target else { return }
+    /// `gather` (⇧): the one outlined stays, and the next joins it (they add up).
+    func move(_ direction: Direction, gather: Bool = false) {
+        guard !moving, let current = singleTarget, let whole = target else { return }
         moving = true
-        let from = current.frame
+        // From the edge of all that's gathered; about the size of one of them.
+        let from = whole.frame
         let center = CGPoint(x: from.midX, y: from.midY)
-        let wanted = max(from.width * from.height, 1)
+        let wanted = max(current.frame.width * current.frame.height, 1)
         Task {
             defer { moving = false }
             for distance in [6.0, 18, 40, 80, 140, 220] as [CGFloat] {
@@ -238,6 +256,11 @@ final class MarkingSession {
                 picked.fromBrowser = found.fromBrowser
                 picked.ancestors = Array(options.dropFirst(best + 1))
                 keyboardHold = lastProbe
+                if gather {
+                    if !gathered.contains(where: { $0.frame == current.frame }) { gathered.append(current) }
+                } else {
+                    gathered = []
+                }
                 hovered = picked
                 level = 0
                 return
@@ -251,6 +274,7 @@ final class MarkingSession {
         if let hold = keyboardHold {
             if hypot(point.x - hold.x, point.y - hold.y) < 14 { return }
             keyboardHold = nil
+            gathered = []  // the pointer moved on: a new pick
         }
         // A lookup that hangs must not freeze the outline: after a second, start anew.
         if probing, Date().timeIntervalSince(probeStarted) > 1 { probing = false }

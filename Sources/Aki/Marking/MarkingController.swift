@@ -631,13 +631,28 @@ final class MarkingController {
             case 53:  // esc (also a system shortcut while marking; whichever comes first)
                 self.escape()
                 return true
-            // ⇧↑ / ⇧↓: bigger (what holds it) and smaller (back in). On a web page they
+            // ⌘↑ / ⌘↓: bigger (what holds it) and smaller (back in). On a web page they
             // walk its elements; elsewhere the boxes found around the pointer.
-            case 126 where session.editing == nil && event.modifierFlags.contains(.shift):
+            case 126 where session.editing == nil && event.modifierFlags.contains(.command):
+                session.gathered = []
                 if session.hovered?.fromBrowser == true { session.step(.up) } else { session.widen() }
                 return true
-            case 125 where session.editing == nil && event.modifierFlags.contains(.shift):
+            case 125 where session.editing == nil && event.modifierFlags.contains(.command):
+                session.gathered = []
                 if session.hovered?.fromBrowser == true { session.step(.down) } else { session.narrow() }
+                return true
+            // ⇧ with the arrows: the next one joins what's outlined (they add up).
+            case 126 where session.editing == nil && event.modifierFlags.contains(.shift):
+                session.move(.up, gather: true)
+                return true
+            case 125 where session.editing == nil && event.modifierFlags.contains(.shift):
+                session.move(.down, gather: true)
+                return true
+            case 123 where session.editing == nil && event.modifierFlags.contains(.shift):
+                session.move(.left, gather: true)
+                return true
+            case 124 where session.editing == nil && event.modifierFlags.contains(.shift):
+                session.move(.right, gather: true)
                 return true
             // The plain arrows walk the screen: the thing above, below, on either side.
             case 126 where session.editing == nil:

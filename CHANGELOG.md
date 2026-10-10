@@ -4,6 +4,9 @@ What changed in each version of Aki. Versions follow [semantic versioning](https
 
 ## [Unreleased]
 
+### Changed
+- ⇧ with the arrows adds the next thing to what's outlined (they're marked together as one area); bigger and smaller moved to ⌘↑ / ⌘↓.
+
 ## [0.4.2] — 2026-10-10
 
 ### Changed
