@@ -362,6 +362,15 @@ final class MarkingSession {
         }
         marks.append(mark)
         markAdded(mark)
+        // Its crop to the clipboard too (⌘V anywhere), once its picture is taken.
+        if Preferences.shared.copyCrop {
+            let id = mark.id
+            Task {
+                for _ in 0..<20 where capturing > 0 { try? await Task.sleep(for: .milliseconds(50)) }
+                guard let mark = marks.first(where: { $0.id == id }), let image = previewImage(of: mark) else { return }
+                Self.copy(image)
+            }
+        }
         editing = mark.id
         draft = ""
         focusScreen(screen)
@@ -484,6 +493,16 @@ final class MarkingSession {
             let read = texts[mark.screen]?.text(in: mark.rect), !read.isEmpty
         else { return nil }
         return read
+    }
+
+    /// An image on the clipboard, as PNG (what most apps paste) and as an image.
+    static func copy(_ image: NSImage) {
+        let board = NSPasteboard.general
+        board.clearContents()
+        if let tiff = image.tiffRepresentation, let png = NSBitmapImageRep(data: tiff)?.representation(using: .png, properties: [:]) {
+            board.setData(png, forType: .png)
+        }
+        board.writeObjects([image])
     }
 
     /// The crop a mark sends, as an image for the preview.

@@ -337,6 +337,8 @@ extension L10n {
         "Choose where it goes": "보낼 곳 선택",
         "Change where it goes": "보낼 곳 바꾸기",
         "Send only this one": "이것만 보내기",
+        "Copy each mark's picture": "표시마다 이미지 복사",
+        "The piece you mark also goes to the clipboard: ⌘V pastes it anywhere.": "표시한 부분이 클립보드에도 들어갑니다. ⌘V로 어디에나 붙여 넣을 수 있습니다.",
         "Send to the terminal by itself": "터미널로 자동 보내기",
         "Types the request into the session's Orca tab when you stop marking (it waits while the agent is working).": "표시를 멈추면 세션의 Orca 탭에 요청을 입력합니다 (에이전트가 작업 중이면 기다립니다).",
         "Hide the sidebar": "사이드바 숨기기",

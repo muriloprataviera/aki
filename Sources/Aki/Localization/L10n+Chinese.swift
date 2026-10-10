@@ -337,6 +337,8 @@ extension L10n {
         "Choose where it goes": "选择发送到哪里",
         "Change where it goes": "更改发送到哪里",
         "Send only this one": "只发送这一个",
+        "Copy each mark's picture": "复制每个标记的图片",
+        "The piece you mark also goes to the clipboard: ⌘V pastes it anywhere.": "你标记的部分也会进入剪贴板：⌘V 可粘贴到任何地方。",
         "Send to the terminal by itself": "自动发送到终端",
         "Types the request into the session's Orca tab when you stop marking (it waits while the agent is working).": "停止标记后，将请求输入到该会话的 Orca 标签页（智能体工作时会等待）。",
         "Hide the sidebar": "隐藏侧边栏",

@@ -337,6 +337,8 @@ extension L10n {
         "Choose where it goes": "Choisissez où elle va",
         "Change where it goes": "Changer où elle va",
         "Send only this one": "Envoyer seulement celle-ci",
+        "Copy each mark's picture": "Copier l’image de chaque marque",
+        "The piece you mark also goes to the clipboard: ⌘V pastes it anywhere.": "Ce que vous marquez va aussi dans le presse-papiers : ⌘V le colle n’importe où.",
         "Send to the terminal by itself": "Envoyer seul au terminal",
         "Types the request into the session's Orca tab when you stop marking (it waits while the agent is working).": "Saisit la demande dans l’onglet Orca de la session quand vous arrêtez d’annoter (attend si l’agent travaille).",
         "Hide the sidebar": "Masquer la barre latérale",

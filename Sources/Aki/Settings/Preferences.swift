@@ -287,6 +287,8 @@ final class Preferences {
     var installPing: Bool { didSet { defaults.set(installPing, forKey: Keys.installPing) } }
     /// The sidebar's destination follows the agent tab you click in Orca.
     var followOrcaTab: Bool { didSet { defaults.set(followOrcaTab, forKey: Keys.followOrcaTab) } }
+    /// Each mark's crop goes to the clipboard too (⌘V anywhere).
+    var copyCrop: Bool { didSet { defaults.set(copyCrop, forKey: Keys.copyCrop) } }
     /// Pictures never take more than this on disk (MB); the oldest unneeded go first.
     var maxPicturesMB: Int { didSet { defaults.set(maxPicturesMB, forKey: Keys.maxPicturesMB) } }
     var presence: AppPresence { didSet { defaults.set(presence.rawValue, forKey: Keys.presence) } }
@@ -395,6 +397,7 @@ final class Preferences {
         betaUpdates = defaults.object(forKey: Keys.betaUpdates) as? Bool ?? false
         installPing = defaults.object(forKey: Keys.installPing) as? Bool ?? true
         followOrcaTab = defaults.object(forKey: Keys.followOrcaTab) as? Bool ?? true
+        copyCrop = defaults.object(forKey: Keys.copyCrop) as? Bool ?? true
         maxPicturesMB = defaults.object(forKey: Keys.maxPicturesMB) as? Int ?? 200
         presence = value(Keys.presence, AppPresence.menuBar)
         language = value(Keys.language, AppLanguage.system)
@@ -437,6 +440,7 @@ final class Preferences {
         static let betaUpdates = "betaUpdates"
         static let installPing = "installPing"
         static let followOrcaTab = "followOrcaTab"
+        static let copyCrop = "copyCrop"
         static let maxPicturesMB = "maxPicturesMB"
         static let presence = "appPresence"
         static let language = "appLanguage"

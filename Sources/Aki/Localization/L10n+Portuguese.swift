@@ -228,6 +228,8 @@ extension L10n {
         "Choose where it goes": "Escolha para onde vai",
         "Change where it goes": "Trocar para onde vai",
         "Send only this one": "Enviar só esta",
+        "Copy each mark's picture": "Copiar a imagem de cada marca",
+        "The piece you mark also goes to the clipboard: ⌘V pastes it anywhere.": "O pedaço que você marca também vai para a área de transferência: ⌘V cola em qualquer lugar.",
         "Send to the terminal by itself": "Mandar sozinho para o terminal",
         "Types the request into the session's Orca tab when you stop marking (it waits while the agent is working).": "Escreve o pedido na aba da sessão no Orca quando você para de marcar (espera se o agente estiver trabalhando).", "Hide the sidebar": "Esconder a barrinha", "Show the sidebar": "Mostrar a barrinha",
         "Connected": "Conectado", "Reconnect": "Reconectar",
