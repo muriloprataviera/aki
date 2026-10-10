@@ -512,9 +512,8 @@ struct MarkingView: View {
                 }
             }
             .animation(.easeOut(duration: 0.2), value: session.copied)
-            // The crop first (what most marks are about), then the text read, unless
-            // Settings sends only the picture.
-            let pictureOnly = Preferences.shared.markContent == .image
+            // The crop first (what most marks are about), then the text read: both shown,
+            // each ticked or not as Settings says (a click changes it).
             HStack(alignment: .top, spacing: 8) {
                 if let image {
                     // The picture that goes to the agent; click to leave it out.
@@ -522,7 +521,7 @@ struct MarkingView: View {
                         Image(nsImage: image)
                             .resizable()
                             .aspectRatio(contentMode: .fit)
-                            .frame(maxWidth: .infinity, maxHeight: pictureOnly ? 140 : 92)
+                            .frame(maxWidth: .infinity, maxHeight: 92)
                             .background(Color.black)
                     } toggle: {
                         session.toggle(mark.id, image: true)
@@ -533,7 +532,7 @@ struct MarkingView: View {
                         ImageZoom.show(image)
                     }
                 }
-                if !pictureOnly, let text = text ?? (session.texts[mark.screen] == nil && !mark.isPoint ? L10n.t("Reading the text…") : nil) {
+                if let text = text ?? (session.texts[mark.screen] == nil && !mark.isPoint ? L10n.t("Reading the text…") : nil) {
                     PreviewTile(title: L10n.t("Text read"), icon: "text.alignleft", on: mark.sendsText, hue: hue) {
                         ScrollView {
                             Text(text)

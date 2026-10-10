@@ -38,7 +38,7 @@ What changed in each version of Aki. Versions follow [semantic versioning](https
 - The short `aki` command in Terminal: the one-line installer adds it (your password, once), and Get started offers it to those who came by the DMG.
 
 ### Changed
-- The comment card shows the crop first; with Settings on "Crop" only, the text read is left out.
+- The comment card shows the crop first, then the text read.
 - Marking no longer takes the focus from the app below (as the Mac's own ⌘⇧4): its open menu stays open, its selection stays. Aki takes the keyboard only when you write a comment.
 - Aki also looks for a new version when the Mac wakes up, not only on the hour.
 - The sidebar's rings, in Aki's colours: the AI's symbol in the middle, and the ring tells the state — a light arc turning slowly while it works, red when it waits for you, quiet otherwise. Under each name, its state in a word (working, idle, waiting for you). The session your marks go to is framed, with "destination" and Aki's pin; your requests an AI hasn't finished show as "1 to do". No more initials, one colour per project or gradients.
