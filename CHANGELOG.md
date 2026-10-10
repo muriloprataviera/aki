@@ -4,6 +4,8 @@ What changed in each version of Aki. Versions follow [semantic versioning](https
 
 ## [Unreleased]
 
+## [0.5.0] — 2026-10-10
+
 ### Added
 - Usage limits in the sidebar: one ring for Claude and one for Codex with how much of the week is used (green, yellow from 50%, orange from 70%, red from 90%) and how much of today's share of it. Hover for today's tokens and their cost at API prices, the 5-hour window, when each renews, the pace, today's share of the week, the last 7 days and the projects that used most.
 - Settings → Show in the sidebar: sessions and limits, only limits (a usage meter) or only sessions.
