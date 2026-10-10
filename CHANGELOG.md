@@ -2,23 +2,9 @@
 
 What changed in each version of Aki. Versions follow [semantic versioning](https://semver.org); betas end in `-beta.N`. The release notes inside the app are written from this file.
 
-### Fixed
-- A copied mark is one picture on the clipboard (PNG and TIFF), so clipboard histories like Raycast's show it with its preview.
-- A mark says the app and page where it was made, even when marking began in another app.
-- The comment card's buttons fit again with three of them (the keys show when there's room).
-- While marking, scrolling over Aki's own lists (other sessions, the queue) scrolls them, not the page below.
-- The sessions list opens to the card's right (below it when the card is at the edge), and the queue moves out of its way.
-- Session names no longer carry a frozen copy of the tab's status sign (✳); the ring shows the state live.
-- What floats over an Orca terminal (its update notice, a dialog) can be outlined: Aki looks past the terminal's see-through layer.
-- ⌘Tab works while marking: holding ⌘ lets the app switcher show over the marking screen.
-- A page's elements are asked to the page again where Aki wrongly thought a menu had closed (the picture-only lookup and its half-page outlines are gone there).
-- On a page, ↑ reaches the whole page at last (some sites, like Airtable, stopped short of it).
-- The outline of something as big as the screen (a whole page) stays inside it, all four corners in sight.
-- A ring no longer spins for a session that's resting while a background task runs (Orca's tab says so).
-- In a frozen picture, ↓ goes from a menu item down to one line of its words (a subtitle).
-- An open menu (a page's drop-down or <select>, a right-click menu) stays in the picture when you press the shortcut, and its items can be marked.
-
 ## [Unreleased]
+
+## [0.4.0] — 2026-10-10
 
 ### Added
 - The card says when a mark's picture is on the clipboard ("Copied · ⌘V pastes it").
@@ -47,12 +33,26 @@ What changed in each version of Aki. Versions follow [semantic versioning](https
 - What Aki types to your agent is shorter and says what the marks are about ("📍 Aki: 2 new marks — “…” · “…”"), uses `aki` when it's there, asks to open a picture only when it matters, and to close all marks in one go.
 
 ### Fixed
+- A copied mark is one picture on the clipboard (PNG and TIFF), so clipboard histories like Raycast's show it with its preview.
+- A mark says the app and page where it was made, even when marking began in another app.
+- The comment card's buttons fit again with three of them (the keys show when there's room).
+- While marking, scrolling over Aki's own lists (other sessions, the queue) scrolls them, not the page below.
+- The sessions list opens to the card's right (below it when the card is at the edge), and the queue moves out of its way.
+- Session names no longer carry a frozen copy of the tab's status sign (✳); the ring shows the state live.
+- What floats over an Orca terminal (its update notice, a dialog) can be outlined: Aki looks past the terminal's see-through layer.
+- ⌘Tab works while marking: holding ⌘ lets the app switcher show over the marking screen.
+- A page's elements are asked to the page again where Aki wrongly thought a menu had closed (the picture-only lookup and its half-page outlines are gone there).
+- On a page, ↑ reaches the whole page at last (some sites, like Airtable, stopped short of it).
+- The outline of something as big as the screen (a whole page) stays inside it, all four corners in sight.
+- A ring no longer spins for a session that's resting while a background task runs (Orca's tab says so).
+- In a frozen picture, ↓ goes from a menu item down to one line of its words (a subtitle).
+- An open menu (a page's drop-down or <select>, a right-click menu) stays in the picture when you press the shortcut, and its items can be marked.
 - Pointing inside things a page embeds from elsewhere (Claude's artifacts, videos, payment forms) finds the button or text under the pointer; the browser keeps their inside closed, so Aki used to see only the whole box.
 
 ## [0.3.3] — 2026-10-06
 
 ### Added
-- Betas read cleanly on screen: "0.4.0 beta 6".
+- Betas read short on screen: "0.3.3 beta".
 - The History shows the queue (marks saved but not sent) in its own block on top, apart from the rest; the menu bar pin's menu has "See the queue". esc closes the History even from the search field.
 
 ### Changed
