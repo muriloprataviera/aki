@@ -3,6 +3,27 @@
     <channel>
         <title>Aki</title>
         <item>
+            <title>0.6.1-beta.4</title>
+            <pubDate>Sun, 11 Oct 2026 09:46:05 -0300</pubDate>
+            <sparkle:channel>beta</sparkle:channel>
+            <sparkle:version>20261011124605</sparkle:version>
+            <sparkle:shortVersionString>0.6.1-beta.4</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
+            <description><![CDATA[<h2>Aki 0.6.1-beta.4</h2>
+<h3>New</h3><ul>
+<li>Support Aki and Check for Updates at the foot of the Settings sidebar, above Quit.</li>
+</ul>
+<h3>Changed</h3><ul>
+<li>Right-clicking a session's ring shows only what you can do with that session. Hiding the sidebar, settings and quitting are in the Aki submenu at the end; an open card closes when the menu opens, and no other card opens while it is up.</li>
+</ul>
+<h3>Fixed</h3><ul>
+<li>Connect said “Failed” for Claude Code when it was installed with its own installer.</li>
+</ul>
+]]></description>
+            <enclosure url="https://aki-updates.vercel.app/0.6.1-beta.4/Aki-0.6.1-beta.4.zip" length="3723306" type="application/octet-stream" sparkle:edSignature="Sgfsqyt/xIBXZ05vEfLrG+cMJb2IxNaxm/eXcIHek6TrZ6N2D05B6q1LAK5olFfl96WpJT1HspeqJbd9pCapCA=="/>
+        </item>
+        <item>
             <title>0.6.1-beta.3</title>
             <pubDate>Sun, 11 Oct 2026 09:43:31 -0300</pubDate>
             <sparkle:channel>beta</sparkle:channel>
@@ -38,21 +59,6 @@
 </ul>
 ]]></description>
             <enclosure url="https://aki-updates.vercel.app/0.6.1-beta.2/Aki-0.6.1-beta.2.zip" length="3722560" type="application/octet-stream" sparkle:edSignature="Zbpb/ydqWI6cZrePnIbWLjJuCn9edak5j3Qpu12x4JVed/y5JGgTUVESFca1+SyENXa+gl3vYbrN0WXDHgddCA=="/>
-        </item>
-        <item>
-            <title>0.6.1-beta.1</title>
-            <pubDate>Sun, 11 Oct 2026 09:08:17 -0300</pubDate>
-            <sparkle:channel>beta</sparkle:channel>
-            <sparkle:version>20261011120816</sparkle:version>
-            <sparkle:shortVersionString>0.6.1-beta.1</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
-            <description><![CDATA[<h2>Aki 0.6.1-beta.1</h2>
-<h3>Changed</h3><ul>
-<li>Right-clicking a session's ring shows only what you can do with that session. Hiding the sidebar, settings and quitting are in the Aki submenu at the end.</li>
-</ul>
-]]></description>
-            <enclosure url="https://aki-updates.vercel.app/0.6.1-beta.1/Aki-0.6.1-beta.1.zip" length="3722475" type="application/octet-stream" sparkle:edSignature="Fycu/NnK9LLPqbaioqRLguwMPRD2f/kdg/cGnh5EhA+9N0UvzRdZDIH6Kjgun5iQ5wd64R8cd9qnkmavdFFODA=="/>
         </item>
         <item>
             <title>0.6.0</title>
