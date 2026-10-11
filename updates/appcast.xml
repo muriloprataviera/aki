@@ -3,6 +3,26 @@
     <channel>
         <title>Aki</title>
         <item>
+            <title>0.6.1</title>
+            <pubDate>Sun, 11 Oct 2026 09:54:16 -0300</pubDate>
+            <sparkle:version>20261011125416</sparkle:version>
+            <sparkle:shortVersionString>0.6.1</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
+            <description><![CDATA[<h2>Aki 0.6.1</h2>
+<h3>New</h3><ul>
+<li>Support Aki and Check for Updates at the foot of the Settings sidebar, above Quit.</li>
+</ul>
+<h3>Changed</h3><ul>
+<li>Right-clicking a session's ring shows only what you can do with that session. Hiding the sidebar, settings and quitting are in the Aki submenu at the end. An open card closes when the menu opens, and no other card opens while it is up.</li>
+</ul>
+<h3>Fixed</h3><ul>
+<li>Connect said “Failed” for Claude Code when it was installed with its own installer.</li>
+</ul>
+]]></description>
+            <enclosure url="https://aki-updates.vercel.app/0.6.1/Aki-0.6.1.zip" length="3723295" type="application/octet-stream" sparkle:edSignature="pz7tMHlXK/BYTma+Nnh3wuvTP5yCOvTquKSo1HOoT8zu+FKt9fTUcMUpP0UFrxqiKKEq3LG2KvW3WkLPN2SHAA=="/>
+        </item>
+        <item>
             <title>0.6.1-beta.4</title>
             <pubDate>Sun, 11 Oct 2026 09:46:05 -0300</pubDate>
             <sparkle:channel>beta</sparkle:channel>
@@ -22,43 +42,6 @@
 </ul>
 ]]></description>
             <enclosure url="https://aki-updates.vercel.app/0.6.1-beta.4/Aki-0.6.1-beta.4.zip" length="3723306" type="application/octet-stream" sparkle:edSignature="Sgfsqyt/xIBXZ05vEfLrG+cMJb2IxNaxm/eXcIHek6TrZ6N2D05B6q1LAK5olFfl96WpJT1HspeqJbd9pCapCA=="/>
-        </item>
-        <item>
-            <title>0.6.1-beta.3</title>
-            <pubDate>Sun, 11 Oct 2026 09:43:31 -0300</pubDate>
-            <sparkle:channel>beta</sparkle:channel>
-            <sparkle:version>20261011124331</sparkle:version>
-            <sparkle:shortVersionString>0.6.1-beta.3</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
-            <description><![CDATA[<h2>Aki 0.6.1-beta.3</h2>
-<h3>New</h3><ul>
-<li>Support Aki and Check for Updates at the foot of the Settings sidebar, above Quit.</li>
-</ul>
-<h3>Changed</h3><ul>
-<li>Right-clicking a session's ring shows only what you can do with that session. Hiding the sidebar, settings and quitting are in the Aki submenu at the end; an open card closes when the menu opens.</li>
-</ul>
-<h3>Fixed</h3><ul>
-<li>Connect said “Failed” for Claude Code when it was installed with its own installer.</li>
-</ul>
-]]></description>
-            <enclosure url="https://aki-updates.vercel.app/0.6.1-beta.3/Aki-0.6.1-beta.3.zip" length="3723116" type="application/octet-stream" sparkle:edSignature="J1rW+ieBmgMPAj72K0XbZMccMO10rA5TAyjWaXn4afqC6/x8mDO0OVFw3UAwRlVGMS0W+IaNBDX9+nwTvcihDw=="/>
-        </item>
-        <item>
-            <title>0.6.1-beta.2</title>
-            <pubDate>Sun, 11 Oct 2026 09:33:13 -0300</pubDate>
-            <sparkle:channel>beta</sparkle:channel>
-            <sparkle:version>20261011123312</sparkle:version>
-            <sparkle:shortVersionString>0.6.1-beta.2</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
-            <description><![CDATA[<h2>Aki 0.6.1-beta.2</h2>
-<h3>Changed</h3><ul>
-<li>Right-clicking a session's ring shows only what you can do with that session. Hiding the sidebar, settings and quitting are in the Aki submenu at the end.</li>
-<li>An open card (or the "+N" list) closes when that menu opens.</li>
-</ul>
-]]></description>
-            <enclosure url="https://aki-updates.vercel.app/0.6.1-beta.2/Aki-0.6.1-beta.2.zip" length="3722560" type="application/octet-stream" sparkle:edSignature="Zbpb/ydqWI6cZrePnIbWLjJuCn9edak5j3Qpu12x4JVed/y5JGgTUVESFca1+SyENXa+gl3vYbrN0WXDHgddCA=="/>
         </item>
         <item>
             <title>0.6.0</title>
@@ -94,23 +77,6 @@
 </ul>
 ]]></description>
             <enclosure url="https://aki-updates.vercel.app/0.5.0/Aki-0.5.0.zip" length="3673319" type="application/octet-stream" sparkle:edSignature="YzFT2W5XO4UzWGGCuAvubXZaq1Fq2wZ2OEi/I4z7e9vlW/aHgDP59PCJY+f/6jmTzuX/dbUxD4vjJC0HXlUmBA=="/>
-        </item>
-        <item>
-            <title>0.4.4</title>
-            <pubDate>Sat, 10 Oct 2026 13:41:15 -0300</pubDate>
-            <sparkle:version>20261010164115</sparkle:version>
-            <sparkle:shortVersionString>0.4.4</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
-            <description><![CDATA[<h2>Aki 0.4.4</h2>
-<ul>
-<li><b>The right session, by itself:</b> marking starts on the agent tab you're in, or were in a moment ago, before the page's port.</li>
-<li><b>⌘Z</b> undoes the last mark.</li>
-<li><b>Space</b> held while dragging moves the whole area, as the Mac's ⌘⇧4.</li>
-<li>⇧ in the middle of a drag no longer gets in the way.</li>
-</ul>
-]]></description>
-            <enclosure url="https://aki-updates.vercel.app/0.4.4/Aki-0.4.4.zip" length="3535606" type="application/octet-stream" sparkle:edSignature="l1YcgtaAno9dKl+ulV+2wi8kk47fZ3CHlftbFqLzILf3ajBmNsR+g7k9UBxuHDmrKTOBZdKucRTXti9CvZABAg=="/>
         </item>
     </channel>
 </rss>
