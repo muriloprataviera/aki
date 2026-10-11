@@ -3,6 +3,22 @@
     <channel>
         <title>Aki</title>
         <item>
+            <title>0.6.1-beta.2</title>
+            <pubDate>Sun, 11 Oct 2026 09:33:13 -0300</pubDate>
+            <sparkle:channel>beta</sparkle:channel>
+            <sparkle:version>20261011123312</sparkle:version>
+            <sparkle:shortVersionString>0.6.1-beta.2</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
+            <description><![CDATA[<h2>Aki 0.6.1-beta.2</h2>
+<h3>Changed</h3><ul>
+<li>Right-clicking a session's ring shows only what you can do with that session. Hiding the sidebar, settings and quitting are in the Aki submenu at the end.</li>
+<li>An open card (or the "+N" list) closes when that menu opens.</li>
+</ul>
+]]></description>
+            <enclosure url="https://aki-updates.vercel.app/0.6.1-beta.2/Aki-0.6.1-beta.2.zip" length="3722560" type="application/octet-stream" sparkle:edSignature="Zbpb/ydqWI6cZrePnIbWLjJuCn9edak5j3Qpu12x4JVed/y5JGgTUVESFca1+SyENXa+gl3vYbrN0WXDHgddCA=="/>
+        </item>
+        <item>
             <title>0.6.1-beta.1</title>
             <pubDate>Sun, 11 Oct 2026 09:08:17 -0300</pubDate>
             <sparkle:channel>beta</sparkle:channel>
