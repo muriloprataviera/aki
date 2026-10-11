@@ -4,6 +4,8 @@ What changed in each version of Aki. Versions follow [semantic versioning](https
 
 ## [Unreleased]
 
+## [0.6.1] — 2026-10-11
+
 ### Added
 - Support Aki and Check for Updates at the foot of the Settings sidebar, above Quit.
 
