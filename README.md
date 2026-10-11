@@ -11,7 +11,8 @@
 
 <p align="center">
   Point at anything on your Mac — a button, a line in the terminal, a whole area — say what should change,<br>
-  and Claude Code, Codex or your agent of choice gets it in the right session. No pasting screenshots, no ⌘Tab, no "not that one".
+  and Claude Code, Codex or your agent of choice gets it in the right session. No pasting screenshots, no ⌘Tab, no "not that one".<br>
+  And at the edge of your screen, how much of Claude's and Codex's weekly limit you've used — two tools in one, use either or both.
 </p>
 
 <p align="center">
@@ -41,6 +42,8 @@
 Telling an agent *what* to change is the slow part: take a screenshot, paste it, describe where to look, switch to the right terminal, hope it finds the element. Aki turns that into **point, say it, send**. The agent receives the exact element (selector, text, HTML, even the React source file), your note, and a crop only when a picture actually helps — so it spends tokens on the fix, not on guessing.
 
 The other question while several agents run is *how am I doing this week?* The same sidebar answers it: how much of Claude's and Codex's weekly limit is gone, today's tokens and what they'd cost, and whether you're ahead of the pace — without another app.
+
+**Use it your way.** On the first launch Aki asks how you'll use it: **only your week** (the limits and what today cost; no permissions at all), **only pointing**, or **both**. Change it any time in Appearance → Use Aki for.
 
 ## How it works
 
@@ -73,7 +76,8 @@ The other question while several agents run is *how am I doing this week?* The s
 | 🧭 **The right terminal, by itself** | A page on `localhost:3000` belongs to a worktree; Aki finds the session running it. Otherwise it goes to the session you picked. |
 | ⏱️ **Your agent wakes up** | Seconds after you stop, Aki types the request into the session's tab — and never glues it to something you were typing there. |
 | 🟠 **One ring per session** | A sidebar on the screen edge shows every Claude Code / Codex session, grouped by project, with its state, context used, your 5-hour and weekly limits, and what's waiting. |
-| 📊 **Your week at a glance** | A ring each for Claude and Codex with the share of the weekly limit used and today's tokens and cost at API prices. Hover for the 5-hour window, when each renews, the pace, today's share of the week, the last 7 days and the projects that used most. Want only that? Settings → Show in the sidebar → Only limits. `aki usage` prints it in the terminal. |
+| 📊 **Your week at a glance** | A ring each for Claude and Codex with the share of the weekly limit used and today's tokens and cost at API prices. Hover for the 5-hour window, when each renews, the pace, today's share of the week, the last 7 days and the projects that used most. Want only that? Choose **Only my week** — no permissions needed. `aki usage` prints it in the terminal. |
+| 🧹 **Screenshots piling up** | Every screenshot taken to show an agent is still on your Mac. Settings → Storage counts the ones on the Desktop, in Downloads and in your screenshot folder, and moves those older than 7, 30 or 90 days to the Trash in one click — nothing is deleted for good. |
 | 📬 **Sent, then done** | A countdown on the session's ring until the request goes in; a ✓ when the agent has resolved every mark. |
 | 🕘 **History** | <kbd>⇧⌘H</kbd> lists every mark with its size; move marks between sessions; done marks clean themselves up. |
 | ⚙️ **Yours to set** | Light or dark, Aki's red or your Mac's accent, four sizes, shortcuts you choose, nine languages (English, Português, Español, Français, Deutsch, 日本語, 中文, 한국어, Italiano). |
@@ -97,7 +101,7 @@ Or by hand:
 
 1. Download the latest **`Aki-x.y.z.dmg`** from [Releases](../../releases) (or the [website](https://useaki.vercel.app)) and drag **Aki** to Applications.
 2. First launch only: macOS asks to confirm an app from the internet — **System Settings → Privacy & Security → Open Anyway**. (The one-line install skips this.) Updates install without asking again.
-3. Aki opens **Get started**: each permission below, why it's needed, and a button that takes you straight there. Each turns green when it's given.
+3. Aki opens **Get started**: pick how you'll use it, then each permission below, why it's needed, and a button that takes you straight there. Each turns green when it's given. **Only my week** skips them all.
 
 Apple Silicon, macOS 14 or later.
 
@@ -109,6 +113,7 @@ Apple Silicon, macOS 14 or later.
 | Point at buttons, rows and tabs in any app | **Accessibility** | It's how Mac apps describe their buttons and lists to other apps. |
 | Hand your marks to Claude Code or Codex | **Aki's MCP server** in the agent (Settings → Agents → *Connect*) | It's how agents get new tools. Sessions already open see it after a restart. |
 | Pick the exact element on a web page | In the browser: **View → Developer → Allow JavaScript from Apple Events**, then allow Aki to control it | Aki asks the page itself which element is under the pointer — no extension. |
+| Count and clear old screenshots (optional) | Access to **Desktop** and **Downloads**, asked by macOS the first time you click *Check* | That's where screenshots land. Old ones go to the Trash, never deleted for good. |
 
 ### Anonymous notices (telemetry)
 
