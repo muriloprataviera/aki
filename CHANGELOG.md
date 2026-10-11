@@ -4,6 +4,8 @@ What changed in each version of Aki. Versions follow [semantic versioning](https
 
 ## [Unreleased]
 
+## [0.6.0] — 2026-10-11
+
 ### Added
 - Get started asks how you'll use Aki: only your week (limits and cost, no permissions needed), only pointing at things for your agents, or both. Change it any time in Appearance → Use Aki for; with only your week, the marking shortcuts are off.
 - Screenshots piling up (Get started and Storage): Aki counts the Mac's screenshots on the Desktop, in Downloads and in your screenshot folder, and moves the ones older than 7, 30 or 90 days to the Trash in one click.
