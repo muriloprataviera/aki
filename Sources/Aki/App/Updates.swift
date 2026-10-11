@@ -138,7 +138,7 @@ final class Updates: NSObject, SPUUserDriver, SPUUpdaterDelegate {
 
     private let updatingFromKey = "updatingFrom"
 
-    /// Starts the hourly check (call once at launch).
+    /// Starts checking every few minutes (call once at launch).
     func start() {
         // Restarted by an update: say so for a moment.
         let defaults = UserDefaults.standard
@@ -152,7 +152,15 @@ final class Updates: NSObject, SPUUserDriver, SPUUpdaterDelegate {
         }
         updater.automaticallyDownloadsUpdates = false
         do { try updater.start() } catch { NSLog("Aki updates: \(error.localizedDescription)") }
-        // Also when the Mac wakes (lid opened in the morning), not only on the hour.
+        // Every 10 minutes, so a new version's pill shows soon after it's out
+        // (Sparkle's own schedule is hourly; the feed is a few KB).
+        Timer.scheduledTimer(withTimeInterval: 600, repeats: true) { [weak self] _ in
+            MainActor.assumeIsolated {
+                guard let self, self.state == .idle, self.updater.canCheckForUpdates else { return }
+                self.updater.checkForUpdatesInBackground()
+            }
+        }
+        // Also when the Mac wakes (lid opened in the morning).
         NSWorkspace.shared.notificationCenter.addObserver(
             forName: NSWorkspace.didWakeNotification, object: nil, queue: .main
         ) { [weak self] _ in
