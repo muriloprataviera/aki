@@ -107,6 +107,12 @@ final class GlobalShortcuts {
     func apply() {
         keys = []
         let p = Preferences.shared
+        // Only the week's limits: nothing to mark, so the keys stay free for other apps.
+        guard p.showSessions else {
+            taken = []
+            p.shortcutTick += 1
+            return
+        }
         let mark = HotKey(keyCode: p.markShortcut.keyCode, modifiers: p.markShortcut.modifiers) { [weak self] in self?.onMark() }
         let history = HotKey(keyCode: p.historyShortcut.keyCode, modifiers: p.historyShortcut.modifiers) { [weak self] in self?.onHistory() }
         taken = Set([mark.registered ? nil : "mark", history.registered ? nil : "history"].compactMap { $0 })

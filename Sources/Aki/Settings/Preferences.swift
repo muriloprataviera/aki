@@ -199,11 +199,26 @@ enum CardDetail: String, CaseIterable, Identifiable {
 enum SidebarContent: String, CaseIterable, Identifiable {
     case both, limits, sessions
     var id: String { rawValue }
+    var showsSessions: Bool { self != .limits }
     var title: String {
         switch self {
-        case .both: L10n.t("Sessions and limits")
-        case .limits: L10n.t("Only limits")
-        case .sessions: L10n.t("Only sessions")
+        case .both: L10n.t("My week and pointing")
+        case .limits: L10n.t("Only my week")
+        case .sessions: L10n.t("Only pointing")
+        }
+    }
+    var detail: String {
+        switch self {
+        case .both: L10n.t("Everything: your limits at the edge of the screen, and marking things for your agents.")
+        case .limits: L10n.t("Just how much of the week's limit you've used, and what today cost. No permissions needed.")
+        case .sessions: L10n.t("Mark anything on screen and send it to your agent's terminal.")
+        }
+    }
+    var symbols: [String] {
+        switch self {
+        case .both: ["gauge.with.dots.needle.50percent", "scope"]
+        case .limits: ["gauge.with.dots.needle.50percent"]
+        case .sessions: ["scope"]
         }
     }
 }
@@ -302,10 +317,16 @@ final class Preferences {
     var followOrcaTab: Bool { didSet { defaults.set(followOrcaTab, forKey: Keys.followOrcaTab) } }
     /// Each mark's crop goes to the clipboard too (⌘V anywhere).
     var copyCrop: Bool { didSet { defaults.set(copyCrop, forKey: Keys.copyCrop) } }
-    /// What the sidebar shows: the sessions, the AI accounts' limits, or both.
-    var sidebarContent: SidebarContent { didSet { defaults.set(sidebarContent.rawValue, forKey: Keys.sidebarContent) } }
+    /// What Aki is for: the AI accounts' limits, pointing at things for agents, or both.
+    /// With only the limits, the marking shortcuts are off.
+    var sidebarContent: SidebarContent {
+        didSet {
+            defaults.set(sidebarContent.rawValue, forKey: Keys.sidebarContent)
+            if oldValue.showsSessions != sidebarContent.showsSessions { GlobalShortcuts.shared.apply() }
+        }
+    }
     var showUsage: Bool { sidebarContent != .sessions }
-    var showSessions: Bool { sidebarContent != .limits }
+    var showSessions: Bool { sidebarContent.showsSessions }
     /// Pictures never take more than this on disk (MB); the oldest unneeded go first.
     var maxPicturesMB: Int { didSet { defaults.set(maxPicturesMB, forKey: Keys.maxPicturesMB) } }
     var presence: AppPresence { didSet { defaults.set(presence.rawValue, forKey: Keys.presence) } }

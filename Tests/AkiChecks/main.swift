@@ -328,6 +328,29 @@ check(UsageLimits.parseCodex(line: Data(codexLine.replacingOccurrences(of: #"{"t
                               updated: .distantPast)?.updated == Date(timeIntervalSince1970: 1791665845.894),
       "a Codex report dated by its own time")
 
+// The Mac's screenshots: found by their name (any language) or macOS's own mark, nothing else.
+let shots = FileManager.default.temporaryDirectory.appending(path: "aki-shots-\(UUID().uuidString)")
+try? FileManager.default.createDirectory(at: shots.appending(path: "inside"), withIntermediateDirectories: true)
+let oldName = "Screenshot 2026-10-10 at 15.30.00 \(UUID().uuidString).png"
+for name in [oldName, "Captura de Tela 2026-01-02 às 09.10.11.png", "inside/截屏2026-10-10 15.30.00.png",
+             "screenshot of the logo.png", "report.pdf", "notes.txt"] {
+    FileManager.default.createFile(atPath: shots.appending(path: name).path, contents: Data(repeating: 1, count: 1000))
+}
+let marked = shots.appending(path: "foto.png")
+FileManager.default.createFile(atPath: marked.path, contents: Data(repeating: 1, count: 500))
+_ = "1".withCString { setxattr(marked.path, "com.apple.metadata:kMDItemIsScreenCapture", $0, 1, 0, 0) }
+let old = shots.appending(path: oldName)
+try? FileManager.default.setAttributes([.creationDate: Date().addingTimeInterval(-40 * 24 * 3600)], ofItemAtPath: old.path)
+let found = Screenshots.scan([shots])
+check(found.files.count == 4, "screenshots found by name in any language and by macOS's mark (\(found.files.count))")
+check(found.bytes == 3500, "their size added up")
+check(found.older(than: 30).map(\.url.lastPathComponent) == [old.lastPathComponent], "only the old one is old")
+let oldOnes = found.older(than: 30)
+check(Screenshots.trash(oldOnes).count == 1 && !FileManager.default.fileExists(atPath: old.path), "the old one goes to the Trash")
+// Out of the Trash again: the check leaves nothing behind.
+for item in oldOnes { try? FileManager.default.removeItem(at: FileManager.default.homeDirectoryForCurrentUser.appending(path: ".Trash/\(item.url.lastPathComponent)")) }
+try? FileManager.default.removeItem(at: shots)
+
 print(failures == 0 ? "\nall checks passed" : "\n\(failures) check(s) failed")
 exit(failures == 0 ? 0 : 1)
 

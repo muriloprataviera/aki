@@ -13,6 +13,7 @@ struct GetStartedPane: View {
     @State private var command = AkiCommand.installed
     @State private var agent = false
     @State private var askedScreen = false
+    @Bindable private var preferences = Preferences.shared
 
     private static func pane(_ name: String) -> URL {
         URL(string: "x-apple.systempreferences:com.apple.preference.security?\(name)")!
@@ -21,95 +22,25 @@ struct GetStartedPane: View {
     var body: some View {
         Form {
             Section {
-                Text(L10n.t("A few minutes, once. Aki asks the Mac for a few permissions; here is each one, why, and a button that takes you there. Each turns green when it's done."))
+                Text(preferences.showSessions
+                     ? L10n.t("A few minutes, once. Aki asks the Mac for a few permissions; here is each one, why, and a button that takes you there. Each turns green when it's done.")
+                     : L10n.t("Just your week: Aki only reads what Claude Code and Codex already keep on this Mac, so it needs no permission."))
                     .fixedSize(horizontal: false, vertical: true)
             }
-            // Where Aki lives, so nobody looks for it in the Dock or ⌘Tab.
-            Section(L10n.t("Where Aki lives")) {
-                HStack(alignment: .top, spacing: 10) {
-                    Image(nsImage: AkiBrand.pin(size: 16)).renderingMode(.template).foregroundStyle(AkiPalette.red)
-                    Text(L10n.t("Aki is always on: the bar at the edge of your screen and the pin in the menu bar. It's not in the Dock or ⌘Tab (it shows there while this window is open). Press {mark} to mark, {history} for the history, or search \"Aki\" in Spotlight to come back here. Want it in the Dock? General → App icon."))
-                        .fixedSize(horizontal: false, vertical: true)
-                }
-            }
-            Section(L10n.t("Needed")) {
-                SetupStep(
-                    number: 1, done: screen,
-                    goal: L10n.t("To see what you mark"),
-                    example: L10n.t("You circle a broken chart: your agent gets the picture. You mark an error in the terminal: it gets the text."),
-                    permission: L10n.t("Screen Recording"),
-                    why: L10n.t("macOS asks this of any app that looks at the screen. Nothing is recorded; what you mark stays on your Mac until you send it to your agent."),
-                    action: askedScreen && !screen ? L10n.t("Restart Aki") : L10n.t("Allow"),
-                    help: askedScreen && !screen ? L10n.t("macOS applies this permission after Aki restarts.") : nil
-                ) {
-                    if askedScreen { Self.restart(); return }
-                    askedScreen = true
-                    CGRequestScreenCaptureAccess()
-                    NSWorkspace.shared.open(Self.pane("Privacy_ScreenCapture"))
-                }
-                SetupStep(
-                    number: 2, done: access,
-                    goal: L10n.t("To point at buttons and rows in any app"),
-                    example: L10n.t("You hover a folder in Finder or a layer in Figma: Aki outlines it, and your agent gets its name and what it is."),
-                    permission: L10n.t("Accessibility"),
-                    why: L10n.t("It's how Mac apps describe their buttons and lists to other apps."),
-                    action: L10n.t("Allow")
-                ) {
-                    ElementProbe.askForAccess()
-                    NSWorkspace.shared.open(Self.pane("Privacy_Accessibility"))
-                }
-                SetupStep(
-                    number: 3, done: agent,
-                    goal: L10n.t("To hand your marks to your agent"),
-                    example: L10n.t("You press ⌘⏎ and Claude Code, in its terminal, reads \"Center the title\" with the exact element, then fixes it."),
-                    permission: L10n.t("Aki's MCP server in Claude Code or Codex"),
-                    why: L10n.t("It's how agents get new tools. One click; conversations already open see it after a restart."),
-                    action: L10n.t("Open Agents"), reopen: L10n.t("Open Agents"), reopenIcon: "arrow.right.circle",
-                    action: openAgents)
-            }
-            Section(L10n.t("For web pages (Chrome, Brave, Edge, Arc, Vivaldi)")) {
-                SetupStep(
-                    number: 4, done: browser ?? Preferences.shared.browserReady,
-                    goal: L10n.t("To pick the exact element on a web page"),
-                    example: L10n.t("You hover the Buy button on localhost:3000: your agent gets button.buy, its text and HTML, even the React file it comes from."),
-                    permission: L10n.t("Allow JavaScript from Apple Events"),
-                    why: L10n.t("In the browser's menu bar: View → Developer → Allow JavaScript from Apple Events. Then click Check and let Aki control the browser. No extension needed."),
-                    action: L10n.t("Check"),
-                    help: browser == false ? L10n.t("Not yet: turn it on in the browser's View → Developer menu, then check again.") : nil,
-                    reopen: L10n.t("Check again"), reopenIcon: "arrow.clockwise"
-                ) {
-                    Task.detached {
-                        let ok = BrowserProbe.canAskPages()
-                        await MainActor.run {
-                            browser = ok
-                            // Kept: the ✓ stays after leaving the pane or restarting.
-                            if let ok { Preferences.shared.browserReady = ok }
+            // First the choice: only the week needs no permission at all.
+            Section(L10n.t("How will you use Aki?")) {
+                HStack(spacing: 10) {
+                    ForEach(SidebarContent.allCases) { mode in
+                        ModeCard(mode: mode, chosen: preferences.sidebarContent == mode) {
+                            withAnimation(.snappy) { preferences.sidebarContent = mode }
                         }
                     }
                 }
-                Link(L10n.t("Automation settings (if you said no to Aki controlling the browser)"),
-                     destination: Self.pane("Privacy_Automation"))
-                    .font(.caption)
+                Text(L10n.t("You can change it any time in Appearance."))
+                    .font(.caption).foregroundStyle(.secondary)
             }
-            Section(L10n.t("In Terminal")) {
-                SetupStep(
-                    number: 5, done: command,
-                    goal: L10n.t("To call Aki from any terminal, short"),
-                    example: L10n.t("Your agent runs `aki list` instead of the long path inside the app: shorter messages, fewer slips."),
-                    permission: L10n.t("The aki command"),
-                    why: L10n.t("macOS asks for your password once: the command goes in a system folder (/usr/local/bin)."),
-                    action: L10n.t("Install"), reopen: L10n.t("Installed"), reopenIcon: "checkmark"
-                ) {
-                    command = AkiCommand.install()
-                }
-            }
-            Section(L10n.t("Try it")) {
-                HStack(spacing: 10) {
-                    Image(systemName: "hand.point.up.left.fill").foregroundStyle(AkiPalette.red)
-                    Text(L10n.t("Press {mark} anywhere, click something and write what should change. ⌘⏎ sends it to your agent."))
-                        .fixedSize(horizontal: false, vertical: true)
-                }
-            }
+            if preferences.showSessions { pointingSteps } else { weekOnly }
+            ScreenshotCleanup()
             // Said plainly, before anything is sent: what goes, why, and the switch.
             Section(L10n.t("Anonymous notices")) {
                 Toggle(L10n.t("Send anonymous notices to the maker"), isOn: Binding(
@@ -137,6 +68,107 @@ struct GetStartedPane: View {
                 }
                 tick += 1
                 try? await Task.sleep(for: .seconds(2))
+            }
+        }
+    }
+
+    /// What pointing needs: where Aki lives, each permission and a first try.
+    @ViewBuilder private var pointingSteps: some View {
+        // Where Aki lives, so nobody looks for it in the Dock or ⌘Tab.
+        Section(L10n.t("Where Aki lives")) {
+            HStack(alignment: .top, spacing: 10) {
+                Image(nsImage: AkiBrand.pin(size: 16)).renderingMode(.template).foregroundStyle(AkiPalette.red)
+                Text(L10n.t("Aki is always on: the bar at the edge of your screen and the pin in the menu bar. It's not in the Dock or ⌘Tab (it shows there while this window is open). Press {mark} to mark, {history} for the history, or search \"Aki\" in Spotlight to come back here. Want it in the Dock? General → App icon."))
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+        }
+        Section(L10n.t("Needed")) {
+            SetupStep(
+                number: 1, done: screen,
+                goal: L10n.t("To see what you mark"),
+                example: L10n.t("You circle a broken chart: your agent gets the picture. You mark an error in the terminal: it gets the text."),
+                permission: L10n.t("Screen Recording"),
+                why: L10n.t("macOS asks this of any app that looks at the screen. Nothing is recorded; what you mark stays on your Mac until you send it to your agent."),
+                action: askedScreen && !screen ? L10n.t("Restart Aki") : L10n.t("Allow"),
+                help: askedScreen && !screen ? L10n.t("macOS applies this permission after Aki restarts.") : nil
+            ) {
+                if askedScreen { Self.restart(); return }
+                askedScreen = true
+                CGRequestScreenCaptureAccess()
+                NSWorkspace.shared.open(Self.pane("Privacy_ScreenCapture"))
+            }
+            SetupStep(
+                number: 2, done: access,
+                goal: L10n.t("To point at buttons and rows in any app"),
+                example: L10n.t("You hover a folder in Finder or a layer in Figma: Aki outlines it, and your agent gets its name and what it is."),
+                permission: L10n.t("Accessibility"),
+                why: L10n.t("It's how Mac apps describe their buttons and lists to other apps."),
+                action: L10n.t("Allow")
+            ) {
+                ElementProbe.askForAccess()
+                NSWorkspace.shared.open(Self.pane("Privacy_Accessibility"))
+            }
+            SetupStep(
+                number: 3, done: agent,
+                goal: L10n.t("To hand your marks to your agent"),
+                example: L10n.t("You press ⌘⏎ and Claude Code, in its terminal, reads \"Center the title\" with the exact element, then fixes it."),
+                permission: L10n.t("Aki's MCP server in Claude Code or Codex"),
+                why: L10n.t("It's how agents get new tools. One click; conversations already open see it after a restart."),
+                action: L10n.t("Open Agents"), reopen: L10n.t("Open Agents"), reopenIcon: "arrow.right.circle",
+                action: openAgents)
+        }
+        Section(L10n.t("For web pages (Chrome, Brave, Edge, Arc, Vivaldi)")) {
+            SetupStep(
+                number: 4, done: browser ?? Preferences.shared.browserReady,
+                goal: L10n.t("To pick the exact element on a web page"),
+                example: L10n.t("You hover the Buy button on localhost:3000: your agent gets button.buy, its text and HTML, even the React file it comes from."),
+                permission: L10n.t("Allow JavaScript from Apple Events"),
+                why: L10n.t("In the browser's menu bar: View → Developer → Allow JavaScript from Apple Events. Then click Check and let Aki control the browser. No extension needed."),
+                action: L10n.t("Check"),
+                help: browser == false ? L10n.t("Not yet: turn it on in the browser's View → Developer menu, then check again.") : nil,
+                reopen: L10n.t("Check again"), reopenIcon: "arrow.clockwise"
+            ) {
+                Task.detached {
+                    let ok = BrowserProbe.canAskPages()
+                    await MainActor.run {
+                        browser = ok
+                        // Kept: the ✓ stays after leaving the pane or restarting.
+                        if let ok { Preferences.shared.browserReady = ok }
+                    }
+                }
+            }
+            Link(L10n.t("Automation settings (if you said no to Aki controlling the browser)"),
+                 destination: Self.pane("Privacy_Automation"))
+                .font(.caption)
+        }
+        Section(L10n.t("In Terminal")) {
+            SetupStep(
+                number: 5, done: command,
+                goal: L10n.t("To call Aki from any terminal, short"),
+                example: L10n.t("Your agent runs `aki list` instead of the long path inside the app: shorter messages, fewer slips."),
+                permission: L10n.t("The aki command"),
+                why: L10n.t("macOS asks for your password once: the command goes in a system folder (/usr/local/bin)."),
+                action: L10n.t("Install"), reopen: L10n.t("Installed"), reopenIcon: "checkmark"
+            ) {
+                command = AkiCommand.install()
+            }
+        }
+        Section(L10n.t("Try it")) {
+            HStack(spacing: 10) {
+                Image(systemName: "hand.point.up.left.fill").foregroundStyle(AkiPalette.red)
+                Text(L10n.t("Press {mark} anywhere, click something and write what should change. ⌘⏎ sends it to your agent."))
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+        }
+    }
+
+    /// Only the week: nothing to allow, just where to look.
+    private var weekOnly: some View {
+        Section(L10n.t("Try it")) {
+            HStack(spacing: 10) {
+                Image(systemName: "gauge.with.dots.needle.50percent").foregroundStyle(AkiPalette.red)
+                Text(L10n.t("Look at the edge of your screen: each ring is how much of the week's limit Claude or Codex has used. Hover it for today, the week and your projects."))
+                    .fixedSize(horizontal: false, vertical: true)
             }
         }
     }
@@ -241,5 +273,39 @@ private struct SetupStep: View {
             }
         }
         .padding(.vertical, 4)
+    }
+}
+
+/// One way to use Aki, as a card to pick.
+private struct ModeCard: View {
+    let mode: SidebarContent
+    let chosen: Bool
+    let pick: () -> Void
+
+    var body: some View {
+        Button(action: pick) {
+            VStack(alignment: .leading, spacing: 6) {
+                HStack {
+                    ForEach(mode.symbols, id: \.self) {
+                        Image(systemName: $0).font(.system(size: 15, weight: .semibold))
+                            .foregroundStyle(chosen ? AkiPalette.red : .secondary)
+                    }
+                    Spacer()
+                    Image(systemName: chosen ? "checkmark.circle.fill" : "circle")
+                        .foregroundStyle(chosen ? AkiPalette.red : .secondary)
+                }
+                .frame(height: 20)
+                Text(mode.title).font(.system(size: 13, weight: .semibold))
+                Text(mode.detail).font(.caption).foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+                Spacer(minLength: 0)
+            }
+            .padding(10)
+            .frame(maxWidth: .infinity, minHeight: 112, alignment: .topLeading)
+            .background(RoundedRectangle(cornerRadius: 10).fill(Color.white.opacity(chosen ? 0.08 : 0.03)))
+            .overlay(RoundedRectangle(cornerRadius: 10).strokeBorder(chosen ? AkiPalette.red : Color.white.opacity(0.1), lineWidth: chosen ? 1.5 : 1))
+            .contentShape(RoundedRectangle(cornerRadius: 10))
+        }
+        .buttonStyle(.plain)
     }
 }

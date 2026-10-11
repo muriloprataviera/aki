@@ -497,10 +497,10 @@ struct SettingsView: View {
                 Toggle(L10n.t("Show projects"), isOn: $preferences.showProjects)
                 Caption(L10n.t("Sessions of one project side by side, with its name over them."))
 
-                Picker(L10n.t("Show in the sidebar"), selection: $preferences.sidebarContent) {
+                Picker(L10n.t("Use Aki for"), selection: $preferences.sidebarContent) {
                     ForEach(SidebarContent.allCases) { Text($0.title).tag($0) }
                 }
-                Caption(L10n.t("Limits: a ring for Claude and one for Codex with how much of the week is used, today's tokens and their cost. Only limits makes the sidebar a usage meter."))
+                Caption(L10n.t("Your week: a ring for Claude and one for Codex with how much of the week's limit is used, today's tokens and their cost. Only my week turns marking off, shortcuts included."))
 
                 Picker(L10n.t("Theme"), selection: $preferences.theme) {
                     ForEach(AppTheme.allCases) { Text($0.title).tag($0) }
@@ -654,6 +654,7 @@ struct SettingsView: View {
                 }
                 Caption(L10n.t("Pending marks always stay. Each mark has its folder, ~/.aki/marks/<day>/<code>/ (the picture and what was asked); pictures never pass the limit: the oldest no mark needs go first."))
             }
+            ScreenshotCleanup(checkOnAppear: true)
             Section(L10n.t("Data")) {
                 LabeledContent(L10n.t("Server"), value: model.serverStatus.label)
                 LabeledContent(L10n.t("Data folder")) {
