@@ -882,11 +882,15 @@ enum Setup {
         return await shell(command)
     }
 
+    /// Where agents install themselves: Claude Code's own installer puts `claude`
+    /// in ~/.local/bin, which a login shell only gets from .zshrc (never read here).
+    private static let paths = #"export PATH="$HOME/.local/bin:$HOME/.claude/local:/opt/homebrew/bin:/usr/local/bin:$PATH"; "#
+
     private static func shell(_ command: String) async -> Bool {
         await Task.detached {
             let process = Process()
             process.executableURL = URL(filePath: "/bin/zsh")
-            process.arguments = ["-lc", command]
+            process.arguments = ["-lc", paths + command]
             process.standardOutput = FileHandle.nullDevice
             process.standardError = FileHandle.nullDevice
             do { try process.run() } catch { return false }
@@ -905,16 +909,7 @@ enum Setup {
         case "cli": command = "mkdir -p \"$HOME/.local/bin\" && ln -sf \(quoted) \"$HOME/.local/bin/aki\""
         default: return false
         }
-        return await Task.detached {
-            let process = Process()
-            process.executableURL = URL(filePath: "/bin/zsh")
-            process.arguments = ["-lc", command]
-            process.standardOutput = FileHandle.nullDevice
-            process.standardError = FileHandle.nullDevice
-            do { try process.run() } catch { return false }
-            process.waitUntilExit()
-            return process.terminationStatus == 0
-        }.value
+        return await shell(command)
     }
 }
 
