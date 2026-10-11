@@ -4,6 +4,9 @@ What changed in each version of Aki. Versions follow [semantic versioning](https
 
 ## [Unreleased]
 
+### Changed
+- Right-clicking a session's ring shows only what you can do with that session; hiding the sidebar, settings and quitting moved to the Aki submenu at the end, so nothing there reads as acting on the session.
+
 ## [0.6.0] — 2026-10-11
 
 ### Added

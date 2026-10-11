@@ -783,14 +783,13 @@ final class SidebarController {
 
     private func menu(at windowPoint: CGPoint) -> NSMenu? {
         let menu = NSMenu()
-        // On a session's ring: what you can do with that session, first.
+        // On a session's ring: only what you can do with that session; the rest
+        // (hide the sidebar, quit…) in a submenu, so nothing reads as acting on it.
         let point = CGPoint(x: windowPoint.x, y: panel.frame.height - windowPoint.y)
         if model.expanded, let index = layout.cellIndex(at: point), index < model.rings.count,
             case .terminal(let terminal) = model.rings[index]
         {
-            let title = NSMenuItem(title: terminal.name, action: nil, keyEquivalent: "")
-            title.isEnabled = false
-            menu.addItem(title)
+            menu.addItem(.sectionHeader(title: terminal.name))
             let send = ClosureMenuItem(L10n.t("Send marks here")) { [weak self] in self?.model.select(terminal) }
             send.state = model.selectedTerminal == terminal.id ? .on : .off
             menu.addItem(send)
@@ -833,7 +832,17 @@ final class SidebarController {
                 })
             }
             menu.addItem(.separator())
+            let aki = NSMenuItem(title: "Aki", action: nil, keyEquivalent: "")
+            aki.submenu = generalMenu(NSMenu())
+            menu.addItem(aki)
+            return menu
         }
+        menu.addItem(.sectionHeader(title: "Aki"))
+        return generalMenu(menu)
+    }
+
+    /// The sidebar's and the app's own items, the same on every menu.
+    private func generalMenu(_ menu: NSMenu) -> NSMenu {
         if !model.preferences.hiddenTerminals.isEmpty {
             let hidden = model.terminals.filter { model.preferences.hiddenTerminals.contains($0.id) }
             if !hidden.isEmpty {
@@ -939,9 +948,7 @@ final class SidebarPanel: NSPanel {
             view.hitTest(event.locationInWindow) != nil,
             let menu = contextMenuProvider?(event.locationInWindow)
         {
-            NSLog("Aki menu: open (%ld items)", menu.items.count)
             NSMenu.popUpContextMenu(menu, with: event, for: view)
-            NSLog("Aki menu: closed")
             return
         }
         if event.type == .leftMouseDown, startsResize?(event.locationInWindow) == true {
@@ -1034,7 +1041,6 @@ final class ClosureMenuItem: NSMenuItem {
     required init(coder: NSCoder) { fatalError("init(coder:) is not used") }
 
     @objc private func run() {
-        NSLog("Aki menu: %@", title)
         handler()
     }
 }
