@@ -27,6 +27,7 @@
   <img src="https://img.shields.io/badge/macOS-14%2B-141414?style=flat-square&logo=apple&logoColor=F3EFE6" alt="macOS 14+">
   <img src="https://img.shields.io/badge/Apple%20Silicon-native-141414?style=flat-square" alt="Apple Silicon">
   <a href="../../releases/latest"><img src="https://img.shields.io/github/v/release/muriloprataviera/aki?style=flat-square&color=FF3B1F&label=version" alt="Latest version"></a>
+  <a href="../../actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/muriloprataviera/aki/ci.yml?branch=main&style=flat-square&label=CI" alt="CI"></a>
   <img src="https://img.shields.io/badge/Claude%20Code%20%C2%B7%20Codex%20%C2%B7%20Gemini%20%C2%B7%20opencode-works%20with-141414?style=flat-square" alt="Works with Claude Code, Codex, Gemini, opencode">
   <a href="https://x.com/muprataviera"><img src="https://img.shields.io/badge/follow-@muprataviera-141414?style=flat-square&logo=x" alt="Follow on X"></a>
 </p>
