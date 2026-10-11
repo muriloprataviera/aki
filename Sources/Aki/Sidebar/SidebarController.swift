@@ -429,7 +429,7 @@ final class SidebarController {
         // A project's name wins over the grip under it (the grip would rise over the name).
         if model.resizeHovered != overResize { model.resizeHovered = overResize }
         let overGrip = model.expanded && overName == nil && !overResize && layout.gripRect.contains(point)
-        let overMark = model.expanded && !overCard && layout.markOrbRect.contains(point)
+        let overMark = model.expanded && model.preferences.showSessions && !overCard && layout.markOrbRect.contains(point)
         if model.markButtonHovered != overMark { model.markButtonHovered = overMark }
         // The card's other two corners (4-corner shape only).
         let overHistory = model.expanded && layout.card && !overCard && layout.historyOrbRect.contains(point)
@@ -550,7 +550,7 @@ final class SidebarController {
         if let pill = model.targets["update|now"] { rects.append(pill) }
         if model.expanded { rects.append(layout.orbRect) }
         if model.expanded { rects.append(layout.gripRect) }
-        if model.expanded { rects.append(layout.markOrbRect) }
+        if model.expanded, model.preferences.showSessions { rects.append(layout.markOrbRect) }
         if model.expanded, layout.card { rects += [layout.historyOrbRect, layout.hideOrbRect] }
         if model.expanded { rects.append(layout.resizeRect) }
         // Project names over the groups (double-click renames).
@@ -651,7 +651,7 @@ final class SidebarController {
             model.commitProjectName()
         }
         guard model.expanded else { return false }
-        if !(cardRect?.contains(point) ?? false), layout.markOrbRect.contains(point) {
+        if model.preferences.showSessions, !(cardRect?.contains(point) ?? false), layout.markOrbRect.contains(point) {
             setExpanded(false)
             model.startMarking()
             return true
