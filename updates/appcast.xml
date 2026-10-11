@@ -3,6 +3,22 @@
     <channel>
         <title>Aki</title>
         <item>
+            <title>0.6.0</title>
+            <pubDate>Sat, 10 Oct 2026 23:20:23 -0300</pubDate>
+            <sparkle:version>20261011022023</sparkle:version>
+            <sparkle:shortVersionString>0.6.0</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
+            <description><![CDATA[<h2>Aki 0.6.0</h2>
+<h3>Use it your way, and clear the screenshots</h3>
+<ul>
+<li>Get started asks how you'll use Aki: only your week (limits and cost, no permissions needed), only pointing at things for your agents, or both. Change it any time in Appearance → Use Aki for.</li>
+<li>Screenshots piling up (Get started and Storage): Aki counts the Mac's screenshots on the Desktop, in Downloads and in your screenshot folder, and moves the ones older than 7, 30 or 90 days to the Trash in one click. Nothing is deleted for good.</li>
+</ul>
+]]></description>
+            <enclosure url="https://aki-updates.vercel.app/0.6.0/Aki-0.6.0.zip" length="3722350" type="application/octet-stream" sparkle:edSignature="N/NEycD8RCNYmcbskQEPTln7DTE8mw/YFZmKzYT/5+V+FQ+VZpFvtuggZZb9q2HoL0biDHvsZSenw9ylCzX4Bw=="/>
+        </item>
+        <item>
             <title>0.5.0</title>
             <pubDate>Sat, 10 Oct 2026 19:09:54 -0300</pubDate>
             <sparkle:version>20261010220954</sparkle:version>
@@ -50,23 +66,6 @@
 </ul>
 ]]></description>
             <enclosure url="https://aki-updates.vercel.app/0.4.4/Aki-0.4.4.zip" length="3535606" type="application/octet-stream" sparkle:edSignature="l1YcgtaAno9dKl+ulV+2wi8kk47fZ3CHlftbFqLzILf3ajBmNsR+g7k9UBxuHDmrKTOBZdKucRTXti9CvZABAg=="/>
-        </item>
-        <item>
-            <title>0.4.3</title>
-            <pubDate>Sat, 10 Oct 2026 12:46:47 -0300</pubDate>
-            <sparkle:version>20261010154647</sparkle:version>
-            <sparkle:shortVersionString>0.4.3</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
-            <description><![CDATA[<h2>Aki 0.4.3</h2>
-<ul>
-<li><b>Add up with ⇧ and the arrows:</b> the next thing joins what's outlined, and ⏎ marks them as one area. The opposite arrow takes the last one back out.</li>
-<li><b>Bigger and smaller</b> are now ⌘↑ / ⌘↓.</li>
-<li><b>Hold ⇧ to use the page below</b> while marking: click, hover, open its menus. Let go and Aki is back with a fresh picture.</li>
-<li><b>Each session has its own colour</b>, so a mark's colour says where it goes.</li>
-</ul>
-]]></description>
-            <enclosure url="https://aki-updates.vercel.app/0.4.3/Aki-0.4.3.zip" length="3529755" type="application/octet-stream" sparkle:edSignature="vAzHIfHw/bCIzZ44TdNQLz3TVU6Am7VxN3XZDi7tld95JrvoivRFecPFQs5YYvV23Y3iCEJgOmbUkwS8qaQFDA=="/>
         </item>
     </channel>
 </rss>
