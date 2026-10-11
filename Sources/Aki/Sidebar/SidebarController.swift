@@ -399,6 +399,8 @@ final class SidebarController {
     }
 
     private func cursorMoved() {
+        // While the right-click menu is up, the rings under it don't open cards.
+        if panel.menuOpen { return }
         if pinnedOpen {
             if !model.expanded { setExpanded(true) }
             // `AKI_PIN_HOVER=orb|grip|resize|none` fakes the pointer on one part (screenshots).
@@ -906,6 +908,8 @@ final class SidebarController {
 /// ⌥-drag moves the sidebar along its edge. Plain clicks go to SwiftUI.
 final class SidebarPanel: NSPanel {
     var contextMenuProvider: ((CGPoint) -> NSMenu?)?
+    /// The right-click menu is showing.
+    private(set) var menuOpen = false
     /// Plain left click on the chrome (with its click count); true when handled.
     var onClick: ((CGPoint, Int) -> Bool)?
     /// Whether a press here carries the sidebar without ⌥ (the grip).
@@ -951,7 +955,9 @@ final class SidebarPanel: NSPanel {
             view.hitTest(event.locationInWindow) != nil,
             let menu = contextMenuProvider?(event.locationInWindow)
         {
+            menuOpen = true
             NSMenu.popUpContextMenu(menu, with: event, for: view)
+            menuOpen = false
             return
         }
         if event.type == .leftMouseDown, startsResize?(event.locationInWindow) == true {
