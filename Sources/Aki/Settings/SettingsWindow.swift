@@ -280,7 +280,13 @@ struct SettingsView: View {
             Spacer(minLength: 0)
 
             VStack(alignment: .leading, spacing: 6) {
-                SettingsQuitRow(quit: quit)
+                SettingsFooterRow(symbol: "heart", title: L10n.t("Support Aki"), hover: SettingsFooterRow.supportPink) {
+                    NSWorkspace.shared.open(URL(string: "https://useaki.vercel.app/#support")!)
+                }
+                SettingsFooterRow(symbol: "arrow.triangle.2.circlepath", title: L10n.t("Check for Updates…")) {
+                    Updates.shared.checkForUpdates()
+                }
+                SettingsFooterRow(symbol: "power", title: L10n.t("Quit Aki"), hover: SettingsFooterRow.quitRed, action: quit)
                 Text("Aki \(SettingsView.prettyVersion)")
                     .font(.system(size: 11, weight: .regular))
                     .foregroundStyle(.white.opacity(0.32))
@@ -1040,21 +1046,27 @@ private struct SettingsPressStyle: ButtonStyle {
     }
 }
 
-private struct SettingsQuitRow: View {
-    let quit: () -> Void
+/// A quiet row at the foot of the settings sidebar (support, updates, quit).
+private struct SettingsFooterRow: View {
+    static let quitRed = Color(red: 1, green: 0.42, blue: 0.4)
+    static let supportPink = Color(red: 1, green: 0.45, blue: 0.62)
+
+    let symbol: String
+    let title: String
+    var hover: Color = .white.opacity(0.9)
+    let action: () -> Void
     @State private var isHovered = false
-    private static let hoverRed = Color(red: 1, green: 0.42, blue: 0.4)
 
     var body: some View {
-        Button(action: quit) {
+        Button(action: action) {
             HStack(spacing: 10) {
-                Image(systemName: "power")
+                Image(systemName: symbol)
                     .font(.system(size: 12, weight: .regular))
                     .frame(width: 18)
-                Text(L10n.t("Quit Aki"))
+                Text(title)
                     .font(.system(size: 13, weight: .regular))
             }
-            .foregroundStyle(isHovered ? Self.hoverRed : Color.white.opacity(0.55))
+            .foregroundStyle(isHovered ? hover : Color.white.opacity(0.55))
             .padding(.horizontal, 10)
             .padding(.vertical, 6)
             .frame(maxWidth: .infinity, alignment: .leading)

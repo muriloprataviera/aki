@@ -271,7 +271,7 @@ extension L10n {
         "Adds Aki's MCP so the agent reads your marks.": "Fügt das MCP von Aki hinzu, damit der Agent deine Markierungen liest.",
         "Point at anything on screen. Your coding agent reads it.": "Zeig auf irgendwas am Bildschirm. Dein Agent liest es.",
         "Built on open source": "Basiert auf Open Source",
-        "Donate if you like it": "Spende, wenn es dir gefällt",
+        "Support Aki": "Aki unterstützen", "Donate if you like it": "Spende, wenn es dir gefällt",
         "Done": "Fertig",
         "Failed": "Fehlgeschlagen",
         "Hidden sessions": "Ausgeblendete Sitzungen",

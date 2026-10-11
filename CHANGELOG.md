@@ -4,6 +4,12 @@ What changed in each version of Aki. Versions follow [semantic versioning](https
 
 ## [Unreleased]
 
+### Added
+- Support Aki and Check for Updates at the foot of the Settings sidebar, above Quit.
+
+### Fixed
+- Settings → Agents → Connect said “Failed” for Claude Code when it was installed with its own installer (in ~/.local/bin).
+
 ### Changed
 - Right-clicking a session's ring shows only what you can do with that session; hiding the sidebar, settings and quitting moved to the Aki submenu at the end, so nothing there reads as acting on the session. The open card (or the "+N" list) closes when the menu opens.
 
