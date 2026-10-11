@@ -1,7 +1,7 @@
 // French strings for Aki's interface (keys are the English text).
 extension L10n {
     static let french: [String: String] = [
-        "%d moved to the Trash · %@ freed": "%d mises à la Corbeille · %@ libérés",
+        "%d moved to the Trash (%@): empty it to free the space.": "%d mises à la Corbeille (%@) : videz-la pour libérer l’espace.",
         "Every screenshot you took to show someone, or an agent, is still on your Mac. Aki looks on the Desktop, in Downloads and in your screenshot folder, and moves the old ones to the Trash (you can still get them back from there).": "Chaque capture prise pour montrer quelque chose à quelqu’un, ou à un agent, est toujours sur votre Mac. Aki regarde le Bureau, Téléchargements et votre dossier de captures, et met les anciennes à la Corbeille (vous pouvez encore les récupérer).",
         "Everything: your limits at the edge of the screen, and marking things for your agents.": "Tout : vos limites au bord de l’écran et le marquage pour vos agents.",
         "Found": "Trouvées",

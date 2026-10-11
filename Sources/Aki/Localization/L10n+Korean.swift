@@ -1,7 +1,7 @@
 // Korean strings for Aki's interface (keys are the English text).
 extension L10n {
     static let korean: [String: String] = [
-        "%d moved to the Trash · %@ freed": "%d개를 휴지통으로 옮김 · %@ 확보",
+        "%d moved to the Trash (%@): empty it to free the space.": "%d개를 휴지통으로 옮김(%@): 휴지통을 비우면 공간이 확보됩니다.",
         "Every screenshot you took to show someone, or an agent, is still on your Mac. Aki looks on the Desktop, in Downloads and in your screenshot folder, and moves the old ones to the Trash (you can still get them back from there).": "누군가나 에이전트에게 보여 주려고 찍은 스크린샷이 아직 Mac에 남아 있습니다. Aki가 데스크탑, 다운로드, 스크린샷 폴더를 살펴보고 오래된 것을 휴지통으로 옮깁니다(휴지통에서 되살릴 수 있습니다).",
         "Everything: your limits at the edge of the screen, and marking things for your agents.": "전부: 화면 가장자리의 사용 한도와 에이전트를 위한 표시.",
         "Found": "찾음",

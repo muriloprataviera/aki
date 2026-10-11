@@ -40,7 +40,7 @@ struct ScreenshotCleanup: View {
                     }
                 }
                 if let moved {
-                    Label(String(format: L10n.t("%d moved to the Trash · %@ freed"), moved.count, Bytes.text(moved.bytes)),
+                    Label(String(format: L10n.t("%d moved to the Trash (%@): empty it to free the space."), moved.count, Bytes.text(moved.bytes)),
                           systemImage: "trash")
                         .font(.caption).foregroundStyle(.green)
                 }
