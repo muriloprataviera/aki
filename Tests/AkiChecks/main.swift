@@ -333,7 +333,7 @@ let shots = FileManager.default.temporaryDirectory.appending(path: "aki-shots-\(
 try? FileManager.default.createDirectory(at: shots.appending(path: "inside"), withIntermediateDirectories: true)
 let oldName = "Screenshot 2026-10-10 at 15.30.00 \(UUID().uuidString).png"
 for name in [oldName, "Captura de Tela 2026-01-02 às 09.10.11.png", "inside/截屏2026-10-10 15.30.00.png",
-             "screenshot of the logo.png", "report.pdf", "notes.txt"] {
+             "screenshot of the logo.png", "Screenshot 1.png", "Screen Recording 2.mov", "report.pdf", "notes.txt"] {
     FileManager.default.createFile(atPath: shots.appending(path: name).path, contents: Data(repeating: 1, count: 1000))
 }
 let marked = shots.appending(path: "foto.png")

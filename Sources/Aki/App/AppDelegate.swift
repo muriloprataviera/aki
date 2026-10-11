@@ -259,7 +259,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) { self?.marking.start() }
         }
         mark.image = NSImage(systemSymbolName: "viewfinder", accessibilityDescription: nil)
-        menu.addItem(shortcut(mark, preferences.markShortcut))
+        if preferences.showSessions { menu.addItem(shortcut(mark, preferences.markShortcut)) }
         let history = ClosureMenuItem(L10n.t("History")) { [weak self] in self?.history.show() }
         history.image = NSImage(systemSymbolName: "clock.arrow.circlepath", accessibilityDescription: nil)
         menu.addItem(shortcut(history, preferences.historyShortcut))

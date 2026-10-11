@@ -158,7 +158,7 @@ struct SidebarRoot: View {
     }
 
     private func cornerLabel(_ layout: SidebarLayout) -> (String, CGPoint)? {
-        if model.markButtonHovered { return ("\(L10n.t("Mark the screen"))  \(L10n.mark)", layout.markOrbCenter) }
+        if model.markButtonHovered, preferences.showSessions { return ("\(L10n.t("Mark the screen"))  \(L10n.mark)", layout.markOrbCenter) }
         if model.eyeHovered, let eye = model.targets["projects-eye"] {
             return (L10n.t(preferences.showProjects ? "Hide projects" : "Show projects"), CGPoint(x: eye.midX, y: eye.midY))
         }
@@ -280,7 +280,7 @@ struct SidebarRoot: View {
                 .scaleEffect(layout.scale)
                 .position(layout.markOrbCenter)
                 .zIndex(6)
-                .opacity(model.expanded && (!layout.card || model.cornerEnd == 0) ? 1 : 0)
+                .opacity(model.expanded && preferences.showSessions && (!layout.card || model.cornerEnd == 0) ? 1 : 0)
                 .animation(.easeOut(duration: 0.15), value: model.expanded)
                 .animation(.easeOut(duration: 0.15), value: model.cornerEnd)
                 .allowsHitTesting(false)

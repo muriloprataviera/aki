@@ -67,7 +67,7 @@ public struct Screenshots: Sendable, Equatable {
         let name = url.lastPathComponent.lowercased()
         return namePrefixes.contains { prefix in
             guard name.hasPrefix(prefix) else { return false }
-            return name.dropFirst(prefix.count).first { $0 != " " }?.isNumber == true
+            return name.dropFirst(prefix.count).drop { $0 == " " }.prefix(10).wholeMatch(of: /\d{4}-\d{2}-\d{2}/) != nil
         }
     }
 

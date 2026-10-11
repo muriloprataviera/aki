@@ -193,6 +193,8 @@ final class MarkingController {
     func start() {
         // Aki is restarting on a new version: marks made now would be lost.
         guard !isActive, !starting, !sendingQueue, !Updates.shared.restarting else { return }
+        // Only the week's limits: marking is off, from every way in (menu, sidebar, aki://mark).
+        guard Preferences.shared.showSessions else { return }
         starting = true
         previousApp = NSWorkspace.shared.frontmostApplication
         let context = MarkContext.current()
