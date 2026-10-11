@@ -4,6 +4,9 @@ What changed in each version of Aki. Versions follow [semantic versioning](https
 
 ## [Unreleased]
 
+### Fixed
+- When you had something written in the agent's box, Aki typed its request after it but didn't send; now both are sent.
+
 ### Changed
 - Aki looks for a new version every 10 minutes (it was every hour), so the update pill shows soon after a release.
 

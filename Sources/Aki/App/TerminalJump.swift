@@ -154,7 +154,7 @@ enum TerminalJump {
 
     /// Types the prompt (plus Enter) into the session's Orca tab. When you already
     /// have something written in its input box, Aki's text goes after a blank line,
-    /// apart from yours, and both go together. `.failed` when the tab isn't found
+    /// apart from yours, and both are sent together. `.failed` when the tab isn't found
     /// or Orca refuses.
     static func deliver(to terminal: AgentTerminal) async -> Delivery {
         guard FileManager.default.isExecutableFile(atPath: orcaCLI) else { return .failed }
@@ -170,8 +170,17 @@ enum TerminalJump {
             guard let handle = orcaTab(for: terminal) ?? { cacheLock.withLock { cachedTabs = nil }; return orcaTab(for: terminal) }()
             else { return .failed }
             let prompt = deliveryPrompt(for: terminal)
-            let text = hasDraft(handle) ? "\n\n" + prompt : prompt
-            return run(orcaCLI, ["terminal", "send", "--terminal", handle, "--text", text, "--enter", "--json"]) != nil
+            guard hasDraft(handle) else {
+                return run(orcaCLI, ["terminal", "send", "--terminal", handle, "--text", prompt, "--enter", "--json"]) != nil
+                    ? .sent : .failed
+            }
+            // Something already written: ours goes after a blank line, and the
+            // agent takes that as a paste, which swallows an Enter sent with it.
+            // So the Enter goes on its own once the paste has landed.
+            guard run(orcaCLI, ["terminal", "send", "--terminal", handle, "--text", "\n\n" + prompt, "--json"]) != nil
+            else { return .failed }
+            Thread.sleep(forTimeInterval: 0.6)
+            return run(orcaCLI, ["terminal", "send", "--terminal", handle, "--text", "\r", "--json"]) != nil
                 ? .sent : .failed
         }.value
     }
