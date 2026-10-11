@@ -3,6 +3,27 @@
     <channel>
         <title>Aki</title>
         <item>
+            <title>0.6.1-beta.3</title>
+            <pubDate>Sun, 11 Oct 2026 09:43:31 -0300</pubDate>
+            <sparkle:channel>beta</sparkle:channel>
+            <sparkle:version>20261011124331</sparkle:version>
+            <sparkle:shortVersionString>0.6.1-beta.3</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
+            <description><![CDATA[<h2>Aki 0.6.1-beta.3</h2>
+<h3>New</h3><ul>
+<li>Support Aki and Check for Updates at the foot of the Settings sidebar, above Quit.</li>
+</ul>
+<h3>Changed</h3><ul>
+<li>Right-clicking a session's ring shows only what you can do with that session. Hiding the sidebar, settings and quitting are in the Aki submenu at the end; an open card closes when the menu opens.</li>
+</ul>
+<h3>Fixed</h3><ul>
+<li>Connect said “Failed” for Claude Code when it was installed with its own installer.</li>
+</ul>
+]]></description>
+            <enclosure url="https://aki-updates.vercel.app/0.6.1-beta.3/Aki-0.6.1-beta.3.zip" length="3723116" type="application/octet-stream" sparkle:edSignature="J1rW+ieBmgMPAj72K0XbZMccMO10rA5TAyjWaXn4afqC6/x8mDO0OVFw3UAwRlVGMS0W+IaNBDX9+nwTvcihDw=="/>
+        </item>
+        <item>
             <title>0.6.1-beta.2</title>
             <pubDate>Sun, 11 Oct 2026 09:33:13 -0300</pubDate>
             <sparkle:channel>beta</sparkle:channel>
@@ -67,19 +88,6 @@
 </ul>
 ]]></description>
             <enclosure url="https://aki-updates.vercel.app/0.5.0/Aki-0.5.0.zip" length="3673319" type="application/octet-stream" sparkle:edSignature="YzFT2W5XO4UzWGGCuAvubXZaq1Fq2wZ2OEi/I4z7e9vlW/aHgDP59PCJY+f/6jmTzuX/dbUxD4vjJC0HXlUmBA=="/>
-        </item>
-        <item>
-            <title>0.5.0-beta.3</title>
-            <pubDate>Sat, 10 Oct 2026 18:45:49 -0300</pubDate>
-            <sparkle:channel>beta</sparkle:channel>
-            <sparkle:version>20261010214548</sparkle:version>
-            <sparkle:shortVersionString>0.5.0-beta.3</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
-            <description><![CDATA[<h2>Aki 0.5.0 beta 3</h2>
-<ul><li>Limits rings and bars change colour as the week fills: green, yellow from 50%, orange from 70%, red from 90%.</li></ul>
-]]></description>
-            <enclosure url="https://aki-updates.vercel.app/0.5.0-beta.3/Aki-0.5.0-beta.3.zip" length="3671532" type="application/octet-stream" sparkle:edSignature="EULuQRrrZwChpIXct5w+oABX49uAcZV0X4ltYwU66t5Spp4I73zQsf/g9HYp9cupQFkYapdpLur3rvXEfuvQDg=="/>
         </item>
         <item>
             <title>0.4.4</title>
