@@ -27,6 +27,18 @@ git push origin HEAD --follow-tags
 gh release create "v$version" "$out/feed/Aki-$version.zip" "$out/Aki-$version.dmg" \
   --repo muriloprataviera/aki --title "Aki $version" --notes-file "$out/feed/Aki-$version.html" $pre
 
+# A stable release supersedes the betas up to it: their GitHub Releases go (the tags
+# stay, so the history keeps every beta). Betas of a newer version stay listed.
+if [ -z "$pre" ]; then
+  gh release list --repo muriloprataviera/aki --limit 500 --json tagName,isPrerelease \
+    -q '.[] | select(.isPrerelease) | .tagName' |
+  while read -r tag; do
+    base=${tag#v}; base=${base%%-*}
+    [ "$(printf '%s\n%s\n' "$base" "$version" | sort -V | tail -1)" = "$version" ] &&
+      gh release delete "$tag" --repo muriloprataviera/aki --yes >/dev/null && echo "removed the $tag release (tag kept)"
+  done
+fi
+
 scripts/deploy-host.sh
 curl -fsS https://aki-updates.vercel.app/appcast.xml | grep -q "$version" \
   && echo "Aki $version is out — every Aki will see it within a day (or now, via Check for Updates)." \
