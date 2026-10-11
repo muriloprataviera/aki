@@ -782,6 +782,9 @@ final class SidebarController {
     }
 
     private func menu(at windowPoint: CGPoint) -> NSMenu? {
+        // The menu takes over: an open card (a ring's, the "+N" list) steps aside.
+        model.pinned = nil
+        model.hovered = nil
         let menu = NSMenu()
         // On a session's ring: only what you can do with that session; the rest
         // (hide the sidebar, quit…) in a submenu, so nothing reads as acting on it.
