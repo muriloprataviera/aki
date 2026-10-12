@@ -3,6 +3,22 @@
     <channel>
         <title>Aki</title>
         <item>
+            <title>0.6.3-beta.2</title>
+            <pubDate>Mon, 12 Oct 2026 12:14:16 -0300</pubDate>
+            <sparkle:channel>beta</sparkle:channel>
+            <sparkle:version>20261012151415</sparkle:version>
+            <sparkle:shortVersionString>0.6.3-beta.2</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
+            <description><![CDATA[<h2>Aki 0.6.3-beta.2</h2>
+<h3>Changed</h3><ul>
+<li>Sessions untouched for more than a day (it was two) move into the "+N" ring, also when they are waiting for you or have a shell open; they come back as soon as they move.</li>
+<li>The "+N" ring is a quiet dashed outline with the count, so it no longer looks like a session's ring.</li>
+</ul>
+]]></description>
+            <enclosure url="https://aki-updates.vercel.app/0.6.3-beta.2/Aki-0.6.3-beta.2.zip" length="3724948" type="application/octet-stream" sparkle:edSignature="NDIqbYjB1B2oRcq+5VncmiehqIHgjeN8ZDF2eBiR8G6nFyAbsow6cSjjMhyHTC2qha5BDvybuscIlT8KJMHCCg=="/>
+        </item>
+        <item>
             <title>0.6.3-beta.1</title>
             <pubDate>Mon, 12 Oct 2026 12:04:09 -0300</pubDate>
             <sparkle:channel>beta</sparkle:channel>
