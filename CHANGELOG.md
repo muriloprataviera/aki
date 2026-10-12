@@ -5,6 +5,7 @@ What changed in each version of Aki. Versions follow [semantic versioning](https
 ## [Unreleased]
 
 ### Added
+- While marking, the chosen session shows the start of what its agent wrote last (and the pointer on any other session shows its own), so you can tell it's the right one without switching to it.
 - Right-click a limits ring to choose what it shows (week, today's share or the 5-hour session), the line under it (or just the name of what the ring shows), and to hide that AI's ring; the sidebar menu brings it back.
 
 ### Changed

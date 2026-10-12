@@ -755,6 +755,19 @@ struct MarkingView: View {
                     + Text("  ·  \(stateText(terminal.state))").font(.system(size: 10.5, weight: .medium))
                         .foregroundColor(terminal.state == .waiting ? AkiPalette.red : .white.opacity(terminal.state == .idle ? 0.4 : 0.75)))
                     .fixedSize(horizontal: false, vertical: true)
+                // What the agent wrote last: enough to tell it's the right one, no ⌘Tab.
+                if let said = Self.lastSaid(terminal) {
+                    HStack(alignment: .top, spacing: 6) {
+                        RoundedRectangle(cornerRadius: 1).fill(Color(session.hue(for: terminal.id)).opacity(0.7)).frame(width: 2)
+                        Text(said)
+                            .font(.system(size: 10.5))
+                            .foregroundStyle(.white.opacity(0.6))
+                            .lineLimit(3)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                    .fixedSize(horizontal: false, vertical: true)
+                    .transition(.opacity)
+                }
             }
         }
     }
@@ -815,6 +828,16 @@ struct MarkingView: View {
     private func pickerHelp(_ terminal: AgentTerminal) -> String {
         "\(terminal.agent.displayName) · \(terminal.name) · \(stateText(terminal.state)) · \(URL(filePath: terminal.worktree).lastPathComponent)"
             + (session.number(of: terminal.id).map { $0 <= 9 ? " · ⌘\($0)" : "" } ?? "")
+            + (Self.lastSaid(terminal).map { "\n\n" + $0 } ?? "")
+    }
+
+    /// The agent's last message, plain (no markdown stars), on one line.
+    static func lastSaid(_ terminal: AgentTerminal) -> String? {
+        guard let message = terminal.lastMessage else { return nil }
+        let plain = message.replacingOccurrences(of: "**", with: "").replacingOccurrences(of: "`", with: "")
+            .split(whereSeparator: \.isNewline).joined(separator: " ")
+            .trimmingCharacters(in: .whitespaces)
+        return plain.isEmpty ? nil : plain
     }
 
     private func stateText(_ state: AgentTerminal.State) -> String {
