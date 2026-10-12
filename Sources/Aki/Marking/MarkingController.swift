@@ -113,18 +113,19 @@ final class MarkingController {
 
     /// Pop-up menus on screen (any app's, global top-left points): menus live at
     /// their own window level. A menu bar app's dropdown (iStat Menus, Control
-    /// Center) sits at the status level instead, and closes at the first click
+    /// Center) sits at the menu bar's or the status level instead, and closes at the first click
     /// anywhere else: it counts too, but not the menu bar's own icons (short).
     static func menusOnScreen() -> [CGRect] {
         let menu = Int(CGWindowLevelForKey(.popUpMenuWindow))
-        let status = Int(CGWindowLevelForKey(.statusWindow))
+        // iStat Menus opens at the menu bar's own level, others at the status level.
+        let bar = [Int(CGWindowLevelForKey(.mainMenuWindow)), Int(CGWindowLevelForKey(.statusWindow))]
         let windows = CGWindowListCopyWindowInfo([.optionOnScreenOnly, .excludeDesktopElements], kCGNullWindowID) as? [[String: Any]] ?? []
         return windows.compactMap { w in
-            guard let layer = w[kCGWindowLayer as String] as? Int, layer == menu || layer == status,
+            guard let layer = w[kCGWindowLayer as String] as? Int, layer == menu || bar.contains(layer),
                   (w[kCGWindowOwnerPID as String] as? Int32) != ProcessInfo.processInfo.processIdentifier,
                   let bounds = w[kCGWindowBounds as String] as? NSDictionary,
                   let rect = CGRect(dictionaryRepresentation: bounds),
-                  rect.height > (layer == status ? 48 : 20)
+                  rect.height > (layer == menu ? 20 : 48)
             else { return nil }
             return rect
         }
