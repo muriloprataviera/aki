@@ -271,7 +271,7 @@ extension L10n {
         "Adds Aki's MCP so the agent reads your marks.": "Ajoute le MCP d’Aki pour que l’agent lise vos annotations.",
         "Point at anything on screen. Your coding agent reads it.": "Pointez n’importe quoi à l’écran. Votre agent le lit.",
         "Built on open source": "Basé sur l’open source",
-        "In the ring": "Dans l’anneau", "Under the ring": "Sous l’anneau", "Hide this ring": "Masquer cet anneau", "Show the %@ limits ring": "Afficher l’anneau des limites de %@", "Nothing": "Rien", "Support Aki": "Soutenir Aki", "Donate if you like it": "Faites un don si vous aimez",
+        "In the ring": "Dans l’anneau", "Under the ring": "Sous l’anneau", "Hide this ring": "Masquer cet anneau", "Show the %@ limits ring": "Afficher l’anneau des limites de %@", "Just what the ring shows": "Juste le nom de l’anneau", "Support Aki": "Soutenir Aki", "Donate if you like it": "Faites un don si vous aimez",
         "Done": "Terminé",
         "Failed": "Échec",
         "Hidden sessions": "Sessions masquées",

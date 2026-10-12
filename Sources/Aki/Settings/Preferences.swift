@@ -268,7 +268,7 @@ enum UsageMetric: String, CaseIterable, Identifiable {
         case .week: L10n.t("Week")
         case .today: L10n.t("Today's share")
         case .fiveHour: L10n.t("5-hour session")
-        case .none: L10n.t("Nothing")
+        case .none: L10n.t("Just what the ring shows")
         }
     }
     /// The short name under the ring.
