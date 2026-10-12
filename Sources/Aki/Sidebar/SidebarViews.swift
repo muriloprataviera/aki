@@ -685,17 +685,20 @@ struct RingCell: View {
             }
             // (Rings by agent leave no room for labels: there the card says it.)
             if case .usage(let limits) = ring, model.preferences.ringMode == .terminals {
-                // The week's share in big, what it is in small (the card has the rest).
+                // What the ring shows in big, and the line you chose under it (right-click
+                // the ring to change either; the card has the rest).
+                let main = model.preferences.usageRing == .none ? UsageMetric.week : model.preferences.usageRing
+                let big = UsageRing.value(main, of: limits)
+                let line = model.preferences.usageLine
+                let small = UsageRing.value(line, of: limits)
                 VStack(spacing: 0) {
-                    Text(limits.week.map { "\($0.percent)%" } ?? "–")
+                    Text(big.map { "\($0)%" } ?? "–")
                         .font(.system(size: (SidebarLayout.labelFont + 1) * scale, weight: .heavy, design: .rounded).monospacedDigit())
-                        .foregroundStyle(UsageRing.tint(limits.week?.percent ?? 0, hovered: hovered))
-                    // Today's share of the week (the tokens and $ are on the card).
-                    let today = limits.week.flatMap { DayShare(week: $0) }.map { Int(($0.used * 100).rounded()) }
-                    Text(today.map { "\(L10n.t("today").uppercased()) \($0)%" } ?? L10n.t("week").uppercased())
+                        .foregroundStyle(UsageRing.tint(big ?? 0, hovered: hovered))
+                    Text(line == .none ? main.short : small.map { "\(line.short) \($0)%" } ?? main.short)
                         .font(.system(size: 7.5 * scale, weight: .bold).monospacedDigit())
                         .tracking(0.4 * scale)
-                        .foregroundStyle(today.map { UsageRing.tint($0) } ?? AkiPalette.textSecondary)
+                        .foregroundStyle(line == .none ? AkiPalette.textSecondary : small.map { UsageRing.tint($0) } ?? AkiPalette.textSecondary)
                 }
                 .lineLimit(1)
                 .frame(width: (SidebarLayout.ring + 22) * scale, height: SidebarLayout.labelHeight * scale)
@@ -827,7 +830,7 @@ struct RingCell: View {
             }
             .frame(width: SidebarLayout.ring * scale, height: SidebarLayout.ring * scale)
         case .usage(let limits):
-            UsageRing(limits: limits, scale: scale)
+            UsageRing(limits: limits, scale: scale, metric: model.preferences.usageRing == .none ? .week : model.preferences.usageRing)
         }
     }
 }
@@ -848,14 +851,27 @@ struct UsageRing: View {
         }
     }
 
+    /// How much of `metric` is used, in percent (today's share can pass 100).
+    static func value(_ metric: UsageMetric, of limits: UsageLimits) -> Int? {
+        switch metric {
+        case .week: limits.week?.percent
+        case .fiveHour: limits.fiveHour?.percent
+        case .today: limits.week.flatMap { DayShare(week: $0) }.map { Int(($0.used * 100).rounded()) }
+        case .none: nil
+        }
+    }
+
+    var metric: UsageMetric = .week
+
     var body: some View {
-        let percent = CGFloat(min(max(limits.week?.percent ?? 0, 0), 100)) / 100
+        let shown = Self.value(metric, of: limits) ?? 0
+        let percent = CGFloat(min(max(shown, 0), 100)) / 100
         ZStack {
             Circle().strokeBorder(AkiPalette.ringTrack, lineWidth: SidebarLayout.trackStroke * scale)
             Circle()
                 .inset(by: SidebarLayout.trackStroke * scale / 2)
                 .trim(from: 0, to: percent)
-                .stroke(Self.tint(limits.week?.percent ?? 0), style: StrokeStyle(lineWidth: SidebarLayout.progressStroke * scale, lineCap: .round))
+                .stroke(Self.tint(shown), style: StrokeStyle(lineWidth: SidebarLayout.progressStroke * scale, lineCap: .round))
                 .rotationEffect(.degrees(-90))
                 .animation(.easeOut(duration: 0.4), value: percent)
             AgentGlyphView(agent: limits.agent, size: SidebarLayout.glyph * scale * 0.85)

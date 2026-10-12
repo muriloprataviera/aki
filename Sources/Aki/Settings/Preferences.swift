@@ -258,6 +258,30 @@ enum AppLanguage: String, CaseIterable, Identifiable {
     }
 }
 
+
+/// What a limits ring (or the line under it) shows.
+enum UsageMetric: String, CaseIterable, Identifiable {
+    case week, today, fiveHour, none
+    var id: String { rawValue }
+    var title: String {
+        switch self {
+        case .week: L10n.t("Week")
+        case .today: L10n.t("Today's share")
+        case .fiveHour: L10n.t("5-hour session")
+        case .none: L10n.t("Nothing")
+        }
+    }
+    /// The short name under the ring.
+    var short: String {
+        switch self {
+        case .week: L10n.t("week").uppercased()
+        case .today: L10n.t("today").uppercased()
+        case .fiveHour: "5H"
+        case .none: ""
+        }
+    }
+}
+
 /// Every user setting, persisted in UserDefaults. Observable, so views and the
 /// sidebar controller react to changes directly.
 @MainActor @Observable
@@ -373,6 +397,12 @@ final class Preferences {
     /// The order you dragged the session rings into (session ids, first to last).
     var ringOrder: [String] { didSet { defaults.set(ringOrder, forKey: Keys.ringOrder) } }
     /// Agent sessions the user chose not to see as rings (by session id).
+    /// What each limits ring shows, the line under it, and the AIs whose ring is off.
+    var usageRing: UsageMetric { didSet { defaults.set(usageRing.rawValue, forKey: Keys.usageRing) } }
+    var usageLine: UsageMetric { didSet { defaults.set(usageLine.rawValue, forKey: Keys.usageLine) } }
+    var hiddenUsage: Set<String> {
+        didSet { defaults.set(Array(hiddenUsage).sorted(), forKey: Keys.hiddenUsage) }
+    }
     var hiddenTerminals: Set<String> {
         didSet { defaults.set(Array(hiddenTerminals).sorted(), forKey: Keys.hiddenTerminals) }
     }
@@ -448,6 +478,9 @@ final class Preferences {
         maxTerminals = defaults.object(forKey: Keys.maxTerminals) as? Int ?? 10
         hiddenWorktrees = Set(defaults.stringArray(forKey: Keys.hidden) ?? [])
         hiddenTerminals = Set(defaults.stringArray(forKey: Keys.hiddenTerminals) ?? [])
+        usageRing = value(Keys.usageRing, UsageMetric.week)
+        usageLine = value(Keys.usageLine, UsageMetric.today)
+        hiddenUsage = Set(defaults.stringArray(forKey: Keys.hiddenUsage) ?? [])
         ringOrder = defaults.stringArray(forKey: Keys.ringOrder) ?? []
         disconnectedApps = Set(defaults.stringArray(forKey: Keys.disconnectedApps) ?? [])
         waitIdleSeconds = defaults.object(forKey: Keys.waitIdle) as? Int ?? 3
@@ -495,6 +528,9 @@ final class Preferences {
         static let maxTerminals = "maxTerminals"
         static let hidden = "hiddenWorktrees"
         static let hiddenTerminals = "hiddenTerminals"
+        static let usageRing = "usageRing"
+        static let usageLine = "usageLine"
+        static let hiddenUsage = "hiddenUsage"
         static let ringOrder = "ringOrder"
         static let disconnectedApps = "disconnectedApps"
     }

@@ -271,7 +271,7 @@ extension L10n {
         "Adds Aki's MCP so the agent reads your marks.": "添加 Aki 的 MCP，让智能体读取你的标记。",
         "Point at anything on screen. Your coding agent reads it.": "指向屏幕上的任何内容，编程智能体都能读懂。",
         "Built on open source": "基于开源项目构建",
-        "Support Aki": "支持 Aki", "Donate if you like it": "喜欢就捐赠支持",
+        "In the ring": "环中显示", "Under the ring": "环下方", "Hide this ring": "隐藏此环", "Show the %@ limits ring": "显示 %@ 的额度环", "Nothing": "无", "Support Aki": "支持 Aki", "Donate if you like it": "喜欢就捐赠支持",
         "Done": "完成",
         "Failed": "失败",
         "Hidden sessions": "已隐藏的会话",

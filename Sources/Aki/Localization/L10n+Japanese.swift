@@ -271,7 +271,7 @@ extension L10n {
         "Adds Aki's MCP so the agent reads your marks.": "Aki の MCP を追加し、エージェントがマークを読めるようにします。",
         "Point at anything on screen. Your coding agent reads it.": "画面上の何でも指すだけ。コーディングエージェントが読み取ります。",
         "Built on open source": "オープンソースを基に開発",
-        "Support Aki": "Aki を支援", "Donate if you like it": "気に入ったら寄付を",
+        "In the ring": "リングに表示", "Under the ring": "リングの下", "Hide this ring": "このリングを隠す", "Show the %@ limits ring": "%@ の上限リングを表示", "Nothing": "なし", "Support Aki": "Aki を支援", "Donate if you like it": "気に入ったら寄付を",
         "Done": "完了",
         "Failed": "失敗",
         "Hidden sessions": "非表示のセッション",

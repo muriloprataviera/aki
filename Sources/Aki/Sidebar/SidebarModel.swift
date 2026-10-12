@@ -382,7 +382,10 @@ final class SidebarModel {
     /// The accounts' limits, one ring each, after the sessions.
     private var usageRings: [Ring] {
         guard preferences.showUsage else { return [] }
-        return usage.filter { preferences.tracks($0.agent) }.map(Ring.usage)
+        let tracked = usage.filter { preferences.tracks($0.agent) }
+        let shown = tracked.filter { !preferences.hiddenUsage.contains($0.agent.rawValue) }
+        // With only the week on, the sidebar never goes empty (its menu brings them back).
+        return (shown.isEmpty && !preferences.showSessions ? tracked : shown).map(Ring.usage)
     }
 
     private var sessionRings: [Ring] {

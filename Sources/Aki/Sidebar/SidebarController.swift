@@ -842,6 +842,32 @@ final class SidebarController {
             menu.addItem(aki)
             return menu
         }
+        // On a limits ring: what it shows, the line under it, and turning it off.
+        if model.expanded, let index = layout.cellIndex(at: point), index < model.rings.count,
+            case .usage(let limits) = model.rings[index]
+        {
+            let prefs = preferences
+            menu.addItem(.sectionHeader(title: limits.agent.displayName))
+            menu.addItem(.sectionHeader(title: L10n.t("In the ring")))
+            for metric in [UsageMetric.week, .today, .fiveHour] {
+                let item = ClosureMenuItem(metric.title) { prefs.usageRing = metric }
+                item.state = prefs.usageRing == metric ? .on : .off
+                menu.addItem(item)
+            }
+            menu.addItem(.sectionHeader(title: L10n.t("Under the ring")))
+            for metric in UsageMetric.allCases {
+                let item = ClosureMenuItem(metric.title) { prefs.usageLine = metric }
+                item.state = prefs.usageLine == metric ? .on : .off
+                menu.addItem(item)
+            }
+            menu.addItem(.separator())
+            menu.addItem(ClosureMenuItem(L10n.t("Hide this ring")) { prefs.hiddenUsage.insert(limits.agent.rawValue) })
+            menu.addItem(.separator())
+            let aki = NSMenuItem(title: "Aki", action: nil, keyEquivalent: "")
+            aki.submenu = generalMenu(NSMenu())
+            menu.addItem(aki)
+            return menu
+        }
         menu.addItem(.sectionHeader(title: "Aki"))
         return generalMenu(menu)
     }
@@ -867,6 +893,14 @@ final class SidebarController {
                 menu.addItem(.separator())
             }
         }
+        // Limits rings turned off: each one back.
+        for raw in preferences.hiddenUsage.sorted() {
+            guard let agent = AgentSession.Agent(rawValue: raw) else { continue }
+            menu.addItem(ClosureMenuItem(String(format: L10n.t("Show the %@ limits ring"), agent.displayName)) { [weak self] in
+                self?.preferences.hiddenUsage.remove(raw)
+            })
+        }
+        if !preferences.hiddenUsage.isEmpty { menu.addItem(.separator()) }
         let keepOpen = ClosureMenuItem(L10n.t("Keep open")) { [weak self] in
             guard let self else { return }
             self.preferences.visibility = self.preferences.visibility == .alwaysShow ? .onHover : .alwaysShow

@@ -4,6 +4,9 @@ What changed in each version of Aki. Versions follow [semantic versioning](https
 
 ## [Unreleased]
 
+### Added
+- Right-click a limits ring to choose what it shows (week, today's share or the 5-hour session), the line under it (or nothing), and to hide that AI's ring; the sidebar menu brings it back.
+
 ### Changed
 - Sessions untouched for more than a day (it was two) move into the "+N" ring, also when they are waiting for you or have a shell open; they come back as soon as they move.
 - The "+N" ring is a quiet dashed outline with the count, so it no longer looks like a session's ring. Its card lists the sessions you hid apart, under their own title.
