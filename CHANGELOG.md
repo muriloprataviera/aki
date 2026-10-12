@@ -6,6 +6,7 @@ What changed in each version of Aki. Versions follow [semantic versioning](https
 
 ### Changed
 - Sessions untouched for more than a day (it was two) move into the "+N" ring, also when they are waiting for you or have a shell open; they come back as soon as they move.
+- The "+N" ring is a quiet dashed outline with the count, so it no longer looks like a session's ring.
 
 ## [0.6.2] — 2026-10-12
 

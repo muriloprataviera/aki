@@ -816,16 +816,14 @@ struct RingCell: View {
             .overlay(Capsule().strokeBorder(AkiPalette.ringTrack, lineWidth: 1))
             .frame(width: SidebarLayout.ring * scale, height: SidebarLayout.ring * scale)
         case .more(let sessions):
+            // A drawer, not a session: a quiet dashed outline and the count, never a
+            // state colour (a stale "waiting" in there would read as a session's ring).
             ZStack {
-                Circle().strokeBorder(AkiPalette.ringTrack, style: StrokeStyle(lineWidth: SidebarLayout.trackStroke * scale, dash: [2.5 * scale, 3 * scale]))
-                // Something inside is going on: show it on the ring, too.
-                RingView(agent: .claude, pending: 0,
-                         working: sessions.contains { $0.state == .working || $0.state == .shell },
-                         listening: false, dim: false, scale: scale, monogram: "",
-                         hue: .clear, waiting: sessions.contains { $0.state == .waiting }, calm: true)
+                Circle().strokeBorder(AkiPalette.ringTrack, style: StrokeStyle(lineWidth: 1.5 * scale, dash: [2.5 * scale, 3 * scale]))
+                    .padding(4 * scale)
                 Text("+\(sessions.count)")
-                    .font(.system(size: 13 * scale, weight: .semibold, design: .rounded).monospacedDigit())
-                    .foregroundStyle(AkiPalette.textPrimary)
+                    .font(.system(size: 12 * scale, weight: .semibold, design: .rounded).monospacedDigit())
+                    .foregroundStyle(hovered || pinned ? AkiPalette.textPrimary : AkiPalette.textSecondary)
             }
             .frame(width: SidebarLayout.ring * scale, height: SidebarLayout.ring * scale)
         case .usage(let limits):
