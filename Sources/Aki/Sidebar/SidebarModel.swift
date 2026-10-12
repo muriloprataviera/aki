@@ -261,11 +261,12 @@ final class SidebarModel {
         visibleTerminals + terminals.filter { (preferences.hiddenTerminals.contains($0.id) || resting($0)) && !switchedOff($0) }
     }
 
-    /// Untouched for more than two days, with nothing for it and not the destination:
-    /// it waits in "+N" and comes back by itself when it moves again.
+    /// Untouched for more than a day, with nothing for it, not working and not the
+    /// destination: it waits in "+N" and comes back by itself when it moves again.
+    /// (A question it asked a day ago, or a shell left open, has gone stale too.)
     func resting(_ t: AgentTerminal) -> Bool {
-        guard let updated = t.updatedAt, Date().timeIntervalSince(updated) > 2 * 86_400 else { return false }
-        return t.pending == 0 && t.id != selectedTerminal && t.state != .waiting && t.state != .working && t.state != .shell
+        guard let updated = t.updatedAt, Date().timeIntervalSince(updated) > 86_400 else { return false }
+        return t.pending == 0 && t.id != selectedTerminal && t.state != .working
     }
 
     /// Conversations of tracked agents that aren't hidden, in sidebar order.

@@ -4,6 +4,9 @@ What changed in each version of Aki. Versions follow [semantic versioning](https
 
 ## [Unreleased]
 
+### Changed
+- Sessions untouched for more than a day (it was two) move into the "+N" ring, also when they are waiting for you or have a shell open; they come back as soon as they move.
+
 ## [0.6.2] — 2026-10-12
 
 ### Fixed
