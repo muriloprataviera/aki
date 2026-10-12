@@ -350,9 +350,16 @@ extension AgentSessions {
         }
         // The same Claude conversation open in two tabs (resumed twice) is one
         // destination: the one that moved last.
-        let unique = Dictionary(result.map { ($0.id, $0) }, uniquingKeysWith: { a, b in
-            (a.updatedAt ?? .distantPast) >= (b.updatedAt ?? .distantPast) ? a : b
-        }).values
+        var unique: [AgentTerminal] = []
+        var at: [String: Int] = [:]
+        for terminal in result {
+            if let i = at[terminal.id] {
+                if (terminal.updatedAt ?? .distantPast) > (unique[i].updatedAt ?? .distantPast) { unique[i] = terminal }
+            } else {
+                at[terminal.id] = unique.count
+                unique.append(terminal)
+            }
+        }
         return unique.sorted { a, b in
             if a.worktree != b.worktree { return a.worktree.localizedStandardCompare(b.worktree) == .orderedAscending }
             return (a.updatedAt ?? .distantPast) > (b.updatedAt ?? .distantPast)
