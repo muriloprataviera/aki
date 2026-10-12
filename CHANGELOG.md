@@ -4,6 +4,8 @@ What changed in each version of Aki. Versions follow [semantic versioning](https
 
 ## [Unreleased]
 
+## [0.6.2] — 2026-10-12
+
 ### Fixed
 - Aki quit when marking started while the same Claude conversation was open in two tabs.
 - Marking a menu bar app's dropdown (like iStat Menus): it closed at the first click; now it stays in the picture, like other menus.
