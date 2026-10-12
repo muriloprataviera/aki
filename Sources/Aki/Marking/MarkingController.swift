@@ -44,7 +44,7 @@ final class MarkingController {
     private var queued: [Mark] = [] {
         didSet {
             model.queuedMarks = queued.count
-            let pictures = Dictionary(uniqueKeysWithValues: model.queuedList.map { ($0.id, $0.image) })
+            let pictures = Dictionary(model.queuedList.map { ($0.id, $0.image) }, uniquingKeysWith: { a, _ in a })
             model.queuedList = queued.map { mark in
                 QueuedMark(id: mark.id, number: mark.number, comment: mark.comment, text: mark.text,
                            destination: mark.destination,
@@ -76,7 +76,7 @@ final class MarkingController {
             return
         }
         let sender = MarkingSession(grabs: [], context: MarkContext.current(), terminals: terminals, destination: nil)
-        sender.projects = Dictionary(uniqueKeysWithValues: terminals.map { ($0.id, model.projectKey(of: $0)) })
+        sender.projects = Dictionary(terminals.map { ($0.id, model.projectKey(of: $0)) }, uniquingKeysWith: { a, _ in a })
         sendingQueue = true
         Task {
             defer { sendingQueue = false }
@@ -251,8 +251,8 @@ final class MarkingController {
                 guard let self else { return nil }
                 return await Self.sessionServing(url, among: self.model.markableTerminals, selected: nil)
             }
-            session.hues = Dictionary(uniqueKeysWithValues: terminals.map { ($0.id, model.hue(of: $0)) })
-            session.projects = Dictionary(uniqueKeysWithValues: terminals.map { ($0.id, model.projectKey(of: $0)) })
+            session.hues = Dictionary(terminals.map { ($0.id, model.hue(of: $0)) }, uniquingKeysWith: { a, _ in a })
+            session.projects = Dictionary(terminals.map { ($0.id, model.projectKey(of: $0)) }, uniquingKeysWith: { a, _ in a })
             // Marks saved in an earlier round (esc keeps them): back in the queue.
             if !queued.isEmpty { session.resume(queued) }
             queued = []
@@ -345,8 +345,8 @@ final class MarkingController {
         guard self.session === session else { return }
         let terminals = model.markableTerminals
         session.updateTerminals(terminals)
-        session.hues = Dictionary(uniqueKeysWithValues: terminals.map { ($0.id, model.hue(of: $0)) })
-        session.projects = Dictionary(uniqueKeysWithValues: terminals.map { ($0.id, model.projectKey(of: $0)) })
+        session.hues = Dictionary(terminals.map { ($0.id, model.hue(of: $0)) }, uniquingKeysWith: { a, _ in a })
+        session.projects = Dictionary(terminals.map { ($0.id, model.projectKey(of: $0)) }, uniquingKeysWith: { a, _ in a })
         withObservationTracking {
             _ = model.markableTerminals
         } onChange: { [weak self, weak session] in

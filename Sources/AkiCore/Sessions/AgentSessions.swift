@@ -348,7 +348,12 @@ extension AgentSessions {
                 lastMessage: nil, pending: mine.count, pendingComments: comments(mine), pendingIDs: ids(mine), pendingPlaces: places(mine), updatedAt: nil,
                 pendingImages: images(mine), undelivered: unsent(mine), orcaHandle: terminalHandle(of: process.pid)))
         }
-        return result.sorted { a, b in
+        // The same Claude conversation open in two tabs (resumed twice) is one
+        // destination: the one that moved last.
+        let unique = Dictionary(result.map { ($0.id, $0) }, uniquingKeysWith: { a, b in
+            (a.updatedAt ?? .distantPast) >= (b.updatedAt ?? .distantPast) ? a : b
+        }).values
+        return unique.sorted { a, b in
             if a.worktree != b.worktree { return a.worktree.localizedStandardCompare(b.worktree) == .orderedAscending }
             return (a.updatedAt ?? .distantPast) > (b.updatedAt ?? .distantPast)
         }
