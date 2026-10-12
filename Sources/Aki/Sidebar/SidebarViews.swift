@@ -1289,10 +1289,22 @@ struct MoreCard: View {
                         .fixedSize(horizontal: false, vertical: true)
                 }
                 Hairline()
+                // The quiet ones first; the ones you hid apart, under their own title,
+                // so the "Show" on them doesn't look like it's missing on the rest.
+                let byYou = hidden ? [] : terminals.filter { model.preferences.hiddenTerminals.contains($0.id) }
                 VStack(alignment: .leading, spacing: 3) {
-                    ForEach(terminals) { terminal in
-                        SessionLine(model: model, terminal: terminal, secondary: secondary,
-                                    hidden: hidden || model.preferences.hiddenTerminals.contains(terminal.id))
+                    ForEach(terminals.filter { t in !byYou.contains { $0.id == t.id } }) { terminal in
+                        SessionLine(model: model, terminal: terminal, secondary: secondary, hidden: hidden)
+                    }
+                }
+                if !byYou.isEmpty {
+                    if byYou.count < terminals.count { Hairline() }
+                    Text(L10n.t("Hidden sessions"))
+                        .font(CardType.bodyStrong).foregroundStyle(secondary)
+                    VStack(alignment: .leading, spacing: 3) {
+                        ForEach(byYou) { terminal in
+                            SessionLine(model: model, terminal: terminal, secondary: secondary, hidden: true)
+                        }
                     }
                 }
                 if hidden && terminals.count > 1 {
