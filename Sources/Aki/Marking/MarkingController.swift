@@ -224,7 +224,8 @@ final class MarkingController {
             // are captured; the sidebar's list is fresh enough to start with.
             let terminals = model.markableTerminals
             let recentPick = model.recentTabPick
-            async let byPort = Self.sessionServing(context.url, among: terminals, selected: model.markingDestination)
+            let preferred = recentPick ?? model.markingDestination
+            async let byPort = Self.sessionServing(context.url, among: terminals, selected: preferred)
             let grabs0 = await ScreenGrab.captureAll(excluding: overlayIDs)
             guard let grabs = grabs0, !grabs.isEmpty else {
                 model.marking = false
@@ -243,11 +244,12 @@ final class MarkingController {
             let byPortID = await byPort
             let session = MarkingSession(
                 grabs: grabs, context: context, terminals: terminals,
-                // The agent tab you just left first (where the print most likely goes),
-                // then the page's port, then the one chosen last.
-                destination: recentPick ?? byPortID ?? model.markingDestination)
+                // A page on localhost: the session serving its port (or named with it),
+                // which says it outright. Else the agent tab you just left (where the
+                // print most likely goes), then the one chosen last.
+                destination: byPortID ?? recentPick ?? model.markingDestination)
             // Taken from where you just were: the page you mark on doesn't change it.
-            if recentPick != nil { session.destinationChosen = true }
+            if byPortID == nil, recentPick != nil { session.destinationChosen = true }
             session.destinationForPage = { [weak self] url in
                 guard let self else { return nil }
                 return await Self.sessionServing(url, among: self.model.markableTerminals, selected: nil)

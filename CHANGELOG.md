@@ -5,6 +5,7 @@ What changed in each version of Aki. Versions follow [semantic versioning](https
 ## [Unreleased]
 
 ### Fixed
+- Marking a page on localhost picks the session serving that port (or named with it, like "3000 …") even right after you were in another session's tab.
 - A long first project name no longer covers the eye that shows or hides the projects.
 
 ### Added
