@@ -4,6 +4,8 @@ What changed in each version of Aki. Versions follow [semantic versioning](https
 
 ## [Unreleased]
 
+## [0.6.3] — 2026-10-13
+
 ### Added
 - A session in Orca shows the name you gave its tab there (like "ENVIO CNPJ"), not only the title the agent set.
 - The Claude and Codex limits rings show when they're in use: the AI's symbol turns slowly while one of its sessions is working.
