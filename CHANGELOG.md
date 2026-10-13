@@ -5,6 +5,7 @@ What changed in each version of Aki. Versions follow [semantic versioning](https
 ## [Unreleased]
 
 ### Added
+- A session in Orca shows the name you gave its tab there (like "ENVIO CNPJ"), not only the title the agent set.
 - The Claude and Codex limits rings show when they're in use: the AI's symbol turns slowly while one of its sessions is working.
 - A working session's turning arc is in its AI's colour (Claude's orange, Codex's green), and so is the turning symbol on the limits ring.
 

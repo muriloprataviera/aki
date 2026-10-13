@@ -1,5 +1,6 @@
 import AkiCore
 import AppKit
+import SQLite3
 
 /// Takes you to where a conversation runs: its tab in Orca (by matching the tab's
 /// title, which Claude Code sets to the session's name, and its folder), or at
@@ -50,6 +51,51 @@ enum TerminalJump {
         return tabs
     }
 
+    nonisolated(unsafe) private static var cachedCustom: (stamp: Int64, titles: [String: String])?
+
+    /// The names you gave tabs in Orca (its tab's "rename"), by tab id. Orca's CLI only
+    /// tells the title the agent set, so they're read from Orca's own state, read-only,
+    /// and parsed again only when Orca saved it again.
+    static func orcaCustomTitles() -> [String: String] {
+        let profiles = FileManager.default.homeDirectoryForCurrentUser
+            .appending(path: "Library/Application Support/Orca/profiles")
+        let dbs = ((try? FileManager.default.contentsOfDirectory(at: profiles, includingPropertiesForKeys: [.contentModificationDateKey])) ?? [])
+            .map { $0.appending(path: "profile-state.db") }
+            .filter { FileManager.default.fileExists(atPath: $0.path) }
+        guard let file = dbs.max(by: {
+            let a = (try? $0.resourceValues(forKeys: [.contentModificationDateKey]).contentModificationDate) ?? .distantPast
+            let b = (try? $1.resourceValues(forKeys: [.contentModificationDateKey]).contentModificationDate) ?? .distantPast
+            return a < b
+        }) else { return [:] }
+        var db: OpaquePointer?
+        guard sqlite3_open_v2(file.path, &db, SQLITE_OPEN_READONLY, nil) == SQLITE_OK else { sqlite3_close(db); return [:] }
+        defer { sqlite3_close(db) }
+        sqlite3_busy_timeout(db, 200)
+        var statement: OpaquePointer?
+        guard sqlite3_prepare_v2(db, "SELECT updated_at, payload FROM profile_state_documents WHERE domain = 'workspaceSession'", -1, &statement, nil) == SQLITE_OK
+        else { return [:] }
+        defer { sqlite3_finalize(statement) }
+        guard sqlite3_step(statement) == SQLITE_ROW else { return [:] }
+        let stamp = sqlite3_column_int64(statement, 0)
+        if let cached = cacheLock.withLock({ cachedCustom }), cached.stamp == stamp { return cached.titles }
+        guard let bytes = sqlite3_column_blob(statement, 1) else { return [:] }
+        let data = Data(bytes: bytes, count: Int(sqlite3_column_bytes(statement, 1)))
+        var titles: [String: String] = [:]
+        if let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+           let byWorktree = json["tabsByWorktree"] as? [String: Any] {
+            for case let list as [[String: Any]] in byWorktree.values {
+                for tab in list {
+                    guard let id = tab["id"] as? String,
+                          let custom = (tab["customTitle"] as? String)?.trimmingCharacters(in: .whitespacesAndNewlines),
+                          !custom.isEmpty else { continue }
+                    titles[id] = custom
+                }
+            }
+        }
+        cacheLock.withLock { cachedCustom = (stamp, titles) }
+        return titles
+    }
+
     /// Fetches Orca's tabs in the background (when the pointer reaches the rings).
     static func prefetch() {
         guard FileManager.default.isExecutableFile(atPath: orcaCLI) else { return }
@@ -76,6 +122,7 @@ enum TerminalJump {
     /// copy put tab names from days before on conversations that are now others).
     static func namedTerminals(_ terminals: [AgentTerminal]) -> [AgentTerminal] {
         guard terminals.contains(where: { $0.orcaHandle != nil }), let tabs = orcaTabs(maxAge: 3) else { return terminals }
+        let customTitles = orcaCustomTitles()
         return terminals.map { terminal in
             guard let handle = terminal.orcaHandle,
                   let tab = tabs.first(where: { ($0["handle"] as? String) == handle && ($0["worktreePath"] as? String) == terminal.worktree }),
@@ -86,7 +133,12 @@ enum TerminalJump {
             // Without the status sign Claude Code puts in front (✳ resting, a spinner
             // working): a copy of it would sit frozen; the ring shows the state live.
             let bare = tabNameWithoutStatus(title)
-            named.name = bare.isEmpty ? title.trimmingCharacters(in: .whitespacesAndNewlines) : bare
+            // The name you gave the tab in Orca ("ENVIO CNPJ") wins over the title the agent set.
+            if let tabID = tab["tabId"] as? String, let custom = customTitles[tabID] {
+                named.name = custom
+            } else {
+                named.name = bare.isEmpty ? title.trimmingCharacters(in: .whitespacesAndNewlines) : bare
+            }
             named.named = true
             // Only a look at the tab newer than the session's own state counts.
             if named.state == .working || named.state == .shell, restsByTab(named, since: named.updatedAt) == true { named.state = .idle }
