@@ -81,11 +81,20 @@ public enum AgentSessions {
 
     /// One `ps` and one `lsof` for everything, so it's cheap to call every few seconds.
     public static func scan(pending: [Annotation] = []) -> [AgentSession] {
-        let processes = runningProcesses().compactMap { p in classify(p.command).map { (p, $0) } }
-        guard !processes.isEmpty else { return [] }
+        let all = runningProcesses()
+        let processes = all.compactMap { p in classify(p.command).map { (p, $0) } }
+        let apps = DesktopApps.running(in: all)
+        guard !processes.isEmpty || !apps.isEmpty else { return [] }
         let cwds = workingDirectories(of: processes.map(\.0.pid))
 
         var sessions: [String: AgentSession] = [:]
+        // The agents' desktop apps: a place of their own each, as in `terminals`.
+        for app in apps {
+            let agent = DesktopApps.known[app.bundleID] ?? .codex
+            sessions[String(app.path.dropLast(4))] = AgentSession(
+                worktree: String(app.path.dropLast(4)), branch: nil, agents: [agent], listening: false,
+                working: agent == .codex && DesktopApps.codexWorking(app: app.pid, processes: all), pending: 0)
+        }
         var roots: [String: String] = [:]
         for (process, kind) in processes {
             guard let cwd = cwds[process.pid], cwd != "/" else { continue }
@@ -110,7 +119,7 @@ public enum AgentSessions {
             .filter { !$0.agents.isEmpty }
             .map { session in
                 var session = session
-                session.branch = branch(of: session.worktree)
+                session.branch = apps.contains { $0.path.dropLast(4) == session.worktree } ? nil : branch(of: session.worktree)
                 let mine = pending.filter { annotation in
                     if let tagged = annotation["worktree"]?.string { return tagged == session.worktree }
                     guard let url = annotation["url"]?.string, let port = Worktree.localPort(of: url),

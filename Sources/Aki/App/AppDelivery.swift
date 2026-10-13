@@ -81,11 +81,16 @@ enum AppDelivery {
         // Sent once the box is empty again. Pictures still uploading hold the send back:
         // Enter again, for up to about fifteen seconds.
         for _ in 0..<30 {
-            guard stillThere() else { return .failed }
+            // Gone elsewhere with it all in the box: not pasted again.
+            guard stillThere() else { return .pasted }
             press(36)  // Return
             try? await Task.sleep(for: .milliseconds(500))
-            // A box that doesn't tell its text: taken as sent at the first Enter.
-            if isEmpty(box) ?? true { return .sent }
+            switch isEmpty(box) {
+            case true?: return .sent
+            // A box that doesn't tell its text: no proof it went, so not counted as done.
+            case nil: return .pasted
+            case false?: continue
+            }
         }
         // Still unsent after all that: it's all in the box, one Enter away. Not pasted
         // again (it would be there twice), and the marks stay open until it goes.
@@ -108,7 +113,33 @@ enum AppDelivery {
         let element = focused as! AXUIElement
         var role: CFTypeRef?
         AXUIElementCopyAttributeValue(element, kAXRoleAttribute as CFString, &role)
-        return role as? String == "AXTextArea" ? element : nil
+        guard role as? String == "AXTextArea" else { return nil }
+        // The message box sits at the bottom of the conversation; other multi-line fields
+        // (a project's instructions, a settings box) sit higher or in a sheet of their own.
+        guard let box = frame(of: element), let window = windowFrame(of: element),
+              box.maxY >= window.minY + window.height * 0.6
+        else { return nil }
+        return element
+    }
+
+    private static func frame(of element: AXUIElement) -> CGRect? {
+        var position: CFTypeRef?, size: CFTypeRef?
+        guard AXUIElementCopyAttributeValue(element, kAXPositionAttribute as CFString, &position) == .success,
+              AXUIElementCopyAttributeValue(element, kAXSizeAttribute as CFString, &size) == .success,
+              let position, let size
+        else { return nil }
+        var origin = CGPoint.zero, extent = CGSize.zero
+        guard AXValueGetValue(position as! AXValue, .cgPoint, &origin), AXValueGetValue(size as! AXValue, .cgSize, &extent)
+        else { return nil }
+        return CGRect(origin: origin, size: extent)
+    }
+
+    private static func windowFrame(of element: AXUIElement) -> CGRect? {
+        var window: CFTypeRef?
+        guard AXUIElementCopyAttributeValue(element, kAXWindowAttribute as CFString, &window) == .success, let window,
+              CFGetTypeID(window) == AXUIElementGetTypeID()
+        else { return nil }
+        return frame(of: window as! AXUIElement)
     }
 
     /// Whether the box has nothing written in it (the message went); nil when it doesn't say.
