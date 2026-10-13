@@ -250,9 +250,11 @@ final class MarkingController {
                 destination: byPortID ?? recentPick ?? model.markingDestination)
             // Taken from where you just were: the page you mark on doesn't change it.
             if byPortID == nil, recentPick != nil { session.destinationChosen = true }
-            session.destinationForPage = { [weak self] url in
+            session.destinationForPage = { [weak self, weak session] url in
                 guard let self else { return nil }
-                return await Self.sessionServing(url, among: self.model.markableTerminals, selected: nil)
+                // The one it goes to now stays, when it's among those serving the page.
+                let current = await MainActor.run { session?.destination }
+                return await Self.sessionServing(url, among: self.model.markableTerminals, selected: current)
             }
             session.hues = Dictionary(terminals.map { ($0.id, model.hue(of: $0)) }, uniquingKeysWith: { a, _ in a })
             session.projects = Dictionary(terminals.map { ($0.id, model.projectKey(of: $0)) }, uniquingKeysWith: { a, _ in a })
