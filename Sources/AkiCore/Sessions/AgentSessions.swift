@@ -209,7 +209,7 @@ public enum AgentSessions {
         return terminalHandle(inProcessArguments: Data(bytes.prefix(size)))
     }
 
-    private static func run(_ path: String, _ arguments: [String]) -> String {
+    static func run(_ path: String, _ arguments: [String]) -> String {
         let process = Foundation.Process()
         process.executableURL = URL(filePath: path)
         process.arguments = arguments
@@ -337,6 +337,7 @@ extension AgentSessions {
             return nil
         }
         let cwds = workingDirectories(of: others.map(\.0.pid))
+        let codexLogs = CodexSessions.openLogs(of: others.filter { $0.1 == .codex }.map(\.0.pid))
         for (process, agent) in others {
             guard let cwd = cwds[process.pid], cwd != "/" else { continue }
             let worktree = root(cwd)
@@ -344,7 +345,7 @@ extension AgentSessions {
             let mine = marks(for: id, worktree: worktree)
             result.append(AgentTerminal(
                 id: id, agent: agent, pid: process.pid, name: URL(filePath: worktree).lastPathComponent, named: false,
-                worktree: worktree, branch: branchOf(worktree), state: process.cpu >= 8 || (agent == .codex && CodexSessions.working(pid: process.pid, cwd: cwd)) ? .working : .idle,
+                worktree: worktree, branch: branchOf(worktree), state: process.cpu >= 8 || codexLogs[process.pid].map({ CodexSessions.working(log: $0) }) == true ? .working : .idle,
                 lastMessage: nil, pending: mine.count, pendingComments: comments(mine), pendingIDs: ids(mine), pendingPlaces: places(mine), updatedAt: nil,
                 pendingImages: images(mine), undelivered: unsent(mine), orcaHandle: terminalHandle(of: process.pid)))
         }

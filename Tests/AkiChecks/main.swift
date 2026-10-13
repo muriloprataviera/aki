@@ -352,10 +352,10 @@ for item in oldOnes { try? FileManager.default.removeItem(at: FileManager.defaul
 try? FileManager.default.removeItem(at: shots)
 
 // Codex is working while its log has a turn open.
-check(CodexSessions.turnOpen(#"{"payload":{"type":"task_complete"}}\n{"payload":{"type":"task_started"}}"#), "a turn just started is open")
-check(!CodexSessions.turnOpen(#"{"payload":{"type":"task_started"}}\n{"payload":{"type":"task_complete"}}"#), "a finished turn is closed")
-check(!CodexSessions.turnOpen(#"{"payload":{"type":"task_started"}}\n{"payload":{"type":"turn_aborted"}}"#), "an interrupted turn is closed")
-check(!CodexSessions.turnOpen(#"{"type":"session_meta"}"#), "no turn yet: not working")
+check(CodexSessions.turnOpen(#"{"payload":{"type":"task_complete"}}\n{"payload":{"type":"task_started"}}"#) == true, "a turn just started is open")
+check(CodexSessions.turnOpen(#"{"payload":{"type":"task_started"}}\n{"payload":{"type":"task_complete"}}"#) == false, "a finished turn is closed")
+check(CodexSessions.turnOpen(#"{"payload":{"type":"task_started"}}\n{"payload":{"type":"turn_aborted"}}"#) == false, "an interrupted turn is closed")
+check(CodexSessions.turnOpen(#"{"type":"session_meta"}"#) == nil, "no turn event in it: look further")
 
 print(failures == 0 ? "\nall checks passed" : "\n\(failures) check(s) failed")
 exit(failures == 0 ? 0 : 1)
