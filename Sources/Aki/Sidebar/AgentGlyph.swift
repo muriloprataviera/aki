@@ -508,6 +508,16 @@ enum GlyphOutline {
 }
 
 extension AgentSession.Agent {
+    /// The colour of its arc while it works: Claude's orange, OpenAI's green…
+    var working: Color {
+        switch self {
+        case .claude: Color(red: 0.85, green: 0.47, blue: 0.34)    // #D97757
+        case .codex: Color(red: 0.06, green: 0.64, blue: 0.5)      // #10A37F
+        case .gemini: Color(red: 0.26, green: 0.52, blue: 0.96)
+        case .grok, .cursor, .opencode: Color(red: 0.55, green: 0.6, blue: 1)
+        }
+    }
+
     /// The agent's own colours (badge fill, glyph): Claude's orange, Gemini's blue…
     var brand: (fill: Color, glyph: Color) {
         switch self {

@@ -910,7 +910,7 @@ struct UsageRing: View {
             // One turn in ~4 s while in use; still otherwise.
             TimelineView(.animation(paused: !active)) { context in
                 AgentGlyphView(agent: limits.agent, size: SidebarLayout.glyph * scale * 0.85)
-                    .foregroundStyle(AkiPalette.fg.opacity(active ? 1 : 0.85))
+                    .foregroundStyle(active ? limits.agent.working : AkiPalette.fg.opacity(0.85))
                     .rotationEffect(.degrees(active ? context.date.timeIntervalSinceReferenceDate.truncatingRemainder(dividingBy: 4) * 90 : 0))
             }
         }
@@ -1222,7 +1222,8 @@ struct RingView: View {
                 Circle()
                     .inset(by: track / 2)
                     .trim(from: 0, to: 0.28)
-                    .stroke(AkiPalette.fg, style: StrokeStyle(lineWidth: progress, lineCap: .round))
+                    .stroke(agent.working, style: StrokeStyle(lineWidth: progress, lineCap: .round))
+                    .shadow(color: agent.working.opacity(0.6), radius: 3 * scale)
                     .rotationEffect(.degrees(calm ? -90 : (turning ? 270 : -90)))
             } else if pending > 0 {
                 Circle()
