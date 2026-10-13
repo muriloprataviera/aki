@@ -11,7 +11,7 @@ public enum CodexSessions {
         var result: [Int32: URL] = [:]
         var pid: Int32?
         let list = pids.map(String.init).joined(separator: ",")
-        for line in AgentSessions.run("/usr/sbin/lsof", ["-a", "-p", list, "-Fpn"]).split(separator: "\n") {
+        for line in AgentSessions.run("/usr/sbin/lsof", ["-a", "-nP", "-p", list, "-Fpn"]).split(separator: "\n") {
             if line.hasPrefix("p") {
                 pid = Int32(line.dropFirst())
             } else if line.hasPrefix("n"), let pid, line.hasSuffix(".jsonl"), line.contains("/rollout-") {
