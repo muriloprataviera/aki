@@ -471,7 +471,11 @@ enum Automation {
     }
 
     private static func check(_ bundle: String, ask: Bool) -> OSStatus {
-        guard let target = NSAppleEventDescriptor(bundleIdentifier: bundle).aeDesc else { return OSStatus(procNotFound) }
-        return AEDeterminePermissionToAutomateTarget(target, typeWildCard, typeWildCard, ask)
+        let descriptor = NSAppleEventDescriptor(bundleIdentifier: bundle)
+        // `aeDesc` points into the descriptor: kept alive for the call.
+        return withExtendedLifetime(descriptor) {
+            guard let target = descriptor.aeDesc else { return OSStatus(procNotFound) }
+            return AEDeterminePermissionToAutomateTarget(target, typeWildCard, typeWildCard, ask)
+        }
     }
 }
