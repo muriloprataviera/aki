@@ -134,6 +134,8 @@ enum TerminalJump {
             if let tabID = tab["tabId"] as? String, let custom = customTitles[tabID] {
                 named.name = custom
             } else {
+                // Codex named the conversation itself: that, over the tab's automatic title.
+                if terminal.agent == .codex, terminal.named { return terminal }
                 guard let title = tab["title"] as? String, !title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
                 else { return terminal }
                 // Without the status sign Claude Code puts in front (✳ resting, a spinner

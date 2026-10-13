@@ -428,28 +428,38 @@ final class MarkingSession {
         // app marking began in (window order alone can mislead).
         mark.context = context
         // Another app, or another window of the same one (Chrome on localhost:3001 on the
-        // other screen while the one in front shows :3000): that window's app and page.
-        if screen < grabs.count {
+        // other screen while the one in front shows :3000): that window's app and page,
+        // read anew each time (the page may have changed, same title), off the main thread
+        // (a browser slow to answer mustn't hold the comment up). Counted like a picture
+        // being taken: a send waits for it. Then a page on localhost picks its session
+        // (by port), unless you chose one yourself.
+        let id = mark.id
+        let center: CGPoint? = screen < grabs.count ? {
             let frame = grabs[screen].screen.frame
             let primary = NSScreen.screens.first?.frame.height ?? 0
-            let center = CGPoint(x: frame.minX + rect.midX, y: primary - frame.maxY + rect.midY)
-            // Read anew each time: the page may have changed (another port, same title).
-            if let here = MarkContext.at(center, appName: element?.appName) {
-                mark.context = here
-                context = here  // the next marks start from there too
+            return CGPoint(x: frame.minX + rect.midX, y: primary - frame.maxY + rect.midY)
+        }() : nil
+        // Nothing found there (an area, ⌘ point, ⌥ lines): the app marking was in, as the
+        // probe prefers it (Orca's windows, on every Space, can list first).
+        let preferred = element?.appName ?? context.appName
+        capturing += 1
+        Task {
+            defer { capturing -= 1 }
+            if let center {
+                let here = await Task.detached(priority: .userInitiated) {
+                    MarkContext.at(center, appName: preferred)
+                }.value
+                if let here {
+                    context = here  // the next marks start from there too
+                    if let i = marks.firstIndex(where: { $0.id == id }) { marks[i].context = here }
+                }
             }
-        }
-        // A page on localhost picks its session (by port), unless you chose one yourself.
-        if !destinationChosen, let url = mark.context?.url, url.contains("://localhost:") || url.contains("://127.0.0.1:") {
-            let id = mark.id
-            // Counted like a picture being taken: a send waits for it.
-            capturing += 1
-            Task {
-                defer { capturing -= 1 }
-                guard let found = await destinationForPage(url), !destinationChosen else { return }
-                destination = found
-                if let i = marks.firstIndex(where: { $0.id == id }) { marks[i].destination = found }
-            }
+            guard !destinationChosen, let url = marks.first(where: { $0.id == id })?.context?.url,
+                  url.contains("://localhost:") || url.contains("://127.0.0.1:"),
+                  let found = await destinationForPage(url), !destinationChosen
+            else { return }
+            destination = found
+            if let i = marks.firstIndex(where: { $0.id == id }) { marks[i].destination = found }
         }
         mark.generation = generation[screen, default: 0]
         switch Preferences.shared.markContent {
