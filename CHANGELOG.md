@@ -4,6 +4,8 @@ What changed in each version of Aki. Versions follow [semantic versioning](https
 
 ## [Unreleased]
 
+## [0.7.1] — 2026-10-13
+
 ### Changed
 - A Codex ring in a terminal shows the name Codex gave the conversation (like "Revisar NFs no Drive") instead of the folder; an app's ring shows the conversation its window names.
 
