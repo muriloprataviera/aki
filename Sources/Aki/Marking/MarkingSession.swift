@@ -433,8 +433,8 @@ final class MarkingSession {
             let frame = grabs[screen].screen.frame
             let primary = NSScreen.screens.first?.frame.height ?? 0
             let center = CGPoint(x: frame.minX + rect.midX, y: primary - frame.maxY + rect.midY)
-            if let here = MarkContext.at(center, appName: element?.appName),
-               here.pid != context.pid || here.windowTitle != context.windowTitle || (element?.appName).map({ $0 != context.appName }) == true {
+            // Read anew each time: the page may have changed (another port, same title).
+            if let here = MarkContext.at(center, appName: element?.appName) {
                 mark.context = here
                 context = here  // the next marks start from there too
             }
