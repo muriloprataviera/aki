@@ -10,6 +10,7 @@ What changed in each version of Aki. Versions follow [semantic versioning](https
 - A working session's turning arc is in its AI's colour (Claude's orange, Codex's green), and so is the turning symbol on the limits ring.
 
 ### Fixed
+- The first time you marked in Chrome, the Mac asked whether Aki may control it, under the marking overlay: Allow couldn't be clicked and the screen stayed covered. Now marking never brings that question up; the Mac asks once marking is over.
 - Marking a page on localhost picks the session serving that port (or named with it, like "3000 …") even right after you were in another session's tab.
 - A long first project name no longer covers the eye that shows or hides the projects.
 - A Codex session now shows it's working (turning arc, turning symbol on its limits ring) the whole time it's thinking, not only in the moments it used the processor.

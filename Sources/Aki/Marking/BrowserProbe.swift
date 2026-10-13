@@ -288,10 +288,13 @@ enum BrowserProbe {
     static func canAskPages() -> Bool? {
         guard let bundle = NSWorkspace.shared.runningApplications.compactMap(\.bundleIdentifier).first(where: bundles.contains)
         else { return nil }
-        return execute("'ok'", bundle: bundle, title: nil) == "ok"
+        // From Settings, nothing covering the screen: the Mac may ask here.
+        return execute("'ok'", bundle: bundle, title: nil, mayAsk: true) == "ok"
     }
 
-    private static func execute(_ js: String, bundle: String, title: String?, at point: CGPoint? = nil) -> String? {
+    private static func execute(_ js: String, bundle: String, title: String?, at point: CGPoint? = nil, mayAsk: Bool = false) -> String? {
+        // Not allowed yet: no question in the middle of marking (see `Automation`).
+        guard mayAsk || Automation.allows(bundle) else { return nil }
         // The window you see under the pointer: the browser lists its windows front
         // to back, so the first one whose bounds hold the point is it (titles change
         // all the time and can't be trusted for this).
@@ -414,5 +417,61 @@ final class ScriptThread: Thread, @unchecked Sendable {
     @objc private func execute(_ job: Job) {
         var error: NSDictionary?
         job.result = NSAppleScript(source: job.source)?.executeAndReturnError(&error).stringValue
+    }
+}
+
+/// Controlling another app (a page in Chrome, its address) needs the Mac's OK, asked
+/// once in a dialog. Never while marking: the overlay sits above that dialog, so its
+/// Allow can't be clicked, and Aki would wait for the answer with the screen covered.
+/// Marking leaves those apps alone; the Mac asks once marking is over.
+enum Automation {
+    private static let lock = NSLock()
+    nonisolated(unsafe) private static var allowed: Set<String> = []
+    nonisolated(unsafe) private static var undecided: Set<String> = []
+    /// A no is looked at again only after a while (each look asks the system).
+    nonisolated(unsafe) private static var refused: [String: Date] = [:]
+
+    /// Whether Aki may already control this app (never asks).
+    static func allows(_ bundle: String) -> Bool {
+        let known: Bool? = lock.withLock {
+            if allowed.contains(bundle) { return true }
+            if let at = refused[bundle], Date().timeIntervalSince(at) < 5 { return false }
+            return nil
+        }
+        if let known { return known }
+        let status = check(bundle, ask: false)
+        lock.withLock {
+            if status == noErr {
+                allowed.insert(bundle)
+                refused[bundle] = nil
+            } else {
+                refused[bundle] = Date()
+                if status == OSStatus(errAEEventWouldRequireUserConsent) { undecided.insert(bundle) }
+            }
+        }
+        return status == noErr
+    }
+
+    /// Asks the Mac about the apps marking had to leave alone, now that nothing covers its dialog.
+    static func askUndecided() {
+        let pending: Set<String> = lock.withLock {
+            let pending = undecided
+            undecided = []
+            return pending
+        }
+        guard !pending.isEmpty else { return }
+        DispatchQueue.global(qos: .userInitiated).async {
+            for bundle in pending where check(bundle, ask: true) == noErr {
+                lock.withLock {
+                    allowed.insert(bundle)
+                    refused[bundle] = nil
+                }
+            }
+        }
+    }
+
+    private static func check(_ bundle: String, ask: Bool) -> OSStatus {
+        guard let target = NSAppleEventDescriptor(bundleIdentifier: bundle).aeDesc else { return OSStatus(procNotFound) }
+        return AEDeterminePermissionToAutomateTarget(target, typeWildCard, typeWildCard, ask)
     }
 }

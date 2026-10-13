@@ -184,7 +184,9 @@ struct MarkContext {
         default:
             return nil
         }
-        var error: NSDictionary?
-        return NSAppleScript(source: script)?.executeAndReturnError(&error).stringValue
+        // Not allowed yet: the Mac would ask now, under the marking overlay (see `Automation`).
+        guard let bundleID, Automation.allows(bundleID) else { return nil }
+        // On the one thread Aki's AppleScript runs on (two at once can hang).
+        return ScriptThread.shared.run(script)
     }
 }

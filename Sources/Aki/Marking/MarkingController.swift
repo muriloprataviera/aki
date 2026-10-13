@@ -533,6 +533,8 @@ final class MarkingController {
     private func teardown() {
         AkiCursor.passThrough = false
         model.marking = false
+        // The browser Aki had to leave alone: the Mac asks now, with nothing covering it.
+        Automation.askUndecided()
         setAside.forEach { $0.orderBack(nil) }
         setAside = []
         AppWindows.refresh()
