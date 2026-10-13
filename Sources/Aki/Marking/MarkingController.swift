@@ -281,8 +281,8 @@ final class MarkingController {
                 // which says it outright. Else the agent tab you just left (where the
                 // print most likely goes), then the one chosen last.
                 destination: byPortID ?? recentPick ?? model.markingDestination)
-            // Taken from where you just were: the page you mark on doesn't change it.
-            if byPortID == nil, recentPick != nil { session.destinationChosen = true }
+            // Taken from where you just were, it's a guess: a mark on a localhost page
+            // served by another session still goes to that one (only your own pick stays).
             session.destinationForPage = { [weak self, weak session] url in
                 guard let self else { return nil }
                 // The one it goes to now stays, when it's among those serving the page.

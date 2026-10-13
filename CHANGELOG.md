@@ -8,6 +8,7 @@ What changed in each version of Aki. Versions follow [semantic versioning](https
 - A Codex ring in a terminal shows the name Codex gave the conversation (like "Revisar NFs no Drive") instead of the folder; an app's ring shows the conversation its window names.
 
 ### Fixed
+- A mark on a localhost page goes to the session serving that page's port, also in a browser window that isn't the one in front (another screen) and right after you were in another session's tab.
 - Send in the History's queue held every mark back with just a beep when one of them was meant for a session that had closed; now the others go, and that one asks where to go.
 
 ## [0.7.0] — 2026-10-13

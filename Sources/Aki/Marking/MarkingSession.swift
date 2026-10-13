@@ -427,13 +427,16 @@ final class MarkingSession {
         // Told by the element found there; an area dragged over nothing found keeps the
         // app marking began in (window order alone can mislead).
         mark.context = context
-        if screen < grabs.count, let app = element?.appName, app != context.appName {
+        // Another app, or another window of the same one (Chrome on localhost:3001 on the
+        // other screen while the one in front shows :3000): that window's app and page.
+        if screen < grabs.count {
             let frame = grabs[screen].screen.frame
             let primary = NSScreen.screens.first?.frame.height ?? 0
             let center = CGPoint(x: frame.minX + rect.midX, y: primary - frame.maxY + rect.midY)
-            if let here = MarkContext.at(center, appName: app) {
+            if let here = MarkContext.at(center, appName: element?.appName),
+               here.pid != context.pid || here.windowTitle != context.windowTitle || (element?.appName).map({ $0 != context.appName }) == true {
                 mark.context = here
-                context = here  // the next marks start from that app too
+                context = here  // the next marks start from there too
             }
         }
         // A page on localhost picks its session (by port), unless you chose one yourself.
