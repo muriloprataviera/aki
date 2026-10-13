@@ -4,6 +4,12 @@ What changed in each version of Aki. Versions follow [semantic versioning](https
 
 ## [Unreleased]
 
+### Changed
+- A Codex ring shows the name Codex gave the conversation (like "Revisar NFs no Drive"), in its app and in a terminal, instead of "Codex app" or the folder.
+
+### Fixed
+- Send in the History's queue held every mark back with just a beep when one of them was meant for a session that had closed; now the others go, and that one asks where to go.
+
 ## [0.7.0] — 2026-10-13
 
 ### Added

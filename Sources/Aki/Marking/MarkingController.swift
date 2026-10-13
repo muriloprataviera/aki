@@ -69,9 +69,10 @@ final class MarkingController {
     func sendQueued(only id: UUID? = nil) {
         guard session == nil, !starting, !sendingQueue else { return }
         let terminals = model.markableTerminals
-        let batch = queued.filter { id == nil || $0.id == id }
-        guard !batch.isEmpty else { return }
-        guard batch.allSatisfy({ mark in terminals.contains { $0.id == mark.destination } }) else {
+        // Those whose session is still there go; one whose session closed stays queued,
+        // marked in red to choose another (it used to hold all the others back).
+        let batch = queued.filter { mark in (id == nil || mark.id == id) && terminals.contains { $0.id == mark.destination } }
+        guard !batch.isEmpty else {
             NSSound.beep()
             return
         }

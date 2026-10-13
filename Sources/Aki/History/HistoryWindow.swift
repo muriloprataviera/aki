@@ -722,7 +722,8 @@ private struct QueueSection: View {
                             }
                         } label: {
                             HStack(spacing: 4) {
-                                if let id = mark.destination, let terminal = model.allTerminals.first(where: { $0.id == id }) {
+                                // Only a session it can still go to (as sending checks); else, choose.
+                                if let id = mark.destination, let terminal = model.markableTerminals.first(where: { $0.id == id }) {
                                     SessionIdentityView(identity: SessionIdentity(terminal: terminal), size: 11,
                                                         showAppName: false, showAgentName: false)
                                     Text(terminal.name).lineLimit(1)
