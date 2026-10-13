@@ -353,9 +353,11 @@ extension AgentSessions {
             guard let cwd = cwds[process.pid], cwd != "/" else { continue }
             let worktree = root(cwd)
             let id = "\(agent.rawValue):\(process.pid)"
+            // Codex names its conversations ("Revisar NFs no Drive"): that, else the folder.
+            let thread = agent == .codex ? CodexSessions.newest(codexLogs[process.pid] ?? []).flatMap { CodexSessions.threadName(of: $0) } : nil
             let mine = marks(for: id, worktree: worktree)
             result.append(AgentTerminal(
-                id: id, agent: agent, pid: process.pid, name: URL(filePath: worktree).lastPathComponent, named: false,
+                id: id, agent: agent, pid: process.pid, name: thread ?? URL(filePath: worktree).lastPathComponent, named: thread != nil,
                 worktree: worktree, branch: branchOf(worktree), state: process.cpu >= 8 || (codexLogs[process.pid] ?? []).contains(where: { CodexSessions.working(log: $0) }) ? .working : .idle,
                 lastMessage: nil, pending: mine.count, pendingComments: comments(mine), pendingIDs: ids(mine), pendingPlaces: places(mine), updatedAt: nil,
                 pendingImages: images(mine), undelivered: unsent(mine), orcaHandle: terminalHandle(of: process.pid)))
@@ -368,7 +370,7 @@ extension AgentSessions {
             let agent = DesktopApps.known[app.bundleID] ?? .codex
             let working = agent == .codex && DesktopApps.codexWorking(app: app.pid, processes: all)
             result.append(AgentTerminal(
-                id: id, agent: agent, pid: app.pid, name: app.name, named: true,
+                id: id, agent: agent, pid: app.pid, name: DesktopApps.conversationName(app, processes: all) ?? app.name, named: true,
                 worktree: worktree, branch: nil, state: working ? .working : .idle,
                 lastMessage: nil, pending: mine.count, pendingComments: comments(mine), pendingIDs: ids(mine), pendingPlaces: places(mine),
                 // Open is in use: never left to rest in "+N".

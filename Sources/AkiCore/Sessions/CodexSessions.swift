@@ -59,4 +59,47 @@ public enum CodexSessions {
         try? handle.seek(toOffset: size > bytes ? size - bytes : 0)
         return (String(decoding: (try? handle.readToEnd()) ?? Data(), as: UTF8.self), size <= bytes)
     }
+
+    /// The name Codex gave a conversation ("Revisar NFs no Drive"), from its index
+    /// (`session_index.jsonl`, by the id that ends the log's file name).
+    public static func threadName(of log: URL, home: URL = UsageLimits.codexHome) -> String? {
+        let name = log.deletingPathExtension().lastPathComponent
+        // "rollout-<date>-<uuid>": the uuid is the last five dash-separated groups.
+        let id = name.split(separator: "-").suffix(5).joined(separator: "-")
+        guard id.count == 36 else { return nil }
+        return threadNames(home: home)[id]
+    }
+
+    /// Of a process's logs, the one written last (the conversation in use).
+    public static func newest(_ logs: [URL]) -> URL? {
+        logs.max { a, b in
+            let x = (try? a.resourceValues(forKeys: [.contentModificationDateKey]).contentModificationDate) ?? .distantPast
+            let y = (try? b.resourceValues(forKeys: [.contentModificationDateKey]).contentModificationDate) ?? .distantPast
+            return x < y
+        }
+    }
+
+    nonisolated(unsafe) private static var names: (stamp: Date, byID: [String: String])?
+    private static let namesLock = NSLock()
+
+    /// Every conversation's name by id (the last line for an id wins: a rename).
+    private static func threadNames(home: URL) -> [String: String] {
+        let file = home.appending(path: "session_index.jsonl")
+        guard let stamp = (try? file.resourceValues(forKeys: [.contentModificationDateKey]))?.contentModificationDate
+        else { return [:] }
+        if let cached = namesLock.withLock({ names }), cached.stamp == stamp { return cached.byID }
+        var byID: [String: String] = [:]
+        if let text = try? String(contentsOf: file, encoding: .utf8) {
+            for line in text.split(separator: "\n") {
+                guard let data = line.data(using: .utf8),
+                      let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+                      let id = json["id"] as? String,
+                      let name = (json["thread_name"] as? String)?.trimmingCharacters(in: .whitespacesAndNewlines), !name.isEmpty
+                else { continue }
+                byID[id] = name
+            }
+        }
+        namesLock.withLock { names = (stamp, byID) }
+        return byID
+    }
 }

@@ -367,6 +367,17 @@ let appMessage = AnnotationText.forApp([
 check(appMessage.contains("2 marcas") && appMessage.contains("1. botão torto") && appMessage.contains("localhost:3000")
       && appMessage.contains("2. (sem comentário)") && !appMessage.contains("aki show"), "an app's message carries the marks themselves")
 
+// A Codex conversation's name comes from its index, by the id ending its log's name.
+let codexHome = FileManager.default.temporaryDirectory.appending(path: "aki-codex-\(UUID().uuidString)")
+try? FileManager.default.createDirectory(at: codexHome, withIntermediateDirectories: true)
+try? """
+{"id":"01a1372a-7a31-78a2-a61a-aa7a4582e215","thread_name":"Primeiro nome","updated_at":"x"}
+{"id":"01a1372a-7a31-78a2-a61a-aa7a4582e215","thread_name":"Revisar NFs no Drive","updated_at":"y"}
+""".write(to: codexHome.appending(path: "session_index.jsonl"), atomically: true, encoding: .utf8)
+let codexLog = URL(filePath: "/x/rollout-2026-10-13T18-28-13-01a1372a-7a31-78a2-a61a-aa7a4582e215.jsonl")
+check(CodexSessions.threadName(of: codexLog, home: codexHome) == "Revisar NFs no Drive", "a Codex conversation is named as Codex named it last")
+try? FileManager.default.removeItem(at: codexHome)
+
 print(failures == 0 ? "\nall checks passed" : "\n\(failures) check(s) failed")
 exit(failures == 0 ? 0 : 1)
 

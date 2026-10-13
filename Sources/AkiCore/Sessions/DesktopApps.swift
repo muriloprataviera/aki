@@ -1,3 +1,4 @@
+import CoreGraphics
 import Foundation
 
 /// The desktop apps of the agents (Codex's and Claude's own apps): no terminal, so Aki
@@ -46,14 +47,34 @@ public enum DesktopApps {
         return Array(found.values).sorted { $0.bundleID < $1.bundleID }
     }
 
-    /// Whether one of the app's own Codex conversations is in the middle of a turn
-    /// (its `codex app-server`, a process under the app, keeps their logs open).
-    static func codexWorking(app pid: Int32, processes: [AgentSessions.Process]) -> Bool {
+    /// The logs of the app's own Codex conversations (its `codex app-server`, a
+    /// process under the app, keeps them open).
+    static func codexLogs(app pid: Int32, processes: [AgentSessions.Process]) -> [URL] {
         let servers = processes.filter { $0.command.contains("codex") && $0.command.contains("app-server") }
             .filter { descends($0.pid, from: pid) }.map(\.pid)
-        guard !servers.isEmpty else { return false }
-        let logs = CodexSessions.openLogs(of: servers)
-        return logs.values.joined().contains { CodexSessions.working(log: $0) }
+        guard !servers.isEmpty else { return [] }
+        return Array(CodexSessions.openLogs(of: servers).values.joined())
+    }
+
+    /// Whether one of the app's own Codex conversations is in the middle of a turn.
+    static func codexWorking(app pid: Int32, processes: [AgentSessions.Process]) -> Bool {
+        codexLogs(app: pid, processes: processes).contains { CodexSessions.working(log: $0) }
+    }
+
+    /// The conversation open in the app, by name: its window's title when it names one
+    /// (not just the app), else for Codex the conversation written to last.
+    static func conversationName(_ app: Found, processes: [AgentSessions.Process]) -> String? {
+        let windows = CGWindowListCopyWindowInfo([.optionOnScreenOnly, .excludeDesktopElements], kCGNullWindowID) as? [[String: Any]] ?? []
+        let generic = ["chatgpt", "codex", "claude", ""]
+        if let title = windows.first(where: {
+            ($0[kCGWindowOwnerPID as String] as? Int32) == app.pid && ($0[kCGWindowLayer as String] as? Int) == 0
+                && !generic.contains((($0[kCGWindowName as String] as? String) ?? "").trimmingCharacters(in: .whitespaces).lowercased())
+        })?[kCGWindowName as String] as? String {
+            return title.trimmingCharacters(in: .whitespaces)
+        }
+        guard known[app.bundleID] == .codex, let log = CodexSessions.newest(codexLogs(app: app.pid, processes: processes))
+        else { return nil }
+        return CodexSessions.threadName(of: log)
     }
 
     private static func descends(_ pid: Int32, from ancestor: Int32) -> Bool {
