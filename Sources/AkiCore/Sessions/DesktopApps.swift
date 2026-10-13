@@ -62,8 +62,8 @@ public enum DesktopApps {
     }
 
     /// The conversation open in the app, by name: its window's title when it names one
-    /// (not just the app), else for Codex the conversation written to last.
-    static func conversationName(_ app: Found, processes: [AgentSessions.Process]) -> String? {
+    /// (not just the app). Else none: the one written to last may not be the one open.
+    static func conversationName(_ app: Found) -> String? {
         let windows = CGWindowListCopyWindowInfo([.optionOnScreenOnly, .excludeDesktopElements], kCGNullWindowID) as? [[String: Any]] ?? []
         let generic = ["chatgpt", "codex", "claude", ""]
         if let title = windows.first(where: {
@@ -72,9 +72,7 @@ public enum DesktopApps {
         })?[kCGWindowName as String] as? String {
             return title.trimmingCharacters(in: .whitespaces)
         }
-        guard known[app.bundleID] == .codex, let log = CodexSessions.newest(codexLogs(app: app.pid, processes: processes))
-        else { return nil }
-        return CodexSessions.threadName(of: log)
+        return nil
     }
 
     private static func descends(_ pid: Int32, from ancestor: Int32) -> Bool {

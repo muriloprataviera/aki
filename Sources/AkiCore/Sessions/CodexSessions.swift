@@ -70,9 +70,9 @@ public enum CodexSessions {
         return threadNames(home: home)[id]
     }
 
-    /// Of a process's logs, the one written last (the conversation in use).
+    /// Of a process's logs, its own conversation's (not a subagent's), written last.
     public static func newest(_ logs: [URL]) -> URL? {
-        logs.max { a, b in
+        logs.filter { !isSubagent($0) }.max { a, b in
             let x = (try? a.resourceValues(forKeys: [.contentModificationDateKey]).contentModificationDate) ?? .distantPast
             let y = (try? b.resourceValues(forKeys: [.contentModificationDateKey]).contentModificationDate) ?? .distantPast
             return x < y
@@ -101,5 +101,14 @@ public enum CodexSessions {
         }
         namesLock.withLock { names = (stamp, byID) }
         return byID
+    }
+
+    /// A subagent's log says so on its first line (`"thread_source":"subagent"`).
+    static func isSubagent(_ log: URL) -> Bool {
+        guard let handle = try? FileHandle(forReadingFrom: log) else { return false }
+        defer { try? handle.close() }
+        let head = String(decoding: (try? handle.read(upToCount: 16_384)) ?? Data(), as: UTF8.self)
+        let first = head.split(separator: "\n", maxSplits: 1).first.map(String.init) ?? head
+        return first.contains("\"thread_source\":\"subagent\"")
     }
 }

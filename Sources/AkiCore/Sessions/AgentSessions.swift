@@ -370,7 +370,7 @@ extension AgentSessions {
             let agent = DesktopApps.known[app.bundleID] ?? .codex
             let working = agent == .codex && DesktopApps.codexWorking(app: app.pid, processes: all)
             result.append(AgentTerminal(
-                id: id, agent: agent, pid: app.pid, name: DesktopApps.conversationName(app, processes: all) ?? app.name, named: true,
+                id: id, agent: agent, pid: app.pid, name: DesktopApps.conversationName(app) ?? app.name, named: true,
                 worktree: worktree, branch: nil, state: working ? .working : .idle,
                 lastMessage: nil, pending: mine.count, pendingComments: comments(mine), pendingIDs: ids(mine), pendingPlaces: places(mine),
                 // Open is in use: never left to rest in "+N".

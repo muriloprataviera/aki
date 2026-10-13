@@ -875,8 +875,14 @@ final class SidebarModel {
             current.pending = pending.count
             current.undelivered = waiting.count
             // To an app, only the marks not sent yet (it gets them whole, not by code).
-            // Sent again by hand (all of them already went): all of them, again.
-            let forApp = waiting.isEmpty ? pending : pending.filter { waiting.contains($0.id) }
+            // An app whose marks all went already (maybe still in its box, unsent): it
+            // comes forward to send them, nothing pasted twice.
+            if waiting.isEmpty, DesktopApps.bundleID(of: terminal.id) != nil {
+                TerminalJump.go(to: terminal)
+                delivery[terminal.id] = nil
+                return
+            }
+            let forApp = pending.filter { waiting.contains($0.id) }
             let result = await TerminalJump.deliver(to: current, marks: forApp)
             delivery[terminal.id] = result == .failed ? .failed : .sent
             if result != .failed { await markDelivered(waiting, for: terminal) }
