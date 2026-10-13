@@ -4,6 +4,9 @@ What changed in each version of Aki. Versions follow [semantic versioning](https
 
 ## [Unreleased]
 
+### Added
+- Codex's and Claude's desktop apps are destinations too: with one open, it shows as a ring, and its marks are pasted into the conversation open in it, pictures and all, and sent.
+
 ## [0.6.3] — 2026-10-13
 
 ### Added

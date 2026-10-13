@@ -210,7 +210,11 @@ enum TerminalJump {
     /// have something written in its input box, Aki's text goes after a blank line,
     /// apart from yours, and both are sent together. `.failed` when the tab isn't found
     /// or Orca refuses.
-    static func deliver(to terminal: AgentTerminal) async -> Delivery {
+    static func deliver(to terminal: AgentTerminal, marks: [Annotation] = []) async -> Delivery {
+        // An agent's desktop app: its marks pasted in whole (it can't run `aki show`).
+        if let bundleID = DesktopApps.bundleID(of: terminal.id) {
+            return await AppDelivery.deliver(to: bundleID, marks: marks)
+        }
         guard FileManager.default.isExecutableFile(atPath: orcaCLI) else { return .failed }
         // Only a conversation that runs in Orca: one in Terminal or iTerm must never
         // be typed into an Orca tab that happens to share its folder.

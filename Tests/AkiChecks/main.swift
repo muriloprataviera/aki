@@ -357,6 +357,16 @@ check(CodexSessions.turnOpen(#"{"payload":{"type":"task_started"}}\n{"payload":{
 check(CodexSessions.turnOpen(#"{"payload":{"type":"task_started"}}\n{"payload":{"type":"turn_aborted"}}"#) == false, "an interrupted turn is closed")
 check(CodexSessions.turnOpen(#"{"type":"session_meta"}"#) == nil, "no turn event in it: look further")
 
+// The agents' desktop apps: the app itself, never one of its helpers.
+check(DesktopApps.bundleID(of: "app:com.openai.codex") == "com.openai.codex", "an app destination's id names its app")
+check(DesktopApps.bundleID(of: "codex:123") == nil, "a terminal session isn't an app")
+let appMessage = AnnotationText.forApp([
+    Annotation(["id": "aki_1_aaaaaaaa", "created_at": "2026-10-13T10:00:00Z", "comment": "botão torto", "url": "http://localhost:3000/x"]),
+    Annotation(["id": "aki_2_bbbbbbbb", "created_at": "2026-10-13T10:01:00Z"]),
+])
+check(appMessage.contains("2 marcas") && appMessage.contains("1. botão torto") && appMessage.contains("localhost:3000")
+      && appMessage.contains("2. (sem comentário)") && !appMessage.contains("aki show"), "an app's message carries the marks themselves")
+
 print(failures == 0 ? "\nall checks passed" : "\n\(failures) check(s) failed")
 exit(failures == 0 ? 0 : 1)
 

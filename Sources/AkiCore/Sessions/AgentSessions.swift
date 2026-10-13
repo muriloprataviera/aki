@@ -257,7 +257,8 @@ public struct AgentTerminal: Identifiable, Equatable, Sendable {
 extension AgentSessions {
     /// Every agent conversation open right now, busiest first within each folder.
     public static func terminals(pending: [Annotation] = []) -> [AgentTerminal] {
-        let processes = runningProcesses().compactMap { p in classify(p.command).map { (p, $0) } }
+        let all = runningProcesses()
+        let processes = all.compactMap { p in classify(p.command).map { (p, $0) } }
         // Which sessions have an `aki wait` listening for them.
         let listening = Set(processes.compactMap { process, kind -> String? in
             kind == .wait ? ClaudeSessions.session(ofAncestorsOf: process.pid)?.sessionId : nil
@@ -348,6 +349,21 @@ extension AgentSessions {
                 worktree: worktree, branch: branchOf(worktree), state: process.cpu >= 8 || codexLogs[process.pid].map({ CodexSessions.working(log: $0) }) == true ? .working : .idle,
                 lastMessage: nil, pending: mine.count, pendingComments: comments(mine), pendingIDs: ids(mine), pendingPlaces: places(mine), updatedAt: nil,
                 pendingImages: images(mine), undelivered: unsent(mine), orcaHandle: terminalHandle(of: process.pid)))
+        }
+        // The agents' own desktop apps: one destination each, the conversation open in it.
+        for app in DesktopApps.running(in: all) {
+            let id = DesktopApps.prefix + app.bundleID
+            let worktree = String(app.path.dropLast(4))
+            let mine = marks(for: id, worktree: worktree)
+            let agent = DesktopApps.known[app.bundleID] ?? .codex
+            let working = agent == .codex && DesktopApps.codexWorking(app: app.pid, processes: all)
+            result.append(AgentTerminal(
+                id: id, agent: agent, pid: app.pid, name: app.name, named: true,
+                worktree: worktree, branch: nil, state: working ? .working : .idle,
+                lastMessage: nil, pending: mine.count, pendingComments: comments(mine), pendingIDs: ids(mine), pendingPlaces: places(mine),
+                // Open is in use: never left to rest in "+N".
+                updatedAt: Date(),
+                pendingImages: images(mine), undelivered: unsent(mine), orcaHandle: nil))
         }
         // The same Claude conversation open in two tabs (resumed twice) is one
         // destination: the one that moved last.

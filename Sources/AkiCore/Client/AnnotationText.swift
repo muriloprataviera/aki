@@ -41,6 +41,26 @@ public enum AnnotationText {
         return lines.joined(separator: "\n")
     }
 
+    /// The message pasted into an agent's desktop app, which can't run `aki show`:
+    /// everything in it, each mark's picture pasted alongside (in the same order).
+    public static func forApp(_ annotations: [Annotation], home: AkiHome = .default) -> String {
+        let marks = annotations.sorted { ($0["created_at"]?.string ?? "") < ($1["created_at"]?.string ?? "") }
+        let head = marks.count == 1 ? "📍 Aki: 1 marca na tela." : "📍 Aki: \(marks.count) marcas na tela, na ordem das fotos."
+        let body = marks.enumerated().map { i, a -> String in
+            let comment = (a["comment"]?.string).flatMap { $0.isEmpty ? nil : $0 } ?? "(sem comentário)"
+            var lines = ["\(i + 1). \(comment)"]
+            // Where it is and what it is, as `aki show` tells it (no ids, no file paths).
+            for line in render(a, home: home).split(separator: "\n", omittingEmptySubsequences: false).dropFirst() {
+                let text = String(line)
+                if text.hasPrefix("comment:") || text.hasPrefix("image:") || text.hasPrefix("kind:") { continue }
+                lines.append("   " + text)
+            }
+            if AnnotationImage.file(for: a, home: home) != nil { lines.append("   (foto \(i + 1) anexada)") }
+            return lines.joined(separator: "\n")
+        }
+        return ([head] + body).joined(separator: "\n\n")
+    }
+
     private static func describe(_ value: JSONValue?) -> String {
         switch value {
         case .string(let s): s

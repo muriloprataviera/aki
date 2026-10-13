@@ -874,9 +874,15 @@ final class SidebarModel {
             }
             current.pending = pending.count
             current.undelivered = waiting.count
-            let result = await TerminalJump.deliver(to: current)
+            // To an app, only the marks not sent yet (it gets them whole, not by code).
+            let result = await TerminalJump.deliver(to: current, marks: pending.filter { waiting.contains($0.id) })
             delivery[terminal.id] = result == .sent ? .sent : .failed
             if result == .sent { await markDelivered(waiting, for: terminal) }
+            // An app can't close them with `aki done`: once pasted there, they're done.
+            if result == .sent, DesktopApps.bundleID(of: terminal.id) != nil {
+                for id in waiting { _ = try? await store.update(id, with: ["status": "completed"]) }
+                await refresh()
+            }
             try? await Task.sleep(for: .seconds(3))
             delivery[terminal.id] = nil
         }
