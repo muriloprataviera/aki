@@ -45,7 +45,9 @@ public enum AnnotationText {
     /// everything in it, each mark's picture pasted alongside (in the same order).
     public static func forApp(_ annotations: [Annotation], home: AkiHome = .default) -> String {
         let marks = annotations.sorted { ($0["created_at"]?.string ?? "") < ($1["created_at"]?.string ?? "") }
-        let head = marks.count == 1 ? "📍 Aki: 1 marca na tela." : "📍 Aki: \(marks.count) marcas na tela, na ordem das fotos."
+        let head = marks.count == 1 ? "📍 Aki: 1 marca na tela." : "📍 Aki: \(marks.count) marcas na tela."
+        // Pictures numbered among themselves, in the order they're pasted.
+        var picture = 0
         let body = marks.enumerated().map { i, a -> String in
             let comment = (a["comment"]?.string).flatMap { $0.isEmpty ? nil : $0 } ?? "(sem comentário)"
             var lines = ["\(i + 1). \(comment)"]
@@ -55,7 +57,10 @@ public enum AnnotationText {
                 if text.hasPrefix("comment:") || text.hasPrefix("image:") || text.hasPrefix("kind:") { continue }
                 lines.append("   " + text)
             }
-            if AnnotationImage.file(for: a, home: home) != nil { lines.append("   (foto \(i + 1) anexada)") }
+            if AnnotationImage.file(for: a, home: home) != nil {
+                picture += 1
+                lines.append("   (foto \(picture) anexada)")
+            }
             return lines.joined(separator: "\n")
         }
         return ([head] + body).joined(separator: "\n\n")
