@@ -137,12 +137,21 @@ struct SidebarRoot: View {
                 }
             }
         }
-        // Squeezed back left, the first one narrows instead of covering the eye.
+        // Squeezed back over the eye: they all narrow alike (never under the capsule's
+        // own minimum) and line up from the eye on.
         let eyeLimit = layout.cellAlongCenter(0) - 28 * layout.scale + gap
-        if let first = spots.first, first.center - first.width / 2 < eyeLimit {
-            let right = first.center + first.width / 2
-            spots[0].width = max(right - eyeLimit, 0)
-            spots[0].center = eyeLimit + spots[0].width / 2
+        if let first = spots.first, let lastGroup = groups.last, first.center - first.width / 2 < eyeLimit {
+            let end = layout.cellAlongCenter(lastGroup.last) + layout.step / 2 + 30 * layout.scale
+            let minWidth = 30 * layout.scale
+            let gaps = gap * CGFloat(spots.count - 1)
+            let sum = spots.reduce(0) { $0 + $1.width }
+            let factor = min(1, max(end - eyeLimit - gaps, 0) / max(sum, 1))
+            var x = eyeLimit
+            for i in spots.indices {
+                spots[i].width = max(minWidth, spots[i].width * factor)
+                spots[i].center = x + spots[i].width / 2
+                x += spots[i].width + gap
+            }
         }
         return spots
     }
