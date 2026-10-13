@@ -36,6 +36,13 @@ enum AppDelivery {
             return .failed
         }
         let saved = savedItems(pasteboard)
+        let pid = app.processIdentifier
+        // Focus gone elsewhere midway: stop, what you had copied back, nothing counts as sent.
+        func giveUp() -> TerminalJump.Delivery {
+            pasteboard.clearContents()
+            if !saved.isEmpty { pasteboard.writeObjects(saved) }
+            return .failed
+        }
         for picture in pictures {
             let item = NSPasteboardItem()
             if let image = NSImage(contentsOf: picture), let tiff = image.tiffRepresentation,
@@ -43,16 +50,19 @@ enum AppDelivery {
                 item.setData(png, forType: .png)
             }
             item.setString(picture.absoluteString, forType: .fileURL)
+            guard stillThere(pid) else { return giveUp() }
             pasteboard.clearContents()
             pasteboard.writeObjects([item])
             pressPaste()
             try? await Task.sleep(for: .milliseconds(500))
         }
+        guard stillThere(pid) else { return giveUp() }
         pasteboard.clearContents()
         pasteboard.setString(text, forType: .string)
         pressPaste()
         // Pictures upload before the message can go: a moment more for each.
         try? await Task.sleep(for: .milliseconds(600 + 400 * pictures.count))
+        guard stillThere(pid) else { return giveUp() }
         press(36)  // Return
         try? await Task.sleep(for: .milliseconds(300))
         // What you had copied comes back.
@@ -66,7 +76,7 @@ enum AppDelivery {
         AXUIElementSetAttributeValue(AXUIElementCreateApplication(pid), "AXManualAccessibility" as CFString, kCFBooleanTrue)
     }
 
-    /// Whether the app's focus is in a text box (its message box).
+    /// Whether the app's focus is in its message box.
     static func typingIntoText(_ pid: pid_t) -> Bool {
         let app = AXUIElementCreateApplication(pid)
         var focused: CFTypeRef?
@@ -76,10 +86,15 @@ enum AppDelivery {
         let element = focused as! AXUIElement
         var role: CFTypeRef?
         AXUIElementCopyAttributeValue(element, kAXRoleAttribute as CFString, &role)
-        if let role = role as? String, ["AXTextArea", "AXTextField", "AXComboBox", "AXSearchField"].contains(role) { return true }
-        // A page's editable block (contenteditable) says so in its own attribute.
-        var settable: DarwinBoolean = false
-        return AXUIElementIsAttributeSettable(element, kAXValueAttribute as CFString, &settable) == .success && settable.boolValue
+        // The message box is a multi-line text area (a search or a title field is a
+        // one-line text field): only there.
+        return role as? String == "AXTextArea"
+    }
+
+    /// Still in front with its message box focused: each paste and Enter goes out to
+    /// whatever has the focus, so it's checked again before every one.
+    private static func stillThere(_ pid: pid_t) -> Bool {
+        NSWorkspace.shared.frontmostApplication?.processIdentifier == pid && typingIntoText(pid)
     }
 
     private static func savedItems(_ pasteboard: NSPasteboard) -> [NSPasteboardItem] {

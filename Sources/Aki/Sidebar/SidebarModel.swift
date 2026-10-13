@@ -879,8 +879,10 @@ final class SidebarModel {
             delivery[terminal.id] = result == .sent ? .sent : .failed
             if result == .sent { await markDelivered(waiting, for: terminal) }
             // An app can't close them with `aki done`: once pasted there, they're done.
+            // Only those still this app's (one moved elsewhere meanwhile waits for its new one).
             if result == .sent, DesktopApps.bundleID(of: terminal.id) != nil {
-                for id in waiting { _ = try? await store.update(id, with: ["status": "completed"]) }
+                let still = Set(await pendingMarks(of: terminal).map(\.id))
+                for id in waiting where still.contains(id) { _ = try? await store.update(id, with: ["status": "completed"]) }
                 await refresh()
             }
             try? await Task.sleep(for: .seconds(3))
