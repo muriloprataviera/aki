@@ -87,9 +87,9 @@ enum AppDelivery {
             // A box that doesn't tell its text: taken as sent at the first Enter.
             if isEmpty(box) ?? true { return .sent }
         }
-        // Still unsent after all that: it's all in the box, one Enter away; sending it
-        // again would paste it all twice, so it counts as delivered.
-        return .sent
+        // Still unsent after all that: it's all in the box, one Enter away. Not pasted
+        // again (it would be there twice), and the marks stay open until it goes.
+        return .pasted
     }
 
     /// Electron apps tell Accessibility what's inside them only once asked to.

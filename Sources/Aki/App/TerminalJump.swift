@@ -204,7 +204,9 @@ enum TerminalJump {
             + " Se não forem para esta sessão, avise antes de mexer."
     }
 
-    enum Delivery { case sent, failed }
+    /// `pasted`: in an app's message box but not sent yet (pictures still uploading):
+    /// not typed again, and not counted as done.
+    enum Delivery { case sent, pasted, failed }
 
     /// Types the prompt (plus Enter) into the session's Orca tab. When you already
     /// have something written in its input box, Aki's text goes after a blank line,
