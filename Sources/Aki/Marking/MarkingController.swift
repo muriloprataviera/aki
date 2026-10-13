@@ -589,9 +589,9 @@ final class MarkingController {
         // The marks of this send, fixed now: one made while it waits isn't part of it.
         let batch = Set(session.marks.map(\.id))
         Task {
-            // Each mark's own picture (live screen) first: a send right after a mark
-            // waits a moment for it, up to 1.5 s.
-            for _ in 0..<30 where session.capturing > 0 { try? await Task.sleep(for: .milliseconds(50)) }
+            // Each mark's own picture (live screen) and page first (a browser gives up
+            // after a second): a send right after a mark waits for them, up to 3 s.
+            for _ in 0..<60 where session.capturing > 0 { try? await Task.sleep(for: .milliseconds(50)) }
             let snapshot = session.marks.filter { batch.contains($0.id) }
             let (sentTo, failed) = await session.save(snapshot, into: model.store)
             session.sending = false

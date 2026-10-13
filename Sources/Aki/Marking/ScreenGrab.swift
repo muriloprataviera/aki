@@ -186,7 +186,8 @@ struct MarkContext {
         }
         // Not allowed yet: the Mac would ask now, under the marking overlay (see `Automation`).
         guard let bundleID, Automation.allows(bundleID) else { return nil }
-        // On the one thread Aki's AppleScript runs on (two at once can hang).
-        return ScriptThread.shared.run(script)
+        // On the one thread Aki's AppleScript runs on (two at once can hang), giving up
+        // after a second: a send waits for it.
+        return ScriptThread.shared.run("with timeout of 1 second\n\(script)\nend timeout")
     }
 }
