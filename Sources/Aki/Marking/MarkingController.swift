@@ -202,11 +202,14 @@ final class MarkingController {
     /// on screen, the screens frozen as they were just before (marks can go on it too).
     private func keepWhatCloses(_ session: MarkingSession, before: [ScreenGrab]) {
         let pid = session.context.pid
+        // Scrolled meanwhile (the screens captured anew): `before` is out of date.
+        let generation = session.generation
         Task { [weak self, weak session] in
             try? await Task.sleep(for: .milliseconds(300))
             guard let self, let session, self.session === session, session.live, !session.scrolling,
+                  session.generation == generation,
                   let closed = await self.closedRegions(since: before, pid: pid), !closed.isEmpty,
-                  self.session === session, session.live, !session.scrolling
+                  self.session === session, session.live, !session.scrolling, session.generation == generation
             else { return }
             session.freeze(before, closed: closed)
             for (index, grab) in before.enumerated() {
