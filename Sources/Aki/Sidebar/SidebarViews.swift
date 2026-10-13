@@ -860,7 +860,8 @@ struct RingCell: View {
             }
             .frame(width: SidebarLayout.ring * scale, height: SidebarLayout.ring * scale)
         case .usage(let limits):
-            UsageRing(limits: limits, scale: scale, metric: model.preferences.usageRing == .none ? .week : model.preferences.usageRing)
+            UsageRing(limits: limits, scale: scale, metric: model.preferences.usageRing == .none ? .week : model.preferences.usageRing,
+                      active: model.terminals.contains { $0.agent == limits.agent && $0.state == .working })
         }
     }
 }
@@ -892,6 +893,8 @@ struct UsageRing: View {
     }
 
     var metric: UsageMetric = .week
+    /// A session of this AI is working: its symbol turns, like the agent's own spinner.
+    var active = false
 
     var body: some View {
         let shown = Self.value(metric, of: limits) ?? 0
@@ -904,8 +907,12 @@ struct UsageRing: View {
                 .stroke(Self.tint(shown), style: StrokeStyle(lineWidth: SidebarLayout.progressStroke * scale, lineCap: .round))
                 .rotationEffect(.degrees(-90))
                 .animation(.easeOut(duration: 0.4), value: percent)
-            AgentGlyphView(agent: limits.agent, size: SidebarLayout.glyph * scale * 0.85)
-                .foregroundStyle(AkiPalette.fg.opacity(0.85))
+            // One turn in ~4 s while in use; still otherwise.
+            TimelineView(.animation(paused: !active)) { context in
+                AgentGlyphView(agent: limits.agent, size: SidebarLayout.glyph * scale * 0.85)
+                    .foregroundStyle(AkiPalette.fg.opacity(active ? 1 : 0.85))
+                    .rotationEffect(.degrees(active ? context.date.timeIntervalSinceReferenceDate.truncatingRemainder(dividingBy: 4) * 90 : 0))
+            }
         }
         .frame(width: SidebarLayout.ring * scale, height: SidebarLayout.ring * scale)
     }
