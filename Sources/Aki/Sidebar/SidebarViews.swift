@@ -109,7 +109,12 @@ struct SidebarRoot: View {
             ((layout.cellAlongCenter(g.first) + layout.cellAlongCenter(g.last)) / 2,
              natural(model.projectLabel(g.key)))
         }
-        // Push right where two would overlap…
+        // The first name starts after the projects eye (it sits before the first ring)…
+        if let first = spots.first {
+            let minCenter = layout.cellAlongCenter(0) - 28 * layout.scale + gap + first.width / 2
+            if first.center < minCenter { spots[0].center = minCenter }
+        }
+        // …push right where two would overlap…
         for i in spots.indices.dropFirst() {
             let minCenter = spots[i - 1].center + spots[i - 1].width / 2 + gap + spots[i].width / 2
             if spots[i].center < minCenter { spots[i].center = minCenter }
@@ -131,6 +136,13 @@ struct SidebarRoot: View {
                     spots[i].center -= room / 2
                 }
             }
+        }
+        // Squeezed back left, the first one narrows instead of covering the eye.
+        let eyeLimit = layout.cellAlongCenter(0) - 28 * layout.scale + gap
+        if let first = spots.first, first.center - first.width / 2 < eyeLimit {
+            let right = first.center + first.width / 2
+            spots[0].width = max(right - eyeLimit, 0)
+            spots[0].center = eyeLimit + spots[0].width / 2
         }
         return spots
     }
