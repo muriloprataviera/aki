@@ -136,58 +136,85 @@ final class MarkingController {
     /// look tells. Nothing closed: the screen goes live. Something did: the first picture
     /// stays, frozen, and what changed is found on it. Small changes (a caret) don't count.
     private func watchForClosedMenus(_ session: MarkingSession, first: [ScreenGrab]) {
-        // The front window's title bar and toolbar change look when Aki comes forward:
-        // never a menu that closed.
         let pid = session.context.pid
-        let windows = CGWindowListCopyWindowInfo([.optionOnScreenOnly, .excludeDesktopElements], kCGNullWindowID) as? [[String: Any]] ?? []
-        let front = windows.first { ($0[kCGWindowOwnerPID as String] as? Int32) == pid && ($0[kCGWindowLayer as String] as? Int) == 0 }
-            .flatMap { ($0[kCGWindowBounds as String] as? NSDictionary).flatMap { CGRect(dictionaryRepresentation: $0) } }
-        let toolbar = front.map { CGRect(x: $0.minX, y: $0.minY, width: $0.width, height: 96) }
         Task { [weak session] in
             try? await Task.sleep(for: .milliseconds(350))
             guard let session else { return }
             // Scrolled already: the page moved on, the first picture no longer matters.
             if session.scrolling { session.live = true; return }
-            // The overlay's own windows left out (they exist by now): it shows the first
-            // picture, which would hide what closed, and its outline would count as change.
-            guard let now = await ScreenGrab.captureAll(excluding: overlayIDs), now.count == first.count else {
+            guard let changed = await closedRegions(since: first, pid: pid) else {
                 session.live = true
                 return
             }
-            let primary = NSScreen.screens.first?.frame.height ?? 0
-            var changed: [CGRect] = []
-            for (a, b) in zip(first, now) {
-                let f = a.screen.frame
-                for rect in ScreenGrab.changedRegions(a.image, b.image) {
-                    let global = CGRect(x: f.minX + rect.minX * f.width, y: primary - f.maxY + rect.minY * f.height,
-                                        width: rect.width * f.width, height: rect.height * f.height)
-                    if let toolbar, toolbar.insetBy(dx: -4, dy: -4).contains(global) { continue }
-                    changed.append(global)
-                }
-            }
-            // Still changing a moment later: a video or an animation, not a menu that closed.
-            if !changed.isEmpty {
-                try? await Task.sleep(for: .milliseconds(180))
-                if let later = await ScreenGrab.captureAll(excluding: overlayIDs), later.count == now.count {
-                    var moving: [CGRect] = []
-                    for (b, c) in zip(now, later) {
-                        let f = b.screen.frame
-                        for rect in ScreenGrab.changedRegions(b.image, c.image) {
-                            moving.append(CGRect(x: f.minX + rect.minX * f.width, y: primary - f.maxY + rect.minY * f.height,
-                                                 width: rect.width * f.width, height: rect.height * f.height))
-                        }
-                    }
-                    // Only what is itself still moving (about the same patch): a menu that
-                    // closed over a video is bigger than the video's own change, and stays.
-                    changed.removeAll { region in
-                        moving.contains { m in
-                            let both = m.intersection(region), all = m.union(region)
-                            return !both.isNull && both.width * both.height >= all.width * all.height * 0.6
-                        }
-                    }
-                }
-            }
             if changed.isEmpty { session.live = true } else { session.menus += changed }
+        }
+    }
+
+    /// What closed since `first` was taken (global top-left points), nil when the screens
+    /// can't be captured again. Small changes (a caret) and what keeps moving don't count.
+    private func closedRegions(since first: [ScreenGrab], pid: pid_t?) async -> [CGRect]? {
+        // The front window's title bar and toolbar change look when Aki comes forward:
+        // never a menu that closed.
+        let windows = CGWindowListCopyWindowInfo([.optionOnScreenOnly, .excludeDesktopElements], kCGNullWindowID) as? [[String: Any]] ?? []
+        let front = windows.first { ($0[kCGWindowOwnerPID as String] as? Int32) == pid && ($0[kCGWindowLayer as String] as? Int) == 0 }
+            .flatMap { ($0[kCGWindowBounds as String] as? NSDictionary).flatMap { CGRect(dictionaryRepresentation: $0) } }
+        let toolbar = front.map { CGRect(x: $0.minX, y: $0.minY, width: $0.width, height: 96) }
+        // The overlay's own windows left out (they exist by now): it may show the first
+        // picture, which would hide what closed, and its outline would count as change.
+        guard let now = await ScreenGrab.captureAll(excluding: overlayIDs), now.count == first.count else { return nil }
+        let primary = NSScreen.screens.first?.frame.height ?? 0
+        var changed: [CGRect] = []
+        for (a, b) in zip(first, now) {
+            let f = a.screen.frame
+            for rect in ScreenGrab.changedRegions(a.image, b.image) {
+                let global = CGRect(x: f.minX + rect.minX * f.width, y: primary - f.maxY + rect.minY * f.height,
+                                    width: rect.width * f.width, height: rect.height * f.height)
+                if let toolbar, toolbar.insetBy(dx: -4, dy: -4).contains(global) { continue }
+                changed.append(global)
+            }
+        }
+        // Still changing a moment later: a video or an animation, not a menu that closed.
+        if !changed.isEmpty {
+            try? await Task.sleep(for: .milliseconds(180))
+            if let later = await ScreenGrab.captureAll(excluding: overlayIDs), later.count == now.count {
+                var moving: [CGRect] = []
+                for (b, c) in zip(now, later) {
+                    let f = b.screen.frame
+                    for rect in ScreenGrab.changedRegions(b.image, c.image) {
+                        moving.append(CGRect(x: f.minX + rect.minX * f.width, y: primary - f.maxY + rect.minY * f.height,
+                                             width: rect.width * f.width, height: rect.height * f.height))
+                    }
+                }
+                // Only what is itself still moving (about the same patch): a menu that
+                // closed over a video is bigger than the video's own change, and stays.
+                changed.removeAll { region in
+                    moving.contains { m in
+                        let both = m.intersection(region), all = m.union(region)
+                        return !both.isNull && both.width * both.height >= all.width * all.height * 0.6
+                    }
+                }
+            }
+        }
+        return changed
+    }
+
+    /// Aki just took the keyboard: what closed in the app below (a page's menu) stays
+    /// on screen, the screens frozen as they were just before (marks can go on it too).
+    private func keepWhatCloses(_ session: MarkingSession, before: [ScreenGrab]) {
+        let pid = session.context.pid
+        Task { [weak self, weak session] in
+            try? await Task.sleep(for: .milliseconds(300))
+            guard let self, let session, self.session === session, session.live, !session.scrolling,
+                  let closed = await self.closedRegions(since: before, pid: pid), !closed.isEmpty,
+                  self.session === session, session.live, !session.scrolling
+            else { return }
+            session.freeze(before, closed: closed)
+            for (index, grab) in before.enumerated() {
+                Task { [weak session] in
+                    let text = await ScreenText.read(grab)
+                    session?.texts[index] = text
+                }
+            }
         }
     }
 
@@ -295,10 +322,17 @@ final class MarkingController {
                     defer { self.takingFocus = false }
                     for _ in 0..<16 where (session?.capturing ?? 0) > 0 { try? await Task.sleep(for: .milliseconds(50)) }
                     guard self.session != nil, index < self.panels.count else { return }
+                    // A page's menu closes as its app loses the focus, and on a live screen
+                    // it would be gone from under the mark: the screens as they are now,
+                    // to keep if something closes.
+                    let before = session?.live == true && !NSApp.isActive
+                        ? await ScreenGrab.captureAll(excluding: self.overlayIDs) : nil
+                    guard self.session != nil, index < self.panels.count else { return }
                     self.panels.forEach { $0.acceptsKeyboard = true }
                     self.panels[index].makeKeyAndOrderFront(nil)
                     NSApp.activate(ignoringOtherApps: true)
                     self.panels[index].makeKey()
+                    if let before, let session { self.keepWhatCloses(session, before: before) }
                 }
             }
             for (index, grab) in grabs.enumerated() {

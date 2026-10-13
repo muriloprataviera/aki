@@ -12,6 +12,7 @@ What changed in each version of Aki. Versions follow [semantic versioning](https
 ### Fixed
 - Marking a page on localhost picks the session serving that port (or named with it, like "3000 …") even right after you were in another session's tab.
 - A long first project name no longer covers the eye that shows or hides the projects.
+- Marking a page's own menu (an account dropdown, for example): it closed as you clicked to write the comment and the mark was left over nothing; now the screen keeps it, and you can go on marking its items.
 
 ### Added
 - While marking, the chosen session shows the start of what its agent wrote last (and the pointer on any other session shows its own), so you can tell it's the right one without switching to it.

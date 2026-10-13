@@ -387,6 +387,16 @@ final class MarkingSession {
         lastProbe = .zero
     }
 
+    /// Something closed as Aki took the keyboard (a page's menu): the screens as they
+    /// were just before stay, frozen, and what closed is found on that picture. The
+    /// marks stay drawn (same picture they were made on).
+    func freeze(_ pictures: [ScreenGrab], closed: [CGRect]) {
+        guard pictures.count == grabs.count else { return }
+        grabs = pictures
+        menus += closed
+        live = false
+    }
+
     /// Arrow keys on a web page: container, first child, sibling before / after.
     func step(_ step: BrowserProbe.Step) {
         // Still putting the page's pick back (an undone ⇧ arrow): wait for it.
