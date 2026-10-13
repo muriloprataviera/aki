@@ -3,6 +3,35 @@
     <channel>
         <title>Aki</title>
         <item>
+            <title>0.6.3-beta.12</title>
+            <pubDate>Tue, 13 Oct 2026 17:10:45 -0300</pubDate>
+            <sparkle:channel>beta</sparkle:channel>
+            <sparkle:version>20261013201044</sparkle:version>
+            <sparkle:shortVersionString>0.6.3-beta.12</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
+            <description><![CDATA[<h2>Aki 0.6.3-beta.12</h2>
+<h3>Fixed</h3><ul>
+<li>Marking a page on localhost picks the session serving that port (or named with it, like "3000 …") even right after you were in another session's tab.</li>
+<li>A long first project name no longer covers the eye that shows or hides the projects.</li>
+<li>A Codex session now shows it's working (turning arc, turning symbol on its limits ring) the whole time it's thinking, not only in the moments it used the processor.</li>
+<li>Marking a page's own menu (an account dropdown, for example): it closed as you clicked to write the comment; now the screen keeps it, and you can go on marking its items.</li>
+</ul>
+<h3>New</h3><ul>
+<li>A session in Orca shows the name you gave its tab there (like "ENVIO CNPJ"), not only the title the agent set.</li>
+<li>The Claude and Codex limits rings show when they're in use: the AI's symbol turns slowly while one of its sessions is working.</li>
+<li>A working session's turning arc is in its AI's colour (Claude's orange, Codex's green), and so is the turning symbol on the limits ring.</li>
+<li>While marking, the chosen session shows the start of what its agent wrote last (and the pointer on any other session shows its own), so you can tell it's the right one without switching to it.</li>
+<li>Right-click a limits ring to choose what it shows (week, today's share or the 5-hour session), the line under it, and to hide that AI's ring; the sidebar menu brings it back.</li>
+</ul>
+<h3>Changed</h3><ul>
+<li>Sessions untouched for more than a day (it was two) move into the "+N" ring, also when they are waiting for you or have a shell open; they come back as soon as they move.</li>
+<li>The "+N" ring is a quiet dashed outline with the count, so it no longer looks like a session's ring. Its card lists the sessions you hid apart, under their own title.</li>
+</ul>
+]]></description>
+            <enclosure url="https://aki-updates.vercel.app/0.6.3-beta.12/Aki-0.6.3-beta.12.zip" length="3760373" type="application/octet-stream" sparkle:edSignature="oekgFnc3eiGQZFQkvDAX6TU1P6RUsby3fXSsNQGc8t4dbv4uq8vxZStFLbqby1AdB+IraYU6jHOd0k06iwayAw=="/>
+        </item>
+        <item>
             <title>0.6.3-beta.11</title>
             <pubDate>Tue, 13 Oct 2026 16:55:01 -0300</pubDate>
             <sparkle:channel>beta</sparkle:channel>
@@ -56,32 +85,6 @@
 </ul>
 ]]></description>
             <enclosure url="https://aki-updates.vercel.app/0.6.3-beta.10/Aki-0.6.3-beta.10.zip" length="3749735" type="application/octet-stream" sparkle:edSignature="XAZXIiqPJxt5xLlcro3H8Ts6lY7jUsvivUFVS2SZoA6sFYPzbgrtFdLvYQrhq36/bWZz+rGB2i5vPePl362RBg=="/>
-        </item>
-        <item>
-            <title>0.6.3-beta.9</title>
-            <pubDate>Tue, 13 Oct 2026 12:31:28 -0300</pubDate>
-            <sparkle:channel>beta</sparkle:channel>
-            <sparkle:version>20261013153127</sparkle:version>
-            <sparkle:shortVersionString>0.6.3-beta.9</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
-            <description><![CDATA[<h2>Aki 0.6.3-beta.9</h2>
-<h3>Fixed</h3><ul>
-<li>Marking a page on localhost picks the session serving that port (or named with it, like "3000 …") even right after you were in another session's tab.</li>
-<li>A long first project name no longer covers the eye that shows or hides the projects.</li>
-</ul>
-<h3>New</h3><ul>
-<li>The Claude and Codex limits rings show when they're in use: the AI's symbol turns slowly while one of its sessions is working.</li>
-<li>A working session's turning arc is in its AI's colour (Claude's orange, Codex's green), and so is the turning symbol on the limits ring.</li>
-<li>While marking, the chosen session shows the start of what its agent wrote last (and the pointer on any other session shows its own), so you can tell it's the right one without switching to it.</li>
-<li>Right-click a limits ring to choose what it shows (week, today's share or the 5-hour session), the line under it, and to hide that AI's ring; the sidebar menu brings it back.</li>
-</ul>
-<h3>Changed</h3><ul>
-<li>Sessions untouched for more than a day (it was two) move into the "+N" ring, also when they are waiting for you or have a shell open; they come back as soon as they move.</li>
-<li>The "+N" ring is a quiet dashed outline with the count, so it no longer looks like a session's ring. Its card lists the sessions you hid apart, under their own title.</li>
-</ul>
-]]></description>
-            <enclosure url="https://aki-updates.vercel.app/0.6.3-beta.9/Aki-0.6.3-beta.9.zip" length="3748915" type="application/octet-stream" sparkle:edSignature="iMAQjNpwR3Wxh/ovEGsvmlf4TAbET4oO5HxjXmFOfnO7PAjumv6MwKzndNU641bGuKFi3168hIVu58frndcuBQ=="/>
         </item>
         <item>
             <title>0.6.2</title>
