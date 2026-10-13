@@ -125,18 +125,18 @@ enum TerminalJump {
         let customTitles = orcaCustomTitles()
         return terminals.map { terminal in
             guard let handle = terminal.orcaHandle,
-                  let tab = tabs.first(where: { ($0["handle"] as? String) == handle && ($0["worktreePath"] as? String) == terminal.worktree }),
-                  let title = tab["title"] as? String,
-                  !title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                  let tab = tabs.first(where: { ($0["handle"] as? String) == handle && ($0["worktreePath"] as? String) == terminal.worktree })
             else { return terminal }
             var named = terminal
-            // Without the status sign Claude Code puts in front (✳ resting, a spinner
-            // working): a copy of it would sit frozen; the ring shows the state live.
-            let bare = tabNameWithoutStatus(title)
             // The name you gave the tab in Orca ("ENVIO CNPJ") wins over the title the agent set.
             if let tabID = tab["tabId"] as? String, let custom = customTitles[tabID] {
                 named.name = custom
             } else {
+                guard let title = tab["title"] as? String, !title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                else { return terminal }
+                // Without the status sign Claude Code puts in front (✳ resting, a spinner
+                // working): a copy of it would sit frozen; the ring shows the state live.
+                let bare = tabNameWithoutStatus(title)
                 named.name = bare.isEmpty ? title.trimmingCharacters(in: .whitespacesAndNewlines) : bare
             }
             named.named = true
