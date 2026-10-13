@@ -5,17 +5,18 @@ import Foundation
 /// `task_complete` (or `turn_aborted`): the time Codex is thinking, which barely shows
 /// in its CPU (it waits on the model).
 public enum CodexSessions {
-    /// The log each Codex process has open (its own conversation, resumed ones too).
-    public static func openLogs(of pids: [Int32]) -> [Int32: URL] {
+    /// The logs each Codex process has open: its own conversation (resumed ones too)
+    /// and its subagents', each with its own.
+    public static func openLogs(of pids: [Int32]) -> [Int32: [URL]] {
         guard !pids.isEmpty else { return [:] }
-        var result: [Int32: URL] = [:]
+        var result: [Int32: [URL]] = [:]
         var pid: Int32?
         let list = pids.map(String.init).joined(separator: ",")
         for line in AgentSessions.run("/usr/sbin/lsof", ["-a", "-nP", "-p", list, "-Fpn"]).split(separator: "\n") {
             if line.hasPrefix("p") {
                 pid = Int32(line.dropFirst())
             } else if line.hasPrefix("n"), let pid, line.hasSuffix(".jsonl"), line.contains("/rollout-") {
-                result[pid] = URL(filePath: String(line.dropFirst()))
+                result[pid, default: []].append(URL(filePath: String(line.dropFirst())))
             }
         }
         return result

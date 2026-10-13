@@ -338,6 +338,7 @@ extension AgentSessions {
             return nil
         }
         let cwds = workingDirectories(of: others.map(\.0.pid))
+        // Any of its logs mid-turn (the conversation, or a subagent working for it).
         let codexLogs = CodexSessions.openLogs(of: others.filter { $0.1 == .codex }.map(\.0.pid))
         for (process, agent) in others {
             guard let cwd = cwds[process.pid], cwd != "/" else { continue }
@@ -346,7 +347,7 @@ extension AgentSessions {
             let mine = marks(for: id, worktree: worktree)
             result.append(AgentTerminal(
                 id: id, agent: agent, pid: process.pid, name: URL(filePath: worktree).lastPathComponent, named: false,
-                worktree: worktree, branch: branchOf(worktree), state: process.cpu >= 8 || codexLogs[process.pid].map({ CodexSessions.working(log: $0) }) == true ? .working : .idle,
+                worktree: worktree, branch: branchOf(worktree), state: process.cpu >= 8 || (codexLogs[process.pid] ?? []).contains(where: { CodexSessions.working(log: $0) }) ? .working : .idle,
                 lastMessage: nil, pending: mine.count, pendingComments: comments(mine), pendingIDs: ids(mine), pendingPlaces: places(mine), updatedAt: nil,
                 pendingImages: images(mine), undelivered: unsent(mine), orcaHandle: terminalHandle(of: process.pid)))
         }

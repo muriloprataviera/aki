@@ -53,7 +53,7 @@ public enum DesktopApps {
             .filter { descends($0.pid, from: pid) }.map(\.pid)
         guard !servers.isEmpty else { return false }
         let logs = CodexSessions.openLogs(of: servers)
-        return logs.values.contains { CodexSessions.working(log: $0) }
+        return logs.values.joined().contains { CodexSessions.working(log: $0) }
     }
 
     private static func descends(_ pid: Int32, from ancestor: Int32) -> Bool {
