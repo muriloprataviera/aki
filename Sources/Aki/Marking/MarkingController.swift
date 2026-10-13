@@ -228,6 +228,8 @@ final class MarkingController {
     func start() {
         // Aki is restarting on a new version: marks made now would be lost.
         guard !isActive, !starting, !sendingQueue, !Updates.shared.restarting else { return }
+        // The Mac is asking whether Aki may control the browser: the overlay would cover its Allow.
+        guard !Automation.asking else { NSSound.beep(); return }
         // Only the week's limits: marking is off, from every way in (menu, sidebar, aki://mark).
         guard Preferences.shared.showSessions else { return }
         starting = true

@@ -51,22 +51,24 @@ enum TerminalJump {
         return tabs
     }
 
-    nonisolated(unsafe) private static var cachedCustom: (stamp: Int64, titles: [String: String])?
+    nonisolated(unsafe) private static var cachedCustom: [String: (stamp: Int64, titles: [String: String])] = [:]
 
     /// The names you gave tabs in Orca (its tab's "rename"), by tab id. Orca's CLI only
     /// tells the title the agent set, so they're read from Orca's own state, read-only,
-    /// and parsed again only when Orca saved it again.
+    /// and parsed again only when Orca saved it again. Every profile's (tab ids don't
+    /// repeat): the one in use isn't told by its file's date (Orca writes a side log first).
     static func orcaCustomTitles() -> [String: String] {
         let profiles = FileManager.default.homeDirectoryForCurrentUser
             .appending(path: "Library/Application Support/Orca/profiles")
-        let dbs = ((try? FileManager.default.contentsOfDirectory(at: profiles, includingPropertiesForKeys: [.contentModificationDateKey])) ?? [])
+        let dbs = ((try? FileManager.default.contentsOfDirectory(at: profiles, includingPropertiesForKeys: nil)) ?? [])
             .map { $0.appending(path: "profile-state.db") }
             .filter { FileManager.default.fileExists(atPath: $0.path) }
-        guard let file = dbs.max(by: {
-            let a = (try? $0.resourceValues(forKeys: [.contentModificationDateKey]).contentModificationDate) ?? .distantPast
-            let b = (try? $1.resourceValues(forKeys: [.contentModificationDateKey]).contentModificationDate) ?? .distantPast
-            return a < b
-        }) else { return [:] }
+        var titles: [String: String] = [:]
+        for file in dbs { titles.merge(customTitles(in: file)) { a, _ in a } }
+        return titles
+    }
+
+    private static func customTitles(in file: URL) -> [String: String] {
         var db: OpaquePointer?
         guard sqlite3_open_v2(file.path, &db, SQLITE_OPEN_READONLY, nil) == SQLITE_OK else { sqlite3_close(db); return [:] }
         defer { sqlite3_close(db) }
@@ -77,7 +79,7 @@ enum TerminalJump {
         defer { sqlite3_finalize(statement) }
         guard sqlite3_step(statement) == SQLITE_ROW else { return [:] }
         let stamp = sqlite3_column_int64(statement, 0)
-        if let cached = cacheLock.withLock({ cachedCustom }), cached.stamp == stamp { return cached.titles }
+        if let cached = cacheLock.withLock({ cachedCustom[file.path] }), cached.stamp == stamp { return cached.titles }
         guard let bytes = sqlite3_column_blob(statement, 1) else { return [:] }
         let data = Data(bytes: bytes, count: Int(sqlite3_column_bytes(statement, 1)))
         var titles: [String: String] = [:]
@@ -92,7 +94,7 @@ enum TerminalJump {
                 }
             }
         }
-        cacheLock.withLock { cachedCustom = (stamp, titles) }
+        cacheLock.withLock { cachedCustom[file.path] = (stamp, titles) }
         return titles
     }
 

@@ -460,6 +460,7 @@ enum Automation {
             return pending
         }
         guard !pending.isEmpty else { return }
+        lock.withLock { askingNow = true }
         DispatchQueue.global(qos: .userInitiated).async {
             for bundle in pending where check(bundle, ask: true) == noErr {
                 lock.withLock {
@@ -467,7 +468,14 @@ enum Automation {
                     refused[bundle] = nil
                 }
             }
+            lock.withLock { askingNow = false }
         }
+    }
+
+    nonisolated(unsafe) private static var askingNow = false
+    /// The Mac's question is on screen: marking waits (it would cover it again).
+    static var asking: Bool {
+        get { lock.withLock { askingNow } }
     }
 
     private static func check(_ bundle: String, ask: Bool) -> OSStatus {
