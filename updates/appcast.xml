@@ -3,6 +3,31 @@
     <channel>
         <title>Aki</title>
         <item>
+            <title>0.6.3-beta.8</title>
+            <pubDate>Tue, 13 Oct 2026 12:15:49 -0300</pubDate>
+            <sparkle:channel>beta</sparkle:channel>
+            <sparkle:version>20261013151547</sparkle:version>
+            <sparkle:shortVersionString>0.6.3-beta.8</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
+            <description><![CDATA[<h2>Aki 0.6.3-beta.8</h2>
+<h3>Fixed</h3><ul>
+<li>Marking a page on localhost picks the session serving that port (or named with it, like "3000 …") even right after you were in another session's tab.</li>
+<li>A long first project name no longer covers the eye that shows or hides the projects.</li>
+</ul>
+<h3>New</h3><ul>
+<li>The Claude and Codex limits rings show when they're in use: the AI's symbol turns slowly while one of its sessions is working.</li>
+<li>While marking, the chosen session shows the start of what its agent wrote last (and the pointer on any other session shows its own), so you can tell it's the right one without switching to it.</li>
+<li>Right-click a limits ring to choose what it shows (week, today's share or the 5-hour session), the line under it, and to hide that AI's ring; the sidebar menu brings it back.</li>
+</ul>
+<h3>Changed</h3><ul>
+<li>Sessions untouched for more than a day (it was two) move into the "+N" ring, also when they are waiting for you or have a shell open; they come back as soon as they move.</li>
+<li>The "+N" ring is a quiet dashed outline with the count, so it no longer looks like a session's ring. Its card lists the sessions you hid apart, under their own title.</li>
+</ul>
+]]></description>
+            <enclosure url="https://aki-updates.vercel.app/0.6.3-beta.8/Aki-0.6.3-beta.8.zip" length="3747675" type="application/octet-stream" sparkle:edSignature="mob+QDKkuScAraBUWwND+mrWEPB7YLs/vJ2Iw6GftbC83DjUSiStuNrFqF5HZQxC7tiywVYUblYK0YNEdz+eBA=="/>
+        </item>
+        <item>
             <title>0.6.3-beta.7</title>
             <pubDate>Tue, 13 Oct 2026 12:02:41 -0300</pubDate>
             <sparkle:channel>beta</sparkle:channel>
@@ -48,26 +73,6 @@
 </ul>
 ]]></description>
             <enclosure url="https://aki-updates.vercel.app/0.6.3-beta.6/Aki-0.6.3-beta.6.zip" length="3745427" type="application/octet-stream" sparkle:edSignature="Ch5HIcQ4VYI6qdlEaEVLM0a7IL86fYwzFa2g0asdVjQF2ezIEC88xdzt72iyfTaH6T8Pg67BGKszCm/EQmfeDg=="/>
-        </item>
-        <item>
-            <title>0.6.3-beta.5</title>
-            <pubDate>Mon, 12 Oct 2026 16:20:16 -0300</pubDate>
-            <sparkle:channel>beta</sparkle:channel>
-            <sparkle:version>20261012192016</sparkle:version>
-            <sparkle:shortVersionString>0.6.3-beta.5</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
-            <description><![CDATA[<h2>Aki 0.6.3-beta.5</h2>
-<h3>New</h3><ul>
-<li>While marking, the chosen session shows the start of what its agent wrote last (and the pointer on any other session shows its own), so you can tell it's the right one without switching to it.</li>
-<li>Right-click a limits ring to choose what it shows (week, today's share or the 5-hour session), the line under it, and to hide that AI's ring; the sidebar menu brings it back.</li>
-</ul>
-<h3>Changed</h3><ul>
-<li>Sessions untouched for more than a day (it was two) move into the "+N" ring, also when they are waiting for you or have a shell open; they come back as soon as they move.</li>
-<li>The "+N" ring is a quiet dashed outline with the count, so it no longer looks like a session's ring. Its card lists the sessions you hid apart, under their own title.</li>
-</ul>
-]]></description>
-            <enclosure url="https://aki-updates.vercel.app/0.6.3-beta.5/Aki-0.6.3-beta.5.zip" length="3744558" type="application/octet-stream" sparkle:edSignature="nDw8g8/M0Ha+YFsew4msuLF3sWYyeZAoWF1FXi7GwGAqYsjQYau8pWniQEsKGGsvSAn8H4Vz8qnFYwStY0ZUDQ=="/>
         </item>
         <item>
             <title>0.6.2</title>
