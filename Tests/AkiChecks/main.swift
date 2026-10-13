@@ -351,6 +351,12 @@ check(Screenshots.trash(oldOnes).count == 1 && !FileManager.default.fileExists(a
 for item in oldOnes { try? FileManager.default.removeItem(at: FileManager.default.homeDirectoryForCurrentUser.appending(path: ".Trash/\(item.url.lastPathComponent)")) }
 try? FileManager.default.removeItem(at: shots)
 
+// Codex is working while its log has a turn open.
+check(CodexSessions.turnOpen(#"{"payload":{"type":"task_complete"}}\n{"payload":{"type":"task_started"}}"#), "a turn just started is open")
+check(!CodexSessions.turnOpen(#"{"payload":{"type":"task_started"}}\n{"payload":{"type":"task_complete"}}"#), "a finished turn is closed")
+check(!CodexSessions.turnOpen(#"{"payload":{"type":"task_started"}}\n{"payload":{"type":"turn_aborted"}}"#), "an interrupted turn is closed")
+check(!CodexSessions.turnOpen(#"{"type":"session_meta"}"#), "no turn yet: not working")
+
 print(failures == 0 ? "\nall checks passed" : "\n\(failures) check(s) failed")
 exit(failures == 0 ? 0 : 1)
 

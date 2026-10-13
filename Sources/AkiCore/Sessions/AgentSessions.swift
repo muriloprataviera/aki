@@ -344,7 +344,7 @@ extension AgentSessions {
             let mine = marks(for: id, worktree: worktree)
             result.append(AgentTerminal(
                 id: id, agent: agent, pid: process.pid, name: URL(filePath: worktree).lastPathComponent, named: false,
-                worktree: worktree, branch: branchOf(worktree), state: process.cpu >= 8 ? .working : .idle,
+                worktree: worktree, branch: branchOf(worktree), state: process.cpu >= 8 || (agent == .codex && CodexSessions.working(pid: process.pid, cwd: cwd)) ? .working : .idle,
                 lastMessage: nil, pending: mine.count, pendingComments: comments(mine), pendingIDs: ids(mine), pendingPlaces: places(mine), updatedAt: nil,
                 pendingImages: images(mine), undelivered: unsent(mine), orcaHandle: terminalHandle(of: process.pid)))
         }
