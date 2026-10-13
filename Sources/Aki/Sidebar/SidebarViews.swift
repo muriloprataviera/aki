@@ -144,11 +144,20 @@ struct SidebarRoot: View {
             let end = layout.cellAlongCenter(lastGroup.last) + layout.step / 2 + 30 * layout.scale
             let minWidth = 30 * layout.scale
             let gaps = gap * CGFloat(spots.count - 1)
-            let sum = spots.reduce(0) { $0 + $1.width }
-            let factor = min(1, max(end - eyeLimit - gaps, 0) / max(sum, 1))
+            // Those that reach the minimum keep it; the rest share what's left.
+            let room = max(end - eyeLimit - gaps, 0)
+            var atMin = Set<Int>()
+            var factor: CGFloat = 1
+            for _ in spots.indices {
+                let free = spots.indices.filter { !atMin.contains($0) }.reduce(0) { $0 + spots[$1].width }
+                factor = min(1, max(room - CGFloat(atMin.count) * minWidth, 0) / max(free, 1))
+                let more = Set(spots.indices.filter { !atMin.contains($0) && spots[$0].width * factor < minWidth })
+                if more.isEmpty { break }
+                atMin.formUnion(more)
+            }
             var x = eyeLimit
             for i in spots.indices {
-                spots[i].width = max(minWidth, spots[i].width * factor)
+                spots[i].width = atMin.contains(i) ? minWidth : spots[i].width * factor
                 spots[i].center = x + spots[i].width / 2
                 x += spots[i].width + gap
             }
