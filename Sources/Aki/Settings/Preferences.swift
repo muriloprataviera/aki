@@ -266,7 +266,7 @@ enum UsageMetric: String, CaseIterable, Identifiable {
     var title: String {
         switch self {
         case .week: L10n.t("Week")
-        case .today: L10n.t("Today's share")
+        case .today: L10n.t("Pace")
         case .fiveHour: L10n.t("5-hour session")
         case .none: L10n.t("Just what the ring shows")
         }
@@ -275,7 +275,7 @@ enum UsageMetric: String, CaseIterable, Identifiable {
     var short: String {
         switch self {
         case .week: L10n.t("week").uppercased()
-        case .today: L10n.t("today").uppercased()
+        case .today: L10n.t("pace").uppercased()
         case .fiveHour: "5H"
         case .none: ""
         }
@@ -408,6 +408,8 @@ final class Preferences {
     }
     /// Seconds without new marks before `aki wait` wakes the agent.
     var waitIdleSeconds: Int { didSet { defaults.set(waitIdleSeconds, forKey: Keys.waitIdle) } }
+    /// The wait as shown: 0 is "instant".
+    var waitLabel: String { waitIdleSeconds == 0 ? L10n.t("instant") : "\(waitIdleSeconds) s" }
     /// Types "read Aki's marks" into the session's tab by itself, that many seconds after you send.
     var autoDeliver: Bool { didSet { defaults.set(autoDeliver, forKey: Keys.autoDeliver) } }
     /// Where the sidebar sits along its edge: 0…1 from the start (top or left).

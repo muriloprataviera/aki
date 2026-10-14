@@ -4,6 +4,12 @@ What changed in each version of Aki. Versions follow [semantic versioning](https
 
 ## [Unreleased]
 
+### Added
+- "Wake the agent after" can be set to instant: marks go into the session's tab the moment you send them.
+
+### Changed
+- The line under a limits ring that said "TODAY" is now "PACE": how much you've used against an even week so far. Under 100% is on track, and it only turns orange or red past that.
+
 ## [0.7.1] — 2026-10-13
 
 ### Changed

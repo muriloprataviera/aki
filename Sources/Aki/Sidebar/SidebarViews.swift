@@ -724,11 +724,11 @@ struct RingCell: View {
                 VStack(spacing: 0) {
                     Text(big.map { "\($0)%" } ?? "–")
                         .font(.system(size: (SidebarLayout.labelFont + 1) * scale, weight: .heavy, design: .rounded).monospacedDigit())
-                        .foregroundStyle(UsageRing.tint(big ?? 0, hovered: hovered))
+                        .foregroundStyle(UsageRing.tint(main, big ?? 0))
                     Text(line == .none ? main.short : small.map { "\(line.short) \($0)%" } ?? main.short)
                         .font(.system(size: 7.5 * scale, weight: .bold).monospacedDigit())
                         .tracking(0.4 * scale)
-                        .foregroundStyle(line == .none ? AkiPalette.textSecondary : small.map { UsageRing.tint($0) } ?? AkiPalette.textSecondary)
+                        .foregroundStyle(line == .none ? AkiPalette.textSecondary : small.map { UsageRing.tint(line, $0) } ?? AkiPalette.textSecondary)
                 }
                 .lineLimit(1)
                 .frame(width: (SidebarLayout.ring + 22) * scale, height: SidebarLayout.labelHeight * scale)
@@ -882,6 +882,17 @@ struct UsageRing: View {
         }
     }
 
+    /// The pace is fine up to 100% (on track for an even week), so it gets its own bands.
+    static func tint(_ metric: UsageMetric, _ percent: Int) -> Color {
+        guard metric == .today else { return tint(percent) }
+        switch percent {
+        case ..<90: return tint(0)
+        case ...100: return tint(50)
+        case ...120: return tint(70)
+        default: return tint(100)
+        }
+    }
+
     /// How much of `metric` is used, in percent (today's share can pass 100).
     static func value(_ metric: UsageMetric, of limits: UsageLimits) -> Int? {
         switch metric {
@@ -904,7 +915,7 @@ struct UsageRing: View {
             Circle()
                 .inset(by: SidebarLayout.trackStroke * scale / 2)
                 .trim(from: 0, to: percent)
-                .stroke(Self.tint(shown), style: StrokeStyle(lineWidth: SidebarLayout.progressStroke * scale, lineCap: .round))
+                .stroke(Self.tint(metric, shown), style: StrokeStyle(lineWidth: SidebarLayout.progressStroke * scale, lineCap: .round))
                 .rotationEffect(.degrees(-90))
                 .animation(.easeOut(duration: 0.4), value: percent)
             // One turn in ~4 s while in use; still otherwise.
@@ -959,12 +970,12 @@ struct UsageCard: View {
                 if let week = limits.week, let today = DayShare(week: week) {
                     VStack(alignment: .leading, spacing: 3) {
                         HStack {
-                            Text(L10n.t("Today's share")).font(CardType.bodyStrong).foregroundStyle(AkiPalette.textPrimary)
+                            Text(L10n.t("Pace")).font(CardType.bodyStrong).foregroundStyle(AkiPalette.textPrimary)
                             Spacer(minLength: 4)
                             Text(TerminalCard.renews(today.ends)).font(CardType.body).foregroundStyle(secondary)
                         }
-                        LimitBar(fraction: today.used, secondary: secondary)
-                        Text("\(Int((today.used * 100).rounded()))% \(L10n.t("of today's share (a seventh of the week a day)"))")
+                        LimitBar(fraction: today.used, secondary: secondary, metric: .today)
+                        Text("\(Int((today.used * 100).rounded()))% \(L10n.t("of an even week's pace so far (under 100% is on track)"))")
                             .font(CardType.body).foregroundStyle(today.used > 1 ? AkiPalette.red : secondary)
                             .lineLimit(1).minimumScaleFactor(0.8)
                     }
@@ -1044,12 +1055,13 @@ struct LimitBlock: View {
 struct LimitBar: View {
     let fraction: Double
     let secondary: Color
+    var metric: UsageMetric = .week
 
     var body: some View {
         GeometryReader { geo in
             ZStack(alignment: .leading) {
                 Capsule().fill(AkiPalette.fg.opacity(0.1))
-                Capsule().fill(UsageRing.tint(Int((fraction * 100).rounded())))
+                Capsule().fill(UsageRing.tint(metric, Int((fraction * 100).rounded())))
                     .frame(width: max(4, geo.size.width * CGFloat(min(max(fraction, 0), 1))))
             }
         }
@@ -1690,7 +1702,7 @@ struct TerminalCard: View {
                         .font(CardType.bodyStrong).monospacedDigit()
                 }
             } else if state == nil, model.preferences.autoDeliver {
-                Text("\(model.preferences.waitIdleSeconds) s").font(CardType.body).opacity(0.8)
+                Text(model.preferences.waitLabel).font(CardType.body).opacity(0.8)
             }
         }
         .foregroundStyle(AkiPalette.fg)
@@ -1714,7 +1726,7 @@ struct TerminalCard: View {
         .padding(.top, 3)
         .clickTarget(key)
         .help(model.preferences.autoDeliver
-              ? "\(L10n.t("Send to the terminal by itself")): \(model.preferences.waitIdleSeconds) s" : "")
+              ? "\(L10n.t("Send to the terminal by itself")): \(model.preferences.waitLabel)" : "")
     }
 
     private var actions: some View {

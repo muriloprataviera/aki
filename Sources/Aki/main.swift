@@ -77,7 +77,7 @@ do {
         if all.count > mine.count { print("\n# \(all.count - mine.count) other(s) elsewhere (aki list --all)") }
 
     case "wait":
-        let idle = option("--idle").flatMap(Double.init) ?? Double(UserDefaults(suiteName: "ai.useaki.Aki")?.integer(forKey: "waitIdleSeconds") ?? 0).nonZero ?? 5
+        let idle = option("--idle").flatMap(Double.init) ?? ((UserDefaults(suiteName: "ai.useaki.Aki")?.object(forKey: "waitIdleSeconds") as? Int).map { Double(max($0, 1)) } ?? 5)
         let worktree = currentWorktree
         print("# waiting for annotations in \(worktree)")
         let waitClient = makeClient()
@@ -256,9 +256,4 @@ do {
 
 extension String {
     func ifEmpty(_ fallback: String) -> String { isEmpty ? fallback : self }
-}
-
-extension Double {
-    /// Nil when zero (a setting never saved).
-    var nonZero: Double? { self == 0 ? nil : self }
 }

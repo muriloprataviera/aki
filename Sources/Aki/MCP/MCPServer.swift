@@ -85,7 +85,7 @@ struct MCPServer {
             return text(output)
 
         case "wait_for_annotations":
-            let idle = arguments["idle_seconds"].flatMap(number) ?? Double(UserDefaults(suiteName: "ai.useaki.Aki")?.integer(forKey: "waitIdleSeconds") ?? 0).nonZero ?? 5
+            let idle = arguments["idle_seconds"].flatMap(number) ?? ((UserDefaults(suiteName: "ai.useaki.Aki")?.object(forKey: "waitIdleSeconds") as? Int).map { Double(max($0, 1)) } ?? 5)
             let timeout = arguments["timeout_seconds"].flatMap(number) ?? 600
             let fresh = try await Waiter.waitForNew(
                 client: client, worktree: worktree, sessionId: sessionId, idle: .seconds(idle), timeout: .seconds(timeout))

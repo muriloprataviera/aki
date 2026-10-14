@@ -839,11 +839,11 @@ struct SettingsView: View {
     private var wakeStepper: some View {
         Group {
             Toggle(L10n.t("Send to the terminal by itself"), isOn: $preferences.autoDeliver)
-            Stepper(value: $preferences.waitIdleSeconds, in: 1...30) {
+            Stepper(value: $preferences.waitIdleSeconds, in: 0...30) {
                 HStack {
                     Text(L10n.t("Wake the agent after"))
                     Spacer()
-                    Text("\(preferences.waitIdleSeconds) s").foregroundStyle(.secondary).monospacedDigit()
+                    Text(preferences.waitLabel).foregroundStyle(.secondary).monospacedDigit()
                 }
             }
             Caption(L10n.t("Types the request into the session's Orca tab when you stop marking (it waits while the agent is working)."))
