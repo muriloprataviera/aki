@@ -714,7 +714,8 @@ final class SidebarModel {
             // The Claude app's own answer too, for those with no Claude Code status line.
             claudeAppRead = await Task.detached { ClaudeAppUsage.read() }.value
         }
-        let claude = UsageLimits.newest(UsageLimits.claude(from: statuses), claudeAppRead)
+        // Only when Claude Code reports none: the app may be signed into another account.
+        let claude = UsageLimits.claude(from: statuses) ?? claudeAppRead
         let limits = [claude, codexRead.limits].compactMap { $0?.current() }
         if limits != self.usage { self.usage = limits }
         // Tokens: the logs' new lines every 30 s, in the background (the first pass reads the week).

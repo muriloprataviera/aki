@@ -207,7 +207,7 @@ do {
     case "usage":
         let ledger = TokenLedger()
         ledger.update()
-        let claude = UsageLimits.newest(UsageLimits.claude(from: ClaudeStatus.all()), ClaudeAppUsage.read())?.current()
+        let claude = (UsageLimits.claude(from: ClaudeStatus.all()) ?? ClaudeAppUsage.read())?.current()
         let codex = UsageLimits.codex()?.current()
         for (agent, limits) in [("claude", claude), ("codex", codex)] {
             let weekStart = limits?.week?.resets.map { $0.addingTimeInterval(-7 * 24 * 3600) }

@@ -38,14 +38,6 @@ public struct UsageLimits: Sendable, Equatable {
         return UsageLimits(agent: .claude, fiveHour: latest.fiveHour, week: latest.week, updated: latest.updated)
     }
 
-    /// The more recent of two reports of the same account (Claude Code's status line and
-    /// the Claude app's cache).
-    public static func newest(_ a: UsageLimits?, _ b: UsageLimits?) -> UsageLimits? {
-        guard let a else { return b }
-        guard let b else { return a }
-        return a.updated >= b.updated ? a : b
-    }
-
     /// Codex: the newest `rate_limits` it wrote to a session log under `~/.codex/sessions`.
     /// Any log touched in the last week counts (a resumed session keeps writing to the
     /// folder of the day it began); among them, the report with the latest time wins.
