@@ -395,6 +395,8 @@ extension L10n {
         "{n}% of the 5-hour session": "5 小时时段的 {n}%",
         "Code sessions in the Claude app": "Claude 应用中的 Code 会话",
         "Screen": "屏幕",
+        "looking…": "查找中…",
+        "Looking for your open sessions (terminals, the Claude and Codex apps)…": "正在查找你打开的会话（终端、Claude 和 Codex 应用）…",
         "What Aki found": "Aki 找到的内容",
         "Search again": "重新查找",
         "Claude app": "Claude 应用",

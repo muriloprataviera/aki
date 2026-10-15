@@ -733,6 +733,13 @@ struct RingCell: View {
                 .lineLimit(1)
                 .frame(width: (SidebarLayout.ring + 22) * scale, height: SidebarLayout.labelHeight * scale)
             }
+            if case .searching = ring {
+                Text(L10n.t("looking…"))
+                    .font(.system(size: SidebarLayout.labelFont * scale, weight: .semibold))
+                    .foregroundStyle(AkiPalette.textSecondary)
+                    .lineLimit(1)
+                    .frame(width: (SidebarLayout.ring + 22) * scale, height: SidebarLayout.labelHeight * scale)
+            }
             if case .more = ring {
                 Text(L10n.t("more terminals"))
                     .font(.system(size: SidebarLayout.labelFont * scale, weight: .semibold))
@@ -857,6 +864,15 @@ struct RingCell: View {
                 Text("+\(sessions.count)")
                     .font(.system(size: 12 * scale, weight: .semibold, design: .rounded).monospacedDigit())
                     .foregroundStyle(hovered || pinned ? AkiPalette.textPrimary : AkiPalette.textSecondary)
+            }
+            .frame(width: SidebarLayout.ring * scale, height: SidebarLayout.ring * scale)
+        case .searching:
+            // A dashed ring turning, like the "+N" drawer filling.
+            TimelineView(.animation(minimumInterval: 1.0 / 30)) { context in
+                Circle().trim(from: 0, to: 0.7)
+                    .stroke(AkiPalette.textSecondary, style: StrokeStyle(lineWidth: 1.5 * scale, lineCap: .round, dash: [2.5 * scale, 3 * scale]))
+                    .padding(4 * scale)
+                    .rotationEffect(.degrees(context.date.timeIntervalSinceReferenceDate.truncatingRemainder(dividingBy: 1.2) / 1.2 * 360))
             }
             .frame(width: SidebarLayout.ring * scale, height: SidebarLayout.ring * scale)
         case .usage(let limits):
@@ -1348,6 +1364,12 @@ struct RingCard: View {
         case .hidden(let terminals):
             MoreCard(model: model, terminals: terminals, direction: direction, surface: surface, hidden: true)
         case .usage(let limits): UsageCard(model: model, limits: limits, direction: direction, surface: surface)
+        case .searching:
+            TooltipShell(direction: direction, surface: surface) {
+                Text(L10n.t("Looking for your open sessions (terminals, the Claude and Codex apps)…"))
+                    .font(CardType.body).foregroundStyle(AkiPalette.textPrimary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
         }
     }
 }

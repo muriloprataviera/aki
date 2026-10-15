@@ -27,6 +27,8 @@ enum Ring: Identifiable, Equatable {
     case hidden([AgentTerminal])
     /// How much of an AI account's weekly limit is used (Claude, Codex), at the end.
     case usage(UsageLimits)
+    /// Aki is looking for your open sessions (starting up, after Connect).
+    case searching
 
     var id: String {
         switch self {
@@ -35,6 +37,7 @@ enum Ring: Identifiable, Equatable {
         case .more: "more"
         case .hidden: "hidden"
         case .usage(let limits): "usage:" + limits.agent.rawValue
+        case .searching: "searching"
         }
     }
 
@@ -43,7 +46,7 @@ enum Ring: Identifiable, Equatable {
         case .agent(let group): group.pending
         case .terminal(let terminal): terminal.pending
         case .more(let sessions): sessions.reduce(0) { $0 + $1.pending }
-        case .hidden, .usage: 0
+        case .hidden, .usage, .searching: 0
         }
     }
 }
@@ -392,7 +395,10 @@ final class SidebarModel {
     }
 
     /// The sidebar's rings, per the "Rings" setting.
-    var rings: [Ring] { (preferences.showSessions ? sessionRings : []) + usageRings }
+    var rings: [Ring] { (preferences.showSessions ? sessionRings + (searching ? [.searching] : []) : []) + usageRings }
+
+    /// Looking for your sessions: when Aki starts, and after Connect or "Search again".
+    var searching = true
 
     /// The accounts' limits, one ring each, after the sessions.
     private var usageRings: [Ring] {
@@ -674,8 +680,14 @@ final class SidebarModel {
 
     /// "Search again": everything looked at now, the limits too (read once a minute).
     func searchAgain() async {
+        searching = true
+        let started = Date()
         codexRead.at = .distantPast
         await refresh()
+        // Long enough to be seen, even when it was quick.
+        let shown = Date().timeIntervalSince(started)
+        if shown < 1.2 { try? await Task.sleep(for: .seconds(1.2 - shown)) }
+        searching = false
     }
 
     /// Aki quitting: the token counts not saved yet.
@@ -767,6 +779,11 @@ final class SidebarModel {
         if !loaded {
             loaded = true
             onLoaded()
+            // The first look is done: its "looking" ring goes a moment later, once seen.
+            Task { [weak self] in
+                try? await Task.sleep(for: .seconds(1.2))
+                self?.searching = false
+            }
         }
         if let id = selectedTerminal, !open.contains(where: { $0.id == id }) { selectedTerminal = nil }
         let latest = await store.stats()

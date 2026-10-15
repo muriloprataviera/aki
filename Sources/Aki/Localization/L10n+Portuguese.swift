@@ -283,6 +283,8 @@ extension L10n {
         "{n}% of the 5-hour session": "{n}% da sessão de 5 horas",
         "Code sessions in the Claude app": "Sessões Code no app do Claude",
         "Screen": "Tela",
+        "looking…": "procurando…",
+        "Looking for your open sessions (terminals, the Claude and Codex apps)…": "Procurando suas sessões abertas (terminais, apps do Claude e do Codex)…",
         "What Aki found": "O que o Aki encontrou",
         "Search again": "Procurar de novo",
         "Claude app": "App do Claude",
