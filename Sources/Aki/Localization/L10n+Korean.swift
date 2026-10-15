@@ -390,6 +390,8 @@ extension L10n {
         "Reconnect": "다시 연결",
         "Running": "열림",
         "What Aki found…": "Aki가 찾은 것…",
+        "Its numbers show once Claude reports them: send a message in the Claude app or Claude Code.": "Claude가 알려 주면 숫자가 나타납니다: Claude 앱이나 Claude Code에서 메시지를 보내세요.",
+        "Its numbers show once Codex reports them: send a message in Codex.": "Codex가 알려 주면 숫자가 나타납니다: Codex에서 메시지를 보내세요.",
         "What Aki found": "Aki가 찾은 것",
         "Search again": "다시 찾기",
         "Claude app": "Claude 앱",

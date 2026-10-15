@@ -390,6 +390,8 @@ extension L10n {
         "Reconnect": "Reconectar",
         "Running": "Abierta",
         "What Aki found…": "Lo que Aki encontró…",
+        "Its numbers show once Claude reports them: send a message in the Claude app or Claude Code.": "Sus cifras aparecen cuando Claude las informe: envía un mensaje en la app de Claude o en Claude Code.",
+        "Its numbers show once Codex reports them: send a message in Codex.": "Sus cifras aparecen cuando Codex las informe: envía un mensaje en Codex.",
         "What Aki found": "Lo que Aki encontró",
         "Search again": "Buscar de nuevo",
         "Claude app": "App de Claude",

@@ -960,7 +960,15 @@ struct UsageCard: View {
                     AgentGlyphView(agent: limits.agent, size: 14).foregroundStyle(AkiPalette.fg)
                     Text(limits.agent.displayName).font(CardType.title).foregroundStyle(AkiPalette.textPrimary)
                     Spacer(minLength: 4)
-                    Text(limits.updated.formatted(.relative(presentation: .named))).font(CardType.body).foregroundStyle(secondary)
+                    if limits.updated > .distantPast {
+                        Text(limits.updated.formatted(.relative(presentation: .named))).font(CardType.body).foregroundStyle(secondary)
+                    }
+                }
+                if limits.week == nil, limits.fiveHour == nil {
+                    Text(L10n.t(limits.agent == .claude
+                        ? "Its numbers show once Claude reports them: send a message in the Claude app or Claude Code."
+                        : "Its numbers show once Codex reports them: send a message in Codex."))
+                        .font(CardType.body).foregroundStyle(secondary).fixedSize(horizontal: false, vertical: true)
                 }
                 if let week = limits.week {
                     LimitBlock(title: L10n.t("Week"), limit: week, length: 7 * 24 * 3600, secondary: secondary)

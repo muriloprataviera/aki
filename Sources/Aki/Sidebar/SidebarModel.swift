@@ -716,7 +716,12 @@ final class SidebarModel {
         }
         // Only when Claude Code reports none: the app may be signed into another account.
         let claude = UsageLimits.claude(from: statuses) ?? claudeAppRead
-        let limits = [claude, codexRead.limits].compactMap { $0?.current() }
+        // Seen (its app open, a terminal) but no numbers yet: its ring shows at once,
+        // empty, instead of the sidebar looking as if Aki didn't find it.
+        func seen(_ agent: AgentSession.Agent) -> UsageLimits? {
+            open.contains { $0.agent == agent } ? UsageLimits(agent: agent, fiveHour: nil, week: nil, updated: .distantPast) : nil
+        }
+        let limits = [claude ?? seen(.claude), codexRead.limits ?? seen(.codex)].compactMap { $0?.current() }
         if limits != self.usage { self.usage = limits }
         // Tokens: the logs' new lines every 30 s, in the background (the first pass reads the week).
         if preferences.showUsage, !ledgerBusy, Date().timeIntervalSince(ledgerRead) > 30 {
