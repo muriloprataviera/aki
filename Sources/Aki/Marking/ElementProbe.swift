@@ -148,6 +148,21 @@ enum ElementProbe {
         AXUIElementSetAttributeValue(app, "AXEnhancedUserInterface" as CFString, kCFBooleanTrue)
     }
 
+    /// Left on, those apps keep describing every change on their pages (Chrome at each
+    /// scroll, Claude's app at each word of an answer) and the whole Mac slows down: off
+    /// again once marking is over. Orca keeps it (its focused tab is read all the time).
+    static func releaseAccessibility() {
+        let pids = enabledLock.withLock { () -> Set<pid_t> in
+            defer { enabledPIDs.removeAll() }
+            return enabledPIDs
+        }
+        for pid in pids where NSRunningApplication(processIdentifier: pid)?.bundleIdentifier != OrcaFocus.bundleID {
+            let app = AXUIElementCreateApplication(pid)
+            AXUIElementSetAttributeValue(app, "AXManualAccessibility" as CFString, kCFBooleanFalse)
+            AXUIElementSetAttributeValue(app, "AXEnhancedUserInterface" as CFString, kCFBooleanFalse)
+        }
+    }
+
     private static func accessibilityElement(pid: pid_t, at point: CGPoint, appName: String?) -> ProbedElement? {
         let app = AXUIElementCreateApplication(pid)
         AXUIElementSetMessagingTimeout(app, 0.08)

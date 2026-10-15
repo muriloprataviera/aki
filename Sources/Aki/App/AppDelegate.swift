@@ -29,6 +29,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
         // This build's icon, not one the Mac cached from an older version.
         NSApp.applicationIconImage = AkiBrand.appIcon
+        // Older versions left Claude's and Codex's apps describing themselves for good.
+        Task.detached { DesktopApps.concealAll() }
         let store = AnnotationStore(directory: home.url)
         // Once: pictures from the old layout move into each mark's own folder.
         if !UserDefaults.standard.bool(forKey: "movedToMarkFolders") {

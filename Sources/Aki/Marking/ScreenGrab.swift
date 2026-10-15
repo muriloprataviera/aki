@@ -92,21 +92,27 @@ struct ScreenGrab {
             if let windowNumbers { return windowNumbers.contains($0.windowID) }
             return $0.owningApplication?.processID == ProcessInfo.processInfo.processIdentifier
         }
-        var grabs: [ScreenGrab] = []
-        for screen in NSScreen.screens {
+        // All screens at once (one after the other, three screens took 0.3 s), in order.
+        let screens = NSScreen.screens.compactMap { screen -> (NSScreen, SCContentFilter, SCStreamConfiguration)? in
             guard let number = screen.deviceDescription[NSDeviceDescriptionKey("NSScreenNumber")] as? CGDirectDisplayID,
                 let display = content.displays.first(where: { $0.displayID == number })
-            else { continue }
-            let filter = SCContentFilter(display: display, excludingWindows: ours)
+            else { return nil }
             let configuration = SCStreamConfiguration()
             configuration.width = Int(screen.frame.width * screen.backingScaleFactor)
             configuration.height = Int(screen.frame.height * screen.backingScaleFactor)
             configuration.showsCursor = false
-            if let image = try? await SCScreenshotManager.captureImage(contentFilter: filter, configuration: configuration) {
-                grabs.append(ScreenGrab(screen: screen, image: image))
-            }
+            return (screen, SCContentFilter(display: display, excludingWindows: ours), configuration)
         }
-        return grabs
+        let images = await withTaskGroup(of: (Int, CGImage?).self) { group in
+            for (index, item) in screens.enumerated() {
+                let (filter, configuration) = (item.1, item.2)
+                group.addTask { (index, try? await SCScreenshotManager.captureImage(contentFilter: filter, configuration: configuration)) }
+            }
+            var images = [Int: CGImage]()
+            for await (index, image) in group { images[index] = image }
+            return images
+        }
+        return screens.indices.compactMap { index in images[index].map { ScreenGrab(screen: screens[index].0, image: $0) } }
     }
 }
 
@@ -120,7 +126,9 @@ struct MarkContext {
     var windowTitle: String?
     var url: String?
 
-    static func current() -> MarkContext {
+    /// `withURL: false` leaves the page's address out: asking the browser can take up to
+    /// a second, and marking shows at once (`browserURL` fills it in after).
+    static func current(withURL: Bool = true) -> MarkContext {
         let app = NSWorkspace.shared.frontmostApplication
         var context = MarkContext(appName: app?.localizedName, bundleID: app?.bundleIdentifier, pid: app?.processIdentifier)
         if let pid = app?.processIdentifier {
@@ -130,7 +138,7 @@ struct MarkContext {
                 ($0[kCGWindowOwnerPID as String] as? Int32) == pid && ($0[kCGWindowLayer as String] as? Int) == 0
             }?[kCGWindowName as String] as? String
         }
-        context.url = browserURL(bundleID: app?.bundleIdentifier)
+        if withURL { context.url = browserURL(bundleID: app?.bundleIdentifier) }
         return context
     }
 
@@ -162,7 +170,7 @@ struct MarkContext {
 
     /// The front tab's address, asked over Apple Events (macOS asks once to allow it).
     /// With a window's title, that window's tab (not whichever window is in front).
-    private static func browserURL(bundleID: String?, windowTitle: String? = nil) -> String? {
+    static func browserURL(bundleID: String?, windowTitle: String? = nil) -> String? {
         let script: String
         switch bundleID {
         case "com.google.Chrome", "com.google.Chrome.canary", "com.brave.Browser", "com.microsoft.edgemac",

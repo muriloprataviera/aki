@@ -235,7 +235,7 @@ final class MarkingController {
         guard Preferences.shared.showSessions else { return }
         starting = true
         previousApp = NSWorkspace.shared.frontmostApplication
-        let context = MarkContext.current()
+        let context = MarkContext.current(withURL: false)
         // The pin pointer at once, while the screen is being captured (Aki may be in
         // the background still: it may set the cursor anyway).
         model.marking = true
@@ -258,7 +258,13 @@ final class MarkingController {
             let terminals = model.markableTerminals
             let recentPick = model.recentTabPick
             let preferred = recentPick ?? model.markingDestination
-            async let byPort = Self.sessionServing(context.url, among: terminals, selected: preferred)
+            // The page's address (asked of the browser) and its session come in after the
+            // overlay is up: marking shows as fast as the Mac's own ⌘⇧4.
+            let bundleID = context.bundleID
+            let lookup = Task.detached { () -> (url: String?, session: String?) in
+                let url = MarkContext.browserURL(bundleID: bundleID)
+                return (url, await Self.sessionServing(url, among: terminals, selected: preferred))
+            }
             let grabs0 = await ScreenGrab.captureAll(excluding: overlayIDs)
             guard let grabs = grabs0, !grabs.isEmpty else {
                 model.marking = false
@@ -274,13 +280,20 @@ final class MarkingController {
                 askForScreenRecording()
                 return
             }
-            let byPortID = await byPort
             let session = MarkingSession(
                 grabs: grabs, context: context, terminals: terminals,
-                // A page on localhost: the session serving its port (or named with it),
-                // which says it outright. Else the agent tab you just left (where the
-                // print most likely goes), then the one chosen last.
-                destination: byPortID ?? recentPick ?? model.markingDestination)
+                // The agent tab you just left (where the print most likely goes), then the
+                // one chosen last; a page on localhost, below, by its port.
+                destination: recentPick ?? model.markingDestination)
+            Task { [weak session] in
+                let found = await lookup.value
+                // Still on the same app (⌘Tab while marking brings its own context).
+                guard let session, session.context.pid == context.pid else { return }
+                session.context.url = found.url
+                // The session serving the page's port (or named with it) says it outright,
+                // unless you picked one meanwhile.
+                if let id = found.session, !session.destinationChosen { session.destination = id }
+            }
             // Taken from where you just were, it's a guess: a mark on a localhost page
             // served by another session still goes to that one (only your own pick stays).
             session.destinationForPage = { [weak self, weak session] url in
@@ -466,7 +479,13 @@ final class MarkingController {
                     let app = note.userInfo?[NSWorkspace.applicationUserInfoKey] as? NSRunningApplication,
                     app.processIdentifier != ProcessInfo.processInfo.processIdentifier
                 else { return }
-                session.context = MarkContext.current()
+                let context = MarkContext.current(withURL: false)
+                session.context = context
+                // The page's address after, off the main thread (the browser may take a second).
+                Task { [weak session] in
+                    let url = await Task.detached { MarkContext.browserURL(bundleID: context.bundleID) }.value
+                    if let session, session.context.pid == context.pid { session.context.url = url }
+                }
                 self.previousApp = app
                 session.hovered = nil
                 // A frozen screen shows the app you just switched to (live ones already do).
@@ -562,6 +581,13 @@ final class MarkingController {
         panels.forEach { $0.orderOut(nil) }
         panels.removeAll()
         session = nil
+        // The apps hovered stop describing themselves (a second later: the last mark's
+        // look-up may still be on its way; not if marking started again meanwhile).
+        Task { @MainActor [weak self] in
+            try? await Task.sleep(for: .seconds(1))
+            guard self?.session == nil, self?.starting == false else { return }
+            ElementProbe.releaseAccessibility()
+        }
         // Only when Aki took the focus (a comment was written): back to where you were.
         if hadFocus, let previousApp, previousApp.processIdentifier != ProcessInfo.processInfo.processIdentifier {
             previousApp.activate()

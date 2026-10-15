@@ -78,78 +78,63 @@ public enum DesktopApps {
         return nil
     }
 
-    /// When each app was last asked, and the ones whose pages already show.
-    nonisolated(unsafe) private static var asked = [Int32: Date]()
-    nonisolated(unsafe) private static var showing = Set<Int32>()
-    private static let askedLock = NSLock()
+    /// The conversation names last seen in each app (its page shows them only while
+    /// Aki is delivering to it, see `expose`).
+    nonisolated(unsafe) private static var titles = [Int32: String]()
+    private static let titlesLock = NSLock()
 
-    /// The title of the page in the app's front window (Electron apps show it to
-    /// Accessibility once asked: asked once per run of the app, since every ask makes
-    /// it build that all over again).
-    static func pageTitle(_ pid: Int32) -> String? {
+    /// Asks an Electron app to describe its page to Accessibility (Claude's by the first
+    /// flag, Codex's by the second), or to stop. Only while delivering: described, the app
+    /// rebuilds that at every word of an answer and slows the whole Mac down.
+    public static func expose(_ pid: Int32, _ on: Bool) {
         let app = AXUIElementCreateApplication(pid)
-        // Without Accessibility allowed yet the ask goes nowhere: asked again once it is.
+        let value = on ? kCFBooleanTrue : kCFBooleanFalse
+        AXUIElementSetAttributeValue(app, "AXManualAccessibility" as CFString, value!)
+        AXUIElementSetAttributeValue(app, "AXEnhancedUserInterface" as CFString, value!)
+    }
+
+    /// Versions up to 0.8.0-beta.4 left the apps described for good: undone once, when Aki starts.
+    public static func concealAll() {
+        guard AXIsProcessTrusted() else { return }
+        for app in running(in: AgentSessions.runningProcesses()) { expose(app.pid, false) }
+    }
+
+    /// The title of the page in the app's front window, when it shows (around a
+    /// delivery); else the last one seen. Never asks the app to show it.
+    static func pageTitle(_ pid: Int32) -> String? {
         guard AXIsProcessTrusted() else { return nil }
-        // Asked once; again every half minute while its pages don't show (an ask that came
-        // while it was still starting).
-        let ask = askedLock.withLock { () -> Bool in
-            guard !showing.contains(pid), Date().timeIntervalSince(asked[pid] ?? .distantPast) > 30 else { return false }
-            asked[pid] = Date()
-            return true
-        }
-        if ask {
-            AXUIElementSetAttributeValue(app, "AXManualAccessibility" as CFString, kCFBooleanTrue)
-            AXUIElementSetAttributeValue(app, "AXEnhancedUserInterface" as CFString, kCFBooleanTrue)
-        }
+        let app = AXUIElementCreateApplication(pid)
         func attribute(_ element: AXUIElement, _ name: String) -> CFTypeRef? {
             var value: CFTypeRef?
             return AXUIElementCopyAttributeValue(element, name as CFString, &value) == .success ? value : nil
         }
+        let last = titlesLock.withLock { titles[pid] }
         guard let window = attribute(app, kAXFocusedWindowAttribute) ?? (attribute(app, kAXWindowsAttribute) as? [AXUIElement])?.first,
               CFGetTypeID(window) == AXUIElementGetTypeID()
-        else { return nil }
-        // The pages sit a few levels down; their insides aren't searched.
+        else { return last }
+        // The page sits a few levels down; its insides aren't searched.
         var queue = [window as! AXUIElement], seen = 0
-        while !queue.isEmpty, seen < 200 {
+        while !queue.isEmpty, seen < 60 {
             let node = queue.removeFirst()
             seen += 1
             if attribute(node, kAXRoleAttribute) as? String == "AXWebArea" {
-                askedLock.withLock { _ = showing.insert(pid) }
                 var title = ((attribute(node, kAXTitleAttribute) as? String) ?? "").trimmingCharacters(in: .whitespaces)
                 if title.hasSuffix(" - Claude") { title = String(title.dropLast(" - Claude".count)) }
-                if !["", "claude", "chatgpt", "codex", "new chat", "nova conversa"].contains(title.lowercased()) { return title }
-                continue
+                guard !["", "claude", "chatgpt", "codex", "new chat", "nova conversa"].contains(title.lowercased()) else { return last }
+                titlesLock.withLock { titles[pid] = title }
+                return title
             }
             if let children = attribute(node, kAXChildrenAttribute) as? [AXUIElement] { queue.append(contentsOf: children) }
         }
-        return nil
+        return last
     }
 
-    /// The app is answering: its send button turned into a stop one (Codex's "Stop",
-    /// Claude's "Parar resposta"…), in the front window. Only once its page shows.
-    static func answering(_ pid: Int32) -> Bool {
-        guard AXIsProcessTrusted(), askedLock.withLock({ showing.contains(pid) }) else { return false }
-        let app = AXUIElementCreateApplication(pid)
-        func attribute(_ element: AXUIElement, _ name: String) -> CFTypeRef? {
-            var value: CFTypeRef?
-            return AXUIElementCopyAttributeValue(element, name as CFString, &value) == .success ? value : nil
-        }
-        guard let window = attribute(app, kAXFocusedWindowAttribute) ?? (attribute(app, kAXWindowsAttribute) as? [AXUIElement])?.first,
-              CFGetTypeID(window) == AXUIElementGetTypeID()
-        else { return false }
-        let stops = ["stop", "parar", "interromper", "detener", "arrêter", "stopp", "anhalten", "interrompi", "停止", "중지"]
-        var queue = [window as! AXUIElement], seen = 0
-        while !queue.isEmpty, seen < 3000 {
-            let node = queue.removeFirst()
-            seen += 1
-            if attribute(node, kAXRoleAttribute) as? String == "AXButton" {
-                let label = ((attribute(node, kAXDescriptionAttribute) as? String) ?? (attribute(node, kAXTitleAttribute) as? String) ?? "").lowercased()
-                if stops.contains(where: { label.hasPrefix($0) }) { return true }
-                continue
-            }
-            if let children = attribute(node, kAXChildrenAttribute) as? [AXUIElement] { queue.append(contentsOf: children) }
-        }
-        return false
+    /// The app is answering: its processes (the page's renderer above all) busy, from the
+    /// same process list. Cheap: the app is never asked anything.
+    static func answering(_ app: Found, processes: [AgentSessions.Process]) -> Bool {
+        let inside = app.path + "/Contents/"
+        let cpu = processes.filter { $0.command.hasPrefix(inside) }.reduce(0) { $0 + $1.cpu }
+        return cpu >= 12
     }
 
     private static func descends(_ pid: Int32, from ancestor: Int32) -> Bool {

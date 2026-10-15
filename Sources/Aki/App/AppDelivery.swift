@@ -22,6 +22,7 @@ enum AppDelivery {
             if since < 1.5 { try? await Task.sleep(for: .seconds(1.5 - since)) }
             let result = await run(to: bundleID, marks: marks)
             lastFinished = Date()
+            concealLater(bundleID)
             return result
         }
         queue = task
@@ -158,9 +159,23 @@ enum AppDelivery {
     /// Electron apps tell Accessibility what's inside them only once asked to: Claude's
     /// by the first flag, Codex's only by the second.
     static func exposeContents(_ pid: pid_t) {
-        let app = AXUIElementCreateApplication(pid)
-        AXUIElementSetAttributeValue(app, "AXManualAccessibility" as CFString, kCFBooleanTrue)
-        AXUIElementSetAttributeValue(app, "AXEnhancedUserInterface" as CFString, kCFBooleanTrue)
+        DesktopApps.expose(pid, true)
+    }
+
+    private static var deliveries = 0
+
+    /// Left on, the app keeps rebuilding that description at every word of its answers
+    /// and the whole Mac slows down: off again a minute after the last delivery.
+    private static func concealLater(_ bundleID: String) {
+        deliveries += 1
+        let mine = deliveries
+        Task { @MainActor in
+            try? await Task.sleep(for: .seconds(60))
+            guard mine == deliveries else { return }
+            for app in NSRunningApplication.runningApplications(withBundleIdentifier: bundleID) {
+                DesktopApps.expose(app.processIdentifier, false)
+            }
+        }
     }
 
     /// The app's focused message box: a multi-line text area (a search or a title field

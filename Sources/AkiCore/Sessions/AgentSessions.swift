@@ -209,9 +209,16 @@ public enum AgentSessions {
         return result
     }
 
+    nonisolated(unsafe) private static var branches = [String: (name: String?, at: Date)]()
+    private static let branchesLock = NSLock()
+
+    /// A `git` per folder every three seconds added up: each branch is asked again only
+    /// after half a minute.
     static func branch(of worktree: String) -> String? {
+        if let known = branchesLock.withLock({ branches[worktree] }), Date().timeIntervalSince(known.at) < 30 { return known.name }
         let name = run("/usr/bin/git", ["-C", worktree, "branch", "--show-current"])
             .trimmingCharacters(in: .whitespacesAndNewlines)
+        branchesLock.withLock { branches[worktree] = (name.isEmpty ? nil : name, Date()) }
         return name.isEmpty ? nil : name
     }
 
@@ -404,7 +411,7 @@ extension AgentSessions {
             let mine = marks(for: id, worktree: worktree)
             let agent = DesktopApps.known[app.bundleID] ?? .codex
             let name = DesktopApps.conversationName(app)
-            let working = (agent == .codex && DesktopApps.codexWorking(app: app.pid, processes: all)) || DesktopApps.answering(app.pid)
+            let working = (agent == .codex && DesktopApps.codexWorking(app: app.pid, processes: all)) || DesktopApps.answering(app, processes: all)
             result.append(AgentTerminal(
                 id: id, agent: agent, pid: app.pid, name: name ?? app.name, named: true,
                 worktree: worktree, branch: nil, state: working ? .working : .idle,
