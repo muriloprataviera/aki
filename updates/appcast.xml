@@ -3,6 +3,26 @@
     <channel>
         <title>Aki</title>
         <item>
+            <title>0.8.3</title>
+            <pubDate>Thu, 15 Oct 2026 18:58:25 -0300</pubDate>
+            <sparkle:version>20261015215824</sparkle:version>
+            <sparkle:shortVersionString>0.8.3</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
+            <description><![CDATA[<h2>Aki 0.8.3</h2>
+<h3>New</h3><ul>
+<li>The Claude app's Code sessions show on the sidebar like terminals, and marks sent to one go into it in the app.</li>
+<li>A "looking…" ring while Aki looks for your open sessions, after Connect or "Search again".</li>
+<li>Settings → Claude Code and Codex: "Search for sessions".</li>
+<li>With more than one display, right-click the sidebar → Screen to choose where the bar lives.</li>
+</ul>
+<h3>Fixed</h3><ul>
+<li>The sidebar no longer hides under the Dock.</li>
+</ul>
+]]></description>
+            <enclosure url="https://aki-updates.vercel.app/0.8.3/Aki-0.8.3.zip" length="3961206" type="application/octet-stream" sparkle:edSignature="x0zZwbDAgKWZt8C9NrQGy6AyEGyvklbHlKgRnOlVBLgQnSoPYtufje5OLGTEJqWkaKcD+HLegYBshfaG358MAw=="/>
+        </item>
+        <item>
             <title>0.8.3-beta.3</title>
             <pubDate>Thu, 15 Oct 2026 18:31:18 -0300</pubDate>
             <sparkle:channel>beta</sparkle:channel>
@@ -22,45 +42,6 @@
 </ul>
 ]]></description>
             <enclosure url="https://aki-updates.vercel.app/0.8.3-beta.3/Aki-0.8.3-beta.3.zip" length="3949221" type="application/octet-stream" sparkle:edSignature="aKD5RQpJZjx0Y7aU/AAXQi7ywWQVJysKKT8SX3d38pc7GdOaG7/knpsc8VHXyMsz7RIG6ivycx7yfkkqsteGBg=="/>
-        </item>
-        <item>
-            <title>0.8.3-beta.2</title>
-            <pubDate>Thu, 15 Oct 2026 18:26:58 -0300</pubDate>
-            <sparkle:channel>beta</sparkle:channel>
-            <sparkle:version>20261015212658</sparkle:version>
-            <sparkle:shortVersionString>0.8.3-beta.2</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
-            <description><![CDATA[<h2>Aki 0.8.3 beta 2</h2>
-<h3>New</h3><ul>
-<li>The Claude app's Code sessions show on the sidebar like terminals, and marks sent to one go into it in the app.</li>
-<li>A "looking…" ring while Aki looks for your open sessions (when it starts, after Connect, on "Search again").</li>
-<li>With more than one display, right-click the sidebar → Screen to choose where the bar lives.</li>
-</ul>
-<h3>Fixed</h3><ul>
-<li>The sidebar no longer hides under the Dock.</li>
-</ul>
-]]></description>
-            <enclosure url="https://aki-updates.vercel.app/0.8.3-beta.2/Aki-0.8.3-beta.2.zip" length="3947249" type="application/octet-stream" sparkle:edSignature="Jmg6WOntN/O9e4fwVET7NGFc+rKjYJE2xolBfV6JaN7DexzSe4QlIUJIBeSWemrnhvwVyd/JnImLkmlL+ZzFCA=="/>
-        </item>
-        <item>
-            <title>0.8.3-beta.1</title>
-            <pubDate>Thu, 15 Oct 2026 18:20:51 -0300</pubDate>
-            <sparkle:channel>beta</sparkle:channel>
-            <sparkle:version>20261015212051</sparkle:version>
-            <sparkle:shortVersionString>0.8.3-beta.1</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
-            <description><![CDATA[<h2>Aki 0.8.3 beta 1</h2>
-<h3>New</h3><ul>
-<li>The Claude app's Code sessions show on the sidebar like terminals, and marks sent to one go into it in the app.</li>
-<li>With more than one display, right-click the sidebar → Screen to choose where the bar lives.</li>
-</ul>
-<h3>Fixed</h3><ul>
-<li>The sidebar no longer hides under the Dock.</li>
-</ul>
-]]></description>
-            <enclosure url="https://aki-updates.vercel.app/0.8.3-beta.1/Aki-0.8.3-beta.1.zip" length="3940110" type="application/octet-stream" sparkle:edSignature="sffdje0rQZxGHVGBOaBFFToOW7LGXc7wiRP85PcCPgk/Q3mvWhvb2ivbeQb1uYQoSs9Jq2SjTMK9AFJjeF6kBQ=="/>
         </item>
         <item>
             <title>0.8.2</title>
@@ -95,32 +76,6 @@
 </ul>
 ]]></description>
             <enclosure url="https://aki-updates.vercel.app/0.8.1/Aki-0.8.1.zip" length="3931175" type="application/octet-stream" sparkle:edSignature="45ie6FEJoWPp/bFAoxV1YTLBhMKLqpvvEFdkAysqQyORIyob81wDYULylnD7L8ip/oKeHDzbYp8qYdIbJ87PDg=="/>
-        </item>
-        <item>
-            <title>0.8.0</title>
-            <pubDate>Thu, 15 Oct 2026 16:37:35 -0300</pubDate>
-            <sparkle:version>20261015193734</sparkle:version>
-            <sparkle:shortVersionString>0.8.0</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
-            <description><![CDATA[<h2>Aki 0.8.0</h2>
-<h3>Faster, lighter</h3><ul>
-<li>Aki no longer slows the Mac down: apps it looked into while you marked (Chrome, the Claude and ChatGPT apps) go back to normal afterwards, and Aki does far less in the background.</li>
-<li>Marking opens at once, like the Mac's own screenshot.</li>
-</ul>
-<h3>New</h3><ul>
-<li>"Wake the agent after" can be set to instant.</li>
-<li>Each ring shows a small badge of the app it runs in (Orca, the Claude or Codex app, Terminal…), and the apps' rings show the conversation you last sent to.</li>
-<li>A limits ring turns whenever its AI is at work, also while the Claude or Codex app is answering. Codex turns blue, the colour of its icon.</li>
-<li>Under a limits ring, "PACE": how much you've used against an even week so far (under 100% is on track).</li>
-</ul>
-<h3>Fixed</h3><ul>
-<li>"Connect" works for people who only use the Claude or ChatGPT/Codex app.</li>
-<li>Sending to the Claude and Codex apps works in a new conversation, with the app minimized or just opened, and with the focus elsewhere in it.</li>
-<li>No more "Resources" ring from the Codex app.</li>
-</ul>
-]]></description>
-            <enclosure url="https://aki-updates.vercel.app/0.8.0/Aki-0.8.0.zip" length="3853051" type="application/octet-stream" sparkle:edSignature="kklToJ7Ct4k4Ffo8wrcd5ocDXDlBIn3fJ1X48s16mlOiBngL+yPF488arVqUqtC8TzTdohZyIUvqhFWXVio2CQ=="/>
         </item>
     </channel>
 </rss>
