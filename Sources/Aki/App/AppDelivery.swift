@@ -14,7 +14,12 @@ enum AppDelivery {
     static func deliver(to bundleID: String, marks: [Annotation]) async -> TerminalJump.Delivery {
         let previous = queue
         let task = Task { @MainActor in
-            _ = await previous?.value
+            // Right after another one, the app is still redrawing its conversation (its
+            // answer starting): a moment for it to settle.
+            if let previous {
+                _ = await previous.value
+                try? await Task.sleep(for: .milliseconds(1500))
+            }
             return await run(to: bundleID, marks: marks)
         }
         queue = task
@@ -123,10 +128,16 @@ enum AppDelivery {
             // (It may be between pages for a moment: looked for again, up to a second.)
             for _ in 0..<4 where NSWorkspace.shared.frontmostApplication?.processIdentifier == pid {
                 if let now = messageBox(pid) ?? composer(pid) {
-                    // Only once Aki's message shows in the conversation: an empty box alone
-                    // could be another conversation you went to meanwhile.
-                    if !CFEqual(now, box) { return isEmpty(now) == true && shows(header, pid, besides: now) ? .sent : .pasted }
-                    break
+                    guard !CFEqual(now, box) else { break }
+                    guard isEmpty(now) == true else { return .pasted }
+                    // Only once Aki's message (its first line names these very marks) shows
+                    // in the conversation: an empty box alone could be another conversation
+                    // you went to meanwhile. It may take a moment to show (up to two seconds).
+                    for _ in 0..<8 {
+                        if shows(header, pid, besides: now) { return .sent }
+                        try? await Task.sleep(for: .milliseconds(250))
+                    }
+                    return .pasted
                 }
                 try? await Task.sleep(for: .milliseconds(250))
             }

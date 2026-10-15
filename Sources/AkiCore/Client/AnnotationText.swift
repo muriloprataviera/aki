@@ -45,7 +45,10 @@ public enum AnnotationText {
     /// everything in it, each mark's picture pasted alongside (in the same order).
     public static func forApp(_ annotations: [Annotation], home: AkiHome = .default) -> String {
         let marks = annotations.sorted { ($0["created_at"]?.string ?? "") < ($1["created_at"]?.string ?? "") }
-        let head = marks.count == 1 ? "📍 Aki: 1 marca na tela." : "📍 Aki: \(marks.count) marcas na tela."
+        // The marks' codes make this message's first line its own (Aki looks for it to
+        // know the message went), and tell the agent which marks these are.
+        let codes = marks.map { "#" + MarkFolder.code($0.id) }.joined(separator: ", ")
+        let head = (marks.count == 1 ? "📍 Aki: 1 marca na tela" : "📍 Aki: \(marks.count) marcas na tela") + " (\(codes))."
         // Pictures numbered among themselves, in the order they're pasted.
         var picture = 0
         let body = marks.enumerated().map { i, a -> String in
