@@ -204,6 +204,16 @@ do {
             print("\(session.worktree)  [\(session.branch ?? "-")]  \(session.agents.map(\.rawValue).joined(separator: "+"))  \(state.joined(separator: ","))")
         }
 
+    case "recent":
+        // The last week's conversations, open or closed (the History's Sessions tab).
+        let started = Date()
+        let entries = SessionHistory.recent()
+        for entry in entries.prefix(40) {
+            let when = entry.updated.formatted(date: .abbreviated, time: .shortened)
+            print("\(entry.agent.rawValue.padding(toLength: 7, withPad: " ", startingAt: 0)) \(when)  \(entry.title ?? "—")  ·  \(URL(filePath: entry.cwd).lastPathComponent)")
+        }
+        print("\(entries.count) conversations in 7 days (\(String(format: "%.2f", Date().timeIntervalSince(started))) s)")
+
     case "usage":
         let ledger = TokenLedger()
         ledger.update()

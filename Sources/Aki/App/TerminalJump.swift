@@ -35,6 +35,21 @@ enum TerminalJump {
         }
     }
 
+    /// A new Orca tab in `folder` running `command`, brought forward. False without Orca
+    /// or when Orca doesn't know that folder.
+    @MainActor static func createOrcaTerminal(in folder: String, title: String?, command: String) async -> Bool {
+        guard FileManager.default.isExecutableFile(atPath: orcaCLI),
+              !Preferences.shared.disconnectedApps.contains("com.stablyai.orca") else { return false }
+        var arguments = ["terminal", "create", "--worktree", "path:" + Worktree.root(of: folder), "--command", command, "--focus", "--json"]
+        if let title, !title.isEmpty { arguments += ["--title", title] }
+        let created = await Task.detached { run(orcaCLI, arguments) }.value
+        guard let created, let json = try? JSONSerialization.jsonObject(with: created) as? [String: Any],
+              json["error"] == nil
+        else { return false }
+        activateApp(bundleID: "com.stablyai.orca", fallbackPID: 0)
+        return true
+    }
+
     private static let cacheLock = NSLock()
     nonisolated(unsafe) private static var cachedTabs: (at: Date, tabs: [[String: Any]])?
 

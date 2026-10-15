@@ -101,8 +101,18 @@ private struct HistoryView: View {
     @State private var project: String?
     /// Words to find in the comment, the text read, the page or the element.
     @State private var query = ""
+    /// Marks, or the last week's conversations.
+    @State private var tab: HistoryTab = .marks
 
     var body: some View {
+        if tab == .sessions {
+            SessionsHistoryView(model: model, tab: $tab)
+        } else {
+            marks
+        }
+    }
+
+    private var marks: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack(spacing: 6) {
                 // Room for close / minimise / zoom.
@@ -110,6 +120,7 @@ private struct HistoryView: View {
                 Image(systemName: "clock.arrow.circlepath").font(.system(size: 11, weight: .bold))
                     .foregroundStyle(AkiPalette.auroraDiagonal)
                 Text(L10n.t("History")).font(.system(size: 13, weight: .bold)).foregroundStyle(.white)
+                HistoryTabs(tab: $tab)
                 Spacer()
                 ForEach(Show.allCases, id: \.self) { option in
                     let on = show == option
@@ -310,7 +321,14 @@ private struct HistoryView: View {
 
     /// What the opening asked for: a session's marks, or everything (the queue is always on top).
     private func openAsAsked() {
-        session = model.historySession
+        // "@sessions": straight to the week's conversations (the sidebar's "+N").
+        if model.historySession == "@sessions" {
+            tab = .sessions
+            session = nil
+        } else {
+            tab = .marks
+            session = model.historySession
+        }
     }
 
     private func count(_ option: Show) -> Int {
@@ -591,7 +609,7 @@ private struct HoverLift: ViewModifier {
 }
 
 extension View {
-    fileprivate func hoverLift() -> some View { modifier(HoverLift()) }
+    func hoverLift() -> some View { modifier(HoverLift()) }
 }
 
 /// What a mark weighed when it was sent (stored with it; older ones measured now).

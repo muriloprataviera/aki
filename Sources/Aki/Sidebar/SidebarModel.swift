@@ -970,6 +970,36 @@ final class SidebarModel {
         }
     }
 
+    /// Goes to a session: its Orca tab, its terminal, or its conversation in the app.
+    func open(_ terminal: AgentTerminal) {
+        if DesktopApps.bundleID(of: terminal.id) == nil, viaApp(terminal),
+           let owner = TerminalApp.owner(of: terminal.pid)?.bundleIdentifier {
+            Task { await AppDelivery.reveal(terminal.name, in: owner) }
+        } else {
+            TerminalJump.go(to: terminal)
+        }
+    }
+
+    enum Resumed { case orca, newInApp, copied }
+
+    /// A closed conversation back: in a new Orca tab (`claude --resume` / `codex resume`);
+    /// with no Orca, Claude's in a new Code session of its folder in the Claude app (that
+    /// app can't reopen an old one), and the command on the clipboard either way.
+    func resume(_ entry: SessionHistory.Entry) async -> Resumed {
+        let quoted = "'" + entry.cwd.replacingOccurrences(of: "'", with: "'\\''") + "'"
+        let command = entry.agent == .codex ? "codex resume \(entry.id)" : "claude --resume \(entry.id)"
+        NSPasteboard.general.clearContents()
+        NSPasteboard.general.setString("cd \(quoted) && \(command)", forType: .string)
+        if await TerminalJump.createOrcaTerminal(in: entry.cwd, title: entry.title, command: command) { return .orca }
+        if entry.agent == .claude,
+           NSWorkspace.shared.urlForApplication(withBundleIdentifier: "com.anthropic.claudefordesktop") != nil,
+           var link = URLComponents(string: "claude://code/new") {
+            link.queryItems = [URLQueryItem(name: "folder", value: entry.cwd)]
+            if let url = link.url, NSWorkspace.shared.open(url) { return .newInApp }
+        }
+        return .copied
+    }
+
     /// Delivered through an agent's app: the app itself, or a Code session it runs.
     private func viaApp(_ terminal: AgentTerminal) -> Bool {
         DesktopApps.bundleID(of: terminal.id) != nil

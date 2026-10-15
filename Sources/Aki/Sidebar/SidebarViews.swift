@@ -1425,6 +1425,17 @@ struct MoreCard: View {
                         .background(RoundedRectangle(cornerRadius: 5).fill(AkiPalette.fg.opacity(model.hoveredTarget == key ? 0.08 : 0)))
                         .clickTarget(key)
                 }
+                // Every conversation of the week, open or closed: the History's Sessions.
+                if !hidden {
+                    let key = "history|@sessions"
+                    Hairline()
+                    Label(L10n.t("This week's sessions…"), systemImage: "clock.arrow.circlepath")
+                        .font(CardType.bodyStrong)
+                        .foregroundStyle(model.hoveredTarget == key ? AkiPalette.textPrimary : secondary)
+                        .padding(.horizontal, 4).padding(.vertical, 3)
+                        .background(RoundedRectangle(cornerRadius: 5).fill(AkiPalette.fg.opacity(model.hoveredTarget == key ? 0.08 : 0)))
+                        .clickTarget(key)
+                }
             }
         }
     }
