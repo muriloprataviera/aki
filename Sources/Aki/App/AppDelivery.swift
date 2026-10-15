@@ -29,21 +29,43 @@ enum AppDelivery {
             .compactMap { AnnotationImage.file(for: $0) }
         let pid = app.processIdentifier
         exposeContents(pid)
+        app.unhide()
         app.activate()
         // In front, its window up (up to two seconds).
         for _ in 0..<40 where NSWorkspace.shared.frontmostApplication?.processIdentifier != pid {
             try? await Task.sleep(for: .milliseconds(50))
         }
-        guard NSWorkspace.shared.frontmostApplication?.processIdentifier == pid else { return .failed }
+        func front() -> Bool { NSWorkspace.shared.frontmostApplication?.processIdentifier == pid }
+        // Its window minimized, closed with the app still open, or not up yet (it just
+        // opened): brought back, like clicking it in the Dock (up to four seconds more).
+        if !front() || focusedWindow(pid) == nil {
+            showWindow(app)
+            for _ in 0..<80 where !front() || focusedWindow(pid) == nil { try? await Task.sleep(for: .milliseconds(50)) }
+        }
+        guard front() else { return .failed }
         try? await Task.sleep(for: .milliseconds(350))
         let pasteboard = NSPasteboard.general
-        // Its contents may take a moment to show to Accessibility the first time.
-        var box = messageBox(pid)
-        for _ in 0..<3 where box == nil {
+        // Its contents may take several seconds to show to Accessibility the first time
+        // (an app that just opened is still loading its page).
+        // The focus elsewhere (a menu button, after a dialog closed): into the window's
+        // message box, the lowest one (the conversation's, not a side panel's).
+        var candidate = messageBox(pid)
+        let patience = Date().addingTimeInterval(12)
+        var asked = Date()
+        while candidate == nil, Date() < patience {
+            // Asked again now and then, in case it came before its window was up: not
+            // every time, since each ask makes the app build it all over again.
+            if Date().timeIntervalSince(asked) > 4 { exposeContents(pid); asked = Date() }
+            if let found = composer(pid) {
+                AXUIElementSetAttributeValue(found, kAXFocusedAttribute as CFString, kCFBooleanTrue)
+                try? await Task.sleep(for: .milliseconds(250))
+                candidate = messageBox(pid)
+                if candidate != nil { break }
+            }
             try? await Task.sleep(for: .milliseconds(300))
-            box = messageBox(pid)
+            candidate = messageBox(pid)
         }
-        guard let box else {
+        guard let found = candidate else {
             // Not in its message box: the message waits on the clipboard.
             pasteboard.clearContents()
             pasteboard.setString(text, forType: .string)
@@ -52,8 +74,14 @@ enum AppDelivery {
         let saved = savedItems(pasteboard)
         // Still in front, in that same box (not another conversation's): each paste and
         // Enter goes to whatever has the focus, so it's checked before every one.
+        var box = found, pasted = false
         func stillThere() -> Bool {
-            NSWorkspace.shared.frontmostApplication?.processIdentifier == pid && messageBox(pid).map { CFEqual($0, box) } == true
+            guard NSWorkspace.shared.frontmostApplication?.processIdentifier == pid, let now = messageBox(pid) else { return false }
+            if CFEqual(now, box) { return true }
+            // The app drew the box anew right after a paste, with what was pasted in it:
+            // the same box for what follows.
+            if pasted, isEmpty(now) == false { box = now; return true }
+            return false
         }
         func restore() {
             pasteboard.clearContents()
@@ -70,12 +98,15 @@ enum AppDelivery {
             pasteboard.clearContents()
             pasteboard.writeObjects([item])
             pressPaste()
+            pasted = true
             try? await Task.sleep(for: .milliseconds(500))
         }
         guard stillThere() else { restore(); return .failed }
         pasteboard.clearContents()
-        pasteboard.setString(text, forType: .string)
+        // Something of yours already written there: Aki's text after a blank line.
+        pasteboard.setString(isEmpty(box) == false ? "\n\n" + text : text, forType: .string)
         pressPaste()
+        pasted = true
         try? await Task.sleep(for: .milliseconds(600))
         defer { restore() }
         // Sent once the box is empty again. Pictures still uploading hold the send back:
@@ -85,6 +116,16 @@ enum AppDelivery {
             guard stillThere() else { return .pasted }
             press(36)  // Return
             try? await Task.sleep(for: .milliseconds(500))
+            // A new conversation moves on to its own page once sent: another message
+            // box, empty, in the same app.
+            // (It may be between pages for a moment: looked for again, up to a second.)
+            for _ in 0..<4 where NSWorkspace.shared.frontmostApplication?.processIdentifier == pid {
+                if let now = messageBox(pid) ?? composer(pid) {
+                    if !CFEqual(now, box) { return isEmpty(now) == true ? .sent : .pasted }
+                    break
+                }
+                try? await Task.sleep(for: .milliseconds(250))
+            }
             switch isEmpty(box) {
             case true?: return .sent
             // A box that doesn't tell its text: no proof it went, so not counted as done.
@@ -97,9 +138,12 @@ enum AppDelivery {
         return .pasted
     }
 
-    /// Electron apps tell Accessibility what's inside them only once asked to.
+    /// Electron apps tell Accessibility what's inside them only once asked to: Claude's
+    /// by the first flag, Codex's only by the second.
     static func exposeContents(_ pid: pid_t) {
-        AXUIElementSetAttributeValue(AXUIElementCreateApplication(pid), "AXManualAccessibility" as CFString, kCFBooleanTrue)
+        let app = AXUIElementCreateApplication(pid)
+        AXUIElementSetAttributeValue(app, "AXManualAccessibility" as CFString, kCFBooleanTrue)
+        AXUIElementSetAttributeValue(app, "AXEnhancedUserInterface" as CFString, kCFBooleanTrue)
     }
 
     /// The app's focused message box: a multi-line text area (a search or a title field
@@ -114,32 +158,86 @@ enum AppDelivery {
         var role: CFTypeRef?
         AXUIElementCopyAttributeValue(element, kAXRoleAttribute as CFString, &role)
         guard role as? String == "AXTextArea" else { return nil }
-        // The message box sits at the bottom of the conversation; other multi-line fields
-        // (a project's instructions, a settings box) sit higher or in a sheet of their own.
-        guard let box = frame(of: element), let window = windowFrame(of: element),
-              box.maxY >= window.minY + window.height * 0.6
-        else { return nil }
+        // The message box sits in the conversation (at the bottom, or in the middle of a
+        // new one); other multi-line fields (a project's instructions, a settings box)
+        // open in a dialog of their own.
+        guard !inDialog(element) else { return nil }
         return element
     }
 
-    private static func frame(of element: AXUIElement) -> CGRect? {
+    private static func focusedWindow(_ pid: pid_t) -> AXUIElement? {
+        var window: CFTypeRef?
+        guard AXUIElementCopyAttributeValue(AXUIElementCreateApplication(pid), kAXFocusedWindowAttribute as CFString, &window) == .success,
+              let window, CFGetTypeID(window) == AXUIElementGetTypeID()
+        else { return nil }
+        return (window as! AXUIElement)
+    }
+
+    /// Its first minimized window back; with none at all, the app asked to reopen one
+    /// (like clicking it in the Dock).
+    private static func showWindow(_ app: NSRunningApplication) {
+        var windows: CFTypeRef?
+        AXUIElementCopyAttributeValue(AXUIElementCreateApplication(app.processIdentifier), kAXWindowsAttribute as CFString, &windows)
+        if let first = (windows as? [AXUIElement])?.first {
+            AXUIElementSetAttributeValue(first, kAXMinimizedAttribute as CFString, kCFBooleanFalse)
+            AXUIElementPerformAction(first, kAXRaiseAction as CFString)
+        } else if let url = app.bundleURL {
+            NSWorkspace.shared.openApplication(at: url, configuration: NSWorkspace.OpenConfiguration())
+        }
+        app.activate()
+    }
+
+    /// The front window's message box when the focus isn't in it: the lowest
+    /// multi-line text area outside any dialog.
+    private static func composer(_ pid: pid_t) -> AXUIElement? {
+        guard let window = focusedWindow(pid) else { return nil }
+        var queue = [window], best: (element: AXUIElement, bottom: CGFloat)?, seen = 0
+        while !queue.isEmpty, seen < 4000 {
+            let node = queue.removeFirst()
+            seen += 1
+            var role: CFTypeRef?
+            AXUIElementCopyAttributeValue(node, kAXRoleAttribute as CFString, &role)
+            if role as? String == "AXTextArea" {
+                if !inDialog(node), let bottom = bottom(of: node), bottom > (best?.bottom ?? -.infinity) { best = (node, bottom) }
+                continue
+            }
+            var children: CFTypeRef?
+            if AXUIElementCopyAttributeValue(node, kAXChildrenAttribute as CFString, &children) == .success,
+               let list = children as? [AXUIElement] { queue.append(contentsOf: list) }
+        }
+        return best?.element
+    }
+
+    private static func bottom(of element: AXUIElement) -> CGFloat? {
         var position: CFTypeRef?, size: CFTypeRef?
         guard AXUIElementCopyAttributeValue(element, kAXPositionAttribute as CFString, &position) == .success,
               AXUIElementCopyAttributeValue(element, kAXSizeAttribute as CFString, &size) == .success,
               let position, let size
         else { return nil }
         var origin = CGPoint.zero, extent = CGSize.zero
-        guard AXValueGetValue(position as! AXValue, .cgPoint, &origin), AXValueGetValue(size as! AXValue, .cgSize, &extent)
+        guard AXValueGetValue(position as! AXValue, .cgPoint, &origin), AXValueGetValue(size as! AXValue, .cgSize, &extent),
+              extent.width > 0, extent.height > 0
         else { return nil }
-        return CGRect(origin: origin, size: extent)
+        return origin.y + extent.height
     }
 
-    private static func windowFrame(of element: AXUIElement) -> CGRect? {
-        var window: CFTypeRef?
-        guard AXUIElementCopyAttributeValue(element, kAXWindowAttribute as CFString, &window) == .success, let window,
-              CFGetTypeID(window) == AXUIElementGetTypeID()
-        else { return nil }
-        return frame(of: window as! AXUIElement)
+    /// Inside a sheet or a dialog (a native one, or one the page draws).
+    private static func inDialog(_ element: AXUIElement) -> Bool {
+        var current: AXUIElement? = element
+        for _ in 0..<40 {
+            guard let node = current else { return false }
+            var role: CFTypeRef?, subrole: CFTypeRef?
+            AXUIElementCopyAttributeValue(node, kAXRoleAttribute as CFString, &role)
+            AXUIElementCopyAttributeValue(node, kAXSubroleAttribute as CFString, &subrole)
+            if role as? String == "AXWindow" { return subrole as? String != "AXStandardWindow" && subrole != nil }
+            if role as? String == "AXSheet" || (subrole as? String)?.contains("Dialog") == true { return true }
+            var parent: CFTypeRef?
+            guard AXUIElementCopyAttributeValue(node, kAXParentAttribute as CFString, &parent) == .success, let parent,
+                  CFGetTypeID(parent) == AXUIElementGetTypeID()
+            else { return false }
+            current = (parent as! AXUIElement)
+        }
+        return false
     }
 
     /// Whether the box has nothing written in it (the message went); nil when it doesn't say.
@@ -147,7 +245,15 @@ enum AppDelivery {
         var value: CFTypeRef?
         guard AXUIElementCopyAttributeValue(box, kAXValueAttribute as CFString, &value) == .success,
               let text = value as? String else { return nil }
-        return text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        let written = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        if written.isEmpty { return true }
+        // Some boxes tell their hint ("Ask ChatGPT") as their text while empty.
+        for hint in [kAXPlaceholderValueAttribute, kAXDescriptionAttribute, kAXTitleAttribute] {
+            var label: CFTypeRef?
+            if AXUIElementCopyAttributeValue(box, hint as CFString, &label) == .success,
+               (label as? String)?.trimmingCharacters(in: .whitespacesAndNewlines) == written { return true }
+        }
+        return false
     }
 
     private static func savedItems(_ pasteboard: NSPasteboard) -> [NSPasteboardItem] {

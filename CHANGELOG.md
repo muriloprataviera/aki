@@ -10,6 +10,9 @@ What changed in each version of Aki. Versions follow [semantic versioning](https
 ### Changed
 - The line under a limits ring that said "TODAY" is now "PACE": how much you've used against an even week so far. Under 100% is on track, and it only turns orange or red past that.
 
+### Fixed
+- Sending to the Claude and Codex desktop apps works in a new conversation (its box in the middle of the window), with the app minimized, its window closed or just opened, and with the focus elsewhere in it; a send that went is no longer left as "pasted", and your own text in the box stays apart from Aki's.
+
 ## [0.7.1] — 2026-10-13
 
 ### Changed
