@@ -69,11 +69,24 @@ public enum SessionHistory {
 
     /// The first line that has `key` (at its top or in its `payload`), decoded as JSON
     /// (a folder may hold quotes or backslashes, escaped in the file).
-    static func firstValue(of key: String, in text: String) -> String? {
+    public static func firstValue(of key: String, in text: String) -> String? {
         for line in text.split(separator: "\n") where line.contains("\"\(key)\":") {
             guard let json = try? JSONSerialization.jsonObject(with: Data(line.utf8)) as? [String: Any] else { continue }
             if let value = json[key] as? String, !value.isEmpty { return value }
             if let value = (json["payload"] as? [String: Any])?[key] as? String, !value.isEmpty { return value }
+        }
+        // A line cut short (only the start of the file is read): that one value, its
+        // escapes kept and then decoded.
+        guard let start = text.range(of: "\"\(key)\":\"") else { return nil }
+        var literal = "", escaped = false
+        for character in text[start.upperBound...] {
+            if escaped { literal.append(character); escaped = false; continue }
+            if character == "\\" { literal.append(character); escaped = true; continue }
+            if character == "\"" {
+                let value = (try? JSONSerialization.jsonObject(with: Data("\"\(literal)\"".utf8), options: .fragmentsAllowed)) as? String
+                return value?.isEmpty == false ? value : nil
+            }
+            literal.append(character)
         }
         return nil
     }

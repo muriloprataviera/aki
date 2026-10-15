@@ -424,6 +424,10 @@ do {
     try? FileManager.default.removeItem(at: base)
 }
 
+// The week's conversations: a folder with quotes, also in a line cut short.
+check(SessionHistory.firstValue(of: "cwd", in: #"{"cwd":"/tmp/projeto \"A\"","type":"user"}"#) == #"/tmp/projeto "A""#, "a folder with quotes is read whole")
+check(SessionHistory.firstValue(of: "cwd", in: #"{"type":"session_meta","payload":{"id":"x","cwd":"/a \"b\"","base_instructions":"cut"#) == #"/a "b""#, "also from a line cut short")
+
 print(failures == 0 ? "\nall checks passed" : "\n\(failures) check(s) failed")
 exit(failures == 0 ? 0 : 1)
 
