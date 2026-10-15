@@ -4,6 +4,8 @@ What changed in each version of Aki. Versions follow [semantic versioning](https
 
 ## [Unreleased]
 
+## [0.8.4] — 2026-10-15
+
 ### Added
 - History → Sessions: your conversations of the last 7 days (Claude Code in a terminal or the Claude app, Codex), open or closed, with search, like Orca's session history. An open one takes you to it; a closed one resumes in a new Orca tab (or, with only the Claude app, a new Code session opens in its folder). Also from the "+N": "This week's sessions…".
 
