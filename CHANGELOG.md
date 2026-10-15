@@ -4,6 +4,9 @@ What changed in each version of Aki. Versions follow [semantic versioning](https
 
 ## [Unreleased]
 
+### Fixed
+- The Claude app's Code sessions are found by their own process, also when the app writes no session record for them (in 0.8.3 they could still be missing).
+
 ## [0.8.3] — 2026-10-15
 
 ### Added
