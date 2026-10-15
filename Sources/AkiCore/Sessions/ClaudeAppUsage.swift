@@ -35,13 +35,14 @@ public enum ClaudeAppUsage {
             return true
         }
         let rest = candidates.dropFirst(400).filter { deep || $0.0 == remembered }
+        // The deep look counts as done however it ends (found or not).
+        if deep { lastFoundLock.withLock { lastDeepScan = Date() } }
         for (url, modified) in newest + rest {
             if let limits = limits(in: url, modified: modified) {
                 lastFoundLock.withLock { lastFound = url }
                 return limits
             }
         }
-        if deep { lastFoundLock.withLock { lastDeepScan = Date() } }
         return nil
     }
 
