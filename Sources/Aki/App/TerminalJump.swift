@@ -226,7 +226,8 @@ enum TerminalJump {
            DesktopApps.known[owner] != nil {
             // Into that session: picked on the app's list, and never pasted into another.
             let result = await AppDelivery.deliver(to: owner, session: terminal.name, marks: marks)
-            guard result == .sent else { return result }
+            // (Claude's sessions only: they keep their transcript where Aki can read it.)
+            guard result == .sent, terminal.agent == .claude else { return result }
             // Sent: checked in the session's own transcript (a conversation of the same name
             // elsewhere would show it too). Not there: not taken as done.
             let header = String(AnnotationText.forApp(marks).prefix { $0 != "\n" })
