@@ -3,6 +3,26 @@
     <channel>
         <title>Aki</title>
         <item>
+            <title>0.8.1-beta.3</title>
+            <pubDate>Thu, 15 Oct 2026 17:11:58 -0300</pubDate>
+            <sparkle:channel>beta</sparkle:channel>
+            <sparkle:version>20261015201157</sparkle:version>
+            <sparkle:shortVersionString>0.8.1-beta.3</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
+            <description><![CDATA[<h2>Aki 0.8.1 beta 3</h2>
+<h3>New</h3><ul>
+<li>Settings → Agents → "What Aki found": whether Aki sees the Claude and Codex apps, their terminals and their limits, with "Search again".</li>
+<li>Right-click a limits ring: "Search again" and "What Aki found…".</li>
+<li>A limits ring shows as soon as Aki sees Claude or Codex, empty until its numbers come, and right after "Connect".</li>
+</ul>
+<h3>Fixed</h3><ul>
+<li>Claude's limits ring shows for people who use the Claude app and not Claude Code.</li>
+</ul>
+]]></description>
+            <enclosure url="https://aki-updates.vercel.app/0.8.1-beta.3/Aki-0.8.1-beta.3.zip" length="3927480" type="application/octet-stream" sparkle:edSignature="9S4VeN1B1lVglyhWcWBoe6/TS0CSq8pBUiYbsRLPdk8OLrY0MehxREz8Ye+2+xc5zPEYcZIi77CzUfaTQIm5BQ=="/>
+        </item>
+        <item>
             <title>0.8.1-beta.2</title>
             <pubDate>Thu, 15 Oct 2026 17:06:19 -0300</pubDate>
             <sparkle:channel>beta</sparkle:channel>
@@ -64,23 +84,6 @@
 </ul>
 ]]></description>
             <enclosure url="https://aki-updates.vercel.app/0.8.0/Aki-0.8.0.zip" length="3853051" type="application/octet-stream" sparkle:edSignature="kklToJ7Ct4k4Ffo8wrcd5ocDXDlBIn3fJ1X48s16mlOiBngL+yPF488arVqUqtC8TzTdohZyIUvqhFWXVio2CQ=="/>
-        </item>
-        <item>
-            <title>0.8.0-beta.4</title>
-            <pubDate>Thu, 15 Oct 2026 14:58:49 -0300</pubDate>
-            <sparkle:channel>beta</sparkle:channel>
-            <sparkle:version>20261015175848</sparkle:version>
-            <sparkle:shortVersionString>0.8.0-beta.4</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
-            <description><![CDATA[<h2>Aki 0.8.0-beta.4</h2>
-<ul>
-<li>Codex's ring turns blue while it works, the colour of its icon.</li>
-<li>Sending to the Claude or Codex app never pastes into a past message you're editing: only into the box at the bottom.</li>
-<li>No extra wait before sending to an app, unless a send just finished.</li>
-</ul>
-]]></description>
-            <enclosure url="https://aki-updates.vercel.app/0.8.0-beta.4/Aki-0.8.0-beta.4.zip" length="3837693" type="application/octet-stream" sparkle:edSignature="z0Un4615Ff4yRR7CNVW4zAokvuQqVrNbhjY5VBXdad0V8rlMWZJ8H29VFaMieWpPfYGcmgGnMNyad7dSYoS/CA=="/>
         </item>
         <item>
             <title>0.7.1</title>
