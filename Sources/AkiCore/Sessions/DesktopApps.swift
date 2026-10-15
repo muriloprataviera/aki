@@ -86,6 +86,8 @@ public enum DesktopApps {
     /// it build that all over again).
     static func pageTitle(_ pid: Int32) -> String? {
         let app = AXUIElementCreateApplication(pid)
+        // Without Accessibility allowed yet the ask goes nowhere: asked again once it is.
+        guard AXIsProcessTrusted() else { return nil }
         let first = askedLock.withLock { asked.insert(pid).inserted }
         if first {
             AXUIElementSetAttributeValue(app, "AXManualAccessibility" as CFString, kCFBooleanTrue)
