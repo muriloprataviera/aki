@@ -3,6 +3,23 @@
     <channel>
         <title>Aki</title>
         <item>
+            <title>0.8.4</title>
+            <pubDate>Thu, 15 Oct 2026 19:44:05 -0300</pubDate>
+            <sparkle:version>20261015224404</sparkle:version>
+            <sparkle:shortVersionString>0.8.4</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
+            <description><![CDATA[<h2>Aki 0.8.4</h2>
+<h3>New</h3><ul>
+<li>History → Sessions: your conversations of the last 7 days (Claude Code in a terminal or the Claude app, Codex), open or closed, with search. Open one to go there; resume a closed one in a new Orca tab. Also from the "+N": "This week's sessions…".</li>
+</ul>
+<h3>Fixed</h3><ul>
+<li>The Claude app's Code sessions are found by their own process (the app writes no session record for them), so they now show on the sidebar.</li>
+</ul>
+]]></description>
+            <enclosure url="https://aki-updates.vercel.app/0.8.4/Aki-0.8.4.zip" length="4039921" type="application/octet-stream" sparkle:edSignature="RtdL70934uDN27b+gnx3OK/On5vxnA7OQU1plFAmGpDtQnIOR4smnqRKOcbYqeNoVTpgTzx4V0sydyGjO1KRDQ=="/>
+        </item>
+        <item>
             <title>0.8.4-beta.2</title>
             <pubDate>Thu, 15 Oct 2026 19:24:29 -0300</pubDate>
             <sparkle:channel>beta</sparkle:channel>
@@ -19,21 +36,6 @@
 </ul>
 ]]></description>
             <enclosure url="https://aki-updates.vercel.app/0.8.4-beta.2/Aki-0.8.4-beta.2.zip" length="4037005" type="application/octet-stream" sparkle:edSignature="1OELqsp85qX6H+RDSn7G03y7QIQ2zoJBxcwqrdHeX4lCnsuAS33IZ8akxC1hXFurFAbDJl98w7Bs9sJP/cvBDA=="/>
-        </item>
-        <item>
-            <title>0.8.4-beta.1</title>
-            <pubDate>Thu, 15 Oct 2026 19:08:06 -0300</pubDate>
-            <sparkle:channel>beta</sparkle:channel>
-            <sparkle:version>20261015220806</sparkle:version>
-            <sparkle:shortVersionString>0.8.4-beta.1</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
-            <description><![CDATA[<h2>Aki 0.8.4 beta 1</h2>
-<h3>Fixed</h3><ul>
-<li>The Claude app's Code sessions are found by their own process, also when the app writes no session record for them.</li>
-</ul>
-]]></description>
-            <enclosure url="https://aki-updates.vercel.app/0.8.4-beta.1/Aki-0.8.4-beta.1.zip" length="3963068" type="application/octet-stream" sparkle:edSignature="PrrMVl5rv3Q3AhK8J1/+LRLmcHWDWAX1xcHkUkSVt2ac/thfdyXSnvVAvGB3vHLBYol0MWzplL3KPPWyJ3wGBw=="/>
         </item>
         <item>
             <title>0.8.3</title>
@@ -56,27 +58,6 @@
             <enclosure url="https://aki-updates.vercel.app/0.8.3/Aki-0.8.3.zip" length="3961206" type="application/octet-stream" sparkle:edSignature="x0zZwbDAgKWZt8C9NrQGy6AyEGyvklbHlKgRnOlVBLgQnSoPYtufje5OLGTEJqWkaKcD+HLegYBshfaG358MAw=="/>
         </item>
         <item>
-            <title>0.8.3-beta.3</title>
-            <pubDate>Thu, 15 Oct 2026 18:31:18 -0300</pubDate>
-            <sparkle:channel>beta</sparkle:channel>
-            <sparkle:version>20261015213117</sparkle:version>
-            <sparkle:shortVersionString>0.8.3-beta.3</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
-            <description><![CDATA[<h2>Aki 0.8.3 beta 3</h2>
-<h3>New</h3><ul>
-<li>The Claude app's Code sessions show on the sidebar like terminals, and marks sent to one go into it in the app.</li>
-<li>A "looking…" ring while Aki looks for your open sessions (when it starts, after Connect, on "Search again").</li>
-<li>Settings → Claude Code and Codex: "Search for sessions".</li>
-<li>With more than one display, right-click the sidebar → Screen to choose where the bar lives.</li>
-</ul>
-<h3>Fixed</h3><ul>
-<li>The sidebar no longer hides under the Dock.</li>
-</ul>
-]]></description>
-            <enclosure url="https://aki-updates.vercel.app/0.8.3-beta.3/Aki-0.8.3-beta.3.zip" length="3949221" type="application/octet-stream" sparkle:edSignature="aKD5RQpJZjx0Y7aU/AAXQi7ywWQVJysKKT8SX3d38pc7GdOaG7/knpsc8VHXyMsz7RIG6ivycx7yfkkqsteGBg=="/>
-        </item>
-        <item>
             <title>0.8.2</title>
             <pubDate>Thu, 15 Oct 2026 18:06:57 -0300</pubDate>
             <sparkle:version>20261015210656</sparkle:version>
@@ -90,25 +71,6 @@
 </ul>
 ]]></description>
             <enclosure url="https://aki-updates.vercel.app/0.8.2/Aki-0.8.2.zip" length="3935030" type="application/octet-stream" sparkle:edSignature="OzqxXzUOJSzjVjLjskYcd09DBxHErTeei9iWlOZHTIJwekqm75oMeMI957P4Gm5pn4GKTFGW2XHCvXSYmNB7AQ=="/>
-        </item>
-        <item>
-            <title>0.8.1</title>
-            <pubDate>Thu, 15 Oct 2026 17:34:46 -0300</pubDate>
-            <sparkle:version>20261015203445</sparkle:version>
-            <sparkle:shortVersionString>0.8.1</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
-            <description><![CDATA[<h2>Aki 0.8.1</h2>
-<h3>New</h3><ul>
-<li>Claude's limits ring now shows for people who use the Claude app and not Claude Code.</li>
-<li>A limits ring shows as soon as Aki sees Claude or Codex, empty until its numbers come, and right after "Connect".</li>
-<li>Settings → Agents → "What Aki found": whether Aki sees the Claude and Codex apps, their terminals and their limits, with "Search again". Also on a limits ring's right-click menu.</li>
-</ul>
-<h3>Lighter</h3><ul>
-<li>Less work with many terminals open.</li>
-</ul>
-]]></description>
-            <enclosure url="https://aki-updates.vercel.app/0.8.1/Aki-0.8.1.zip" length="3931175" type="application/octet-stream" sparkle:edSignature="45ie6FEJoWPp/bFAoxV1YTLBhMKLqpvvEFdkAysqQyORIyob81wDYULylnD7L8ip/oKeHDzbYp8qYdIbJ87PDg=="/>
         </item>
     </channel>
 </rss>
