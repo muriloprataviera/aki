@@ -996,7 +996,9 @@ final class SidebarModel {
         let installed = await Task.detached {
             let check = Process()
             check.executableURL = URL(filePath: "/bin/zsh")
-            check.arguments = ["-lc", "command -v \(program) >/dev/null"]
+            // Interactive and login, like the terminal that will run it (.zshrc too).
+            check.arguments = ["-ilc", "command -v \(program) >/dev/null"]
+            check.standardInput = FileHandle.nullDevice
             check.standardOutput = FileHandle.nullDevice
             check.standardError = FileHandle.nullDevice
             guard (try? check.run()) != nil else { return false }

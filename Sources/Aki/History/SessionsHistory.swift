@@ -107,14 +107,11 @@ struct SessionsHistoryView: View {
             while !Task.isCancelled {
                 let found = await Task.detached(priority: .utility) { SessionHistory.recent() }.value
                 if found != entries { entries = found }
-                let codex = model.terminals.filter { $0.agent == .codex }
+                // Codex in terminals (the Codex app can't be taken to one conversation: its
+                // ones stay "Resume", in a terminal).
+                let codex = model.terminals.filter { $0.agent == .codex && DesktopApps.bundleID(of: $0.id) == nil }
                 let byLog = await Task.detached(priority: .utility) { () -> [String: String] in
-                    let terminals = codex.filter { DesktopApps.bundleID(of: $0.id) == nil }
-                    var logs = CodexSessions.openLogs(of: terminals.map(\.pid))
-                    // The Codex app's conversations: the logs its helpers keep open.
-                    for app in codex where DesktopApps.bundleID(of: app.id) != nil {
-                        logs[app.pid, default: []] += DesktopApps.openCodexLogs(app: app.pid)
-                    }
+                    let logs = CodexSessions.openLogs(of: codex.map(\.pid))
                     var ids: [String: String] = [:]
                     for terminal in codex {
                         for log in logs[terminal.pid] ?? [] {
