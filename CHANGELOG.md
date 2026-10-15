@@ -4,6 +4,8 @@ What changed in each version of Aki. Versions follow [semantic versioning](https
 
 ## [Unreleased]
 
+## [0.8.1] — 2026-10-15
+
 ### Added
 - Settings → Agents → "What Aki found": whether Aki sees the Claude and Codex apps, their terminals and their limits, with "Search again".
 - Right-click a limits ring: "Search again" and "What Aki found…".
