@@ -17,6 +17,18 @@ enum OrcaFocus {
               (string(input, "AXDescription") ?? "") == "Terminal input",
               let pane = ancestor(of: input, withClass: "pane")
         else { return nil }
+        // The same terminal still has the keyboard: its tab is the one found before (the
+        // tab strip's walk is the costly part, and this runs every 0.4 s). Looked at again
+        // every few seconds, for a tab renamed meanwhile.
+        if let last, CFEqual(last.input, input), Date().timeIntervalSince(last.at) < 5 { return last.title }
+        let title = tabTitle(over: pane)
+        last = (input, title, Date())
+        return title
+    }
+
+    @MainActor private static var last: (input: AXUIElement, title: String?, at: Date)?
+
+    @MainActor private static func tabTitle(over pane: AXUIElement) -> String? {
         let paneFrame = frame(pane)
         // Climb until the tab strip shows up, then keep the highlighted tab over this pane.
         var node = pane

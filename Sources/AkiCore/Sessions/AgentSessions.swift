@@ -206,16 +206,18 @@ public enum AgentSessions {
         return list
     }
 
+    /// Each process's folder, asked of the kernel directly (an `lsof` per pass cost
+    /// more than everything else the sidebar does).
     static func workingDirectories(of pids: [Int32]) -> [Int32: String] {
-        let list = pids.map(String.init).joined(separator: ",")
         var result: [Int32: String] = [:]
-        var pid: Int32?
-        for line in run("/usr/sbin/lsof", ["-a", "-d", "cwd", "-Fpn", "-p", list]).split(separator: "\n") {
-            if line.hasPrefix("p") {
-                pid = Int32(line.dropFirst())
-            } else if line.hasPrefix("n"), let pid {
-                result[pid] = String(line.dropFirst())
+        for pid in pids {
+            var info = proc_vnodepathinfo()
+            let size = Int32(MemoryLayout<proc_vnodepathinfo>.size)
+            guard proc_pidinfo(pid, PROC_PIDVNODEPATHINFO, 0, &info, size) == size else { continue }
+            let path = withUnsafeBytes(of: info.pvi_cdir.vip_path) { raw in
+                String(decoding: raw.prefix { $0 != 0 }, as: UTF8.self)
             }
+            if !path.isEmpty { result[pid] = path }
         }
         return result
     }
