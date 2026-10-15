@@ -11,6 +11,7 @@ What changed in each version of Aki. Versions follow [semantic versioning](https
 - A limits ring turns whenever its AI is at work: also while the Claude or Codex app is answering, and during runs with no window of their own (like a `codex exec`).
 
 ### Changed
+- Codex's ring turns blue while it works, the colour of its icon (it was green).
 - The line under a limits ring that said "TODAY" is now "PACE": how much you've used against an even week so far. Under 100% is on track, and it only turns orange or red past that.
 
 ### Fixed
