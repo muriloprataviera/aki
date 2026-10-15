@@ -4,6 +4,8 @@ What changed in each version of Aki. Versions follow [semantic versioning](https
 
 ## [Unreleased]
 
+## [0.8.2] — 2026-10-15
+
 ### Fixed
 - The rings' numbers go in order (1, 2, 3…) without skipping the sessions kept in "+N", and ⌘1, ⌘2… while marking follow the same numbers.
 - "Connect" also connects the Claude app's Code tab when there is no `claude` command (it uses the Claude Code that comes with the app).
