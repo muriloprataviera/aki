@@ -303,6 +303,10 @@ waitServer.stop()
 let desktopClaude = "/Users/x/Library/Application Support/Claude/claude-code/2.1.299/4fa9/claude.app/Contents/MacOS/claude --output-format stream-json --verbose --input-format stream-json"
 check(AgentSessions.classify(desktopClaude) == .agent(.claude), "the Claude app's Code session is a session")
 check(AgentSessions.headless(desktopClaude) == nil, "and not a headless run")
+check(AgentSessions.isClaudeAppSession(desktopClaude), "found as a Claude app session by its process")
+check(AgentSessions.sessionID(in: desktopClaude + " --resume=2b1c-44 --model=x") == "2b1c-44", "its session id from --resume=")
+check(AgentSessions.sessionID(in: desktopClaude + " --session-id 9f9f") == "9f9f", "or from --session-id")
+check(!AgentSessions.isClaudeAppSession("/Users/x/.local/bin/claude --resume=1"), "a terminal's claude isn't the app's")
 check(ClaudeSessions.parse(Data(#"{"pid":1,"sessionId":"s","cwd":"/p","kind":"sdk","entrypoint":"claude-desktop"}"#.utf8)) != nil, "a Code session of the Claude app is listed")
 check(ClaudeSessions.parse(Data(#"{"pid":1,"sessionId":"s","cwd":"/p","kind":"bg","entrypoint":"cli"}"#.utf8)) == nil, "a background run from a terminal isn't")
 check(AgentSessions.classify("/opt/homebrew/bin/codex") == .agent(.codex), "codex alone is a session")
@@ -415,6 +419,8 @@ do {
         .write(to: projects.appending(path: slug).appending(path: "s1.jsonl"))
     check(ClaudeSessions.received("📍 Aki: 2 marcas na tela (#ab12cd, #ef34aa).", sessionId: "s1", in: registry, projects: projects), "a message sent to a Code session is found in its transcript")
     check(!ClaudeSessions.received("📍 Aki: 1 marca na tela (#999999).", sessionId: "s1", in: registry, projects: projects), "another message isn't")
+    try? FileManager.default.removeItem(at: registry.appending(path: "1.json"))
+    check(ClaudeSessions.received("📍 Aki: 2 marcas na tela (#ab12cd, #ef34aa).", sessionId: "s1", in: registry, projects: projects), "found without a registry entry too")
     try? FileManager.default.removeItem(at: base)
 }
 

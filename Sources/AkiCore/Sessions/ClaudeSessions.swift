@@ -148,9 +148,14 @@ public enum ClaudeSessions {
     /// pasted into the Claude app lands there once sent). JSON escapes the text, so only
     /// letters and digits are compared.
     public static func received(_ text: String, sessionId: String, in directory: URL = registry, projects: URL = projects) -> Bool {
-        guard let session = live(in: directory).first(where: { $0.sessionId == sessionId }),
-              let handle = try? FileHandle(forReadingFrom: transcript(sessionId: sessionId, cwd: session.cwd, projects: projects))
-        else { return false }
+        // Its transcript by its folder when registered; else the one named after it (the
+        // app's Code sessions may write no registry entry).
+        let file = live(in: directory).first(where: { $0.sessionId == sessionId })
+            .map { transcript(sessionId: sessionId, cwd: $0.cwd, projects: projects) }
+            ?? ((try? FileManager.default.contentsOfDirectory(at: projects, includingPropertiesForKeys: nil)) ?? [])
+                .lazy.map { $0.appending(path: "\(sessionId).jsonl") }
+                .first { FileManager.default.fileExists(atPath: $0.path) }
+        guard let file, let handle = try? FileHandle(forReadingFrom: file) else { return false }
         defer { try? handle.close() }
         let size = (try? handle.seekToEnd()) ?? 0
         try? handle.seek(toOffset: size > 512 * 1024 ? size - 512 * 1024 : 0)

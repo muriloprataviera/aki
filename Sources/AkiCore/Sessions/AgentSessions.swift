@@ -35,6 +35,25 @@ public enum AgentSessions {
         Set(runningProcesses().compactMap { headless($0.command) })
     }
 
+    /// A Code session of the Claude app: its own Claude Code (kept under the app's
+    /// Application Support folder), talking to the app in stream-json.
+    public static func isClaudeAppSession(_ command: String) -> Bool {
+        command.contains("/Application Support/Claude/claude-code/") && command.contains("/MacOS/claude ")
+            && command.contains("--input-format") && command.contains("stream-json")
+    }
+
+    /// The session's id in its command: `--resume=<id>`, `--session-id=<id>` (or with a space).
+    public static func sessionID(in command: String) -> String? {
+        let words = words(of: command)
+        for (index, word) in words.enumerated() {
+            for flag in ["--resume", "--session-id"] {
+                if word.hasPrefix(flag + "=") { return String(word.dropFirst(flag.count + 1)) }
+                if word == flag, index + 1 < words.count, !words[index + 1].hasPrefix("-") { return words[index + 1] }
+            }
+        }
+        return nil
+    }
+
     /// A command's words. A folder with a space in its path ("Application Support",
     /// where the Claude app keeps its own Claude Code) stays one word.
     static func words(of command: String) -> [String] {
@@ -402,6 +421,28 @@ extension AgentSessions {
                 lastMessage: ClaudeSessions.lastAgentMessage(sessionId: session.sessionId, cwd: session.cwd),
                 pending: mine.count, pendingComments: comments(mine), pendingIDs: ids(mine), pendingPlaces: places(mine), updatedAt: session.updatedAt,
                 pendingImages: images(mine), undelivered: unsent(mine), orcaHandle: terminalHandle(of: session.pid)))
+        }
+        // The Claude app's Code sessions that wrote no registry entry: found by their
+        // process (the app's own Claude Code, run as a program), the session's id in its
+        // command (--resume=<id> or --session-id=<id>), its folder from the kernel.
+        let registered = Set(result.map(\.pid))
+        let appSessions = all.filter { process in
+            !registered.contains(process.pid) && Self.isClaudeAppSession(process.command)
+        }
+        let appFolders = workingDirectories(of: appSessions.map(\.pid))
+        for process in appSessions {
+            guard let cwd = appFolders[process.pid], cwd != "/" else { continue }
+            let worktree = root(cwd)
+            let id = Self.sessionID(in: process.command) ?? "claude-app:\(process.pid)"
+            let mine = marks(for: id, worktree: worktree)
+            let title = Self.sessionID(in: process.command).flatMap { ClaudeSessions.title(sessionId: $0, cwd: cwd) }
+            result.append(AgentTerminal(
+                id: id, agent: .claude, pid: process.pid,
+                name: title ?? URL(filePath: worktree).lastPathComponent, named: title != nil,
+                worktree: worktree, branch: branchOf(worktree), state: process.cpu >= 8 ? .working : .idle,
+                lastMessage: Self.sessionID(in: process.command).flatMap { ClaudeSessions.lastAgentMessage(sessionId: $0, cwd: cwd) },
+                pending: mine.count, pendingComments: comments(mine), pendingIDs: ids(mine), pendingPlaces: places(mine), updatedAt: nil,
+                pendingImages: images(mine), undelivered: unsent(mine), orcaHandle: nil))
         }
         // Other agents keep no registry: one entry per process, named after its folder.
         let others = processes.compactMap { process, kind -> (Process, AgentSession.Agent)? in
