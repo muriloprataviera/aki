@@ -28,15 +28,24 @@ public enum ClaudeAppUsage {
         // then the entry found last time, when a busy cache pushed it past them.
         let remembered = lastFoundLock.withLock { lastFound }
         let newest = Array(candidates.prefix(400))
-        let ordered = newest + candidates.dropFirst(400).filter { $0.0 == remembered }
-        for (url, modified) in ordered {
+        // None there: the rest of the cache too, at most every ten minutes (only each
+        // entry's address is read, but a month's cache holds thousands).
+        let deep = lastFoundLock.withLock { () -> Bool in
+            guard Date().timeIntervalSince(lastDeepScan) > 600 else { return false }
+            return true
+        }
+        let rest = candidates.dropFirst(400).filter { deep || $0.0 == remembered }
+        for (url, modified) in newest + rest {
             if let limits = limits(in: url, modified: modified) {
                 lastFoundLock.withLock { lastFound = url }
                 return limits
             }
         }
+        if deep { lastFoundLock.withLock { lastDeepScan = Date() } }
         return nil
     }
+
+    nonisolated(unsafe) private static var lastDeepScan = Date.distantPast
 
     nonisolated(unsafe) private static var lastFound: URL?
     private static let lastFoundLock = NSLock()
