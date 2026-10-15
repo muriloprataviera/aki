@@ -898,6 +898,8 @@ struct SettingsView: View {
                 setupRunning.insert(key)
                 Task {
                     let ok = await Setup.run(key)
+                    // What it connected shows on the sidebar now, not at the next look.
+                    if ok { await model.searchAgain() }
                     setupRunning.remove(key)
                     withAnimation(.spring(response: 0.35, dampingFraction: 0.55)) { setupResults[key] = ok }
                 }
