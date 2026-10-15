@@ -7,7 +7,7 @@ What changed in each version of Aki. Versions follow [semantic versioning](https
 ### Added
 - "Wake the agent after" can be set to instant: marks go into the session's tab the moment you send them.
 - Each ring shows, in a small badge, the app its session runs in (Orca, the Codex or Claude app, Terminal…).
-- The Claude and Codex desktop apps' rings show the name of the conversation open in them.
+- The Claude and Codex desktop apps' rings show the name of the conversation you last sent to.
 - A limits ring turns whenever its AI is at work: also while the Claude or Codex app is answering, and during runs with no window of their own (like a `codex exec`).
 
 ### Changed
@@ -18,6 +18,9 @@ What changed in each version of Aki. Versions follow [semantic versioning](https
 - The Codex app no longer adds a ring named "Resources" (one of its own helpers, not a session).
 - The message Aki sends to an app names its marks (#3ba324…) in its first line.
 - Sending to the Claude and Codex desktop apps works in a new conversation (its box in the middle of the window), with the app minimized, its window closed or just opened, and with the focus elsewhere in it; a send that went is no longer left as "pasted", and your own text in the box stays apart from Aki's.
+- Aki no longer slows the Mac down: apps it looked into while you marked (Chrome, the Claude and ChatGPT apps) are left as they were afterwards, instead of describing every change on screen for good, and the app rings no longer search the app's window every few seconds.
+- Marking opens at once, like the Mac's own screenshot: all screens are captured together, and the page's address is asked after the overlay is up.
+- "Connect" works for people who only use the Claude or ChatGPT/Codex app, with no `claude` or `codex` command installed.
 
 ## [0.7.1] — 2026-10-13
 
