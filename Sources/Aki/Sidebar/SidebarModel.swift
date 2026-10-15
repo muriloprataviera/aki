@@ -933,8 +933,17 @@ final class SidebarModel {
             // To an app, only the marks not sent yet (it gets them whole, not by code).
             // An app whose marks all went already (maybe still in its box, unsent): it
             // comes forward to send them, nothing pasted twice.
-            if waiting.isEmpty, DesktopApps.bundleID(of: terminal.id) != nil {
+            if waiting.isEmpty, viaApp(terminal) {
                 TerminalJump.go(to: terminal)
+                delivery[terminal.id] = nil
+                return
+            }
+            // A Code session in an app goes by its name there: two with the same name and
+            // Aki can't tell them apart, so nothing is sent.
+            if viaApp(terminal), DesktopApps.bundleID(of: terminal.id) == nil,
+               terminals.contains(where: { $0.id != terminal.id && viaApp($0) && $0.name == terminal.name }) {
+                delivery[terminal.id] = .failed
+                try? await Task.sleep(for: .seconds(3))
                 delivery[terminal.id] = nil
                 return
             }
@@ -944,7 +953,7 @@ final class SidebarModel {
             if result != .failed { await markDelivered(waiting, for: terminal) }
             // An app can't close them with `aki done`: once pasted there, they're done.
             // Only those still this app's (one moved elsewhere meanwhile waits for its new one).
-            if result == .sent, DesktopApps.bundleID(of: terminal.id) != nil {
+            if result == .sent, viaApp(terminal) {
                 let still = Set(await pendingMarks(of: terminal).map(\.id))
                 for id in forApp.map(\.id) where still.contains(id) { _ = try? await store.update(id, with: ["status": "completed"]) }
                 await refresh()
@@ -952,6 +961,12 @@ final class SidebarModel {
             try? await Task.sleep(for: .seconds(3))
             delivery[terminal.id] = nil
         }
+    }
+
+    /// Delivered through an agent's app: the app itself, or a Code session it runs.
+    private func viaApp(_ terminal: AgentTerminal) -> Bool {
+        DesktopApps.bundleID(of: terminal.id) != nil
+            || TerminalApp.owner(of: terminal.pid)?.bundleIdentifier.map { DesktopApps.known[$0] != nil } == true
     }
 
     /// Written on the marks themselves, so a restart still knows they went.

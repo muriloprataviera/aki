@@ -82,6 +82,8 @@ enum AppDelivery {
             try? await Task.sleep(for: .milliseconds(300))
             candidate = messageBox(pid)
         }
+        // The chosen session still the one open, now that its box was found.
+        if let session, !(DesktopApps.pageTitle(pid).map { showing($0, session) } ?? false) { return .failed }
         guard let found = candidate else {
             // Not in its message box: the message waits on the clipboard.
             pasteboard.clearContents()
@@ -97,6 +99,8 @@ enum AppDelivery {
         var box = found, pastedText = false
         func stillThere() -> Bool {
             guard NSWorkspace.shared.frontmostApplication?.processIdentifier == pid, let now = messageBox(pid) else { return false }
+            // Still the chosen session (you may have opened another meanwhile).
+            if let session, !(DesktopApps.pageTitle(pid).map { showing($0, session) } ?? false) { return false }
             if CFEqual(now, box) { return true }
             // The app drew the box anew right after the paste, with Aki's text in it: the
             // same box for what follows (another conversation's box wouldn't hold it).
@@ -165,13 +169,15 @@ enum AppDelivery {
         return .pasted
     }
 
+    /// The same name, exactly (only the spaces around it aside): "🐛 Login" isn't "🚀 Login".
+    private static func showing(_ title: String, _ session: String) -> Bool {
+        title.trimmingCharacters(in: .whitespacesAndNewlines) == session.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
     /// Whether the app shows `session` (its page's title), after picking it on the app's
     /// list when another is open. Up to a few seconds for the page to describe itself.
     private static func open(_ session: String, _ pid: pid_t) async -> Bool {
-        func same(_ title: String?) -> Bool {
-            guard let title else { return false }
-            return TerminalJump.normalized(title) == TerminalJump.normalized(session)
-        }
+        func same(_ title: String?) -> Bool { title.map { showing($0, session) } ?? false }
         var title = DesktopApps.pageTitle(pid)
         for _ in 0..<30 where title == nil {
             try? await Task.sleep(for: .milliseconds(200))
@@ -194,7 +200,7 @@ enum AppDelivery {
             var value: CFTypeRef?
             return AXUIElementCopyAttributeValue(element, key as CFString, &value) == .success ? value : nil
         }
-        let wanted = TerminalJump.normalized(name)
+
         var queue = [window], seen = 0
         while !queue.isEmpty, seen < 4000 {
             let node = queue.removeFirst()
@@ -202,7 +208,7 @@ enum AppDelivery {
             // A row's name: its title, its description, or the text in it.
             let label = [kAXTitleAttribute, kAXDescriptionAttribute, kAXValueAttribute]
                 .lazy.compactMap { attribute(node, $0) as? String }.first { !$0.isEmpty } ?? ""
-            if !label.isEmpty, TerminalJump.normalized(label) == wanted {
+            if !label.isEmpty, showing(label, name) {
                 // The row itself, or the first parent that can be pressed.
                 var current: AXUIElement? = node
                 for _ in 0..<4 {
