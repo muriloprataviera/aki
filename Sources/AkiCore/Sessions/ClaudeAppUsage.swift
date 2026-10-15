@@ -24,10 +24,11 @@ public enum ClaudeAppUsage {
             else { return nil }
             return (url, modified)
         }.sorted { $0.1 > $1.1 }
-        // The entry found last time first (the app rewrites it in place), then the newest
-        // few hundred: a busy cache can hold hundreds of newer pages.
+        // The newest few hundred, newest first (another account's answer would be newer);
+        // then the entry found last time, when a busy cache pushed it past them.
         let remembered = lastFoundLock.withLock { lastFound }
-        let ordered = candidates.filter { $0.0 == remembered } + candidates.prefix(400).filter { $0.0 != remembered }
+        let newest = Array(candidates.prefix(400))
+        let ordered = newest + candidates.dropFirst(400).filter { $0.0 == remembered }
         for (url, modified) in ordered {
             if let limits = limits(in: url, modified: modified) {
                 lastFoundLock.withLock { lastFound = url }
