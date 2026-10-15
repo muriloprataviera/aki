@@ -10,17 +10,19 @@ import ApplicationServices
 enum AppDelivery {
     /// One delivery at a time: two would take the focus and the clipboard from each other.
     private static var queue: Task<TerminalJump.Delivery, Never>?
+    private static var lastFinished = Date.distantPast
 
     static func deliver(to bundleID: String, marks: [Annotation]) async -> TerminalJump.Delivery {
         let previous = queue
         let task = Task { @MainActor in
             // Right after another one, the app is still redrawing its conversation (its
-            // answer starting): a moment for it to settle.
-            if let previous {
-                _ = await previous.value
-                try? await Task.sleep(for: .milliseconds(1500))
-            }
-            return await run(to: bundleID, marks: marks)
+            // answer starting): a moment for it to settle. Only then.
+            _ = await previous?.value
+            let since = Date().timeIntervalSince(lastFinished)
+            if since < 1.5 { try? await Task.sleep(for: .seconds(1.5 - since)) }
+            let result = await run(to: bundleID, marks: marks)
+            lastFinished = Date()
+            return result
         }
         queue = task
         return await task.value
@@ -262,7 +264,7 @@ enum AppDelivery {
     }
 
     /// Whether the front window shows `line` outside the message box `box`: a message in
-    /// the conversation (plain text in Claude's, a read-only text area in Codex's).
+    /// the conversation (its text; any other text area holding it counts too).
     private static func shows(_ line: String, _ pid: pid_t, besides box: AXUIElement) -> Bool {
         guard let window = focusedWindow(pid) else { return false }
         var queue = [window], seen = 0
