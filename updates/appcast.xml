@@ -3,6 +3,27 @@
     <channel>
         <title>Aki</title>
         <item>
+            <title>0.8.3-beta.3</title>
+            <pubDate>Thu, 15 Oct 2026 18:31:18 -0300</pubDate>
+            <sparkle:channel>beta</sparkle:channel>
+            <sparkle:version>20261015213117</sparkle:version>
+            <sparkle:shortVersionString>0.8.3-beta.3</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
+            <description><![CDATA[<h2>Aki 0.8.3 beta 3</h2>
+<h3>New</h3><ul>
+<li>The Claude app's Code sessions show on the sidebar like terminals, and marks sent to one go into it in the app.</li>
+<li>A "looking…" ring while Aki looks for your open sessions (when it starts, after Connect, on "Search again").</li>
+<li>Settings → Claude Code and Codex: "Search for sessions".</li>
+<li>With more than one display, right-click the sidebar → Screen to choose where the bar lives.</li>
+</ul>
+<h3>Fixed</h3><ul>
+<li>The sidebar no longer hides under the Dock.</li>
+</ul>
+]]></description>
+            <enclosure url="https://aki-updates.vercel.app/0.8.3-beta.3/Aki-0.8.3-beta.3.zip" length="3949221" type="application/octet-stream" sparkle:edSignature="aKD5RQpJZjx0Y7aU/AAXQi7ywWQVJysKKT8SX3d38pc7GdOaG7/knpsc8VHXyMsz7RIG6ivycx7yfkkqsteGBg=="/>
+        </item>
+        <item>
             <title>0.8.3-beta.2</title>
             <pubDate>Thu, 15 Oct 2026 18:26:58 -0300</pubDate>
             <sparkle:channel>beta</sparkle:channel>
@@ -55,22 +76,6 @@
 </ul>
 ]]></description>
             <enclosure url="https://aki-updates.vercel.app/0.8.2/Aki-0.8.2.zip" length="3935030" type="application/octet-stream" sparkle:edSignature="OzqxXzUOJSzjVjLjskYcd09DBxHErTeei9iWlOZHTIJwekqm75oMeMI957P4Gm5pn4GKTFGW2XHCvXSYmNB7AQ=="/>
-        </item>
-        <item>
-            <title>0.8.2-beta.1</title>
-            <pubDate>Thu, 15 Oct 2026 18:00:21 -0300</pubDate>
-            <sparkle:channel>beta</sparkle:channel>
-            <sparkle:version>20261015210020</sparkle:version>
-            <sparkle:shortVersionString>0.8.2-beta.1</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
-            <description><![CDATA[<h2>Aki 0.8.2 beta 1</h2>
-<h3>Fixed</h3><ul>
-<li>The rings' numbers go in order (1, 2, 3…) without skipping, and ⌘1, ⌘2… while marking follow them.</li>
-<li>"Connect" also connects the Claude app's Code tab when there is no claude command.</li>
-</ul>
-]]></description>
-            <enclosure url="https://aki-updates.vercel.app/0.8.2-beta.1/Aki-0.8.2-beta.1.zip" length="3934980" type="application/octet-stream" sparkle:edSignature="NOLQKMPtGg6HbaRBPXXS1M40KTKnnI9fHi90/FjE2APEZOaADOniUwTLomcO2QJaa7uMUp3f2KSbDHFf/BeLDg=="/>
         </item>
         <item>
             <title>0.8.1</title>
