@@ -179,6 +179,9 @@ enum AppDelivery {
         // new one); other multi-line fields (a project's instructions, a settings box)
         // open in a dialog of their own.
         guard !inDialog(element) else { return nil }
+        // And the conversation's own box, the lowest one: not a past message being
+        // edited in place, higher up (pasting there would send that edit again).
+        if let lowest = composer(pid), !CFEqual(lowest, element) { return nil }
         return element
     }
 
