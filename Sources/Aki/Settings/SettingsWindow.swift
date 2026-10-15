@@ -393,7 +393,11 @@ struct SettingsView: View {
     /// for someone wondering why their Claude doesn't show.
     private var foundSection: some View {
         let apps = model.terminals.filter { DesktopApps.bundleID(of: $0.id) != nil }
-        let terminals = model.terminals.filter { DesktopApps.bundleID(of: $0.id) == nil }
+        // The Code sessions an app runs (no terminal of their own) apart from the terminals.
+        let inApp = model.terminals.filter {
+            DesktopApps.bundleID(of: $0.id) == nil && TerminalApp.owner(of: $0.pid)?.bundleIdentifier.map { DesktopApps.known[$0] != nil } == true
+        }
+        let terminals = model.terminals.filter { t in DesktopApps.bundleID(of: t.id) == nil && !inApp.contains { $0.id == t.id } }
         func app(_ bundleID: String) -> (Bool, String) {
             if apps.contains(where: { DesktopApps.bundleID(of: $0.id) == bundleID }) { return (true, L10n.t("Running")) }
             let installed = NSWorkspace.shared.urlForApplication(withBundleIdentifier: bundleID) != nil
@@ -416,6 +420,10 @@ struct SettingsView: View {
         }
         let rows: [(String, (Bool, String))] = [
             (L10n.t("Claude app"), app("com.anthropic.claudefordesktop")),
+            (L10n.t("Code sessions in the Claude app"), {
+                let count = inApp.filter { $0.agent == .claude }.count
+                return (count > 0, count > 0 ? L10n.t("{n} open").replacingOccurrences(of: "{n}", with: "\(count)") : L10n.t("None open"))
+            }()),
             (L10n.t("Claude Code in a terminal"), inTerminal(.claude)),
             (L10n.t("Claude's limits"), limits(.claude)),
             (L10n.t("Codex app"), app("com.openai.codex")),

@@ -299,6 +299,12 @@ check(await waitAPI.store.get("new1")?.status == "completed", "client resolves")
 waitServer.stop()
 
 // Which processes count as agent sessions.
+// The Claude app's Code tab: its own Claude Code, under "Application Support", run as a program.
+let desktopClaude = "/Users/x/Library/Application Support/Claude/claude-code/2.1.299/4fa9/claude.app/Contents/MacOS/claude --output-format stream-json --verbose --input-format stream-json"
+check(AgentSessions.classify(desktopClaude) == .agent(.claude), "the Claude app's Code session is a session")
+check(AgentSessions.headless(desktopClaude) == nil, "and not a headless run")
+check(ClaudeSessions.parse(Data(#"{"pid":1,"sessionId":"s","cwd":"/p","kind":"sdk","entrypoint":"claude-desktop"}"#.utf8)) != nil, "a Code session of the Claude app is listed")
+check(ClaudeSessions.parse(Data(#"{"pid":1,"sessionId":"s","cwd":"/p","kind":"bg","entrypoint":"cli"}"#.utf8)) == nil, "a background run from a terminal isn't")
 check(AgentSessions.classify("/opt/homebrew/bin/codex") == .agent(.codex), "codex alone is a session")
 check(AgentSessions.classify("codex --no-daemon resume 01a1") == .agent(.codex), "codex resume is a session")
 check(AgentSessions.classify("codex -c model=x review") == nil, "codex review with options isn't")

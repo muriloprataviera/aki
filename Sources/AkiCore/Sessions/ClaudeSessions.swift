@@ -43,10 +43,19 @@ public enum ClaudeSessions {
         }
     }
 
-    static func parse(_ data: Data?) -> ClaudeSession? {
+    /// Started by the Claude app (its Code tab, or its agent mode).
+    static func isDesktop(_ entrypoint: String?) -> Bool {
+        guard let entrypoint else { return false }
+        return entrypoint.hasPrefix("claude-desktop") || entrypoint == "local-agent"
+    }
+
+    public static func parse(_ data: Data?) -> ClaudeSession? {
         guard let data, let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
             let pid = (json["pid"] as? NSNumber)?.int32Value, let id = json["sessionId"] as? String,
-            let cwd = json["cwd"] as? String, (json["kind"] as? String ?? "interactive") == "interactive"
+            let cwd = json["cwd"] as? String,
+            // Interactive ones, and the Claude app's Code sessions (it runs Claude Code as
+            // a program, not "interactive", but each is a conversation you work in).
+            (json["kind"] as? String ?? "interactive") == "interactive" || isDesktop(json["entrypoint"] as? String)
         else { return nil }
         let updated = (json["updatedAt"] as? NSNumber).map { Date(timeIntervalSince1970: $0.doubleValue / 1000) }
         let name = (json["name"] as? String).flatMap { $0.isEmpty ? nil : $0 }

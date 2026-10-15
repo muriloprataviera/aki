@@ -220,6 +220,12 @@ enum TerminalJump {
         if let bundleID = DesktopApps.bundleID(of: terminal.id) {
             return await AppDelivery.deliver(to: bundleID, marks: marks)
         }
+        // A session the Claude (or Codex) app runs in its Code tab: no terminal, so
+        // into the app, like the app itself.
+        if let owner = await MainActor.run(body: { TerminalApp.owner(of: terminal.pid)?.bundleIdentifier }),
+           DesktopApps.known[owner] != nil {
+            return await AppDelivery.deliver(to: owner, marks: marks)
+        }
         guard FileManager.default.isExecutableFile(atPath: orcaCLI) else { return .failed }
         // Only a conversation that runs in Orca: one in Terminal or iTerm must never
         // be typed into an Orca tab that happens to share its folder.

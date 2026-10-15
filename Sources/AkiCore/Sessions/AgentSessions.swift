@@ -35,8 +35,15 @@ public enum AgentSessions {
         Set(runningProcesses().compactMap { headless($0.command) })
     }
 
+    /// A command's words. A folder with a space in its path ("Application Support",
+    /// where the Claude app keeps its own Claude Code) stays one word.
+    static func words(of command: String) -> [String] {
+        command.replacingOccurrences(of: "/Application Support/", with: "/Application\u{1}Support/")
+            .split(separator: " ").map { $0.replacingOccurrences(of: "\u{1}", with: " ") }
+    }
+
     public static func headless(_ command: String) -> AgentSession.Agent? {
-        let words = command.split(separator: " ").map(String.init)
+        let words = words(of: command)
         guard let first = words.first else { return nil }
         var program = URL(filePath: first).lastPathComponent
         var rest = Array(words.dropFirst())
@@ -67,7 +74,7 @@ public enum AgentSessions {
     /// Interactive agent sessions and `aki wait` listeners; headless runs
     /// (`claude -p`, `codex exec`, `codex review`) don't count.
     public static func classify(_ command: String) -> Kind? {
-        let words = command.split(separator: " ").map(String.init)
+        let words = words(of: command)
         guard let first = words.first else { return nil }
         var program = URL(filePath: first).lastPathComponent
         var rest = Array(words.dropFirst())

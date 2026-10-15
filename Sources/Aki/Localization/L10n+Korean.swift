@@ -393,6 +393,7 @@ extension L10n {
         "Its numbers show once Claude reports them: send a message in the Claude app or Claude Code.": "Claude가 알려 주면 숫자가 나타납니다: Claude 앱이나 Claude Code에서 메시지를 보내세요.",
         "Its numbers show once Codex reports them: send a message in Codex.": "Codex가 알려 주면 숫자가 나타납니다: Codex에서 메시지를 보내세요.",
         "{n}% of the 5-hour session": "5시간 세션의 {n}%",
+        "Code sessions in the Claude app": "Claude 앱의 Code 세션",
         "What Aki found": "Aki가 찾은 것",
         "Search again": "다시 찾기",
         "Claude app": "Claude 앱",

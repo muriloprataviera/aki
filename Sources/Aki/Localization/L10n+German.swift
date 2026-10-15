@@ -393,6 +393,7 @@ extension L10n {
         "Its numbers show once Claude reports them: send a message in the Claude app or Claude Code.": "Die Zahlen erscheinen, sobald Claude sie meldet: Schick eine Nachricht in der Claude-App oder in Claude Code.",
         "Its numbers show once Codex reports them: send a message in Codex.": "Die Zahlen erscheinen, sobald Codex sie meldet: Schick eine Nachricht in Codex.",
         "{n}% of the 5-hour session": "{n} % der 5-Stunden-Sitzung",
+        "Code sessions in the Claude app": "Code-Sitzungen in der Claude-App",
         "What Aki found": "Was Aki gefunden hat",
         "Search again": "Erneut suchen",
         "Claude app": "Claude-App",
