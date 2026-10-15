@@ -9,6 +9,9 @@ What changed in each version of Aki. Versions follow [semantic versioning](https
 - Right-click a limits ring: "Search again" and "What Aki found…".
 - A limits ring shows as soon as Aki sees Claude or Codex (the app open, a terminal), empty until its numbers come, and right after "Connect".
 
+### Changed
+- Aki uses less of the Mac with many terminals open: the Orca tab you're in is looked up once while you stay in it, and each terminal's folder comes straight from macOS.
+
 ### Fixed
 - Claude's limits ring shows for people who use the Claude app and not Claude Code (read from the app's own usage answer on this Mac).
 
