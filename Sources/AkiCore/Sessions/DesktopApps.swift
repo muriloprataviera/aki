@@ -66,6 +66,18 @@ public enum DesktopApps {
     /// adds " - Claude" to it), else its window's title when it names one (not just the
     /// app). Else none: the one written to last may not be the one open.
     static func conversationName(_ app: Found) -> String? {
+        // Looked at every 15 s at most (it was every pass, inside the app's window).
+        let now = Date()
+        if let recent = titlesLock.withLock({ () -> String?? in
+            guard let last = looked[app.pid], now.timeIntervalSince(last.at) < 15 else { return nil }
+            return .some(last.name)
+        }) { return recent }
+        let name = currentName(app) ?? titlesLock.withLock { titles[app.pid] }
+        titlesLock.withLock { looked[app.pid] = (now, name) }
+        return name
+    }
+
+    private static func currentName(_ app: Found) -> String? {
         if let title = pageTitle(app.pid) {
             titlesLock.withLock { titles[app.pid] = title }
             return title
@@ -79,8 +91,10 @@ public enum DesktopApps {
             return title.trimmingCharacters(in: .whitespaces)
         }
         // Neither shows now (its page is described only around a delivery): the last seen.
-        return titlesLock.withLock { titles[app.pid] }
+        return nil
     }
+
+    nonisolated(unsafe) private static var looked = [Int32: (at: Date, name: String?)]()
 
     /// The conversation names last seen in each app (its page shows them only while
     /// Aki is delivering to it, see `expose`).

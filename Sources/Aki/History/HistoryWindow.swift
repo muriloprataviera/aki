@@ -23,6 +23,8 @@ final class HistoryWindowController {
         model.historyRequest += 1
         let panel = self.panel ?? makePanel()
         self.panel = panel
+        // Taken down when hidden (its 3-second reading would go on unseen): back up.
+        if !(panel.contentView is NSHostingView<HistoryView>) { panel.contentView = content(panel) }
         if let screen = NSScreen.main {
             let size = panel.frame.size
             let frame = screen.visibleFrame
@@ -58,8 +60,12 @@ final class HistoryWindowController {
         panel.appearance = NSAppearance(named: .darkAqua)
         panel.minSize = NSSize(width: 480, height: 380)
         panel.collectionBehavior.insert(.fullScreenPrimary)
-        panel.contentView = NSHostingView(rootView: HistoryView(model: model, close: { [weak panel] in panel?.orderOut(nil) }))
+        panel.contentView = content(panel)
         return panel
+    }
+
+    private func content(_ panel: NSPanel) -> NSView {
+        NSHostingView(rootView: HistoryView(model: model, close: { [weak panel] in panel?.orderOut(nil) }))
     }
 }
 
@@ -72,6 +78,8 @@ private final class HistoryPanel: NSPanel {
     /// However it's hidden, Aki leaves ⌘Tab if no other window of it is open.
     override func orderOut(_ sender: Any?) {
         super.orderOut(sender)
+        // Its list stops reading the marks every three seconds while nobody sees it.
+        contentView = NSView()
         MainActor.assumeIsolated { AppWindows.refresh() }
     }
 }

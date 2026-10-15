@@ -26,6 +26,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     private var history: HistoryWindowController!
     private var server: HTTPServer?
 
+    func applicationWillTerminate(_ notification: Notification) {
+        // The token counts are saved every ten minutes: what's newer, now.
+        model?.flushLedger()
+    }
+
     func applicationDidFinishLaunching(_ notification: Notification) {
         // This build's icon, not one the Mac cached from an older version.
         NSApp.applicationIconImage = AkiBrand.appIcon

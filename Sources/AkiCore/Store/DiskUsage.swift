@@ -31,7 +31,8 @@ public struct DiskUsage: Sendable, Equatable {
         if let values = try? home.url.deletingLastPathComponent().resourceValues(
             forKeys: [.volumeAvailableCapacityForImportantUsageKey, .volumeTotalCapacityKey])
         {
-            usage.diskFree = values.volumeAvailableCapacityForImportantUsage ?? 0
+            // To the GB: it moves every second, and each change redrew the sidebar.
+            usage.diskFree = (values.volumeAvailableCapacityForImportantUsage ?? 0) / 1_000_000_000 * 1_000_000_000
             usage.diskTotal = Int64(values.volumeTotalCapacity ?? 0)
         }
         return usage

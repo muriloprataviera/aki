@@ -674,7 +674,7 @@ struct RingCell: View {
                 .overlay {
                     // Counting down to the send: an arc that runs out around the ring.
                     if case .terminal(let t) = ring, let wait = model.deliverAt[t.id] {
-                        TimelineView(.animation) { context in
+                        TimelineView(.animation(minimumInterval: 1.0 / 15, paused: Date() >= wait.end)) { context in
                             let total = max(wait.end.timeIntervalSince(wait.start), 0.1)
                             let left = min(max(wait.end.timeIntervalSince(context.date) / total, 0), 1)
                             Circle().trim(from: 0, to: left)
@@ -1725,7 +1725,7 @@ struct TerminalCard: View {
         // The bar empties as the send gets closer.
         .overlay(alignment: .leading) {
             if state == nil, let wait = model.deliverAt[terminal.id] {
-                TimelineView(.animation) { context in
+                TimelineView(.animation(minimumInterval: 1.0 / 15, paused: Date() >= wait.end)) { context in
                     let total = max(wait.end.timeIntervalSince(wait.start), 0.1)
                     let left = min(max(wait.end.timeIntervalSince(context.date) / total, 0), 1)
                     GeometryReader { g in

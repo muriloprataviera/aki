@@ -122,8 +122,9 @@ enum TerminalJump {
     /// title distinguishes sessions that share a project, including after an IA switch.
     /// Only Orca's live list: its saved workspace file stopped being written (an old
     /// copy put tab names from days before on conversations that are now others).
+    /// Asked of Orca every 10 s at most: its command starts a whole Node each time.
     static func namedTerminals(_ terminals: [AgentTerminal]) -> [AgentTerminal] {
-        guard terminals.contains(where: { $0.orcaHandle != nil }), let tabs = orcaTabs(maxAge: 3) else { return terminals }
+        guard terminals.contains(where: { $0.orcaHandle != nil }), let tabs = orcaTabs(maxAge: 10) else { return terminals }
         let customTitles = orcaCustomTitles()
         return terminals.map { terminal in
             guard let handle = terminal.orcaHandle,

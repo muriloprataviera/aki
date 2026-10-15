@@ -86,14 +86,30 @@ public final class TokenLedger: @unchecked Sendable {
         let oldEvents = state.events.count
         state.events = state.events.filter { $0.value.ts >= cutoff }
         if state.cursors.count != oldCursors || state.events.count != oldEvents { changed = true }
-        if changed, let data = try? JSONEncoder().encode(state) {
-            // Only you read it: it names your projects and when you worked.
-            try? FileManager.default.createDirectory(at: file.deletingLastPathComponent(), withIntermediateDirectories: true,
-                                                     attributes: [.posixPermissions: 0o700])
-            try? data.write(to: file, options: .atomic)
-            try? FileManager.default.setAttributes([.posixPermissions: 0o600], ofItemAtPath: file.path)
-        }
+        if changed { dirty = true }
+        // Saved every ten minutes at most (and on quit): rewritten each pass, several
+        // MB every half minute added up to gigabytes a day on the disk.
+        if dirty, now.timeIntervalSince(lastSaved) > 600 { saveLocked(now) }
         return changed
+    }
+
+    private var dirty = false
+    private var lastSaved = Date.distantPast
+
+    /// Writes what's unsaved now (Aki quitting).
+    public func flush() {
+        lock.withLock { if dirty { saveLocked(Date()) } }
+    }
+
+    private func saveLocked(_ now: Date) {
+        guard let data = try? JSONEncoder().encode(state) else { return }
+        // Only you read it: it names your projects and when you worked.
+        try? FileManager.default.createDirectory(at: file.deletingLastPathComponent(), withIntermediateDirectories: true,
+                                                 attributes: [.posixPermissions: 0o700])
+        try? data.write(to: file, options: .atomic)
+        try? FileManager.default.setAttributes([.posixPermissions: 0o600], ofItemAtPath: file.path)
+        dirty = false
+        lastSaved = now
     }
 
     /// Every request of one AI in the window kept.

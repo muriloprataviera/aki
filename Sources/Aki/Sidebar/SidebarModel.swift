@@ -654,27 +654,34 @@ final class SidebarModel {
     @ObservationIgnored private var ledgerRead = Date.distantPast
     @ObservationIgnored private var ledgerBusy = false
 
-    /// Room Aki's pictures take on this Mac (measured on each refresh).
+    /// Room Aki's pictures take on this Mac (measured once a minute, and after a clean-up).
     var diskUsage = DiskUsage()
+    @ObservationIgnored private var diskRead = Date.distantPast
+
+    /// Aki quitting: the token counts not saved yet.
+    func flushLedger() { ledger.flush() }
 
     /// Deletes the pictures no waiting mark needs.
     func cleanImages() {
         Task {
             let pending = await store.list(.init(status: "pending")).annotations
             await Task.detached { DiskUsage.clean(pending: pending) }.value
+            diskRead = .distantPast
             await refresh()
         }
     }
 
     func refresh() async {
         let pending = await store.list(.init(status: "pending")).annotations
+        let measureDisk = Date().timeIntervalSince(diskRead) > 60
+        if measureDisk { diskRead = Date() }
         let (found, scanned, usage, busy) = await Task.detached {
             (AgentSessions.scan(pending: pending), AgentSessions.terminals(pending: pending),
-             DiskUsage.measure(pending: pending), AgentSessions.headlessBusy())
+             measureDisk ? DiskUsage.measure(pending: pending) : nil, AgentSessions.headlessBusy())
         }.value
         if busy != headlessBusy { headlessBusy = busy }
         let open = await Task.detached { TerminalJump.namedTerminals(scanned) }.value
-        if usage != diskUsage { diskUsage = usage }
+        if let usage, usage != diskUsage { diskUsage = usage }
         // Housekeeping, at most once an hour: old done marks go, pictures stay under the limit.
         if Date().timeIntervalSince(lastCleanup) > 3600 {
             lastCleanup = Date()

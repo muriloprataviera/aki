@@ -147,7 +147,10 @@ public enum AgentSessions {
             sessions[root] = session
         }
 
-        let portOwners = Dictionary(
+        // The ports' owners (the costliest look-up of a pass) only for marks that need them:
+        // a localhost page's, with no folder of their own.
+        let needsPorts = pending.contains { $0["worktree"]?.string == nil && $0["url"]?.string.flatMap(Worktree.localPort(of:)) != nil }
+        let portOwners = !needsPorts ? [:] : Dictionary(
             Worktree.listeningPorts().compactMap { port, pid in cwds[pid].map { (port, $0) } },
             uniquingKeysWith: { first, _ in first })
         return sessions.values
@@ -187,12 +190,20 @@ public enum AgentSessions {
         return nil
     }
 
+    nonisolated(unsafe) private static var processes: (list: [Process], at: Date) = ([], .distantPast)
+    private static let processesLock = NSLock()
+
+    /// The process list, one `ps` per pass: the session scan, the terminals and the
+    /// headless check each asked for it, three `ps` every three seconds.
     static func runningProcesses() -> [Process] {
-        run("/bin/ps", ["-axo", "pid=,pcpu=,command="]).split(separator: "\n").compactMap { line in
+        if let recent = processesLock.withLock({ Date().timeIntervalSince(processes.at) < 1 ? processes.list : nil }) { return recent }
+        let list: [Process] = run("/bin/ps", ["-axo", "pid=,pcpu=,command="]).split(separator: "\n").compactMap { line in
             let parts = line.split(separator: " ", maxSplits: 2, omittingEmptySubsequences: true)
             guard parts.count == 3, let pid = Int32(parts[0]), let cpu = Double(parts[1]) else { return nil }
             return Process(pid: pid, cpu: cpu, command: String(parts[2]))
         }
+        processesLock.withLock { processes = (list, Date()) }
+        return list
     }
 
     static func workingDirectories(of pids: [Int32]) -> [Int32: String] {
@@ -416,8 +427,9 @@ extension AgentSessions {
                 id: id, agent: agent, pid: app.pid, name: name ?? app.name, named: true,
                 worktree: worktree, branch: nil, state: working ? .working : .idle,
                 lastMessage: nil, pending: mine.count, pendingComments: comments(mine), pendingIDs: ids(mine), pendingPlaces: places(mine),
-                // Open is in use: never left to rest in "+N".
-                updatedAt: Date(),
+                // Open is in use: never left to rest in "+N". To the ten minutes: a new
+                // date each pass made the sidebar redraw every three seconds.
+                updatedAt: Date(timeIntervalSince1970: (Date().timeIntervalSince1970 / 600).rounded(.down) * 600),
                 pendingImages: images(mine), undelivered: unsent(mine), orcaHandle: nil))
         }
         // The same Claude conversation open in two tabs (resumed twice) is one
