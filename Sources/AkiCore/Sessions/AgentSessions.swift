@@ -431,16 +431,16 @@ extension AgentSessions {
         }
         let appFolders = workingDirectories(of: appSessions.map(\.pid))
         for process in appSessions {
-            guard let cwd = appFolders[process.pid], cwd != "/" else { continue }
+            // Without its id, its name and transcript are unknown: not offered as a destination.
+            guard let cwd = appFolders[process.pid], cwd != "/", let id = Self.sessionID(in: process.command) else { continue }
             let worktree = root(cwd)
-            let id = Self.sessionID(in: process.command) ?? "claude-app:\(process.pid)"
             let mine = marks(for: id, worktree: worktree)
-            let title = Self.sessionID(in: process.command).flatMap { ClaudeSessions.title(sessionId: $0, cwd: cwd) }
+            let title = ClaudeSessions.title(sessionId: id, cwd: cwd)
             result.append(AgentTerminal(
                 id: id, agent: .claude, pid: process.pid,
                 name: title ?? URL(filePath: worktree).lastPathComponent, named: title != nil,
                 worktree: worktree, branch: branchOf(worktree), state: process.cpu >= 8 ? .working : .idle,
-                lastMessage: Self.sessionID(in: process.command).flatMap { ClaudeSessions.lastAgentMessage(sessionId: $0, cwd: cwd) },
+                lastMessage: ClaudeSessions.lastAgentMessage(sessionId: id, cwd: cwd),
                 pending: mine.count, pendingComments: comments(mine), pendingIDs: ids(mine), pendingPlaces: places(mine), updatedAt: nil,
                 pendingImages: images(mine), undelivered: unsent(mine), orcaHandle: nil))
         }

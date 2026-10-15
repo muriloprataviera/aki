@@ -67,12 +67,15 @@ public enum SessionHistory {
         return String(decoding: (try? handle.read(upToCount: bytes)) ?? Data(), as: UTF8.self)
     }
 
+    /// The first line that has `key` (at its top or in its `payload`), decoded as JSON
+    /// (a folder may hold quotes or backslashes, escaped in the file).
     static func firstValue(of key: String, in text: String) -> String? {
-        guard let start = text.range(of: "\"\(key)\":\"") else { return nil }
-        let rest = text[start.upperBound...]
-        guard let end = rest.firstIndex(of: "\"") else { return nil }
-        let value = String(rest[..<end])
-        return value.isEmpty ? nil : value
+        for line in text.split(separator: "\n") where line.contains("\"\(key)\":") {
+            guard let json = try? JSONSerialization.jsonObject(with: Data(line.utf8)) as? [String: Any] else { continue }
+            if let value = json[key] as? String, !value.isEmpty { return value }
+            if let value = (json["payload"] as? [String: Any])?[key] as? String, !value.isEmpty { return value }
+        }
+        return nil
     }
 
     /// A Claude Code conversation (the folder's own files only: a conversation's

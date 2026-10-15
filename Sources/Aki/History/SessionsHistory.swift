@@ -37,6 +37,8 @@ struct SessionsHistoryView: View {
     @State private var entries: [SessionHistory.Entry]?
     @State private var query = ""
     @State private var notice: String?
+    /// Open Codex conversations: their log's id → their terminal (Codex names them by process).
+    @State private var codexOpen: [String: String] = [:]
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -105,13 +107,26 @@ struct SessionsHistoryView: View {
             while !Task.isCancelled {
                 let found = await Task.detached(priority: .utility) { SessionHistory.recent() }.value
                 if found != entries { entries = found }
+                let codex = model.terminals.filter { $0.agent == .codex && DesktopApps.bundleID(of: $0.id) == nil }
+                let byLog = await Task.detached(priority: .utility) { () -> [String: String] in
+                    let logs = CodexSessions.openLogs(of: codex.map(\.pid))
+                    var ids: [String: String] = [:]
+                    for terminal in codex {
+                        for log in logs[terminal.pid] ?? [] {
+                            let uuid = log.deletingPathExtension().lastPathComponent.split(separator: "-").suffix(5).joined(separator: "-")
+                            ids[uuid] = terminal.id
+                        }
+                    }
+                    return ids
+                }.value
+                if byLog != codexOpen { codexOpen = byLog }
                 try? await Task.sleep(for: .seconds(30))
             }
         }
     }
 
     private func row(_ entry: SessionHistory.Entry) -> some View {
-        let open = model.terminals.first { $0.id == entry.id }
+        let open = model.terminals.first { $0.id == entry.id || $0.id == codexOpen[entry.id] }
         let folder = URL(filePath: entry.cwd).lastPathComponent
         return Button {
             if let open {
