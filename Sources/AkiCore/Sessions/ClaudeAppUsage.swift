@@ -23,12 +23,22 @@ public enum ClaudeAppUsage {
                   let modified = values.contentModificationDate
             else { return nil }
             return (url, modified)
-        }.sorted { $0.1 > $1.1 }.prefix(400)
-        for (url, modified) in candidates {
-            if let limits = limits(in: url, modified: modified) { return limits }
+        }.sorted { $0.1 > $1.1 }
+        // The entry found last time first (the app rewrites it in place), then the newest
+        // few hundred: a busy cache can hold hundreds of newer pages.
+        let remembered = lastFoundLock.withLock { lastFound }
+        let ordered = candidates.filter { $0.0 == remembered } + candidates.prefix(400).filter { $0.0 != remembered }
+        for (url, modified) in ordered {
+            if let limits = limits(in: url, modified: modified) {
+                lastFoundLock.withLock { lastFound = url }
+                return limits
+            }
         }
         return nil
     }
+
+    nonisolated(unsafe) private static var lastFound: URL?
+    private static let lastFoundLock = NSLock()
 
     static let headerBytes = 24
 

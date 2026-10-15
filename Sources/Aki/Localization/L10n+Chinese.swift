@@ -392,6 +392,7 @@ extension L10n {
         "What Aki found…": "Aki 找到的内容…",
         "Its numbers show once Claude reports them: send a message in the Claude app or Claude Code.": "Claude 报告后会显示数字：请在 Claude 应用或 Claude Code 中发送一条消息。",
         "Its numbers show once Codex reports them: send a message in Codex.": "Codex 报告后会显示数字：请在 Codex 中发送一条消息。",
+        "{n}% of the 5-hour session": "5 小时时段的 {n}%",
         "What Aki found": "Aki 找到的内容",
         "Search again": "重新查找",
         "Claude app": "Claude 应用",

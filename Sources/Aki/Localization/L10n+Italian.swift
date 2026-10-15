@@ -392,6 +392,7 @@ extension L10n {
         "What Aki found…": "Cosa ha trovato Aki…",
         "Its numbers show once Claude reports them: send a message in the Claude app or Claude Code.": "I numeri compaiono quando Claude li comunica: invia un messaggio nell'app di Claude o in Claude Code.",
         "Its numbers show once Codex reports them: send a message in Codex.": "I numeri compaiono quando Codex li comunica: invia un messaggio in Codex.",
+        "{n}% of the 5-hour session": "{n}% della sessione di 5 ore",
         "What Aki found": "Cosa ha trovato Aki",
         "Search again": "Cerca di nuovo",
         "Claude app": "App di Claude",

@@ -404,10 +404,15 @@ struct SettingsView: View {
             return (count > 0, count > 0 ? L10n.t("{n} open").replacingOccurrences(of: "{n}", with: "\(count)") : L10n.t("None open"))
         }
         func limits(_ agent: AkiCore.AgentSession.Agent) -> (Bool, String) {
-            guard let week = model.usage.first(where: { $0.agent == agent })?.week else {
-                return (false, L10n.t(agent == .claude ? "Not found yet: open the Claude app or Claude Code once." : "Not found yet: use Codex once."))
+            let found = model.usage.first(where: { $0.agent == agent })
+            if let week = found?.week {
+                return (true, L10n.t("{n}% of the week").replacingOccurrences(of: "{n}", with: "\(week.percent)"))
             }
-            return (true, L10n.t("{n}% of the week").replacingOccurrences(of: "{n}", with: "\(week.percent)"))
+            // Only the 5-hour window reported: found all the same.
+            if let five = found?.fiveHour {
+                return (true, L10n.t("{n}% of the 5-hour session").replacingOccurrences(of: "{n}", with: "\(five.percent)"))
+            }
+            return (false, L10n.t(agent == .claude ? "Not found yet: open the Claude app or Claude Code once." : "Not found yet: use Codex once."))
         }
         let rows: [(String, (Bool, String))] = [
             (L10n.t("Claude app"), app("com.anthropic.claudefordesktop")),

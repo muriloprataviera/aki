@@ -280,6 +280,7 @@ extension L10n {
         "What Aki found…": "O que o Aki encontrou…",
         "Its numbers show once Claude reports them: send a message in the Claude app or Claude Code.": "Os números aparecem quando o Claude informar: mande uma mensagem no app do Claude ou no Claude Code.",
         "Its numbers show once Codex reports them: send a message in Codex.": "Os números aparecem quando o Codex informar: mande uma mensagem no Codex.",
+        "{n}% of the 5-hour session": "{n}% da sessão de 5 horas",
         "What Aki found": "O que o Aki encontrou",
         "Search again": "Procurar de novo",
         "Claude app": "App do Claude",
