@@ -1279,6 +1279,18 @@ struct RingView: View {
                     .offset(x: 3 * scale, y: 3 * scale)
             }
         }
+        // Where it runs (Orca, the Codex or Claude app, Terminal…), by that app's icon.
+        .overlay(alignment: .bottomLeading) {
+            if let appIcon {
+                Image(nsImage: appIcon)
+                    .resizable()
+                    .interpolation(.high)
+                    .frame(width: 15 * scale, height: 15 * scale)
+                    .shadow(color: .black.opacity(0.45), radius: 1.5 * scale)
+                    .offset(x: -3 * scale, y: 3 * scale)
+                    .allowsHitTesting(false)
+            }
+        }
         .onAppear(perform: animate)
         .onChange(of: working) { animate() }
         .onChange(of: listening) { animate() }

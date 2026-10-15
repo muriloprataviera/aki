@@ -304,6 +304,8 @@ check(AgentSessions.classify("codex --no-daemon resume 01a1") == .agent(.codex),
 check(AgentSessions.classify("codex -c model=x review") == nil, "codex review with options isn't")
 check(AgentSessions.classify("/Applications/ChatGPT.app/Contents/Resources/codex-cli/CodexCLI.app/Contents/MacOS/codex -c features.code_mode_host=true app-server --analytics-default-enabled") == nil,
       "the ChatGPT app's codex app-server isn't")
+check(AgentSessions.classify(#"/Applications/ChatGPT.app/Contents/Resources/codex-cli/CodexCLI.app/Contents/MacOS/codex -c forced_login_method="chatgpt" exec-server --remote https://x"#) == nil,
+      "nor its exec-server")
 check(AgentSessions.classify("/Applications/ChatGPT.app/Contents/Resources/codex-cli/CodexCLI.app/Contents/MacOS/codex sandbox -c shell_environment_policy.inherit=all") == nil,
       "the ChatGPT app's codex sandbox isn't")
 check(AgentSessions.classify("claude -p hi") == nil && AgentSessions.classify("claude") == .agent(.claude), "claude -p isn't, claude is")
@@ -366,6 +368,7 @@ let appMessage = AnnotationText.forApp([
 ])
 check(appMessage.contains("2 marcas") && appMessage.contains("1. botão torto") && appMessage.contains("localhost:3000")
       && appMessage.contains("2. (sem comentário)") && !appMessage.contains("aki show"), "an app's message carries the marks themselves")
+check(appMessage.hasPrefix("📍 Aki: 2 marcas na tela (#aaaaaa, #bbbbbb)."), "an app's message names its marks in its first line")
 
 // A Codex conversation's name comes from its index, by the id ending its log's name.
 let codexHome = FileManager.default.temporaryDirectory.appending(path: "aki-codex-\(UUID().uuidString)")

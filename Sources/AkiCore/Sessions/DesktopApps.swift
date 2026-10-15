@@ -1,3 +1,4 @@
+import ApplicationServices
 import CoreGraphics
 import Foundation
 
@@ -61,9 +62,11 @@ public enum DesktopApps {
         codexLogs(app: pid, processes: processes).contains { CodexSessions.working(log: $0) }
     }
 
-    /// The conversation open in the app, by name: its window's title when it names one
-    /// (not just the app). Else none: the one written to last may not be the one open.
+    /// The conversation open in the app, by name: the title of the page it shows (Claude
+    /// adds " - Claude" to it), else its window's title when it names one (not just the
+    /// app). Else none: the one written to last may not be the one open.
     static func conversationName(_ app: Found) -> String? {
+        if let title = pageTitle(app.pid) { return title }
         let windows = CGWindowListCopyWindowInfo([.optionOnScreenOnly, .excludeDesktopElements], kCGNullWindowID) as? [[String: Any]] ?? []
         let generic = ["chatgpt", "codex", "claude", ""]
         if let title = windows.first(where: {
@@ -71,6 +74,42 @@ public enum DesktopApps {
                 && !generic.contains((($0[kCGWindowName as String] as? String) ?? "").trimmingCharacters(in: .whitespaces).lowercased())
         })?[kCGWindowName as String] as? String {
             return title.trimmingCharacters(in: .whitespaces)
+        }
+        return nil
+    }
+
+    nonisolated(unsafe) private static var asked = Set<Int32>()
+    private static let askedLock = NSLock()
+
+    /// The title of the page in the app's front window (Electron apps show it to
+    /// Accessibility once asked: asked once per run of the app, since every ask makes
+    /// it build that all over again).
+    static func pageTitle(_ pid: Int32) -> String? {
+        let app = AXUIElementCreateApplication(pid)
+        let first = askedLock.withLock { asked.insert(pid).inserted }
+        if first {
+            AXUIElementSetAttributeValue(app, "AXManualAccessibility" as CFString, kCFBooleanTrue)
+            AXUIElementSetAttributeValue(app, "AXEnhancedUserInterface" as CFString, kCFBooleanTrue)
+        }
+        func attribute(_ element: AXUIElement, _ name: String) -> CFTypeRef? {
+            var value: CFTypeRef?
+            return AXUIElementCopyAttributeValue(element, name as CFString, &value) == .success ? value : nil
+        }
+        guard let window = attribute(app, kAXFocusedWindowAttribute) ?? (attribute(app, kAXWindowsAttribute) as? [AXUIElement])?.first,
+              CFGetTypeID(window) == AXUIElementGetTypeID()
+        else { return nil }
+        // The pages sit a few levels down; their insides aren't searched.
+        var queue = [window as! AXUIElement], seen = 0
+        while !queue.isEmpty, seen < 200 {
+            let node = queue.removeFirst()
+            seen += 1
+            if attribute(node, kAXRoleAttribute) as? String == "AXWebArea" {
+                var title = ((attribute(node, kAXTitleAttribute) as? String) ?? "").trimmingCharacters(in: .whitespaces)
+                if title.hasSuffix(" - Claude") { title = String(title.dropLast(" - Claude".count)) }
+                if !["", "claude", "chatgpt", "codex", "new chat", "nova conversa"].contains(title.lowercased()) { return title }
+                continue
+            }
+            if let children = attribute(node, kAXChildrenAttribute) as? [AXUIElement] { queue.append(contentsOf: children) }
         }
         return nil
     }

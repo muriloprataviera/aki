@@ -62,7 +62,7 @@ public enum AgentSessions {
         case "codex":
             guard let sub else { return .agent(.codex) }
             // Headless runs and the ChatGPT app's own helpers (app-server, sandbox) aren't sessions.
-            return ["exec", "review", "mcp", "mcp-server", "login", "apply", "app-server", "sandbox", "debug", "completion"]
+            return ["exec", "exec-server", "review", "mcp", "mcp-server", "login", "apply", "app-server", "sandbox", "debug", "completion"]
                 .contains(sub) ? nil : .agent(.codex)
         case "gemini":
             return flags.isDisjoint(with: ["-p", "--prompt", "mcp"]) ? .agent(.gemini) : nil
