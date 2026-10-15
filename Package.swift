@@ -8,7 +8,9 @@ let package = Package(
     // Sparkle (MIT): in-app updates from the appcast on the site, signed with Aki's own key.
     dependencies: [.package(url: "https://github.com/sparkle-project/Sparkle", from: "2.10.0")],
     targets: [
-        .target(name: "AkiCore"),
+        // Zstandard's decoder (BSD-3-Clause, vendored): the Claude app's cache is zstd.
+        .target(name: "CZstd"),
+        .target(name: "AkiCore", dependencies: ["CZstd"]),
         .executableTarget(
             name: "Aki", dependencies: ["AkiCore", .product(name: "Sparkle", package: "Sparkle")],
             // Swift 5 mode: the views adapted from Codenotch were written for it.

@@ -206,6 +206,7 @@ struct SettingsView: View {
     @State private var didRecentre = false
     @State private var setupResults: [String: Bool] = [:]
     @State private var setupRunning: Set<String> = []
+    @State private var searching = false
     @State private var agentsExpanded = true
     @State private var authorHovered: String?
     @Namespace private var selectionSpace
@@ -361,6 +362,7 @@ struct SettingsView: View {
                 }
                 Caption(L10n.t("One ring per agent. Hover it to see its terminals; click it to keep the card open."))
             }
+            foundSection
             Section(L10n.t("Connect")) {
                 setupRow("claude", L10n.t("Claude Code"), action: L10n.t("Connect"))
                 setupRow("codex", L10n.t("Codex"), action: L10n.t("Connect"))
@@ -371,6 +373,59 @@ struct SettingsView: View {
             }
         }
         .formStyle(.grouped)
+    }
+
+    /// What Aki sees right now (apps, terminals, limits), and a fresh look on request:
+    /// for someone wondering why their Claude doesn't show.
+    private var foundSection: some View {
+        let apps = model.terminals.filter { DesktopApps.bundleID(of: $0.id) != nil }
+        let terminals = model.terminals.filter { DesktopApps.bundleID(of: $0.id) == nil }
+        func app(_ bundleID: String) -> (Bool, String) {
+            if apps.contains(where: { DesktopApps.bundleID(of: $0.id) == bundleID }) { return (true, L10n.t("Running")) }
+            let installed = NSWorkspace.shared.urlForApplication(withBundleIdentifier: bundleID) != nil
+            return (false, L10n.t(installed ? "Installed, not open" : "Not installed"))
+        }
+        func inTerminal(_ agent: AkiCore.AgentSession.Agent) -> (Bool, String) {
+            let count = terminals.filter { $0.agent == agent }.count
+            return (count > 0, count > 0 ? L10n.t("{n} open").replacingOccurrences(of: "{n}", with: "\(count)") : L10n.t("None open"))
+        }
+        func limits(_ agent: AkiCore.AgentSession.Agent) -> (Bool, String) {
+            guard let week = model.usage.first(where: { $0.agent == agent })?.week else {
+                return (false, L10n.t(agent == .claude ? "Not found yet: open the Claude app or Claude Code once." : "Not found yet: use Codex once."))
+            }
+            return (true, L10n.t("{n}% of the week").replacingOccurrences(of: "{n}", with: "\(week.percent)"))
+        }
+        let rows: [(String, (Bool, String))] = [
+            (L10n.t("Claude app"), app("com.anthropic.claudefordesktop")),
+            (L10n.t("Claude Code in a terminal"), inTerminal(.claude)),
+            (L10n.t("Claude's limits"), limits(.claude)),
+            (L10n.t("Codex app"), app("com.openai.codex")),
+            (L10n.t("Codex in a terminal"), inTerminal(.codex)),
+            (L10n.t("Codex's limits"), limits(.codex)),
+        ]
+        return Section(L10n.t("What Aki found")) {
+            ForEach(rows, id: \.0) { title, found in
+                LabeledContent(title) {
+                    HStack(spacing: 6) {
+                        Text(found.1).foregroundStyle(.secondary).multilineTextAlignment(.trailing)
+                        Image(systemName: found.0 ? "checkmark.circle.fill" : "circle.dashed")
+                            .foregroundStyle(found.0 ? Color.green : Color.secondary)
+                    }
+                }
+            }
+            LabeledContent("") {
+                Button {
+                    searching = true
+                    Task {
+                        await model.searchAgain()
+                        searching = false
+                    }
+                } label: {
+                    if searching { ProgressView().controlSize(.small) } else { Text(L10n.t("Search again")) }
+                }
+                .disabled(searching)
+            }
+        }
     }
 
     private func agentPane(_ agent: AkiCore.AgentSession.Agent) -> some View {

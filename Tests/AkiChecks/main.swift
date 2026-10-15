@@ -386,6 +386,14 @@ let codexLog = URL(filePath: "/x/rollout-2026-10-13T18-28-13-01a1372a-7a31-78a2-
 check(CodexSessions.threadName(of: codexLog, home: codexHome) == "Revisar NFs no Drive", "a Codex conversation is named as Codex named it last")
 try? FileManager.default.removeItem(at: codexHome)
 
+// The Claude app's cached usage: only its own usage request, and its two windows.
+check(ClaudeAppUsage.isUsage("1/0/https://claude.ai/api/organizations/abc/usage"), "claude app usage key")
+check(ClaudeAppUsage.isUsage("1/0/https://claude.ai/api/organizations/abc/usage?x=1"), "claude app usage key with query")
+check(!ClaudeAppUsage.isUsage("1/0/https://claude.ai/api/organizations/abc/chat_conversations"), "other claude requests are not read")
+let appUsage = ClaudeAppUsage.parse(Data(#"{"five_hour":{"utilization":12.4,"resets_at":"2026-10-15T22:00:00.123+00:00"},"seven_day":{"utilization":29,"resets_at":"2026-10-19T12:00:00Z"}}"#.utf8), updated: Date())
+check(appUsage?.week?.percent == 29 && appUsage?.fiveHour?.percent == 12 && appUsage?.week?.resets != nil && appUsage?.fiveHour?.resets != nil, "claude app usage parsed")
+check(ClaudeAppUsage.parse(Data(#"{"other":1}"#.utf8), updated: Date()) == nil, "no windows, no reading")
+
 print(failures == 0 ? "\nall checks passed" : "\n\(failures) check(s) failed")
 exit(failures == 0 ? 0 : 1)
 

@@ -207,7 +207,7 @@ do {
     case "usage":
         let ledger = TokenLedger()
         ledger.update()
-        let claude = UsageLimits.claude(from: ClaudeStatus.all())?.current()
+        let claude = UsageLimits.newest(UsageLimits.claude(from: ClaudeStatus.all()), ClaudeAppUsage.read())?.current()
         let codex = UsageLimits.codex()?.current()
         for (agent, limits) in [("claude", claude), ("codex", codex)] {
             let weekStart = limits?.week?.resets.map { $0.addingTimeInterval(-7 * 24 * 3600) }
@@ -215,6 +215,12 @@ do {
             print(agent)
             if let week = limits?.week { print("  week      \(week.percent)%") }
             if let five = limits?.fiveHour { print("  5h        \(five.percent)%") }
+            if agent == "claude" {
+                // Both sources, to see which one each number comes from.
+                if let app = ClaudeAppUsage.read()?.current() {
+                    print("  app       week \(app.week?.percent ?? 0)% · 5h \(app.fiveHour?.percent ?? 0)% (Claude app, \(app.updated.formatted(date: .omitted, time: .shortened)))")
+                }
+            }
             print("  today     \(TokenSpend.short(spend.today.tokens)) tokens · \(TokenSpend.money(spend.today.cost))")
             print("  week      \(TokenSpend.short(spend.week.tokens)) tokens · \(TokenSpend.money(spend.week.cost))")
             for project in spend.projects.prefix(3) {

@@ -648,6 +648,7 @@ final class SidebarModel {
     /// Each AI account's limits (Claude from its status line, Codex from its logs).
     var usage: [UsageLimits] = []
     @ObservationIgnored private var codexRead: (limits: UsageLimits?, at: Date) = (nil, .distantPast)
+    @ObservationIgnored private var claudeAppRead: UsageLimits?
     /// Tokens and their API-price cost per AI ("claude", "codex"), from the local logs.
     var spend: [String: TokenSpend] = [:]
     @ObservationIgnored private let ledger = TokenLedger()
@@ -657,6 +658,12 @@ final class SidebarModel {
     /// Room Aki's pictures take on this Mac (measured once a minute, and after a clean-up).
     var diskUsage = DiskUsage()
     @ObservationIgnored private var diskRead = Date.distantPast
+
+    /// "Search again": everything looked at now, the limits too (read once a minute).
+    func searchAgain() async {
+        codexRead.at = .distantPast
+        await refresh()
+    }
 
     /// Aki quitting: the token counts not saved yet.
     func flushLedger() { ledger.flush() }
@@ -704,8 +711,11 @@ final class SidebarModel {
         // Codex's logs are walked once a minute (the week's share barely moves faster).
         if Date().timeIntervalSince(codexRead.at) > 60 {
             codexRead = (await Task.detached { UsageLimits.codex() }.value, Date())
+            // The Claude app's own answer too, for those with no Claude Code status line.
+            claudeAppRead = await Task.detached { ClaudeAppUsage.read() }.value
         }
-        let limits = [UsageLimits.claude(from: statuses), codexRead.limits].compactMap { $0?.current() }
+        let claude = UsageLimits.newest(UsageLimits.claude(from: statuses), claudeAppRead)
+        let limits = [claude, codexRead.limits].compactMap { $0?.current() }
         if limits != self.usage { self.usage = limits }
         // Tokens: the logs' new lines every 30 s, in the background (the first pass reads the week).
         if preferences.showUsage, !ledgerBusy, Date().timeIntervalSince(ledgerRead) > 30 {

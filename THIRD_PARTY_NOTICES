@@ -32,7 +32,8 @@ Annotate (commit 233c59c)
 Copyright (c) 2025 Emmanuel Pilande
 https://github.com/epilande/Annotate
 
-Codenotch (commit 72fb216): sidebar shape, window and pointer handling, motion
+Codenotch (commit 72fb216): sidebar shape, window and pointer handling, motion,
+reading the Claude app's cached usage
 Copyright (c) 2026 Vinz
 https://github.com/vinzdg/codenotch
 
@@ -46,3 +47,8 @@ Copyright (c) Anton Medvedev
 https://github.com/antonmedv/finder
 
 All of the above are distributed under the same MIT terms reproduced above.
+
+Zstandard v1.5.7 decoder (Sources/CZstd/zstddeclib.c), BSD-3-Clause
+Copyright (c) Meta Platforms, Inc. and affiliates. All rights reserved.
+https://github.com/facebook/zstd
+Its license is in Sources/CZstd/LICENSE.

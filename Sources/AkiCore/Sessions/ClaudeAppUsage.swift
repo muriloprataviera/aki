@@ -1,0 +1,102 @@
+import CZstd
+import Foundation
+
+/// Claude's limits for people who use the Claude app and not Claude Code (no status
+/// line to read them from): the app keeps the answer of its own "usage" request in its
+/// HTTP cache (Chromium's Simple Cache, the body zstd-compressed). Only that entry is
+/// read, never another page's. Approach from Codenotch (MIT, see LICENSE).
+public enum ClaudeAppUsage {
+    public static let directory = FileManager.default.homeDirectoryForCurrentUser
+        .appending(path: "Library/Application Support/Claude/Cache/Cache_Data")
+
+    /// The newest usage answer in the cache, or nil (no app, nothing cached yet).
+    public static func read(directory: URL = directory) -> UsageLimits? {
+        let keys: [URLResourceKey] = [.contentModificationDateKey, .fileSizeKey]
+        guard let names = try? FileManager.default.contentsOfDirectory(
+            at: directory, includingPropertiesForKeys: keys, options: [.skipsHiddenFiles, .skipsSubdirectoryDescendants])
+        else { return nil }
+        // Newest first; small entries only (the answer is a few kB), a few hundred at most.
+        let candidates = names.compactMap { url -> (URL, Date)? in
+            guard url.lastPathComponent.hasSuffix("_0"),
+                  let values = try? url.resourceValues(forKeys: Set(keys)),
+                  let size = values.fileSize, size > headerBytes, size <= 512 * 1024,
+                  let modified = values.contentModificationDate
+            else { return nil }
+            return (url, modified)
+        }.sorted { $0.1 > $1.1 }.prefix(400)
+        for (url, modified) in candidates {
+            if let limits = limits(in: url, modified: modified) { return limits }
+        }
+        return nil
+    }
+
+    static let headerBytes = 24
+
+    private static func limits(in url: URL, modified: Date) -> UsageLimits? {
+        guard let handle = try? FileHandle(forReadingFrom: url) else { return nil }
+        defer { try? handle.close() }
+        // The key (the request's address) first: anything else is never read whole.
+        guard let head = try? handle.read(upToCount: headerBytes + 8 * 1024),
+              let key = key(in: [UInt8](head)), isUsage(key)
+        else { return nil }
+        try? handle.seek(toOffset: 0)
+        guard let entry = try? handle.read(upToCount: 512 * 1024) else { return nil }
+        let bytes = [UInt8](entry)
+        let start = headerBytes + key.utf8.count
+        guard bytes.count > start + 4, Array(bytes[start..<(start + 4)]) == [0x28, 0xB5, 0x2F, 0xFD],
+              let body = decompress(Array(bytes[start...]))
+        else { return nil }
+        return parse(body, updated: modified)
+    }
+
+    /// `…/api/organizations/<id>/usage` on claude.ai (with or without a query).
+    public static func isUsage(_ key: String) -> Bool {
+        guard key.contains("claude.ai/api/organizations/") || key.contains("anthropic.com/api/organizations/") else { return false }
+        let path = key.split(separator: "?").first ?? ""
+        return path.hasSuffix("/usage")
+    }
+
+    /// The entry's key: after a 24-byte header (magic, version, key length at 12).
+    static func key(in bytes: [UInt8]) -> String? {
+        guard bytes.count > headerBytes else { return nil }
+        let magic = (0..<8).reversed().reduce(UInt64(0)) { $0 << 8 | UInt64(bytes[$1]) }
+        guard magic == 0xFCFB_6D1B_A772_5C30 else { return nil }
+        let length = Int((12..<16).reversed().reduce(UInt32(0)) { $0 << 8 | UInt32(bytes[$1]) })
+        guard length > 0, length <= 8 * 1024, headerBytes + length <= bytes.count else { return nil }
+        return String(bytes: bytes[headerBytes..<(headerBytes + length)], encoding: .utf8)
+    }
+
+    private static func decompress(_ frame: [UInt8]) -> Data? {
+        frame.withUnsafeBytes { source -> Data? in
+            let size = ZSTD_findFrameCompressedSize(source.baseAddress, source.count)
+            guard ZSTD_isError(size) == 0, size > 0, size <= source.count else { return nil }
+            var output = [UInt8](repeating: 0, count: 256 * 1024)
+            let written = output.withUnsafeMutableBytes { ZSTD_decompress($0.baseAddress, $0.count, source.baseAddress, size) }
+            guard ZSTD_isError(written) == 0, written > 0 else { return nil }
+            return Data(output[0..<written])
+        }
+    }
+
+    /// `{"five_hour": {"utilization": 29.0, "resets_at": "2026-…"}, "seven_day": {…}}`.
+    public static func parse(_ body: Data, updated: Date) -> UsageLimits? {
+        guard let json = try? JSONSerialization.jsonObject(with: body) as? [String: Any] else { return nil }
+        func limit(_ name: String) -> ClaudeStatus.Limit? {
+            guard let window = json[name] as? [String: Any],
+                  let used = (window["utilization"] as? NSNumber)?.doubleValue
+            else { return nil }
+            let resets = (window["resets_at"] as? String).flatMap(time)
+            return ClaudeStatus.Limit(percent: Int(used.rounded()), resets: resets)
+        }
+        let fiveHour = limit("five_hour"), week = limit("seven_day")
+        guard fiveHour != nil || week != nil else { return nil }
+        return UsageLimits(agent: .claude, fiveHour: fiveHour, week: week, updated: updated)
+    }
+
+    private static func time(_ text: String) -> Date? {
+        let formatter = ISO8601DateFormatter()
+        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        if let date = formatter.date(from: text) { return date }
+        formatter.formatOptions = [.withInternetDateTime]
+        return formatter.date(from: text)
+    }
+}
