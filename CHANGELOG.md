@@ -4,6 +4,8 @@ What changed in each version of Aki. Versions follow [semantic versioning](https
 
 ## [Unreleased]
 
+## [0.8.3] — 2026-10-15
+
 ### Added
 - The Claude app's Code sessions show on the sidebar like terminals, and marks sent to one go into it in the app (picked on the app's list when another is open; if Aki can't make sure, nothing is sent).
 - "What Aki found" counts the Claude app's Code sessions.
