@@ -105,11 +105,16 @@ private struct HistoryView: View {
     @State private var tab: HistoryTab = .marks
 
     var body: some View {
-        if tab == .sessions {
-            SessionsHistoryView(model: model, tab: $tab)
-        } else {
-            marks
+        Group {
+            if tab == .sessions {
+                SessionsHistoryView(model: model, tab: $tab)
+            } else {
+                marks
+            }
         }
+        // On the container: whichever tab is up, a request to open chooses again.
+        .onAppear(perform: openAsAsked)
+        .onChange(of: model.historyRequest) { openAsAsked() }
     }
 
     private var marks: some View {
@@ -245,9 +250,6 @@ private struct HistoryView: View {
         // The header shares the title bar's row with close / minimise / zoom.
         .ignoresSafeArea()
         .task { await load() }
-        .onAppear(perform: openAsAsked)
-        // Every request to open it (the queue, a session) chooses the tab again.
-        .onChange(of: model.historyRequest) { openAsAsked() }
         .onReceive(Timer.publish(every: 3, on: .main, in: .common).autoconnect()) { _ in Task { await load() } }
     }
 

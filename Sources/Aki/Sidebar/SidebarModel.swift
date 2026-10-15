@@ -990,7 +990,8 @@ final class SidebarModel {
         let command = entry.agent == .codex ? "codex resume \(entry.id)" : "claude --resume \(entry.id)"
         NSPasteboard.general.clearContents()
         NSPasteboard.general.setString("cd \(quoted) && \(command)", forType: .string)
-        if await TerminalJump.createOrcaTerminal(in: entry.cwd, title: entry.title, command: command) { return .orca }
+        // From its own folder (a conversation begun in a subfolder lives there).
+        if await TerminalJump.createOrcaTerminal(in: entry.cwd, title: entry.title, command: "cd \(quoted) && \(command)") { return .orca }
         if entry.agent == .claude,
            NSWorkspace.shared.urlForApplication(withBundleIdentifier: "com.anthropic.claudefordesktop") != nil,
            var link = URLComponents(string: "claude://code/new") {
