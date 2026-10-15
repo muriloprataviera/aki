@@ -367,6 +367,7 @@ struct SettingsView: View {
                 setupRow("cli", L10n.t("Command `aki`"), action: L10n.t("Install"))
                 wakeStepper
                 Caption(L10n.t("Adds Aki's MCP so the agent reads your marks. Conversations already open see it after a restart (/exit, then claude --resume)."))
+                Caption(L10n.t("Using the Claude or ChatGPT app? Quit and reopen it after connecting."))
             }
         }
         .formStyle(.grouped)
@@ -400,6 +401,7 @@ struct SettingsView: View {
                 setupRow(agent == .claude ? "claude" : "codex", agent.displayName, action: L10n.t("Connect"))
                 wakeStepper
                 Caption(L10n.t("Adds Aki's MCP so the agent reads your marks."))
+                Caption(L10n.t("Using the Claude or ChatGPT app? Quit and reopen it after connecting."))
             }
         }
         .formStyle(.grouped)
@@ -880,7 +882,10 @@ enum Setup {
     static func isConnected(_ key: String) async -> Bool {
         let command: String
         switch key {
-        case "claude": command = "claude mcp get aki"
+        case "claude":
+            // The desktop app has no `claude` command: its own config counts too.
+            if ClaudeDesktop.hasAki() { return true }
+            command = "claude mcp get aki"
         case "codex": command = "codex mcp get aki"
         case "cli": command = "test -x \"$HOME/.local/bin/aki\""
         default: return false
@@ -890,7 +895,8 @@ enum Setup {
 
     /// Where agents install themselves: Claude Code's own installer puts `claude`
     /// in ~/.local/bin, which a login shell only gets from .zshrc (never read here).
-    private static let paths = #"export PATH="$HOME/.local/bin:$HOME/.claude/local:/opt/homebrew/bin:/usr/local/bin:$PATH"; "#
+    /// Last come the `codex` bundled with the ChatGPT and Codex apps, for people who only use the app.
+    private static let paths = #"export PATH="$HOME/.local/bin:$HOME/.claude/local:/opt/homebrew/bin:/usr/local/bin:$PATH:/Applications/ChatGPT.app/Contents/Resources/codex-cli/bin:/Applications/Codex.app/Contents/Resources/codex-cli/bin:/Applications/Codex.app/Contents/Resources"; "#
 
     private static func shell(_ command: String) async -> Bool {
         await Task.detached {
@@ -910,12 +916,52 @@ enum Setup {
         let quoted = "'\(binary)'"
         let command: String
         switch key {
-        case "claude": command = "claude mcp remove --scope user aki >/dev/null 2>&1; claude mcp add --scope user aki -- \(quoted) mcp"
+        case "claude":
+            // Claude Code in a terminal and the Claude app each keep their own list.
+            let app = ClaudeDesktop.isInstalled && ClaudeDesktop.addAki(binary)
+            let cli = await shell("command -v claude >/dev/null && { claude mcp remove --scope user aki >/dev/null 2>&1; claude mcp add --scope user aki -- \(quoted) mcp; }")
+            return app || cli
         case "codex": command = "codex mcp remove aki >/dev/null 2>&1; codex mcp add aki -- \(quoted) mcp"
         case "cli": command = "mkdir -p \"$HOME/.local/bin\" && ln -sf \(quoted) \"$HOME/.local/bin/aki\""
         default: return false
         }
         return await shell(command)
+    }
+}
+
+/// The Claude desktop app reads its MCP servers from its own config file, not from `claude mcp`.
+enum ClaudeDesktop {
+    static var isInstalled: Bool {
+        NSWorkspace.shared.urlForApplication(withBundleIdentifier: "com.anthropic.claudefordesktop") != nil
+    }
+
+    private static var config: URL {
+        FileManager.default.homeDirectoryForCurrentUser
+            .appending(path: "Library/Application Support/Claude/claude_desktop_config.json")
+    }
+
+    private static func read() -> [String: Any]? {
+        guard let data = try? Data(contentsOf: config) else { return [:] }
+        return (try? JSONSerialization.jsonObject(with: data)) as? [String: Any]
+    }
+
+    static func hasAki() -> Bool {
+        ((read()?["mcpServers"] as? [String: Any])?["aki"]) != nil
+    }
+
+    /// Adds (or points again) `aki` in mcpServers, keeping everything else in the file.
+    /// A file that isn't valid JSON is left alone.
+    static func addAki(_ binary: String) -> Bool {
+        guard var root = read() else { return false }
+        var servers = root["mcpServers"] as? [String: Any] ?? [:]
+        servers["aki"] = ["command": binary, "args": ["mcp"]]
+        root["mcpServers"] = servers
+        guard let data = try? JSONSerialization.data(withJSONObject: root, options: [.prettyPrinted, .sortedKeys, .withoutEscapingSlashes]) else { return false }
+        do {
+            try FileManager.default.createDirectory(at: config.deletingLastPathComponent(), withIntermediateDirectories: true)
+            try data.write(to: config, options: .atomic)
+            return true
+        } catch { return false }
     }
 }
 

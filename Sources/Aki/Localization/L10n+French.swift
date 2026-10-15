@@ -388,6 +388,7 @@ extension L10n {
         "Show the sidebar": "Afficher la barre latérale",
         "Connected": "Connecté",
         "Reconnect": "Reconnecter",
+        "Using the Claude or ChatGPT app? Quit and reopen it after connecting.": "Vous utilisez l’app Claude ou ChatGPT ? Quittez-la et rouvrez-la après la connexion.",
         "Adds Aki's MCP so the agent reads your marks. Conversations already open see it after a restart (/exit, then claude --resume).": "Ajoute le MCP d’Aki pour que l’agent lise vos annotations. Les conversations déjà ouvertes le voient après un redémarrage (/exit, puis claude --resume).",
         "Reading the text…": "Lecture du texte…",
         "Move marks to": "Déplacer les annotations vers",

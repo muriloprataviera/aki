@@ -388,6 +388,7 @@ extension L10n {
         "Show the sidebar": "显示侧边栏",
         "Connected": "已连接",
         "Reconnect": "重新连接",
+        "Using the Claude or ChatGPT app? Quit and reopen it after connecting.": "使用 Claude 或 ChatGPT 应用？连接后请退出并重新打开它。",
         "Adds Aki's MCP so the agent reads your marks. Conversations already open see it after a restart (/exit, then claude --resume).": "添加 Aki 的 MCP，让智能体读取你的标记。已打开的对话需重启后生效（/exit，然后 claude --resume）。",
         "Reading the text…": "正在读取文字…",
         "Move marks to": "将标记移到",

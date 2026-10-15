@@ -276,6 +276,7 @@ extension L10n {
         "Send to the terminal by itself": "Mandar sozinho para o terminal",
         "Types the request into the session's Orca tab when you stop marking (it waits while the agent is working).": "Escreve o pedido na aba da sessão no Orca quando você para de marcar (espera se o agente estiver trabalhando).", "Hide the sidebar": "Esconder a barrinha", "Show the sidebar": "Mostrar a barrinha",
         "Connected": "Conectado", "Reconnect": "Reconectar",
+        "Using the Claude or ChatGPT app? Quit and reopen it after connecting.": "Usa o app do Claude ou do ChatGPT? Feche e abra de novo depois de conectar.",
         "Adds Aki's MCP so the agent reads your marks. Conversations already open see it after a restart (/exit, then claude --resume).": "Liga o MCP do Aki para o agente ler suas marcas. Conversas já abertas só enxergam depois de reiniciar (/exit e claude --resume).", "Reading the text…": "Lendo o texto…", "Move marks to": "Mover marcas para", "Save": "Salvar", "Send now": "Enviar agora",
         "Put it in the queue and keep marking (⏎)": "Põe na fila e continua marcando (⏎)",
         "Send to the session now (⌘⏎)": "Manda para a sessão agora (⌘⏎)", "to": "para",
