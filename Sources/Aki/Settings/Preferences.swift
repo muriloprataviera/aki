@@ -414,6 +414,8 @@ final class Preferences {
     var autoDeliver: Bool { didSet { defaults.set(autoDeliver, forKey: Keys.autoDeliver) } }
     /// Where the sidebar sits along its edge: 0…1 from the start (top or left).
     var alongFraction: Double { didSet { defaults.set(alongFraction, forKey: Keys.along) } }
+    /// The display the sidebar lives on, by name (nil: the one with the menu bar).
+    var sidebarScreen: String? { didSet { defaults.set(sidebarScreen, forKey: Keys.sidebarScreen) } }
 
     /// Read from the system each time rather than stored: the user can change it
     /// in System Settings → Login Items behind our back.
@@ -488,6 +490,7 @@ final class Preferences {
         waitIdleSeconds = defaults.object(forKey: Keys.waitIdle) as? Int ?? 3
         autoDeliver = defaults.object(forKey: Keys.autoDeliver) as? Bool ?? true
         alongFraction = defaults.object(forKey: Keys.along) as? Double ?? 0.5
+        sidebarScreen = defaults.string(forKey: Keys.sidebarScreen)
         L10n.language = language
     }
 
@@ -525,6 +528,7 @@ final class Preferences {
         static let waitIdle = "waitIdleSeconds"
         static let autoDeliver = "autoDeliver"
         static let along = "sidebarAlong"
+        static let sidebarScreen = "sidebarScreen"
         static let cardDetail = "cardDetail"
         static let ringMode = "ringMode"
         static let maxTerminals = "maxTerminals"

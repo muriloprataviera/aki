@@ -223,8 +223,13 @@ final class SidebarController {
 
     /// The only place the window's frame changes: when the screen, the number of
     /// rings, the size or the edge changes, and while it's being dragged.
+    /// The display chosen on the menu ("Screen"), else the one with the menu bar.
+    private var screen: NSScreen? {
+        NSScreen.screens.first { $0.localizedName == preferences.sidebarScreen } ?? NSScreen.screens.first
+    }
+
     func relocate() {
-        guard let screen = NSScreen.screens.first else { return }
+        guard let screen else { return }
         let full = screen.frame
         let visible = screen.visibleFrame
         let scale = preferences.size.scale * SidebarLayout.density(rings: model.rings.count)
@@ -239,6 +244,11 @@ final class SidebarController {
         if model.layoutScale != layout.scale { model.layoutScale = layout.scale }
         let size = layout.panelSize
         let bleed = SidebarLayout.bleed
+        // A Dock kept on that edge would cover the bar (it "disappeared" for people with
+        // the Dock at the bottom): beside it instead. An auto-hiding Dock leaves a few points.
+        let left = visible.minX - full.minX > 10 ? visible.minX : full.minX
+        let right = full.maxX - visible.maxX > 10 ? visible.maxX : full.maxX
+        let bottom = visible.minY - full.minY > 10 ? visible.minY : full.minY
         let half = layout.bodyLength / 2
         let frame: NSRect
         switch preferences.edge {
@@ -246,14 +256,14 @@ final class SidebarController {
             // Along a side, fraction 0 is the top.
             let span = Self.span(visible.minY + half, visible.maxY - half)
             let center = clamp(visible.maxY - visible.height * preferences.alongFraction, span)
-            let x = preferences.edge == .right ? full.maxX - size.width + bleed : full.minX - bleed
+            let x = preferences.edge == .right ? right - size.width + bleed : left - bleed
             frame = NSRect(x: x, y: center - size.height / 2, width: size.width, height: size.height)
         case .top, .bottom:
             let span = Self.span(full.minX + half, full.maxX - half)
             let center = clamp(full.minX + full.width * preferences.alongFraction, span)
             // The bottom one sits on the screen's bottom edge; the top one right
             // below the menu bar.
-            let y = preferences.edge == .bottom ? full.minY - bleed : visible.maxY - size.height + bleed
+            let y = preferences.edge == .bottom ? bottom - bleed : visible.maxY - size.height + bleed
             frame = NSRect(x: center - size.width / 2, y: y, width: size.width, height: size.height)
         }
         if frame != panel.frame { panel.setFrame(frame, display: true) }
@@ -278,6 +288,7 @@ final class SidebarController {
         var size: SidebarSize
         var visibility: SidebarVisibility
         var mode: RingMode
+        var screen: String?
     }
 
     private var lastInputs: LayoutInputs?
@@ -285,7 +296,8 @@ final class SidebarController {
     private func observeLayoutInputs() {
         let inputs = withObservationTracking {
             LayoutInputs(rings: model.rings.count, edge: preferences.edge,
-                         size: preferences.size, visibility: preferences.visibility, mode: preferences.ringMode)
+                         size: preferences.size, visibility: preferences.visibility, mode: preferences.ringMode,
+                         screen: preferences.sidebarScreen)
         } onChange: { [weak self] in
             Task { @MainActor in self?.observeLayoutInputs() }
         }
@@ -303,9 +315,8 @@ final class SidebarController {
     /// edge (all the way round), and it never leaves the screen.
     private func drag(dx: CGFloat, dy: CGFloat) {
         let mouse = NSEvent.mouseLocation
-        // The bar lives on the main display (where relocate() puts it).
-        guard let screen = NSScreen.screens.first
-        else { return }
+        // The bar's display (where relocate() puts it).
+        guard let screen else { return }
         let full = screen.frame
         let visible = screen.visibleFrame
         let distances: [(SidebarEdge, CGFloat)] = [
@@ -915,6 +926,20 @@ final class SidebarController {
         }
         keepOpen.state = preferences.visibility == .alwaysShow ? .on : .off
         menu.addItem(keepOpen)
+        // More than one display: which one the bar lives on.
+        if NSScreen.screens.count > 1 {
+            let item = NSMenuItem(title: L10n.t("Screen"), action: nil, keyEquivalent: "")
+            let submenu = NSMenu()
+            let current = screen?.localizedName
+            for display in NSScreen.screens {
+                let name = display.localizedName
+                let choice = ClosureMenuItem(name) { [weak self] in self?.preferences.sidebarScreen = name }
+                choice.state = name == current ? .on : .off
+                submenu.addItem(choice)
+            }
+            item.submenu = submenu
+            menu.addItem(item)
+        }
         let projects = ClosureMenuItem(L10n.t("Show projects")) { [weak self] in
             self?.preferences.showProjects.toggle()
         }

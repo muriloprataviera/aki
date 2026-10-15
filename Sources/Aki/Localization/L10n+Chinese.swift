@@ -394,6 +394,7 @@ extension L10n {
         "Its numbers show once Codex reports them: send a message in Codex.": "Codex 报告后会显示数字：请在 Codex 中发送一条消息。",
         "{n}% of the 5-hour session": "5 小时时段的 {n}%",
         "Code sessions in the Claude app": "Claude 应用中的 Code 会话",
+        "Screen": "屏幕",
         "What Aki found": "Aki 找到的内容",
         "Search again": "重新查找",
         "Claude app": "Claude 应用",

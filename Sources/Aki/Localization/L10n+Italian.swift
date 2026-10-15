@@ -394,6 +394,7 @@ extension L10n {
         "Its numbers show once Codex reports them: send a message in Codex.": "I numeri compaiono quando Codex li comunica: invia un messaggio in Codex.",
         "{n}% of the 5-hour session": "{n}% della sessione di 5 ore",
         "Code sessions in the Claude app": "Sessioni Code nell'app di Claude",
+        "Screen": "Schermo",
         "What Aki found": "Cosa ha trovato Aki",
         "Search again": "Cerca di nuovo",
         "Claude app": "App di Claude",

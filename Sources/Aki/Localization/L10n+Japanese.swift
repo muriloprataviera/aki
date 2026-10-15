@@ -394,6 +394,7 @@ extension L10n {
         "Its numbers show once Codex reports them: send a message in Codex.": "Codex が報告すると数値が表示されます: Codex でメッセージを送ってください。",
         "{n}% of the 5-hour session": "5時間セッションの {n}%",
         "Code sessions in the Claude app": "Claude アプリの Code セッション",
+        "Screen": "ディスプレイ",
         "What Aki found": "Aki が見つけたもの",
         "Search again": "もう一度探す",
         "Claude app": "Claude アプリ",
