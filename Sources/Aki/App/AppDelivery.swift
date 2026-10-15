@@ -12,7 +12,9 @@ enum AppDelivery {
     private static var queue: Task<TerminalJump.Delivery, Never>?
     private static var lastFinished = Date.distantPast
 
-    static func deliver(to bundleID: String, marks: [Annotation]) async -> TerminalJump.Delivery {
+    /// `session`: the name of one of the app's sessions (its Code tab): it has to be the
+    /// one open (picked on the app's list if not), or nothing is sent.
+    static func deliver(to bundleID: String, session: String? = nil, marks: [Annotation]) async -> TerminalJump.Delivery {
         let previous = queue
         let task = Task { @MainActor in
             // Right after another one, the app is still redrawing its conversation (its
@@ -24,7 +26,7 @@ enum AppDelivery {
             concealing[bundleID]?.cancel()
             concealing[bundleID] = nil
             delivering.insert(bundleID)
-            let result = await run(to: bundleID, marks: marks)
+            let result = await run(to: bundleID, session: session, marks: marks)
             delivering.remove(bundleID)
             lastFinished = Date()
             concealLater(bundleID)
@@ -34,7 +36,7 @@ enum AppDelivery {
         return await task.value
     }
 
-    private static func run(to bundleID: String, marks: [Annotation]) async -> TerminalJump.Delivery {
+    private static func run(to bundleID: String, session: String?, marks: [Annotation]) async -> TerminalJump.Delivery {
         guard !marks.isEmpty, let app = NSRunningApplication.runningApplications(withBundleIdentifier: bundleID).first
         else { return .failed }
         let text = AnnotationText.forApp(marks)
@@ -56,6 +58,8 @@ enum AppDelivery {
             for _ in 0..<80 where !front() || focusedWindow(pid) == nil { try? await Task.sleep(for: .milliseconds(50)) }
         }
         guard front() else { return .failed }
+        // A chosen session: the one open, or picked on the app's list; never another one.
+        if let session, await !open(session, pid) { return .failed }
         try? await Task.sleep(for: .milliseconds(350))
         let pasteboard = NSPasteboard.general
         // Its contents may take several seconds to show to Accessibility the first time
@@ -159,6 +163,59 @@ enum AppDelivery {
         // Still unsent after all that: it's all in the box, one Enter away. Not pasted
         // again (it would be there twice), and the marks stay open until it goes.
         return .pasted
+    }
+
+    /// Whether the app shows `session` (its page's title), after picking it on the app's
+    /// list when another is open. Up to a few seconds for the page to describe itself.
+    private static func open(_ session: String, _ pid: pid_t) async -> Bool {
+        func same(_ title: String?) -> Bool {
+            guard let title else { return false }
+            return TerminalJump.normalized(title) == TerminalJump.normalized(session)
+        }
+        var title = DesktopApps.pageTitle(pid)
+        for _ in 0..<30 where title == nil {
+            try? await Task.sleep(for: .milliseconds(200))
+            title = DesktopApps.pageTitle(pid)
+        }
+        if same(title) { return true }
+        guard let item = listItem(named: session, pid) else { return false }
+        AXUIElementPerformAction(item, kAXPressAction as CFString)
+        for _ in 0..<20 {
+            try? await Task.sleep(for: .milliseconds(200))
+            if same(DesktopApps.pageTitle(pid)) { return true }
+        }
+        return false
+    }
+
+    /// Something pressable in the app's window named exactly `name` (a session on its list).
+    private static func listItem(named name: String, _ pid: pid_t) -> AXUIElement? {
+        guard let window = focusedWindow(pid) else { return nil }
+        func attribute(_ element: AXUIElement, _ key: String) -> CFTypeRef? {
+            var value: CFTypeRef?
+            return AXUIElementCopyAttributeValue(element, key as CFString, &value) == .success ? value : nil
+        }
+        let wanted = TerminalJump.normalized(name)
+        var queue = [window], seen = 0
+        while !queue.isEmpty, seen < 4000 {
+            let node = queue.removeFirst()
+            seen += 1
+            // A row's name: its title, its description, or the text in it.
+            let label = [kAXTitleAttribute, kAXDescriptionAttribute, kAXValueAttribute]
+                .lazy.compactMap { attribute(node, $0) as? String }.first { !$0.isEmpty } ?? ""
+            if !label.isEmpty, TerminalJump.normalized(label) == wanted {
+                // The row itself, or the first parent that can be pressed.
+                var current: AXUIElement? = node
+                for _ in 0..<4 {
+                    guard let element = current else { break }
+                    var actions: CFArray?
+                    if AXUIElementCopyActionNames(element, &actions) == .success,
+                       (actions as? [String])?.contains(kAXPressAction) == true { return element }
+                    current = attribute(element, kAXParentAttribute).map { $0 as! AXUIElement }
+                }
+            }
+            if let children = attribute(node, kAXChildrenAttribute) as? [AXUIElement] { queue.append(contentsOf: children) }
+        }
+        return nil
     }
 
     /// Electron apps tell Accessibility what's inside them only once asked to: Claude's

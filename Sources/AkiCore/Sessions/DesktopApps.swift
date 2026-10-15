@@ -119,7 +119,7 @@ public enum DesktopApps {
 
     /// The title of the page in the app's front window, when it shows (around a
     /// delivery). Never asks the app to show it.
-    static func pageTitle(_ pid: Int32) -> String? {
+    public static func pageTitle(_ pid: Int32) -> String? {
         guard AXIsProcessTrusted() else { return nil }
         let app = AXUIElementCreateApplication(pid)
         func attribute(_ element: AXUIElement, _ name: String) -> CFTypeRef? {

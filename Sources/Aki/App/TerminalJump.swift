@@ -224,7 +224,8 @@ enum TerminalJump {
         // into the app, like the app itself.
         if let owner = await MainActor.run(body: { TerminalApp.owner(of: terminal.pid)?.bundleIdentifier }),
            DesktopApps.known[owner] != nil {
-            return await AppDelivery.deliver(to: owner, marks: marks)
+            // Into that session: picked on the app's list, and never pasted into another.
+            return await AppDelivery.deliver(to: owner, session: terminal.name, marks: marks)
         }
         guard FileManager.default.isExecutableFile(atPath: orcaCLI) else { return .failed }
         // Only a conversation that runs in Orca: one in Terminal or iTerm must never
