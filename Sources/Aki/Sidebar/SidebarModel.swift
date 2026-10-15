@@ -269,8 +269,11 @@ final class SidebarModel {
 
     /// Every session you can mark for: the sidebar's, then the ones hidden from it.
     /// Hiding a ring tidies the sidebar; it doesn't take the session off the picker.
+    /// In the rings' numbering, so ⌘1 is the ring numbered 1.
     var markableTerminals: [AgentTerminal] {
-        visibleTerminals + terminals.filter { (preferences.hiddenTerminals.contains($0.id) || resting($0)) && !switchedOff($0) }
+        let order = numbered
+        let visible = visibleTerminals.sorted { (order.firstIndex(of: $0.id) ?? .max) < (order.firstIndex(of: $1.id) ?? .max) }
+        return visible + terminals.filter { (preferences.hiddenTerminals.contains($0.id) || resting($0)) && !switchedOff($0) }
     }
 
     /// Untouched for more than a day, with nothing for it, not working and not the
