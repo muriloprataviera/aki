@@ -74,13 +74,16 @@ enum AppDelivery {
         let saved = savedItems(pasteboard)
         // Still in front, in that same box (not another conversation's): each paste and
         // Enter goes to whatever has the focus, so it's checked before every one.
-        var box = found, pasted = false
+        // Aki's first line ("📍 Aki: 2 marks…"): how its message is told apart from
+        // anything else written in a box or shown in the conversation.
+        let header = String(text.prefix { $0 != "\n" })
+        var box = found, pastedText = false
         func stillThere() -> Bool {
             guard NSWorkspace.shared.frontmostApplication?.processIdentifier == pid, let now = messageBox(pid) else { return false }
             if CFEqual(now, box) { return true }
-            // The app drew the box anew right after a paste, with what was pasted in it:
-            // the same box for what follows.
-            if pasted, isEmpty(now) == false { box = now; return true }
+            // The app drew the box anew right after the paste, with Aki's text in it: the
+            // same box for what follows (another conversation's box wouldn't hold it).
+            if pastedText, value(of: now)?.contains(header) == true { box = now; return true }
             return false
         }
         func restore() {
@@ -98,7 +101,6 @@ enum AppDelivery {
             pasteboard.clearContents()
             pasteboard.writeObjects([item])
             pressPaste()
-            pasted = true
             try? await Task.sleep(for: .milliseconds(500))
         }
         guard stillThere() else { restore(); return .failed }
@@ -106,7 +108,7 @@ enum AppDelivery {
         // Something of yours already written there: Aki's text after a blank line.
         pasteboard.setString(isEmpty(box) == false ? "\n\n" + text : text, forType: .string)
         pressPaste()
-        pasted = true
+        pastedText = true
         try? await Task.sleep(for: .milliseconds(600))
         defer { restore() }
         // Sent once the box is empty again. Pictures still uploading hold the send back:
@@ -121,7 +123,9 @@ enum AppDelivery {
             // (It may be between pages for a moment: looked for again, up to a second.)
             for _ in 0..<4 where NSWorkspace.shared.frontmostApplication?.processIdentifier == pid {
                 if let now = messageBox(pid) ?? composer(pid) {
-                    if !CFEqual(now, box) { return isEmpty(now) == true ? .sent : .pasted }
+                    // Only once Aki's message shows in the conversation: an empty box alone
+                    // could be another conversation you went to meanwhile.
+                    if !CFEqual(now, box) { return isEmpty(now) == true && shows(header, pid, besides: now) ? .sent : .pasted }
                     break
                 }
                 try? await Task.sleep(for: .milliseconds(250))
@@ -236,6 +240,34 @@ enum AppDelivery {
                   CFGetTypeID(parent) == AXUIElementGetTypeID()
             else { return false }
             current = (parent as! AXUIElement)
+        }
+        return false
+    }
+
+    private static func value(of element: AXUIElement) -> String? {
+        var value: CFTypeRef?
+        AXUIElementCopyAttributeValue(element, kAXValueAttribute as CFString, &value)
+        return value as? String
+    }
+
+    /// Whether the front window shows `line` outside the message box `box`: a message in
+    /// the conversation (plain text in Claude's, a read-only text area in Codex's).
+    private static func shows(_ line: String, _ pid: pid_t, besides box: AXUIElement) -> Bool {
+        guard let window = focusedWindow(pid) else { return false }
+        var queue = [window], seen = 0
+        while !queue.isEmpty, seen < 4000 {
+            let node = queue.removeFirst()
+            seen += 1
+            var role: CFTypeRef?
+            AXUIElementCopyAttributeValue(node, kAXRoleAttribute as CFString, &role)
+            if role as? String == "AXTextArea" {
+                if !CFEqual(node, box), value(of: node)?.contains(line) == true { return true }
+                continue
+            }
+            if role as? String == "AXStaticText", value(of: node)?.contains(line) == true { return true }
+            var children: CFTypeRef?
+            if AXUIElementCopyAttributeValue(node, kAXChildrenAttribute as CFString, &children) == .success,
+               let list = children as? [AXUIElement] { queue.append(contentsOf: list) }
         }
         return false
     }
