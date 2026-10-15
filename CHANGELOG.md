@@ -8,6 +8,7 @@ What changed in each version of Aki. Versions follow [semantic versioning](https
 - "Wake the agent after" can be set to instant: marks go into the session's tab the moment you send them.
 - Each ring shows, in a small badge, the app its session runs in (Orca, the Codex or Claude app, Terminal…).
 - The Claude and Codex desktop apps' rings show the name of the conversation open in them.
+- A limits ring turns whenever its AI is at work: also while the Claude or Codex app is answering, and during runs with no window of their own (like a `codex exec`).
 
 ### Changed
 - The line under a limits ring that said "TODAY" is now "PACE": how much you've used against an even week so far. Under 100% is on track, and it only turns orange or red past that.
