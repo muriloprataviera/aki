@@ -28,7 +28,11 @@ public enum SessionHistory {
         }
         for folder in ["sessions", "archived_sessions"] {
             for (file, modified) in files(in: codexHome.appending(path: folder), depth: 5, since: since) {
-                if let entry = cached(file, modified, { codex(file, modified, home: codexHome) }) { entries.append(entry) }
+                // Its name from Codex's index each time (a rename doesn't touch the log).
+                if var entry = cached(file, modified, { codex(file, modified, home: codexHome) }) {
+                    entry.title = CodexSessions.threadName(of: file, home: codexHome)
+                    entries.append(entry)
+                }
             }
         }
         return entries.sorted { $0.updated > $1.updated }

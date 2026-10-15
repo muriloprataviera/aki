@@ -57,6 +57,11 @@ public enum DesktopApps {
         return Array(CodexSessions.openLogs(of: servers).values.joined())
     }
 
+    /// The logs the Codex app has open now (its conversations), for the History.
+    public static func openCodexLogs(app pid: Int32) -> [URL] {
+        codexLogs(app: pid, processes: AgentSessions.runningProcesses())
+    }
+
     /// Whether one of the app's own Codex conversations is in the middle of a turn.
     static func codexWorking(app pid: Int32, processes: [AgentSessions.Process]) -> Bool {
         codexLogs(app: pid, processes: processes).contains { CodexSessions.working(log: $0) }

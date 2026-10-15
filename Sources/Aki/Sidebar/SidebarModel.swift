@@ -990,8 +990,20 @@ final class SidebarModel {
         let command = entry.agent == .codex ? "codex resume \(entry.id)" : "claude --resume \(entry.id)"
         NSPasteboard.general.clearContents()
         NSPasteboard.general.setString("cd \(quoted) && \(command)", forType: .string)
-        // From its own folder (a conversation begun in a subfolder lives there).
-        if await TerminalJump.createOrcaTerminal(in: entry.cwd, title: entry.title, command: "cd \(quoted) && \(command)") { return .orca }
+        // From its own folder (a conversation begun in a subfolder lives there); only when
+        // the agent's command is installed (the app alone gives none to a terminal).
+        let program = entry.agent == .codex ? "codex" : "claude"
+        let installed = await Task.detached {
+            let check = Process()
+            check.executableURL = URL(filePath: "/bin/zsh")
+            check.arguments = ["-lc", "command -v \(program) >/dev/null"]
+            check.standardOutput = FileHandle.nullDevice
+            check.standardError = FileHandle.nullDevice
+            guard (try? check.run()) != nil else { return false }
+            check.waitUntilExit()
+            return check.terminationStatus == 0
+        }.value
+        if installed, await TerminalJump.createOrcaTerminal(in: entry.cwd, title: entry.title, command: "cd \(quoted) && \(command)") { return .orca }
         if entry.agent == .claude,
            NSWorkspace.shared.urlForApplication(withBundleIdentifier: "com.anthropic.claudefordesktop") != nil,
            var link = URLComponents(string: "claude://code/new") {

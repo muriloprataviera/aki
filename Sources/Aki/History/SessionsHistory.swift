@@ -107,9 +107,14 @@ struct SessionsHistoryView: View {
             while !Task.isCancelled {
                 let found = await Task.detached(priority: .utility) { SessionHistory.recent() }.value
                 if found != entries { entries = found }
-                let codex = model.terminals.filter { $0.agent == .codex && DesktopApps.bundleID(of: $0.id) == nil }
+                let codex = model.terminals.filter { $0.agent == .codex }
                 let byLog = await Task.detached(priority: .utility) { () -> [String: String] in
-                    let logs = CodexSessions.openLogs(of: codex.map(\.pid))
+                    let terminals = codex.filter { DesktopApps.bundleID(of: $0.id) == nil }
+                    var logs = CodexSessions.openLogs(of: terminals.map(\.pid))
+                    // The Codex app's conversations: the logs its helpers keep open.
+                    for app in codex where DesktopApps.bundleID(of: app.id) != nil {
+                        logs[app.pid, default: []] += DesktopApps.openCodexLogs(app: app.pid)
+                    }
                     var ids: [String: String] = [:]
                     for terminal in codex {
                         for log in logs[terminal.pid] ?? [] {
