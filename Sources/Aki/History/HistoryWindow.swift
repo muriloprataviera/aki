@@ -105,7 +105,8 @@ private struct HistoryView: View {
     @State private var tab: HistoryTab = .marks
 
     var body: some View {
-        Group {
+        // A ZStack, not a Group: its onAppear runs once, not again on every tab switch.
+        ZStack {
             if tab == .sessions {
                 SessionsHistoryView(model: model, tab: $tab)
             } else {
