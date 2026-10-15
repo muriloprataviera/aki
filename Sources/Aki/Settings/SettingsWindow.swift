@@ -972,7 +972,9 @@ enum Setup {
     /// Where agents install themselves: Claude Code's own installer puts `claude`
     /// in ~/.local/bin, which a login shell only gets from .zshrc (never read here).
     /// Last come the `codex` bundled with the ChatGPT and Codex apps, for people who only use the app.
-    private static let paths = #"export PATH="$HOME/.local/bin:$HOME/.claude/local:/opt/homebrew/bin:/usr/local/bin:$PATH:/Applications/ChatGPT.app/Contents/Resources/codex-cli/bin:/Applications/Codex.app/Contents/Resources/codex-cli/bin:/Applications/Codex.app/Contents/Resources"; "#
+    /// With no `claude` command, the one the Claude app brings for its Code tab (same
+    /// user settings): connecting it is what lets the app's Code sessions read your marks.
+    private static let paths = #"export PATH="$HOME/.local/bin:$HOME/.claude/local:/opt/homebrew/bin:/usr/local/bin:$PATH:/Applications/ChatGPT.app/Contents/Resources/codex-cli/bin:/Applications/Codex.app/Contents/Resources/codex-cli/bin:/Applications/Codex.app/Contents/Resources"; command -v claude >/dev/null || { AKI_CLAUDE=$(ls -d "$HOME/Library/Application Support/Claude/claude-code/"*/*/claude.app/Contents/MacOS/claude 2>/dev/null | sort -V | tail -1); [ -n "$AKI_CLAUDE" ] && claude() { "$AKI_CLAUDE" "$@"; }; }; "#
 
     private static func shell(_ command: String) async -> Bool {
         await Task.detached {
@@ -993,7 +995,8 @@ enum Setup {
         let command: String
         switch key {
         case "claude":
-            // Claude Code in a terminal and the Claude app each keep their own list.
+            // Claude Code (in a terminal, or the one in the app's Code tab) and the app's
+            // chats each keep their own list.
             let app = ClaudeDesktop.isInstalled && ClaudeDesktop.addAki(binary)
             let cli = await shell("command -v claude >/dev/null && { claude mcp remove --scope user aki >/dev/null 2>&1; claude mcp add --scope user aki -- \(quoted) mcp; }")
             return app || cli
