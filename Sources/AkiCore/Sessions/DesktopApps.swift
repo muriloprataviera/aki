@@ -78,7 +78,9 @@ public enum DesktopApps {
         return nil
     }
 
-    nonisolated(unsafe) private static var asked = Set<Int32>()
+    /// When each app was last asked, and the ones whose pages already show.
+    nonisolated(unsafe) private static var asked = [Int32: Date]()
+    nonisolated(unsafe) private static var showing = Set<Int32>()
     private static let askedLock = NSLock()
 
     /// The title of the page in the app's front window (Electron apps show it to
@@ -88,8 +90,14 @@ public enum DesktopApps {
         let app = AXUIElementCreateApplication(pid)
         // Without Accessibility allowed yet the ask goes nowhere: asked again once it is.
         guard AXIsProcessTrusted() else { return nil }
-        let first = askedLock.withLock { asked.insert(pid).inserted }
-        if first {
+        // Asked once; again every half minute while its pages don't show (an ask that came
+        // while it was still starting).
+        let ask = askedLock.withLock { () -> Bool in
+            guard !showing.contains(pid), Date().timeIntervalSince(asked[pid] ?? .distantPast) > 30 else { return false }
+            asked[pid] = Date()
+            return true
+        }
+        if ask {
             AXUIElementSetAttributeValue(app, "AXManualAccessibility" as CFString, kCFBooleanTrue)
             AXUIElementSetAttributeValue(app, "AXEnhancedUserInterface" as CFString, kCFBooleanTrue)
         }
@@ -106,6 +114,7 @@ public enum DesktopApps {
             let node = queue.removeFirst()
             seen += 1
             if attribute(node, kAXRoleAttribute) as? String == "AXWebArea" {
+                askedLock.withLock { _ = showing.insert(pid) }
                 var title = ((attribute(node, kAXTitleAttribute) as? String) ?? "").trimmingCharacters(in: .whitespaces)
                 if title.hasSuffix(" - Claude") { title = String(title.dropLast(" - Claude".count)) }
                 if !["", "claude", "chatgpt", "codex", "new chat", "nova conversa"].contains(title.lowercased()) { return title }
