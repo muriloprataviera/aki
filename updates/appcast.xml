@@ -3,6 +3,23 @@
     <channel>
         <title>Aki</title>
         <item>
+            <title>0.8.0-beta.4</title>
+            <pubDate>Thu, 15 Oct 2026 14:58:49 -0300</pubDate>
+            <sparkle:channel>beta</sparkle:channel>
+            <sparkle:version>20261015175848</sparkle:version>
+            <sparkle:shortVersionString>0.8.0-beta.4</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
+            <description><![CDATA[<h2>Aki 0.8.0-beta.4</h2>
+<ul>
+<li>Codex's ring turns blue while it works, the colour of its icon.</li>
+<li>Sending to the Claude or Codex app never pastes into a past message you're editing: only into the box at the bottom.</li>
+<li>No extra wait before sending to an app, unless a send just finished.</li>
+</ul>
+]]></description>
+            <enclosure url="https://aki-updates.vercel.app/0.8.0-beta.4/Aki-0.8.0-beta.4.zip" length="3837693" type="application/octet-stream" sparkle:edSignature="z0Un4615Ff4yRR7CNVW4zAokvuQqVrNbhjY5VBXdad0V8rlMWZJ8H29VFaMieWpPfYGcmgGnMNyad7dSYoS/CA=="/>
+        </item>
+        <item>
             <title>0.8.0-beta.3</title>
             <pubDate>Thu, 15 Oct 2026 14:48:00 -0300</pubDate>
             <sparkle:channel>beta</sparkle:channel>
@@ -37,24 +54,6 @@
 </ul>
 ]]></description>
             <enclosure url="https://aki-updates.vercel.app/0.8.0-beta.2/Aki-0.8.0-beta.2.zip" length="3829620" type="application/octet-stream" sparkle:edSignature="gIRL0AC8fUChfe+pXR/FT6aEUV31dyUU89j6XtDMOmDs2jTHMk3kKNjgzJQpGLxg+pzAvJz8OoOBi8scUuMpDA=="/>
-        </item>
-        <item>
-            <title>0.8.0-beta.1</title>
-            <pubDate>Wed, 14 Oct 2026 20:52:09 -0300</pubDate>
-            <sparkle:channel>beta</sparkle:channel>
-            <sparkle:version>20261014235208</sparkle:version>
-            <sparkle:shortVersionString>0.8.0-beta.1</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
-            <description><![CDATA[<h2>Aki 0.8.0-beta.1</h2>
-<h3>New</h3><ul>
-<li>"Wake the agent after" can be set to instant: marks go into the session's tab the moment you send them (Settings).</li>
-</ul>
-<h3>Changed</h3><ul>
-<li>The line under a limits ring that said "TODAY" is now "PACE": how much you've used against an even week so far. Under 100% is on track.</li>
-</ul>
-]]></description>
-            <enclosure url="https://aki-updates.vercel.app/0.8.0-beta.1/Aki-0.8.0-beta.1.zip" length="3809830" type="application/octet-stream" sparkle:edSignature="hST0kKgId49q+1m9hdeSVP8q6051E1LqSwsisrbX49AwT7lqU96YhqjeNkVB/obLnnpduJpgTO0kqALPf4vGBA=="/>
         </item>
         <item>
             <title>0.7.1</title>
