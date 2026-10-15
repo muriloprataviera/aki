@@ -246,7 +246,17 @@ final class SidebarModel {
 
     /// A session's number (1, 2, 3…): its place in sidebar order. ⌘1–⌘9 picks it while marking.
     func number(of id: String) -> Int? {
-        visibleTerminals.firstIndex { $0.id == id }.map { $0 + 1 }
+        numbered.firstIndex(of: id).map { $0 + 1 }
+    }
+
+    /// In the order the rings show (1, 2, 3… with no gaps), then the ones waiting in "+N"
+    /// when there were too many for a ring each.
+    private var numbered: [String] {
+        let shown = sessionRings.compactMap { ring -> String? in
+            if case .terminal(let t) = ring { return t.id }
+            return nil
+        }
+        return shown + visibleTerminals.map(\.id).filter { !shown.contains($0) }
     }
 
     /// Off in Settings: its agent untracked, its project switched off (Claude / Codex)
