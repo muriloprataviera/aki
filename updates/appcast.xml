@@ -3,6 +3,26 @@
     <channel>
         <title>Aki</title>
         <item>
+            <title>0.8.0-beta.2</title>
+            <pubDate>Thu, 15 Oct 2026 14:23:06 -0300</pubDate>
+            <sparkle:channel>beta</sparkle:channel>
+            <sparkle:version>20261015172306</sparkle:version>
+            <sparkle:shortVersionString>0.8.0-beta.2</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
+            <description><![CDATA[<h2>Aki 0.8.0-beta.2</h2>
+<h3>New</h3><ul>
+<li>Each ring shows, in a small badge, the app its session runs in (Orca, the Codex or Claude app, Terminal…).</li>
+<li>The Claude and Codex desktop apps' rings show the name of the conversation open in them.</li>
+</ul>
+<h3>Fixed</h3><ul>
+<li>Sending to the Claude and Codex desktop apps, tested for real: a new conversation, the app minimized, closed or just opened, the focus elsewhere in it, two sends in a row, your own text already in the box.</li>
+<li>The Codex app no longer adds a ring named "Resources".</li>
+</ul>
+]]></description>
+            <enclosure url="https://aki-updates.vercel.app/0.8.0-beta.2/Aki-0.8.0-beta.2.zip" length="3829620" type="application/octet-stream" sparkle:edSignature="gIRL0AC8fUChfe+pXR/FT6aEUV31dyUU89j6XtDMOmDs2jTHMk3kKNjgzJQpGLxg+pzAvJz8OoOBi8scUuMpDA=="/>
+        </item>
+        <item>
             <title>0.8.0-beta.1</title>
             <pubDate>Wed, 14 Oct 2026 20:52:09 -0300</pubDate>
             <sparkle:channel>beta</sparkle:channel>
