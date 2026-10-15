@@ -20,6 +20,9 @@ enum AppDelivery {
             _ = await previous?.value
             let since = Date().timeIntervalSince(lastFinished)
             if since < 1.5 { try? await Task.sleep(for: .seconds(1.5 - since)) }
+            // A switch-off still pending would come in the middle of this one.
+            concealing[bundleID]?.cancel()
+            concealing[bundleID] = nil
             let result = await run(to: bundleID, marks: marks)
             lastFinished = Date()
             concealLater(bundleID)
@@ -162,16 +165,17 @@ enum AppDelivery {
         DesktopApps.expose(pid, true)
     }
 
-    private static var deliveries = 0
+    /// Each app's switch-off to come.
+    private static var concealing = [String: Task<Void, Never>]()
 
     /// Left on, the app keeps rebuilding that description at every word of its answers
-    /// and the whole Mac slows down: off again a minute after the last delivery.
+    /// and the whole Mac slows down: off again a minute after its last delivery.
     private static func concealLater(_ bundleID: String) {
-        deliveries += 1
-        let mine = deliveries
-        Task { @MainActor in
+        concealing[bundleID]?.cancel()
+        concealing[bundleID] = Task { @MainActor in
             try? await Task.sleep(for: .seconds(60))
-            guard mine == deliveries else { return }
+            guard !Task.isCancelled else { return }
+            concealing[bundleID] = nil
             for app in NSRunningApplication.runningApplications(withBundleIdentifier: bundleID) {
                 DesktopApps.expose(app.processIdentifier, false)
             }
