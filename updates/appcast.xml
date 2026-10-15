@@ -3,6 +3,27 @@
     <channel>
         <title>Aki</title>
         <item>
+            <title>0.8.1-beta.4</title>
+            <pubDate>Thu, 15 Oct 2026 17:17:24 -0300</pubDate>
+            <sparkle:channel>beta</sparkle:channel>
+            <sparkle:version>20261015201724</sparkle:version>
+            <sparkle:shortVersionString>0.8.1-beta.4</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
+            <description><![CDATA[<h2>Aki 0.8.1 beta 4</h2>
+<h3>New</h3><ul>
+<li>Settings → Agents → "What Aki found": whether Aki sees the Claude and Codex apps, their terminals and their limits, with "Search again".</li>
+<li>Right-click a limits ring: "Search again" and "What Aki found…".</li>
+<li>A limits ring shows as soon as Aki sees Claude or Codex, empty until its numbers come, and right after "Connect".</li>
+</ul>
+<h3>Lighter</h3><ul><li>Less work with many terminals open (the Orca tab you are in, each terminal's folder).</li></ul>
+<h3>Fixed</h3><ul>
+<li>Claude's limits ring shows for people who use the Claude app and not Claude Code.</li>
+</ul>
+]]></description>
+            <enclosure url="https://aki-updates.vercel.app/0.8.1-beta.4/Aki-0.8.1-beta.4.zip" length="3928660" type="application/octet-stream" sparkle:edSignature="9LFbhPJBJ0WYrqRpXKz6ts2+oFf2WbF3D1aUSM9sh2C76N5byt+2Zh/vdst1teeLvZLuEmObF0CFQ3PS0yVsAQ=="/>
+        </item>
+        <item>
             <title>0.8.1-beta.3</title>
             <pubDate>Thu, 15 Oct 2026 17:11:58 -0300</pubDate>
             <sparkle:channel>beta</sparkle:channel>
@@ -40,24 +61,6 @@
 </ul>
 ]]></description>
             <enclosure url="https://aki-updates.vercel.app/0.8.1-beta.2/Aki-0.8.1-beta.2.zip" length="3924565" type="application/octet-stream" sparkle:edSignature="wFDWOiAfwhYSheR8Ys7VIXNCEZHXkBb2vTZATQbCVKInPNxblGoYEDpR71BOfIKQZzSHc5Jk2rms2T+zetJlDw=="/>
-        </item>
-        <item>
-            <title>0.8.1-beta.1</title>
-            <pubDate>Thu, 15 Oct 2026 17:00:18 -0300</pubDate>
-            <sparkle:channel>beta</sparkle:channel>
-            <sparkle:version>20261015200017</sparkle:version>
-            <sparkle:shortVersionString>0.8.1-beta.1</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
-            <description><![CDATA[<h2>Aki 0.8.1 beta 1</h2>
-<h3>New</h3><ul>
-<li>Settings → Agents → "What Aki found": whether Aki sees the Claude and Codex apps, their terminals and their limits, with "Search again".</li>
-</ul>
-<h3>Fixed</h3><ul>
-<li>Claude's limits ring shows for people who use the Claude app and not Claude Code.</li>
-</ul>
-]]></description>
-            <enclosure url="https://aki-updates.vercel.app/0.8.1-beta.1/Aki-0.8.1-beta.1.zip" length="3917043" type="application/octet-stream" sparkle:edSignature="4teG0OcZPjmHjjTMlT2gnHEuwbpHZ6W0goTmSvpYicitZ67Y7x08C35G0907yMa9k7ih97hQbWhLx78VxhjqDA=="/>
         </item>
         <item>
             <title>0.8.0</title>
