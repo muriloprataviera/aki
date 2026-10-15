@@ -66,7 +66,10 @@ public enum DesktopApps {
     /// adds " - Claude" to it), else its window's title when it names one (not just the
     /// app). Else none: the one written to last may not be the one open.
     static func conversationName(_ app: Found) -> String? {
-        if let title = pageTitle(app.pid) { return title }
+        if let title = pageTitle(app.pid) {
+            titlesLock.withLock { titles[app.pid] = title }
+            return title
+        }
         let windows = CGWindowListCopyWindowInfo([.optionOnScreenOnly, .excludeDesktopElements], kCGNullWindowID) as? [[String: Any]] ?? []
         let generic = ["chatgpt", "codex", "claude", ""]
         if let title = windows.first(where: {
@@ -75,7 +78,8 @@ public enum DesktopApps {
         })?[kCGWindowName as String] as? String {
             return title.trimmingCharacters(in: .whitespaces)
         }
-        return nil
+        // Neither shows now (its page is described only around a delivery): the last seen.
+        return titlesLock.withLock { titles[app.pid] }
     }
 
     /// The conversation names last seen in each app (its page shows them only while
@@ -100,7 +104,7 @@ public enum DesktopApps {
     }
 
     /// The title of the page in the app's front window, when it shows (around a
-    /// delivery); else the last one seen. Never asks the app to show it.
+    /// delivery). Never asks the app to show it.
     static func pageTitle(_ pid: Int32) -> String? {
         guard AXIsProcessTrusted() else { return nil }
         let app = AXUIElementCreateApplication(pid)
@@ -108,10 +112,9 @@ public enum DesktopApps {
             var value: CFTypeRef?
             return AXUIElementCopyAttributeValue(element, name as CFString, &value) == .success ? value : nil
         }
-        let last = titlesLock.withLock { titles[pid] }
         guard let window = attribute(app, kAXFocusedWindowAttribute) ?? (attribute(app, kAXWindowsAttribute) as? [AXUIElement])?.first,
               CFGetTypeID(window) == AXUIElementGetTypeID()
-        else { return last }
+        else { return nil }
         // The page sits a few levels down; its insides aren't searched.
         var queue = [window as! AXUIElement], seen = 0
         while !queue.isEmpty, seen < 60 {
@@ -120,13 +123,11 @@ public enum DesktopApps {
             if attribute(node, kAXRoleAttribute) as? String == "AXWebArea" {
                 var title = ((attribute(node, kAXTitleAttribute) as? String) ?? "").trimmingCharacters(in: .whitespaces)
                 if title.hasSuffix(" - Claude") { title = String(title.dropLast(" - Claude".count)) }
-                guard !["", "claude", "chatgpt", "codex", "new chat", "nova conversa"].contains(title.lowercased()) else { return last }
-                titlesLock.withLock { titles[pid] = title }
-                return title
+                return ["", "claude", "chatgpt", "codex", "new chat", "nova conversa"].contains(title.lowercased()) ? nil : title
             }
             if let children = attribute(node, kAXChildrenAttribute) as? [AXUIElement] { queue.append(contentsOf: children) }
         }
-        return last
+        return nil
     }
 
     /// The app is answering: its processes (the page's renderer above all) busy, from the

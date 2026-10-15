@@ -23,7 +23,9 @@ enum AppDelivery {
             // A switch-off still pending would come in the middle of this one.
             concealing[bundleID]?.cancel()
             concealing[bundleID] = nil
+            delivering.insert(bundleID)
             let result = await run(to: bundleID, marks: marks)
+            delivering.remove(bundleID)
             lastFinished = Date()
             concealLater(bundleID)
             return result
@@ -163,6 +165,16 @@ enum AppDelivery {
     /// by the first flag, Codex's only by the second.
     static func exposeContents(_ pid: pid_t) {
         DesktopApps.expose(pid, true)
+    }
+
+    /// The apps being delivered to now.
+    private static var delivering = Set<String>()
+
+    /// Whether Aki is using that app's description now, or will in a moment: marking
+    /// leaves it on (a delivery switches it off itself, a minute after).
+    static func holds(_ pid: pid_t) -> Bool {
+        guard let id = NSRunningApplication(processIdentifier: pid)?.bundleIdentifier else { return false }
+        return delivering.contains(id) || concealing[id] != nil
     }
 
     /// Each app's switch-off to come.
