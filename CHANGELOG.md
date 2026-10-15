@@ -9,7 +9,7 @@ What changed in each version of Aki. Versions follow [semantic versioning](https
 - "What Aki found" counts the Claude app's Code sessions.
 - Settings → Claude Code and Codex: "Search for sessions", to look for them again right away.
 - With more than one display, right-click the sidebar → Screen: choose which one the bar lives on.
-- A "looking…" ring turns while Aki looks for your open sessions (when it starts, after Connect, on "Search again"), and they fill in as they're found.
+- A "looking…" ring turns while Aki looks for your open sessions (after Connect, on "Search again"), and they fill in as they're found.
 
 ### Fixed
 - The sidebar no longer hides under a Dock kept on the same edge (it sits beside it).

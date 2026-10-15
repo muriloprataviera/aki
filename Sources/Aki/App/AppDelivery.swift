@@ -169,6 +169,18 @@ enum AppDelivery {
         return .pasted
     }
 
+    /// Brings the app forward on that session (picked on its list), nothing pasted: a
+    /// send already in its box goes on from there.
+    static func reveal(_ session: String, in bundleID: String) async {
+        guard let app = NSRunningApplication.runningApplications(withBundleIdentifier: bundleID).first else { return }
+        exposeContents(app.processIdentifier)
+        app.unhide()
+        app.activate()
+        try? await Task.sleep(for: .milliseconds(300))
+        _ = await open(session, app.processIdentifier)
+        concealLater(bundleID)
+    }
+
     /// The same name, exactly (only the spaces around it aside): "🐛 Login" isn't "🚀 Login".
     private static func showing(_ title: String, _ session: String) -> Bool {
         title.trimmingCharacters(in: .whitespacesAndNewlines) == session.trimmingCharacters(in: .whitespacesAndNewlines)

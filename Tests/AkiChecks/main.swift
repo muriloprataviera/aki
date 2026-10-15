@@ -400,6 +400,24 @@ let appUsage = ClaudeAppUsage.parse(Data(#"{"five_hour":{"utilization":12.4,"res
 check(appUsage?.week?.percent == 29 && appUsage?.fiveHour?.percent == 12 && appUsage?.week?.resets != nil && appUsage?.fiveHour?.resets != nil, "claude app usage parsed")
 check(ClaudeAppUsage.parse(Data(#"{"other":1}"#.utf8), updated: Date()) == nil, "no windows, no reading")
 
+// A message pasted into a Claude app's Code session: found in that session's transcript.
+do {
+    let base = FileManager.default.temporaryDirectory.appending(path: "aki-received-\(UUID().uuidString)")
+    let registry = base.appending(path: "sessions"), projects = base.appending(path: "projects")
+    let cwd = "/tmp/proj x"
+    let slug = cwd.replacingOccurrences(of: "[^A-Za-z0-9]", with: "-", options: .regularExpression)
+    try? FileManager.default.createDirectory(at: registry, withIntermediateDirectories: true)
+    try? FileManager.default.createDirectory(at: projects.appending(path: slug), withIntermediateDirectories: true)
+    try? Data(#"{"pid":\#(getpid()),"sessionId":"s1","cwd":"/tmp/proj x","kind":"sdk","entrypoint":"claude-desktop"}"#.utf8)
+        .write(to: registry.appending(path: "1.json"))
+    let line = #"{"type":"user","message":{"content":"📍 Aki: 2 marcas na tela (#ab12cd, #ef34aa).\n\"x\""}}"# + "\n"
+    try? Data(line.utf8)
+        .write(to: projects.appending(path: slug).appending(path: "s1.jsonl"))
+    check(ClaudeSessions.received("📍 Aki: 2 marcas na tela (#ab12cd, #ef34aa).", sessionId: "s1", in: registry, projects: projects), "a message sent to a Code session is found in its transcript")
+    check(!ClaudeSessions.received("📍 Aki: 1 marca na tela (#999999).", sessionId: "s1", in: registry, projects: projects), "another message isn't")
+    try? FileManager.default.removeItem(at: base)
+}
+
 print(failures == 0 ? "\nall checks passed" : "\n\(failures) check(s) failed")
 exit(failures == 0 ? 0 : 1)
 

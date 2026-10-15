@@ -225,7 +225,16 @@ enum TerminalJump {
         if let owner = await MainActor.run(body: { TerminalApp.owner(of: terminal.pid)?.bundleIdentifier }),
            DesktopApps.known[owner] != nil {
             // Into that session: picked on the app's list, and never pasted into another.
-            return await AppDelivery.deliver(to: owner, session: terminal.name, marks: marks)
+            let result = await AppDelivery.deliver(to: owner, session: terminal.name, marks: marks)
+            guard result == .sent else { return result }
+            // Sent: checked in the session's own transcript (a conversation of the same name
+            // elsewhere would show it too). Not there: not taken as done.
+            let header = String(AnnotationText.forApp(marks).prefix { $0 != "\n" })
+            for _ in 0..<16 {
+                if await Task.detached(operation: { ClaudeSessions.received(header, sessionId: terminal.id) }).value { return .sent }
+                try? await Task.sleep(for: .milliseconds(500))
+            }
+            return .pasted
         }
         guard FileManager.default.isExecutableFile(atPath: orcaCLI) else { return .failed }
         // Only a conversation that runs in Orca: one in Terminal or iTerm must never

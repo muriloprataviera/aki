@@ -144,6 +144,21 @@ public enum ClaudeSessions {
         return projects.appending(path: slug).appending(path: "\(sessionId).jsonl")
     }
 
+    /// Whether `text` reached this session: it's in the end of its transcript (a message
+    /// pasted into the Claude app lands there once sent). JSON escapes the text, so only
+    /// letters and digits are compared.
+    public static func received(_ text: String, sessionId: String, in directory: URL = registry, projects: URL = projects) -> Bool {
+        guard let session = live(in: directory).first(where: { $0.sessionId == sessionId }),
+              let handle = try? FileHandle(forReadingFrom: transcript(sessionId: sessionId, cwd: session.cwd, projects: projects))
+        else { return false }
+        defer { try? handle.close() }
+        let size = (try? handle.seekToEnd()) ?? 0
+        try? handle.seek(toOffset: size > 512 * 1024 ? size - 512 * 1024 : 0)
+        guard let data = try? handle.readToEnd() else { return false }
+        func plain(_ s: String) -> String { String(s.unicodeScalars.filter { CharacterSet.alphanumerics.contains($0) }) }
+        return plain(String(decoding: data, as: UTF8.self)).contains(plain(text))
+    }
+
     /// The agent's latest words in this session, for the card: the last assistant
     /// text in the transcript, read from the end of the file only.
     public static func lastAgentMessage(sessionId: String, cwd: String, projects: URL = projects) -> String? {

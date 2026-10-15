@@ -397,8 +397,9 @@ final class SidebarModel {
     /// The sidebar's rings, per the "Rings" setting.
     var rings: [Ring] { (preferences.showSessions ? sessionRings + (searching ? [.searching] : []) : []) + usageRings }
 
-    /// Looking for your sessions: when Aki starts, and after Connect or "Search again".
-    var searching = true
+    /// Looking for your sessions: after Connect or "Search again" (when Aki starts, the
+    /// sidebar shows only once the first look is done).
+    var searching = false
 
     /// The accounts' limits, one ring each, after the sessions.
     private var usageRings: [Ring] {
@@ -779,11 +780,6 @@ final class SidebarModel {
         if !loaded {
             loaded = true
             onLoaded()
-            // The first look is done: its "looking" ring goes a moment later, once seen.
-            Task { [weak self] in
-                try? await Task.sleep(for: .seconds(1.2))
-                self?.searching = false
-            }
         }
         if let id = selectedTerminal, !open.contains(where: { $0.id == id }) { selectedTerminal = nil }
         let latest = await store.stats()
@@ -934,7 +930,13 @@ final class SidebarModel {
             // An app whose marks all went already (maybe still in its box, unsent): it
             // comes forward to send them, nothing pasted twice.
             if waiting.isEmpty, viaApp(terminal) {
-                TerminalJump.go(to: terminal)
+                // A Code session: that one opened in the app (going to the app alone could
+                // leave another conversation in front).
+                if DesktopApps.bundleID(of: terminal.id) == nil, let owner = TerminalApp.owner(of: terminal.pid)?.bundleIdentifier {
+                    await AppDelivery.reveal(terminal.name, in: owner)
+                } else {
+                    TerminalJump.go(to: terminal)
+                }
                 delivery[terminal.id] = nil
                 return
             }
