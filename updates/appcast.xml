@@ -3,6 +3,24 @@
     <channel>
         <title>Aki</title>
         <item>
+            <title>0.8.4-beta.2</title>
+            <pubDate>Thu, 15 Oct 2026 19:24:29 -0300</pubDate>
+            <sparkle:channel>beta</sparkle:channel>
+            <sparkle:version>20261015222428</sparkle:version>
+            <sparkle:shortVersionString>0.8.4-beta.2</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
+            <description><![CDATA[<h2>Aki 0.8.4 beta 2</h2>
+<h3>New</h3><ul>
+<li>History → Sessions: your conversations of the last 7 days, open or closed, with search. Open one to go there; resume a closed one in a new Orca tab. Also from the "+N": "This week's sessions…".</li>
+</ul>
+<h3>Fixed</h3><ul>
+<li>The Claude app's Code sessions are found by their own process, also when the app writes no session record for them.</li>
+</ul>
+]]></description>
+            <enclosure url="https://aki-updates.vercel.app/0.8.4-beta.2/Aki-0.8.4-beta.2.zip" length="4037005" type="application/octet-stream" sparkle:edSignature="1OELqsp85qX6H+RDSn7G03y7QIQ2zoJBxcwqrdHeX4lCnsuAS33IZ8akxC1hXFurFAbDJl98w7Bs9sJP/cvBDA=="/>
+        </item>
+        <item>
             <title>0.8.4-beta.1</title>
             <pubDate>Thu, 15 Oct 2026 19:08:06 -0300</pubDate>
             <sparkle:channel>beta</sparkle:channel>
