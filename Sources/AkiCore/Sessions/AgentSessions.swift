@@ -38,8 +38,14 @@ public enum AgentSessions {
     public static func headless(_ command: String) -> AgentSession.Agent? {
         let words = command.split(separator: " ").map(String.init)
         guard let first = words.first else { return nil }
-        let rest = Array(words.dropFirst())
-        switch URL(filePath: first).lastPathComponent {
+        var program = URL(filePath: first).lastPathComponent
+        var rest = Array(words.dropFirst())
+        // CLIs written in JavaScript run as `node …/bin/<name>`.
+        if program == "node" || program == "bun", let script = rest.first {
+            program = URL(filePath: script).lastPathComponent
+            rest = Array(rest.dropFirst())
+        }
+        switch program {
         case "codex":
             // The subcommand, past the options and their values.
             let takesValue: Set<String> = ["-c", "--config", "-m", "--model", "-p", "--profile", "-s", "--sandbox",
@@ -397,9 +403,10 @@ extension AgentSessions {
             let worktree = String(app.path.dropLast(4))
             let mine = marks(for: id, worktree: worktree)
             let agent = DesktopApps.known[app.bundleID] ?? .codex
-            let working = agent == .codex && DesktopApps.codexWorking(app: app.pid, processes: all)
+            let name = DesktopApps.conversationName(app)
+            let working = (agent == .codex && DesktopApps.codexWorking(app: app.pid, processes: all)) || DesktopApps.answering(app.pid)
             result.append(AgentTerminal(
-                id: id, agent: agent, pid: app.pid, name: DesktopApps.conversationName(app) ?? app.name, named: true,
+                id: id, agent: agent, pid: app.pid, name: name ?? app.name, named: true,
                 worktree: worktree, branch: nil, state: working ? .working : .idle,
                 lastMessage: nil, pending: mine.count, pendingComments: comments(mine), pendingIDs: ids(mine), pendingPlaces: places(mine),
                 // Open is in use: never left to rest in "+N".

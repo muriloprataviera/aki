@@ -310,6 +310,7 @@ check(AgentSessions.headless("/opt/homebrew/bin/codex -c model=x review --base m
 check(AgentSessions.headless("/opt/homebrew/bin/codex exec hi") == .codex, "so does codex exec")
 check(AgentSessions.headless("/Applications/ChatGPT.app/Contents/Resources/codex-cli/CodexCLI.app/Contents/MacOS/codex app-server") == nil, "the app's server isn't a run")
 check(AgentSessions.headless("/Users/x/.local/bin/claude -p hi") == .claude, "claude -p spends Claude")
+check(AgentSessions.headless("/opt/homebrew/bin/node /opt/homebrew/bin/claude -p hi") == .claude, "also run by node")
 check(AgentSessions.classify("/Applications/ChatGPT.app/Contents/Resources/codex-cli/CodexCLI.app/Contents/MacOS/codex sandbox -c shell_environment_policy.inherit=all") == nil,
       "the ChatGPT app's codex sandbox isn't")
 check(AgentSessions.classify("claude -p hi") == nil && AgentSessions.classify("claude") == .agent(.claude), "claude -p isn't, claude is")

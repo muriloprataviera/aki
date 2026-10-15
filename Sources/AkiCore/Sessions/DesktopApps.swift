@@ -125,6 +125,33 @@ public enum DesktopApps {
         return nil
     }
 
+    /// The app is answering: its send button turned into a stop one (Codex's "Stop",
+    /// Claude's "Parar resposta"…), in the front window. Only once its page shows.
+    static func answering(_ pid: Int32) -> Bool {
+        guard AXIsProcessTrusted(), askedLock.withLock({ showing.contains(pid) }) else { return false }
+        let app = AXUIElementCreateApplication(pid)
+        func attribute(_ element: AXUIElement, _ name: String) -> CFTypeRef? {
+            var value: CFTypeRef?
+            return AXUIElementCopyAttributeValue(element, name as CFString, &value) == .success ? value : nil
+        }
+        guard let window = attribute(app, kAXFocusedWindowAttribute) ?? (attribute(app, kAXWindowsAttribute) as? [AXUIElement])?.first,
+              CFGetTypeID(window) == AXUIElementGetTypeID()
+        else { return false }
+        let stops = ["stop", "parar", "interromper", "detener", "arrêter", "stopp", "anhalten", "interrompi", "停止", "중지"]
+        var queue = [window as! AXUIElement], seen = 0
+        while !queue.isEmpty, seen < 3000 {
+            let node = queue.removeFirst()
+            seen += 1
+            if attribute(node, kAXRoleAttribute) as? String == "AXButton" {
+                let label = ((attribute(node, kAXDescriptionAttribute) as? String) ?? (attribute(node, kAXTitleAttribute) as? String) ?? "").lowercased()
+                if stops.contains(where: { label.hasPrefix($0) }) { return true }
+                continue
+            }
+            if let children = attribute(node, kAXChildrenAttribute) as? [AXUIElement] { queue.append(contentsOf: children) }
+        }
+        return false
+    }
+
     private static func descends(_ pid: Int32, from ancestor: Int32) -> Bool {
         var current = pid
         for _ in 0..<12 {
