@@ -6,6 +6,10 @@ import AkiCore
 import AppKit
 import SwiftUI
 
+extension Notification.Name {
+    static let akiShowAgents = Notification.Name("akiShowAgents")
+}
+
 @MainActor
 final class SettingsWindowController: NSObject, NSWindowDelegate {
     private var window: NSWindow?
@@ -25,6 +29,15 @@ final class SettingsWindowController: NSObject, NSWindowDelegate {
             return
         }
         show()
+    }
+
+    /// Straight to Agents ("What Aki found"), open or not.
+    func showAgents() {
+        show()
+        // After the window's first draw (a new one listens only once it's up).
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+            NotificationCenter.default.post(name: .akiShowAgents, object: nil)
+        }
     }
 
     func show() {
@@ -224,6 +237,7 @@ struct SettingsView: View {
             .animation(.easeOut(duration: reduceMotion ? 0.12 : 0.24), value: selection)
             .clipped()
         }
+        .onReceive(NotificationCenter.default.publisher(for: .akiShowAgents)) { _ in selectSection(.agents) }
         // Rebuilt when the language changes, so segmented pickers pick up new titles.
         .id(preferences.language)
         .tint(Color(nsColor: .controlAccentColor))

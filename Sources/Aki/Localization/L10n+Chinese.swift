@@ -389,6 +389,7 @@ extension L10n {
         "Connected": "已连接",
         "Reconnect": "重新连接",
         "Running": "已打开",
+        "What Aki found…": "Aki 找到的内容…",
         "What Aki found": "Aki 找到的内容",
         "Search again": "重新查找",
         "Claude app": "Claude 应用",

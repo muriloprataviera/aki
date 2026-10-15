@@ -80,6 +80,8 @@ final class SidebarController {
 
     var openHistory: () -> Void = {}
     var openSettings: () -> Void = {}
+    /// Settings, on Agents' "What Aki found".
+    var openFound: () -> Void = {}
     var quit: () -> Void = { NSApp.terminate(nil) }
 
     /// Grace before folding after the pointer leaves, and before dropping the card.
@@ -862,6 +864,12 @@ final class SidebarController {
             }
             menu.addItem(.separator())
             menu.addItem(ClosureMenuItem(L10n.t("Hide this ring")) { prefs.hiddenUsage.insert(limits.agent.rawValue) })
+            menu.addItem(.separator())
+            // Something of yours missing (a conversation, the Claude app, a terminal): look again.
+            menu.addItem(ClosureMenuItem(L10n.t("Search again")) { [weak self] in
+                Task { await self?.model.searchAgain() }
+            })
+            menu.addItem(ClosureMenuItem(L10n.t("What Aki found…")) { [weak self] in self?.openFound() })
             menu.addItem(.separator())
             let aki = NSMenuItem(title: "Aki", action: nil, keyEquivalent: "")
             aki.submenu = generalMenu(NSMenu())

@@ -389,6 +389,7 @@ extension L10n {
         "Connected": "Collegato",
         "Reconnect": "Ricollega",
         "Running": "Aperta",
+        "What Aki found…": "Cosa ha trovato Aki…",
         "What Aki found": "Cosa ha trovato Aki",
         "Search again": "Cerca di nuovo",
         "Claude app": "App di Claude",

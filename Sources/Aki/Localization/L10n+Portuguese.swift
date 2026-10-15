@@ -277,6 +277,7 @@ extension L10n {
         "Types the request into the session's Orca tab when you stop marking (it waits while the agent is working).": "Escreve o pedido na aba da sessão no Orca quando você para de marcar (espera se o agente estiver trabalhando).", "Hide the sidebar": "Esconder a barrinha", "Show the sidebar": "Mostrar a barrinha",
         "Connected": "Conectado", "Reconnect": "Reconectar",
         "Running": "Aberto",
+        "What Aki found…": "O que o Aki encontrou…",
         "What Aki found": "O que o Aki encontrou",
         "Search again": "Procurar de novo",
         "Claude app": "App do Claude",

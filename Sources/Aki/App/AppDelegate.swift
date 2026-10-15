@@ -49,6 +49,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         sidebar = SidebarController(model: model)
         settings = SettingsWindowController(preferences: preferences, model: model)
         sidebar.openSettings = { [weak self] in self?.settings.toggle() }
+        sidebar.openFound = { [weak self] in self?.settings.showAgents() }
         sidebar.openHistory = { [weak self] in self?.history.show() }
         model.openHistory = { [weak self] session in self?.history.show(session: session) }
         settings.recentre = { [weak self] in self?.sidebar.relocate() }
