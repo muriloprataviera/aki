@@ -8,6 +8,7 @@ What changed in each version of Aki. Versions follow [semantic versioning](https
 - The Claude app's Code sessions show on the sidebar like terminals, and marks sent to one go into it in the app (picked on the app's list when another is open; if Aki can't make sure, nothing is sent).
 - "What Aki found" counts the Claude app's Code sessions.
 - With more than one display, right-click the sidebar → Screen: choose which one the bar lives on.
+- A "looking…" ring turns while Aki looks for your open sessions (when it starts, after Connect, on "Search again"), and they fill in as they're found.
 
 ### Fixed
 - The sidebar no longer hides under a Dock kept on the same edge (it sits beside it).
