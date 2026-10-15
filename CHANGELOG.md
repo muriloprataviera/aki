@@ -6,6 +6,7 @@ What changed in each version of Aki. Versions follow [semantic versioning](https
 
 ### Added
 - Settings → Agents → "What Aki found": whether Aki sees the Claude and Codex apps, their terminals and their limits, with "Search again".
+- Right-click a limits ring: "Search again" and "What Aki found…".
 
 ### Fixed
 - Claude's limits ring shows for people who use the Claude app and not Claude Code (read from the app's own usage answer on this Mac).
