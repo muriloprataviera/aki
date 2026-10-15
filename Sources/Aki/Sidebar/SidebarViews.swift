@@ -861,7 +861,8 @@ struct RingCell: View {
             .frame(width: SidebarLayout.ring * scale, height: SidebarLayout.ring * scale)
         case .usage(let limits):
             UsageRing(limits: limits, scale: scale, metric: model.preferences.usageRing == .none ? .week : model.preferences.usageRing,
-                      active: model.terminals.contains { $0.agent == limits.agent && $0.state == .working })
+                      active: model.headlessBusy.contains(limits.agent)
+                        || model.terminals.contains { $0.agent == limits.agent && $0.state == .working })
         }
     }
 }

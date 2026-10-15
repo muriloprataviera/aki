@@ -29,6 +29,35 @@ public enum AgentSessions {
 
     public enum Kind: Equatable, Sendable { case agent(AgentSession.Agent), wait }
 
+    /// The agents busy in headless runs (`codex exec`, `codex review`, `claude -p`): no
+    /// session of their own, but they spend the account's limits all the same.
+    public static func headlessBusy() -> Set<AgentSession.Agent> {
+        Set(runningProcesses().compactMap { headless($0.command) })
+    }
+
+    public static func headless(_ command: String) -> AgentSession.Agent? {
+        let words = command.split(separator: " ").map(String.init)
+        guard let first = words.first else { return nil }
+        let rest = Array(words.dropFirst())
+        switch URL(filePath: first).lastPathComponent {
+        case "codex":
+            // The subcommand, past the options and their values.
+            let takesValue: Set<String> = ["-c", "--config", "-m", "--model", "-p", "--profile", "-s", "--sandbox",
+                                           "-a", "--ask-for-approval", "-C", "--cd", "-i", "--image", "--enable", "--disable"]
+            var skip = false
+            for word in rest {
+                if skip { skip = false; continue }
+                if word.hasPrefix("-") { skip = takesValue.contains(word); continue }
+                return ["exec", "e", "review"].contains(word) ? .codex : nil
+            }
+            return nil
+        case "claude":
+            return rest.contains("-p") || rest.contains("--print") ? .claude : nil
+        default:
+            return nil
+        }
+    }
+
     /// Interactive agent sessions and `aki wait` listeners; headless runs
     /// (`claude -p`, `codex exec`, `codex review`) don't count.
     public static func classify(_ command: String) -> Kind? {

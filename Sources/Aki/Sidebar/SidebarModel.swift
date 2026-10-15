@@ -69,6 +69,8 @@ final class SidebarModel {
     var sessions: [AgentSession] = []
     /// Every agent conversation open (Claude sessions, Codex processes).
     var terminals: [AgentTerminal] = []
+    /// Agents busy in headless runs (a `codex review`…): their limits ring turns too.
+    var headlessBusy: Set<AgentSession.Agent> = []
     /// The conversation new marks go to.
     var selectedTerminal: String? {
         // Another session chosen (the sidebar, a send): it wins over the tab you left.
@@ -666,10 +668,11 @@ final class SidebarModel {
 
     func refresh() async {
         let pending = await store.list(.init(status: "pending")).annotations
-        let (found, scanned, usage) = await Task.detached {
+        let (found, scanned, usage, busy) = await Task.detached {
             (AgentSessions.scan(pending: pending), AgentSessions.terminals(pending: pending),
-             DiskUsage.measure(pending: pending))
+             DiskUsage.measure(pending: pending), AgentSessions.headlessBusy())
         }.value
+        if busy != headlessBusy { headlessBusy = busy }
         let open = await Task.detached { TerminalJump.namedTerminals(scanned) }.value
         if usage != diskUsage { diskUsage = usage }
         // Housekeeping, at most once an hour: old done marks go, pictures stay under the limit.
