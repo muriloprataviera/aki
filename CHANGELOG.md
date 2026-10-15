@@ -4,6 +4,8 @@ What changed in each version of Aki. Versions follow [semantic versioning](https
 
 ## [Unreleased]
 
+## [0.8.0] — 2026-10-15
+
 ### Added
 - "Wake the agent after" can be set to instant: marks go into the session's tab the moment you send them.
 - Each ring shows, in a small badge, the app its session runs in (Orca, the Codex or Claude app, Terminal…).
@@ -19,6 +21,7 @@ What changed in each version of Aki. Versions follow [semantic versioning](https
 - The message Aki sends to an app names its marks (#3ba324…) in its first line.
 - Sending to the Claude and Codex desktop apps works in a new conversation (its box in the middle of the window), with the app minimized, its window closed or just opened, and with the focus elsewhere in it; a send that went is no longer left as "pasted", and your own text in the box stays apart from Aki's.
 - Aki no longer slows the Mac down: apps it looked into while you marked (Chrome, the Claude and ChatGPT apps) are left as they were afterwards, instead of describing every change on screen for good, and the app rings no longer search the app's window every few seconds.
+- Aki does far less in the background: token counts saved every ten minutes instead of every half minute, one process listing per pass, the sidebar redrawn only when something changed, and the History doing nothing while closed.
 - Marking opens at once, like the Mac's own screenshot: all screens are captured together, and the page's address is asked after the overlay is up.
 - "Connect" works for people who only use the Claude or ChatGPT/Codex app, with no `claude` or `codex` command installed.
 
