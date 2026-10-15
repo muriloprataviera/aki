@@ -225,7 +225,15 @@ final class SidebarController {
     /// rings, the size or the edge changes, and while it's being dragged.
     /// The display chosen on the menu ("Screen"), else the one with the menu bar.
     private var screen: NSScreen? {
-        NSScreen.screens.first { $0.localizedName == preferences.sidebarScreen } ?? NSScreen.screens.first
+        NSScreen.screens.first { Self.id(of: $0) == preferences.sidebarScreen } ?? NSScreen.screens.first
+    }
+
+    /// A display's lasting id (two monitors of the same model share their name).
+    static func id(of screen: NSScreen) -> String? {
+        guard let number = screen.deviceDescription[NSDeviceDescriptionKey("NSScreenNumber")] as? CGDirectDisplayID,
+              let uuid = CGDisplayCreateUUIDFromDisplayID(number)?.takeRetainedValue()
+        else { return nil }
+        return CFUUIDCreateString(nil, uuid) as String
     }
 
     func relocate() {
@@ -930,11 +938,15 @@ final class SidebarController {
         if NSScreen.screens.count > 1 {
             let item = NSMenuItem(title: L10n.t("Screen"), action: nil, keyEquivalent: "")
             let submenu = NSMenu()
-            let current = screen?.localizedName
-            for display in NSScreen.screens {
-                let name = display.localizedName
-                let choice = ClosureMenuItem(name) { [weak self] in self?.preferences.sidebarScreen = name }
-                choice.state = name == current ? .on : .off
+            let current = screen.flatMap(Self.id(of:))
+            for (index, display) in NSScreen.screens.enumerated() {
+                let id = Self.id(of: display)
+                // Two of the same model: numbered, in the system's order.
+                let twin = NSScreen.screens.filter { $0.localizedName == display.localizedName }.count > 1
+                let choice = ClosureMenuItem(twin ? "\(display.localizedName) (\(index + 1))" : display.localizedName) { [weak self] in
+                    self?.preferences.sidebarScreen = id
+                }
+                choice.state = id != nil && id == current ? .on : .off
                 submenu.addItem(choice)
             }
             item.submenu = submenu
