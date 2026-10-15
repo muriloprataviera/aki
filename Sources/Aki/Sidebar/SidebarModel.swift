@@ -941,7 +941,12 @@ final class SidebarModel {
             // A Code session in an app goes by its name there: two with the same name and
             // Aki can't tell them apart, so nothing is sent.
             if viaApp(terminal), DesktopApps.bundleID(of: terminal.id) == nil,
-               terminals.contains(where: { $0.id != terminal.id && viaApp($0) && $0.name == terminal.name }) {
+               terminals.contains(where: {
+                   // Another Code session of the same app (not the app's own ring, which
+                   // may show this very session's name).
+                   $0.id != terminal.id && DesktopApps.bundleID(of: $0.id) == nil && $0.name == terminal.name
+                       && TerminalApp.owner(of: $0.pid)?.bundleIdentifier == TerminalApp.owner(of: terminal.pid)?.bundleIdentifier
+               }) {
                 delivery[terminal.id] = .failed
                 try? await Task.sleep(for: .seconds(3))
                 delivery[terminal.id] = nil
