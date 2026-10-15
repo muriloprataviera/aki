@@ -172,13 +172,23 @@ enum AppDelivery {
     /// Brings the app forward on that session (picked on its list), nothing pasted: a
     /// send already in its box goes on from there.
     static func reveal(_ session: String, in bundleID: String) async {
-        guard let app = NSRunningApplication.runningApplications(withBundleIdentifier: bundleID).first else { return }
-        exposeContents(app.processIdentifier)
-        app.unhide()
-        app.activate()
-        try? await Task.sleep(for: .milliseconds(300))
-        _ = await open(session, app.processIdentifier)
-        concealLater(bundleID)
+        // In the same line as the deliveries: switching sessions mid-paste would break one.
+        let previous = queue
+        let task = Task { @MainActor () -> TerminalJump.Delivery in
+            _ = await previous?.value
+            guard let app = NSRunningApplication.runningApplications(withBundleIdentifier: bundleID).first else { return .failed }
+            concealing[bundleID]?.cancel()
+            concealing[bundleID] = nil
+            exposeContents(app.processIdentifier)
+            app.unhide()
+            app.activate()
+            try? await Task.sleep(for: .milliseconds(300))
+            let shown = await open(session, app.processIdentifier)
+            concealLater(bundleID)
+            return shown ? .sent : .failed
+        }
+        queue = task
+        _ = await task.value
     }
 
     /// The same name, exactly (only the spaces around it aside): "🐛 Login" isn't "🚀 Login".
