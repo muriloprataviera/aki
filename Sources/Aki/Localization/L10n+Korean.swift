@@ -397,6 +397,7 @@ extension L10n {
         "Screen": "화면",
         "looking…": "찾는 중…",
         "Looking for your open sessions (terminals, the Claude and Codex apps)…": "열린 세션을 찾는 중입니다(터미널, Claude 및 Codex 앱)…",
+        "Search for sessions": "세션 찾기",
         "What Aki found": "Aki가 찾은 것",
         "Search again": "다시 찾기",
         "Claude app": "Claude 앱",

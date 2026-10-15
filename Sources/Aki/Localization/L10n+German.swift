@@ -397,6 +397,7 @@ extension L10n {
         "Screen": "Bildschirm",
         "looking…": "sucht…",
         "Looking for your open sessions (terminals, the Claude and Codex apps)…": "Suche nach deinen offenen Sitzungen (Terminals, Claude- und Codex-App)…",
+        "Search for sessions": "Nach Sitzungen suchen",
         "What Aki found": "Was Aki gefunden hat",
         "Search again": "Erneut suchen",
         "Claude app": "Claude-App",

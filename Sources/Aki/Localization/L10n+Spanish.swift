@@ -397,6 +397,7 @@ extension L10n {
         "Screen": "Pantalla",
         "looking…": "buscando…",
         "Looking for your open sessions (terminals, the Claude and Codex apps)…": "Buscando tus sesiones abiertas (terminales, apps de Claude y Codex)…",
+        "Search for sessions": "Buscar sesiones",
         "What Aki found": "Lo que Aki encontró",
         "Search again": "Buscar de nuevo",
         "Claude app": "App de Claude",

@@ -285,6 +285,7 @@ extension L10n {
         "Screen": "Tela",
         "looking…": "procurando…",
         "Looking for your open sessions (terminals, the Claude and Codex apps)…": "Procurando suas sessões abertas (terminais, apps do Claude e do Codex)…",
+        "Search for sessions": "Procurar sessões",
         "What Aki found": "O que o Aki encontrou",
         "Search again": "Procurar de novo",
         "Claude app": "App do Claude",

@@ -440,25 +440,30 @@ struct SettingsView: View {
                     }
                 }
             }
-            LabeledContent("") {
-                Button {
-                    searching = true
-                    Task {
-                        await model.searchAgain()
-                        searching = false
-                    }
-                } label: {
-                    if searching { ProgressView().controlSize(.small) } else { Text(L10n.t("Search again")) }
-                }
-                .disabled(searching)
-            }
+            LabeledContent("") { searchButton }
         }
+    }
+
+    /// "Search again": every open session looked for now, with a spinner meanwhile.
+    private var searchButton: some View {
+        Button {
+            searching = true
+            Task {
+                await model.searchAgain()
+                searching = false
+            }
+        } label: {
+            if searching { ProgressView().controlSize(.small) } else { Text(L10n.t("Search again")) }
+        }
+        .disabled(searching)
     }
 
     private func agentPane(_ agent: AkiCore.AgentSession.Agent) -> some View {
         let sessions = model.sessions.filter { $0.agents.contains(agent) }
         return Form {
             Section(L10n.t("Terminals")) {
+                // A session of yours missing: look again now (terminals, the app's Code tab).
+                LabeledContent(L10n.t("Search for sessions")) { searchButton }
                 if sessions.isEmpty {
                     Caption(L10n.t("No terminals open right now."))
                 }

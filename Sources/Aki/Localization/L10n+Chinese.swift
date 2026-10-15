@@ -397,6 +397,7 @@ extension L10n {
         "Screen": "屏幕",
         "looking…": "查找中…",
         "Looking for your open sessions (terminals, the Claude and Codex apps)…": "正在查找你打开的会话（终端、Claude 和 Codex 应用）…",
+        "Search for sessions": "查找会话",
         "What Aki found": "Aki 找到的内容",
         "Search again": "重新查找",
         "Claude app": "Claude 应用",
