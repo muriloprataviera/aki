@@ -3,6 +3,22 @@
     <channel>
         <title>Aki</title>
         <item>
+            <title>0.8.8-beta.1</title>
+            <pubDate>Fri, 16 Oct 2026 16:12:42 -0300</pubDate>
+            <sparkle:channel>beta</sparkle:channel>
+            <sparkle:version>20261016191241</sparkle:version>
+            <sparkle:shortVersionString>0.8.8-beta.1</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
+            <description><![CDATA[<h2>Aki 0.8.8-beta.1</h2>
+<h3>Fixed</h3><ul>
+<li>The send arrow in History works again for the Codex and Claude apps: a mark that didn't go is sent again (from the box when it's still there), and one that already went isn't sent twice.</li>
+<li>Marks sent to a new Codex conversation are counted as sent: Aki waits a little longer for the message to show.</li>
+</ul>
+]]></description>
+            <enclosure url="https://aki-updates.vercel.app/0.8.8-beta.1/Aki-0.8.8-beta.1.zip" length="4095451" type="application/octet-stream" sparkle:edSignature="2PGYYSfCfOxHNV/dNk//QeoohU8JEeMoY/PrSif1eD6ppEUOMCN0CtpP0Y6mKgqbsf4Xi/x+LW/GDyHWw+eNDA=="/>
+        </item>
+        <item>
             <title>0.8.7</title>
             <pubDate>Fri, 16 Oct 2026 12:25:34 -0300</pubDate>
             <sparkle:version>20261016152533</sparkle:version>
