@@ -674,9 +674,7 @@ struct RingCell: View {
                 .overlay {
                     // Counting down to the send: an arc that runs out around the ring.
                     if case .terminal(let t) = ring, let wait = model.deliverAt[t.id] {
-                        TimelineView(.animation(minimumInterval: 1.0 / 15, paused: Date() >= wait.end)) { context in
-                            let total = max(wait.end.timeIntervalSince(wait.start), 0.1)
-                            let left = min(max(wait.end.timeIntervalSince(context.date) / total, 0), 1)
+                        Countdown(start: wait.start, end: wait.end) { left in
                             Circle().trim(from: 0, to: left)
                                 .stroke(AkiPalette.fg, style: StrokeStyle(lineWidth: 2.5 * scale, lineCap: .round))
                                 .rotationEffect(.degrees(-90))
@@ -868,7 +866,7 @@ struct RingCell: View {
             .frame(width: SidebarLayout.ring * scale, height: SidebarLayout.ring * scale)
         case .searching:
             // A dashed ring turning, like the "+N" drawer filling.
-            TimelineView(.animation(minimumInterval: 1.0 / 30)) { context in
+            TimelineView(.animation(minimumInterval: 1.0 / 20)) { context in
                 Circle().trim(from: 0, to: 0.7)
                     .stroke(AkiPalette.textSecondary, style: StrokeStyle(lineWidth: 1.5 * scale, lineCap: .round, dash: [2.5 * scale, 3 * scale]))
                     .padding(4 * scale)
@@ -936,7 +934,7 @@ struct UsageRing: View {
                 .rotationEffect(.degrees(-90))
                 .animation(.easeOut(duration: 0.4), value: percent)
             // One turn in ~4 s while in use; still otherwise.
-            TimelineView(.animation(paused: !active)) { context in
+            TimelineView(.animation(minimumInterval: 1.0 / 20, paused: !active)) { context in
                 AgentGlyphView(agent: limits.agent, size: SidebarLayout.glyph * scale * 0.85)
                     .foregroundStyle(active ? limits.agent.working : AkiPalette.fg.opacity(0.85))
                     .rotationEffect(.degrees(active ? context.date.timeIntervalSinceReferenceDate.truncatingRemainder(dividingBy: 4) * 90 : 0))
@@ -1237,8 +1235,6 @@ struct RingView: View {
     var calm = false
     /// A session's ring: the AI's symbol in the middle (in the brand's paper); the ring tells the state.
     var brandCenter = false
-    @State private var turning = false
-    @State private var breathing = false
 
     private var progress: CGFloat { SidebarLayout.progressStroke * scale }
     private var track: CGFloat { SidebarLayout.trackStroke * scale }
@@ -1249,28 +1245,36 @@ struct RingView: View {
 
             // The ring is the state, in Aki's colours: red when it waits for you (the one
             // thing that asks), a light arc turning slowly while it works, quiet otherwise.
-            if waiting {
-                Circle()
-                    .inset(by: track / 2)
-                    .stroke(AkiPalette.red, style: StrokeStyle(lineWidth: progress + 1, lineCap: .round))
-                    .opacity(calm ? 0.8 : (breathing ? 1 : 0.45))
-            } else if working {
-                // One turn in ~5 s: clearly running, calm enough to have on screen all day.
-                Circle()
-                    .inset(by: track / 2)
-                    .trim(from: 0, to: 0.28)
-                    .stroke(agent.working, style: StrokeStyle(lineWidth: progress, lineCap: .round))
-                    .shadow(color: agent.working.opacity(0.6), radius: 3 * scale)
-                    .rotationEffect(.degrees(calm ? -90 : (turning ? 270 : -90)))
-            } else if pending > 0 {
-                Circle()
-                    .inset(by: track / 2)
-                    .stroke(AkiPalette.fg.opacity(0.75), style: StrokeStyle(lineWidth: progress, lineCap: .round))
-            } else if listening {
-                Circle()
-                    .inset(by: track / 2)
-                    .stroke(AkiPalette.fg, style: StrokeStyle(lineWidth: progress, lineCap: .round))
-                    .opacity(breathing ? 0.7 : 0.2)
+            // Moving at 20 frames a second, only this ring redrawn (a forever-animation
+            // redrew the whole sidebar at the screen's rate, all day).
+            let moving = !calm && (waiting || working || (listening && pending == 0))
+            TimelineView(.animation(minimumInterval: 1.0 / 20, paused: !moving)) { context in
+                let time = context.date.timeIntervalSinceReferenceDate
+                // 0…1…0, smoothly, once every `period` seconds.
+                let breath = { (period: Double) in moving ? 0.5 - 0.5 * cos(time / period * 2 * .pi) : 1 }
+                if waiting {
+                    Circle()
+                        .inset(by: track / 2)
+                        .stroke(AkiPalette.red, style: StrokeStyle(lineWidth: progress + 1, lineCap: .round))
+                        .opacity(calm ? 0.8 : 0.45 + 0.55 * breath(2.8))
+                } else if working {
+                    // One turn in ~5 s: clearly running, calm enough to have on screen all day.
+                    Circle()
+                        .inset(by: track / 2)
+                        .trim(from: 0, to: 0.28)
+                        .stroke(agent.working, style: StrokeStyle(lineWidth: progress, lineCap: .round))
+                        .shadow(color: agent.working.opacity(0.6), radius: 3 * scale)
+                        .rotationEffect(.degrees(moving ? -90 + time.truncatingRemainder(dividingBy: 5) / 5 * 360 : -90))
+                } else if pending > 0 {
+                    Circle()
+                        .inset(by: track / 2)
+                        .stroke(AkiPalette.fg.opacity(0.75), style: StrokeStyle(lineWidth: progress, lineCap: .round))
+                } else if listening {
+                    Circle()
+                        .inset(by: track / 2)
+                        .stroke(AkiPalette.fg, style: StrokeStyle(lineWidth: progress, lineCap: .round))
+                        .opacity(0.2 + 0.5 * breath(1.8))
+                }
             }
 
             if brandCenter {
@@ -1315,23 +1319,6 @@ struct RingView: View {
                     .offset(x: -3 * scale, y: 3 * scale)
                     .allowsHitTesting(false)
             }
-        }
-        .onAppear(perform: animate)
-        .onChange(of: working) { animate() }
-        .onChange(of: listening) { animate() }
-        .onChange(of: waiting) { animate() }
-    }
-
-    private func animate() {
-        turning = false
-        breathing = false
-        if calm { return }
-        if waiting {
-            withAnimation(.easeInOut(duration: 1.4).repeatForever(autoreverses: true)) { breathing = true }
-        } else if working {
-            withAnimation(.linear(duration: 5).repeatForever(autoreverses: false)) { turning = true }
-        } else if listening {
-            withAnimation(.easeInOut(duration: 0.9).repeatForever(autoreverses: true)) { breathing = true }
         }
     }
 }
@@ -1456,49 +1443,61 @@ struct MoreCard: View {
 /// A session's state in a list, like its ring in small: a spinning arc while it
 /// works, an amber pulse while it waits for you, an outline while `aki wait`
 /// listens, a quiet dot when idle.
+/// What's left of a wait (1 → 0), redrawn 15 times a second until it ends, then still
+/// (the wait may stay on while the agent is busy: nothing to redraw then).
+struct Countdown<Content: View>: View {
+    let start: Date
+    let end: Date
+    @ViewBuilder let content: (CGFloat) -> Content
+    @State private var over = false
+
+    var body: some View {
+        TimelineView(.animation(minimumInterval: 1.0 / 15, paused: over)) { context in
+            let total = max(end.timeIntervalSince(start), 0.1)
+            content(over ? 0 : min(max(end.timeIntervalSince(context.date) / total, 0), 1))
+        }
+        .task(id: end) {
+            over = Date() >= end
+            guard !over else { return }
+            try? await Task.sleep(for: .seconds(end.timeIntervalSinceNow))
+            if !Task.isCancelled { over = true }
+        }
+    }
+}
+
 struct LiveDot: View {
     let state: AgentTerminal.State
     let hue: Color
-    @State private var turning = false
-    @State private var pulse = false
 
     var body: some View {
-        ZStack {
-            switch state {
-            case .working, .shell:
-                Circle().strokeBorder(hue.opacity(0.3), lineWidth: 1.6)
-                Circle()
-                    .trim(from: 0, to: 0.3)
-                    .stroke(hue, style: StrokeStyle(lineWidth: 1.6, lineCap: .round))
-                    .rotationEffect(.degrees(turning ? 360 : 0))
-            case .waiting:
-                Circle()
-                    .fill(AkiPalette.aurora[0].opacity(0.5))
-                    .scaleEffect(pulse ? 2 : 0.7)
-                    .opacity(pulse ? 0 : 1)
-                Circle().fill(AkiPalette.aurora[0]).padding(2)
-            case .listening:
-                Circle().strokeBorder(hue, lineWidth: 1.5).padding(1)
-            case .idle:
-                Circle().fill(hue.opacity(0.55)).padding(2)
+        // At 20 frames a second, and only while it moves (see RingView).
+        let moving = state == .working || state == .shell || state == .waiting
+        TimelineView(.animation(minimumInterval: 1.0 / 20, paused: !moving)) { context in
+            let time = context.date.timeIntervalSinceReferenceDate
+            ZStack {
+                switch state {
+                case .working, .shell:
+                    Circle().strokeBorder(hue.opacity(0.3), lineWidth: 1.6)
+                    Circle()
+                        .trim(from: 0, to: 0.3)
+                        .stroke(hue, style: StrokeStyle(lineWidth: 1.6, lineCap: .round))
+                        .rotationEffect(.degrees(time.truncatingRemainder(dividingBy: 0.9) / 0.9 * 360))
+                case .waiting:
+                    // Out from the dot and fading, once every 0.8 s.
+                    let pulse = time.truncatingRemainder(dividingBy: 0.8) / 0.8
+                    Circle()
+                        .fill(AkiPalette.aurora[0].opacity(0.5))
+                        .scaleEffect(0.7 + 1.3 * pulse)
+                        .opacity(1 - pulse)
+                    Circle().fill(AkiPalette.aurora[0]).padding(2)
+                case .listening:
+                    Circle().strokeBorder(hue, lineWidth: 1.5).padding(1)
+                case .idle:
+                    Circle().fill(hue.opacity(0.55)).padding(2)
+                }
             }
         }
         .frame(width: 10, height: 10)
-        .onAppear(perform: animate)
-        .onChange(of: state) { animate() }
-    }
-
-    private func animate() {
-        turning = false
-        pulse = false
-        switch state {
-        case .working, .shell:
-            withAnimation(.linear(duration: 0.9).repeatForever(autoreverses: false)) { turning = true }
-        case .waiting:
-            withAnimation(.easeOut(duration: 0.8).repeatForever(autoreverses: false)) { pulse = true }
-        default:
-            break
-        }
     }
 }
 
@@ -1782,9 +1781,7 @@ struct TerminalCard: View {
         // The bar empties as the send gets closer.
         .overlay(alignment: .leading) {
             if state == nil, let wait = model.deliverAt[terminal.id] {
-                TimelineView(.animation(minimumInterval: 1.0 / 15, paused: Date() >= wait.end)) { context in
-                    let total = max(wait.end.timeIntervalSince(wait.start), 0.1)
-                    let left = min(max(wait.end.timeIntervalSince(context.date) / total, 0), 1)
+                Countdown(start: wait.start, end: wait.end) { left in
                     GeometryReader { g in
                         RoundedRectangle(cornerRadius: 6).fill(AkiPalette.fg.opacity(0.18))
                             .frame(width: g.size.width * left)
