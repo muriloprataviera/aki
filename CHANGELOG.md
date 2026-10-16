@@ -4,6 +4,8 @@ What changed in each version of Aki. Versions follow [semantic versioning](https
 
 ## [Unreleased]
 
+## [0.8.6] — 2026-10-16
+
 ### Fixed
 - A double-click on a Claude app or Codex app conversation's ring opens that conversation in the app, like an Orca tab.
 - The marks already with the agent ("1 to do") are always listed on the ring's card, and a click on them opens that session's History, where you can see and resolve each one.
