@@ -761,7 +761,31 @@ final class SidebarModel {
         }
     }
 
+    /// One look at a time: asked while one is going, it waits for that one and one more
+    /// after it (what changed meanwhile), never two side by side (an older one ending
+    /// last would put old numbers back on the rings).
     func refresh() async {
+        if let running = refreshRun {
+            refreshAgain = true
+            await running.value
+            return
+        }
+        let run = Task { @MainActor [weak self] in
+            guard let self else { return }
+            repeat {
+                refreshAgain = false
+                await refreshOnce()
+            } while refreshAgain
+            refreshRun = nil
+        }
+        refreshRun = run
+        await run.value
+    }
+
+    @ObservationIgnored private var refreshRun: Task<Void, Never>?
+    @ObservationIgnored private var refreshAgain = false
+
+    private func refreshOnce() async {
         let pending = await store.list(.init(status: "pending")).annotations
         let measureDisk = Date().timeIntervalSince(diskRead) > 60
         if measureDisk { diskRead = Date() }
