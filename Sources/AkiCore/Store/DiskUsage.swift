@@ -43,7 +43,7 @@ public struct DiskUsage: Sendable, Equatable {
     public static func clean(pending: [Annotation], home: AkiHome = .default) -> Int64 {
         let used = Set(pending.compactMap { $0["image_path"]?.string }.map { URL(filePath: $0).standardizedFileURL.path })
         var freed: Int64 = 0
-        for file in files(home: home) where !used.contains(file.standardizedFileURL.path) {
+        for file in files(home: home) where !used.contains(file.standardizedFileURL.path) && !justMade(file) {
             let size = Int64((try? file.resourceValues(forKeys: [.fileSizeKey]).fileSize) ?? 0)
             if (try? FileManager.default.removeItem(at: file)) != nil { freed += size }
         }
@@ -65,8 +65,16 @@ public struct DiskUsage: Sendable, Equatable {
         }
     }
 
-    /// Keeps the pictures under `maxBytes`: the ones no waiting mark needs go
-    /// first, oldest first. Returns the bytes freed.
+    /// Written in the last ten minutes: a mark saved after the pending list was read
+    /// (its picture is new, the list doesn't know it yet).
+    private static func justMade(_ file: URL) -> Bool {
+        let modified = (try? file.resourceValues(forKeys: [.contentModificationDateKey]))?.contentModificationDate
+        return modified.map { Date().timeIntervalSince($0) < 600 } ?? false
+    }
+
+    /// Keeps the pictures under `maxBytes`: the ones no waiting mark needs go, oldest
+    /// first. A waiting mark's picture is never taken (the agent hasn't seen it yet).
+    /// Returns the bytes freed.
     @discardableResult
     public static func trim(toMax maxBytes: Int64, pending: [Annotation], home: AkiHome = .default) -> Int64 {
         let used = Set(pending.compactMap { $0["image_path"]?.string }.map { URL(filePath: $0).standardizedFileURL.path })
@@ -78,8 +86,7 @@ public struct DiskUsage: Sendable, Equatable {
         var total = all.reduce(Int64(0)) { $0 + $1.1 }
         guard total > maxBytes else { return 0 }
         var freed: Int64 = 0
-        // Unneeded first, then the oldest of the rest.
-        for (file, size, _, _) in all.sorted(by: { ($0.3 ? 1 : 0, $0.2) < ($1.3 ? 1 : 0, $1.2) }) where total > maxBytes {
+        for (file, size, _, _) in all.filter({ !$0.3 && !justMade($0.0) }).sorted(by: { $0.2 < $1.2 }) where total > maxBytes {
             if (try? FileManager.default.removeItem(at: file)) != nil {
                 total -= size
                 freed += size
