@@ -39,20 +39,29 @@ struct TerminalApp: Identifiable, Hashable {
     static var installed: [TerminalApp] { known.filter(\.isInstalled) }
 
     /// The app a process runs in: the first ancestor that is a regular app.
+    /// Asked many times a second (the sidebar's rings): the answer is kept, "none" too
+    /// (half a minute: a session started by Claude's own service has no app at all), and
+    /// an app that has quit is asked again.
     @MainActor static func owner(of pid: Int32) -> NSRunningApplication? {
-        if let cached = owners[pid] { return cached }
+        if let cached = owners[pid] {
+            if let app = cached.app, !app.isTerminated { return app }
+            if cached.app == nil, Date().timeIntervalSince(cached.at) < 30 { return nil }
+        }
+        if owners.count > 500 { owners.removeAll() }
+        let found = lookUpOwner(of: pid)
+        owners[pid] = (found, Date())
+        return found
+    }
+
+    @MainActor private static func lookUpOwner(of pid: Int32) -> NSRunningApplication? {
         var current = pid
         for _ in 0..<16 {
             if let app = NSRunningApplication(processIdentifier: current), app.activationPolicy == .regular {
-                owners[pid] = app
                 return app
             }
             // A helper inside an app's bundle ("Orca.app/…/Orca Helper"): that app, even
             // when the helper outlived its parent (Orca restarted, its tabs kept running).
-            if let app = enclosingApp(of: current) {
-                owners[pid] = app
-                return app
-            }
+            if let app = enclosingApp(of: current) { return app }
             guard let parent = parentPID(of: current), parent > 1 else { break }
             current = parent
         }
@@ -71,7 +80,7 @@ struct TerminalApp: Identifiable, Hashable {
         }
     }
 
-    @MainActor private static var owners: [Int32: NSRunningApplication] = [:]
+    @MainActor private static var owners: [Int32: (app: NSRunningApplication?, at: Date)] = [:]
 
     @MainActor private static var icons: [String: NSImage] = [:]
 
