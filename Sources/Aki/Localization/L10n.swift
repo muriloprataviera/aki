@@ -15,6 +15,19 @@ enum L10n {
     /// The language in use: the one chosen, or the Mac's when it's one Aki speaks.
     static var code: String? {
         if language != .system { return language.code }
+        return macLanguage
+    }
+
+    /// The Mac's language, when Aki speaks it: looked up once (every text asks), and
+    /// again when the Mac's language changes.
+    nonisolated(unsafe) private static var macLanguage: String? = {
+        NotificationCenter.default.addObserver(forName: NSLocale.currentLocaleDidChangeNotification, object: nil, queue: nil) { _ in
+            macLanguage = lookUpMacLanguage()
+        }
+        return lookUpMacLanguage()
+    }()
+
+    private static func lookUpMacLanguage() -> String? {
         let mac = String((Locale.preferredLanguages.first ?? "en").prefix(2))
         return ["pt", "es", "fr", "de", "ja", "zh", "ko", "it"].contains(mac) ? mac : nil
     }
