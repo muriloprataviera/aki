@@ -243,14 +243,21 @@ enum TerminalJump {
             // Into that session: picked on the app's list, and never pasted into another.
             let result = await AppDelivery.deliver(to: owner, session: terminal.name, marks: marks, again: again)
             // (Claude's sessions only: they keep their transcript where Aki can read it.)
-            // A send again may go in parts, or not at all when its marks already show in
-            // the conversation: no single first line to look for, so the app's word counts.
-            guard result == .sent, terminal.agent == .claude, !again else { return result }
+            guard result == .sent, terminal.agent == .claude else { return result }
             // Sent: checked in the session's own transcript (a conversation of the same name
             // elsewhere would show it too). Not there: not taken as done.
+            // A send again may have gone in parts: each mark by its code and its words.
             let header = String(AnnotationText.forApp(marks).prefix { $0 != "\n" })
+            let pieces = again
+                ? marks.map { mark in
+                    ["#" + MarkFolder.code(mark.id), String((mark["comment"]?.string ?? "").prefix(40))].filter { $0.count > 1 }
+                }
+                : [[header]]
             for _ in 0..<16 {
-                if await Task.detached(operation: { ClaudeSessions.received(header, sessionId: terminal.id) }).value { return .sent }
+                let all = await Task.detached(operation: {
+                    pieces.allSatisfy { $0.allSatisfy { ClaudeSessions.received($0, sessionId: terminal.id) } }
+                }).value
+                if all { return .sent }
                 try? await Task.sleep(for: .milliseconds(500))
             }
             return .pasted
