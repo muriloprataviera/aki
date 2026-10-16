@@ -74,11 +74,11 @@ enum ElementProbe {
                     case .element(let element): return element
                     case .background: return nil  // empty space of a big block: no outline
                     case .unavailable: continue
-                    case .outside: browserBars[window.pid] = point.y
+                    case .outside: barsLock.withLock { browserBars[window.pid] = point.y }
                     }
                     break
                 }
-                if browserBars[window.pid] != nil, isTrusted,
+                if barsLock.withLock({ browserBars[window.pid] }) != nil, isTrusted,
                    let element = accessibilityElement(pid: window.pid, at: point, appName: window.appName) {
                     return element
                 }
@@ -103,10 +103,12 @@ enum ElementProbe {
 
     /// Per browser, a point the page said was on its bar (tabs, address bar): from
     /// then on, points that high in that window go straight to Accessibility.
+    /// (Two looks may run at once: a slow page's and the next one's.)
     nonisolated(unsafe) private static var browserBars: [pid_t: CGFloat] = [:]
+    private static let barsLock = NSLock()
 
     private static func onBrowserBar(_ window: WindowInfo, _ point: CGPoint) -> Bool {
-        guard let bar = browserBars[window.pid] else { return false }
+        guard let bar = barsLock.withLock({ browserBars[window.pid] }) else { return false }
         return point.y <= max(bar, window.frame.minY + 40) && point.y - window.frame.minY < 140
     }
 

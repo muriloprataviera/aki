@@ -154,6 +154,7 @@ final class MarkingSession {
     private var probing = false
     private var keyboardHold: CGPoint?
     private var probeStarted = Date.distantPast
+    @ObservationIgnored private var probeCount = 0
     private var lastProbe: CGPoint = .zero
 
     /// The queue as it is, ready to carry into the next round (text read now, as
@@ -342,6 +343,9 @@ final class MarkingSession {
         probing = true
         probeStarted = Date()
         lastProbe = point
+        // Numbered: a slow look ending after a newer one doesn't put its old outline back.
+        probeCount += 1
+        let look = probeCount
         let front = context.pid
         // The screen under the point, for the picture-based lookup when the app says too little.
         let primary = NSScreen.screens.first?.frame.height ?? 0
@@ -360,6 +364,7 @@ final class MarkingSession {
                 found = VisualProbe.element(at: point, found: found, image: grab.image, screenSize: size, origin: origin, text: text)
             }
             await MainActor.run {
+                guard look == self.probeCount else { return }
                 // Same element as before (pointer moved inside it): keep the ↑ level.
                 if self.hovered?.frame != found?.frame || self.hovered?.label != found?.label { self.hovered = found }
                 self.probing = false
