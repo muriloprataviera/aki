@@ -19,8 +19,8 @@ enum OrcaFocus {
         // Orca draws with Chromium: its tree is built only when asked for. Asked once
         // while it's in front (`leave` stops it): described, Orca redoes it at every
         // line a terminal prints.
-        if described != orca.processIdentifier {
-            AXUIElementSetAttributeValue(app, "AXManualAccessibility" as CFString, kCFBooleanTrue)
+        if described != orca.processIdentifier,
+           AXUIElementSetAttributeValue(app, "AXManualAccessibility" as CFString, kCFBooleanTrue) == .success {
             described = orca.processIdentifier
         }
         guard let input = element(app, "AXFocusedUIElement"),
