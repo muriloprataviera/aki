@@ -671,11 +671,19 @@ final class MarkingSession {
     }
 
     /// The crop a mark sends, as an image for the preview.
+    /// Cut once per mark (and again when its area or picture changes): the views ask
+    /// at every redraw, and the pointer moving redraws them all.
     func previewImage(of mark: Mark) -> NSImage? {
         guard let grab = mark.grab ?? (mark.screen < grabs.count ? grabs[mark.screen] : nil) else { return nil }
-        guard let crop = grab.crop(cropRect(for: mark, in: grab)) else { return nil }
-        return NSImage(cgImage: crop, size: NSSize(width: crop.width, height: crop.height))
+        let rect = cropRect(for: mark, in: grab), picture = ObjectIdentifier(grab.image)
+        if let known = previews[mark.id], known.rect == rect, known.picture == picture { return known.image }
+        guard let crop = grab.crop(rect) else { return nil }
+        let image = NSImage(cgImage: crop, size: NSSize(width: crop.width, height: crop.height))
+        previews[mark.id] = (rect, picture, image)
+        return image
     }
+
+    @ObservationIgnored private var previews: [UUID: (rect: CGRect, picture: ObjectIdentifier, image: NSImage)] = [:]
 
     func toggle(_ id: UUID, image: Bool) {
         guard let index = marks.firstIndex(where: { $0.id == id }) else { return }
