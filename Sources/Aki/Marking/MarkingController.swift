@@ -578,7 +578,12 @@ final class MarkingController {
         scrollIdle?.cancel()
         scrollIdle = nil
         if session != nil { NSCursor.arrow.set() }
-        panels.forEach { $0.orderOut(nil) }
+        // Closed for good: a panel only hidden kept its view alive, redrawn for nothing.
+        panels.forEach {
+            $0.orderOut(nil)
+            $0.contentView = nil
+            $0.close()
+        }
         panels.removeAll()
         session = nil
         // The apps hovered stop describing themselves (a second later: the last mark's
