@@ -121,9 +121,14 @@ enum AppDelivery {
             let code = { (mark: Annotation) in MarkFolder.code(mark.id) }
             let sent = codes(in: conversationLines(pid, besides: found))
             let boxed = codes(in: value(of: found) ?? "")
-            let left = marks.filter { !sent.contains(code($0)) }
+            // Only Aki's own marks, each with a code of its own here, are told apart by it
+            // (another's "note_1" and "task_1" would both be "#1"): any other is sent again.
+            let shared = Dictionary(grouping: marks, by: code).filter { $0.value.count > 1 }.keys
+            let left = marks.filter {
+                !($0.id.hasPrefix("aki_") && !shared.contains(code($0)) && sent.contains(code($0)))
+            }
             if left.isEmpty { return .sent }
-            let toPaste = left.filter { !boxed.contains(code($0)) }
+            let toPaste = left.filter { !($0.id.hasPrefix("aki_") && !shared.contains(code($0)) && boxed.contains(code($0))) }
             if toPaste.isEmpty {
                 waiting = true
                 // Its own first line, as it sits in the box.
