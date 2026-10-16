@@ -1000,15 +1000,30 @@ final class MarkingController {
         return CGPoint(x: point.x - frame.minX, y: frame.maxY - point.y)
     }
 
+    /// Asked once already since Aki opened: allowed meanwhile, macOS applies it only
+    /// after a restart, so the same alert would come back for ever.
+    private var askedScreenRecording = false
+
     private func askForScreenRecording() {
         let alert = NSAlert()
         alert.messageText = L10n.t("Aki needs Screen Recording")
         alert.informativeText = L10n.t(
             "To crop what you mark, allow Aki in System Settings → Privacy & Security → Screen Recording, then press {mark} again.")
+        if askedScreenRecording {
+            alert.informativeText += "\n\n" + L10n.t("macOS applies this permission after Aki restarts.")
+            alert.addButton(withTitle: L10n.t("Restart Aki"))
+        }
         alert.addButton(withTitle: L10n.t("Open System Settings"))
         alert.addButton(withTitle: L10n.t("Cancel"))
         NSApp.activate(ignoringOtherApps: true)
-        if alert.runModal() == .alertFirstButtonReturn,
+        let restartOffered = askedScreenRecording
+        askedScreenRecording = true
+        let answer = alert.runModal()
+        if restartOffered, answer == .alertFirstButtonReturn {
+            GetStartedPane.restart()
+            return
+        }
+        if answer == (restartOffered ? .alertSecondButtonReturn : .alertFirstButtonReturn),
             let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_ScreenCapture")
         {
             NSWorkspace.shared.open(url)
