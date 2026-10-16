@@ -7,12 +7,13 @@
   </a>
 </p>
 
-<h3 align="center">Show your AI agent exactly what to fix.</h3>
+<h3 align="center">The sidebar for your AI agents.</h3>
 
 <p align="center">
   Point at anything on your Mac — a button, a line in the terminal, a whole area — say what should change,<br>
-  and Claude Code, Codex or your agent of choice gets it in the right session. No pasting screenshots, no ⌘Tab, no "not that one".<br>
-  And at the edge of your screen, how much of Claude's and Codex's weekly limit you've used — two tools in one, use either or both.
+  and Claude Code, Codex or your agent of choice gets it in the right session. Or just ⌘V the crop anywhere.<br>
+  See every Claude Code and Codex session (terminal, Claude app or Codex app) and which one needs you,<br>
+  and how much of Claude's and Codex's weekly limit you've used. Use any part, or all of it.
 </p>
 
 <p align="center">
