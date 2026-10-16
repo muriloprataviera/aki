@@ -92,16 +92,38 @@ public enum ClaudeAppUsage {
                   let modified = values.contentModificationDate
             else { return nil }
             return (url, modified)
-        }.sorted { $0.1 > $1.1 }.prefix(600)
-        var list: [DesktopApps.Conversation] = []
-        for (url, _) in candidates {
+        }.sorted { $0.1 > $1.1 }
+        // The newest few hundred first, then the entry found last time (a busy cache may
+        // have pushed it past them).
+        let remembered = lastFoundLock.withLock { listFound }
+        let order = Array(candidates.prefix(600)) + candidates.dropFirst(600).filter { $0.0 == remembered }
+        var list: [DesktopApps.Conversation]?
+        for (url, _) in order {
             if let body = body(of: url, if: isConversationList), let found = parseConversations(body) {
                 list = found
+                lastFoundLock.withLock { listFound = url }
                 break
             }
         }
-        lastFoundLock.withLock { conversationsRead = (list, Date()) }
-        return list
+        // Not found this time: the last list stays (better than every chat vanishing).
+        let result = lastFoundLock.withLock { () -> [DesktopApps.Conversation] in
+            let kept = list ?? conversationsRead.list
+            for conversation in kept { seen[conversation.id] = conversation }
+            conversationsRead = (kept, Date())
+            return kept
+        }
+        return result
+    }
+
+    nonisolated(unsafe) private static var listFound: URL?
+
+    /// Every chat seen in a list since Aki started, by id: one that has left the app's first
+    /// page (with marks waiting for it, or chosen) is still known by its name.
+    nonisolated(unsafe) private static var seen: [String: DesktopApps.Conversation] = [:]
+
+    /// Chats seen before, by id (those no longer on the app's first page).
+    public static func known(ids: Set<String>) -> [DesktopApps.Conversation] {
+        lastFoundLock.withLock { ids.compactMap { seen[$0] } }
     }
 
     /// The first page of your chats (not only the starred ones, not the archived).

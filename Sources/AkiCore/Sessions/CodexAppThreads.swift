@@ -18,6 +18,20 @@ public enum CodexAppThreads {
         return list
     }
 
+    nonisolated(unsafe) private static var names: (list: [(id: String, name: String)], at: Date) = ([], .distantPast)
+
+    /// The names of all the app's threads (every minute at most) but those given: a name
+    /// used twice can't tell its threads apart on the app's page.
+    public static func allNames(except ids: Set<String>, home: URL = UsageLimits.codexHome) -> [String] {
+        let all = lock.withLock { Date().timeIntervalSince(names.at) < 60 ? names.list : nil }
+            ?? {
+                let list = query(limit: 5000, home: home).map { (id: $0.id, name: $0.name) }
+                lock.withLock { names = (list, Date()) }
+                return list
+            }()
+        return all.filter { !ids.contains($0.id) }.map(\.name)
+    }
+
     /// Those threads, by id, wherever they sit in the list (one with marks still waiting).
     public static func threads(ids: Set<String>, home: URL = UsageLimits.codexHome) -> [DesktopApps.Conversation] {
         // In batches of 50 (one query each), so none is left out.

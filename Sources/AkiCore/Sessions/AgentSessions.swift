@@ -490,14 +490,18 @@ extension AgentSessions {
                 DesktopApps.bundleID(of: wantedID) == app.bundleID ? DesktopApps.conversation(of: wantedID) : nil
             })
             var conversations = agent == .claude ? ClaudeAppUsage.conversations() : CodexAppThreads.recent()
-            if agent == .codex {
-                let missing = wanted.subtracting(conversations.map(\.id))
-                if !missing.isEmpty { conversations += CodexAppThreads.threads(ids: missing) }
+            let missing = wanted.subtracting(conversations.map(\.id))
+            if !missing.isEmpty {
+                conversations += agent == .claude ? ClaudeAppUsage.known(ids: missing) : CodexAppThreads.threads(ids: missing)
             }
             // Two of the same name can't be told apart in the app (Aki checks the page by its
-            // title): neither is offered.
+            // title): neither is offered. Codex's names are all counted, not just the recent.
             var names: [String: Int] = [:]
             for conversation in conversations { names[conversation.name, default: 0] += 1 }
+            if agent == .codex {
+                let shown = Set(conversations.map(\.id))
+                for other in CodexAppThreads.allNames(except: shown) { names[other, default: 0] += 1 }
+            }
             for (index, conversation) in conversations.enumerated() where names[conversation.name] == 1 {
                 let chatID = id + "#" + conversation.id
                 let theirs = pending.filter { $0["session_id"]?.string == chatID }
