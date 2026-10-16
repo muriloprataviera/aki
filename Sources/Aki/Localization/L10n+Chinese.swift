@@ -410,6 +410,7 @@ extension L10n {
         "A new Code session of that folder opened in the Claude app (it can't reopen an old one). The command to resume it is on the clipboard.": "已在 Claude 应用中打开该文件夹的新 Code 会话（无法重新打开旧会话）。继续该会话的命令已在剪贴板中。",
         "Command copied: paste it in a terminal to resume the conversation.": "命令已复制：粘贴到终端即可继续对话。",
         "This week's sessions…": "本周的会话…",
+        "+{n} more": "还有 {n} 个",
         "What Aki found": "Aki 找到的内容",
         "Search again": "重新查找",
         "Claude app": "Claude 应用",

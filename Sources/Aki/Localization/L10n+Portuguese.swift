@@ -298,6 +298,7 @@ extension L10n {
         "A new Code session of that folder opened in the Claude app (it can't reopen an old one). The command to resume it is on the clipboard.": "Abriu uma sessão Code nova dessa pasta no app do Claude (ele não reabre uma antiga). O comando para retomá-la está na área de transferência.",
         "Command copied: paste it in a terminal to resume the conversation.": "Comando copiado: cole num terminal para retomar a conversa.",
         "This week's sessions…": "Sessões da semana…",
+        "+{n} more": "+{n} mais",
         "What Aki found": "O que o Aki encontrou",
         "Search again": "Procurar de novo",
         "Claude app": "App do Claude",

@@ -410,6 +410,7 @@ extension L10n {
         "A new Code session of that folder opened in the Claude app (it can't reopen an old one). The command to resume it is on the clipboard.": "Claude アプリでそのフォルダーの新しい Code セッションを開きました(古いものは再開できません)。再開するコマンドはクリップボードにあります。",
         "Command copied: paste it in a terminal to resume the conversation.": "コマンドをコピーしました: ターミナルに貼り付けると会話を再開できます。",
         "This week's sessions…": "今週のセッション…",
+        "+{n} more": "ほか {n} 件",
         "What Aki found": "Aki が見つけたもの",
         "Search again": "もう一度探す",
         "Claude app": "Claude アプリ",

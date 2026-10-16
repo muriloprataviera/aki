@@ -1401,20 +1401,31 @@ struct MoreCard: View {
                 // The quiet ones first; the ones you hid apart, under their own title,
                 // so the "Show" on them doesn't look like it's missing on the rest.
                 let byYou = hidden ? [] : terminals.filter { model.preferences.hiddenTerminals.contains($0.id) }
+                let quiet = terminals.filter { t in !byYou.contains { $0.id == t.id } }
+                // As many as the screen has room for (the card can't scroll: its rows are
+                // clicked by position); the rest are in the History's Sessions.
+                let room = max(4, Int(((NSScreen.main?.visibleFrame.height ?? 800) - 220) / 48))
+                let shownQuiet = Array(quiet.prefix(room))
+                let shownByYou = Array(byYou.prefix(max(0, room - shownQuiet.count)))
+                let left = terminals.count - shownQuiet.count - shownByYou.count
                 VStack(alignment: .leading, spacing: 3) {
-                    ForEach(terminals.filter { t in !byYou.contains { $0.id == t.id } }) { terminal in
+                    ForEach(shownQuiet) { terminal in
                         SessionLine(model: model, terminal: terminal, secondary: secondary, hidden: hidden)
                     }
                 }
-                if !byYou.isEmpty {
-                    if byYou.count < terminals.count { Hairline() }
+                if !shownByYou.isEmpty {
+                    if !shownQuiet.isEmpty { Hairline() }
                     Text(L10n.t("Hidden sessions"))
                         .font(CardType.bodyStrong).foregroundStyle(secondary)
                     VStack(alignment: .leading, spacing: 3) {
-                        ForEach(byYou) { terminal in
+                        ForEach(shownByYou) { terminal in
                             SessionLine(model: model, terminal: terminal, secondary: secondary, hidden: true)
                         }
                     }
+                }
+                if left > 0 {
+                    Text(L10n.t("+{n} more").replacingOccurrences(of: "{n}", with: "\(left)"))
+                        .font(CardType.body).foregroundStyle(secondary)
                 }
                 if hidden && terminals.count > 1 {
                     let key = "unhideall|all"

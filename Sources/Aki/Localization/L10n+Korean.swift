@@ -410,6 +410,7 @@ extension L10n {
         "A new Code session of that folder opened in the Claude app (it can't reopen an old one). The command to resume it is on the clipboard.": "Claude 앱에서 그 폴더의 새 Code 세션을 열었습니다(이전 세션은 다시 열 수 없음). 이어서 하는 명령은 클립보드에 있습니다.",
         "Command copied: paste it in a terminal to resume the conversation.": "명령을 복사했습니다: 터미널에 붙여 넣어 대화를 이어 가세요.",
         "This week's sessions…": "이번 주 세션…",
+        "+{n} more": "{n}개 더",
         "What Aki found": "Aki가 찾은 것",
         "Search again": "다시 찾기",
         "Claude app": "Claude 앱",
