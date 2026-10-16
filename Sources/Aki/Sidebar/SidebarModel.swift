@@ -918,6 +918,8 @@ final class SidebarModel {
     @ObservationIgnored private var sendAfter: [String: Bool] = [:]
     /// Sessions a send is going to right now (apart from what the card shows after it).
     @ObservationIgnored private var sending: Set<String> = []
+    /// A send is going somewhere now (an update waits for it to end).
+    var isSending: Bool { !sending.isEmpty }
 
     /// Types the request into the session's tab now. `all`: an app gets every mark
     /// still open for it, not only those never sent (History's send arrow).
