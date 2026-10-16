@@ -4,6 +4,9 @@ What changed in each version of Aki. Versions follow [semantic versioning](https
 
 ## [Unreleased]
 
+### Fixed
+- The "+N" card no longer runs off the bottom of the screen with many sessions: it lists the ones that fit and says how many more there are.
+
 ## [0.8.4] — 2026-10-15
 
 ### Added
