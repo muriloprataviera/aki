@@ -9,6 +9,20 @@ public enum CodexSessions {
     /// and its subagents', each with its own.
     public static func openLogs(of pids: [Int32]) -> [Int32: [URL]] {
         guard !pids.isEmpty else { return [:] }
+        // Asked twice a pass (the sessions, then the rings): `lsof` once.
+        let key = pids.sorted()
+        if let known = logsLock.withLock({ lastLogs }), known.pids == key, Date().timeIntervalSince(known.at) < 2 {
+            return known.logs
+        }
+        let result = lookUpOpenLogs(of: pids)
+        logsLock.withLock { lastLogs = (key, result, Date()) }
+        return result
+    }
+
+    nonisolated(unsafe) private static var lastLogs: (pids: [Int32], logs: [Int32: [URL]], at: Date)?
+    private static let logsLock = NSLock()
+
+    private static func lookUpOpenLogs(of pids: [Int32]) -> [Int32: [URL]] {
         var result: [Int32: [URL]] = [:]
         var pid: Int32?
         let list = pids.map(String.init).joined(separator: ",")
@@ -24,19 +38,34 @@ public enum CodexSessions {
 
     /// Whether the conversation in this log is in the middle of a turn.
     public static func working(log: URL, now: Date = Date()) -> Bool {
-        guard let modified = (try? log.resourceValues(forKeys: [.contentModificationDateKey]))?.contentModificationDate,
+        let values = try? log.resourceValues(forKeys: [.contentModificationDateKey, .fileSizeKey])
+        guard let modified = values?.contentModificationDate,
               // A turn left open by a Codex that hung: silent for long, not working.
               now.timeIntervalSince(modified) < 900
         else { return false }
+        // Read again only when the log changed (asked for every conversation every few seconds).
+        let size = values?.fileSize ?? 0
+        if let known = turnsLock.withLock({ turns[log.path] }), known.size == size, known.modified == modified {
+            return known.open
+        }
         // A long turn can push its start far back: read further until a turn event shows.
         var bytes: UInt64 = 262_144
+        var open = false
         while true {
             let (text, whole) = tail(of: log, bytes: bytes)
-            if let open = turnOpen(text) { return open }
-            if whole || bytes >= 16 << 20 { return false }
+            if let found = turnOpen(text) { open = found; break }
+            if whole || bytes >= 16 << 20 { break }
             bytes *= 4
         }
+        turnsLock.withLock {
+            if turns.count > 300 { turns.removeAll() }
+            turns[log.path] = (size, modified, open)
+        }
+        return open
     }
+
+    nonisolated(unsafe) private static var turns: [String: (size: Int, modified: Date, open: Bool)] = [:]
+    private static let turnsLock = NSLock()
 
     /// Whether the last turn in a stretch of the log is still open (nil: no turn event in it).
     public static func turnOpen(_ text: String) -> Bool? {
