@@ -741,12 +741,14 @@ final class MarkingSession {
             fields.merge(terminal.identityFields) { _, new in new }
             // Its own folder: marks/<day>/<code>/ with the crop and a record of the request.
             let folder = MarkFolder.make(for: id, home: home)
-            if mark.sendsImage, let folder, let crop = grab.crop(cropRect(for: mark, in: grab)), let jpeg = jpegData(crop) {
+            // No comment and Aki left to choose: the picture is the request, so it goes.
+            let sendsImage = mark.sendsImage || (mark.comment.isEmpty && !mark.imageChosen)
+            if sendsImage, let folder, let crop = grab.crop(cropRect(for: mark, in: grab)), let jpeg = jpegData(crop) {
                 let file = folder.appending(path: "crop.jpg")
                 if (try? jpeg.write(to: file, options: .atomic)) != nil { fields["image_path"] = .string(file.path) }
             }
             // The crop was asked for and couldn't be written: not sent without it.
-            if mark.sendsImage, fields["image_path"] == nil {
+            if sendsImage, fields["image_path"] == nil {
                 if let folder { try? FileManager.default.removeItem(at: folder) }
                 failed.append(mark.id)
                 continue
