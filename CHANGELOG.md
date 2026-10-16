@@ -4,6 +4,8 @@ What changed in each version of Aki. Versions follow [semantic versioning](https
 
 ## [Unreleased]
 
+## [0.8.5] — 2026-10-16
+
 ### Added
 - Your conversations in the Claude app (chats) and the Codex app show in the sidebar, one ring each (the recent ones; those untouched for a day wait in "+N"): marks sent to one open that conversation in the app and go in there. Listed in Settings → Claude Code / Codex too, to switch any off.
 
