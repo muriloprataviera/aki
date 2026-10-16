@@ -255,11 +255,42 @@ final class SidebarModel {
     /// In the order the rings show (1, 2, 3… with no gaps), then the ones waiting in "+N"
     /// when there were too many for a ring each.
     private var numbered: [String] {
+        if let known = ringsMemo(\.numbered) { return known }
         let shown = sessionRings.compactMap { ring -> String? in
             if case .terminal(let t) = ring { return t.id }
             return nil
         }
-        return shown + visibleTerminals.map(\.id).filter { !shown.contains($0) }
+        let list = shown + visibleTerminals.map(\.id).filter { !shown.contains($0) }
+        memo.numbered = list
+        return list
+    }
+
+    /// What the rings depend on: they're worked out once per change of it, not at every
+    /// look (the sidebar looks many times a redraw, once per ring).
+    private struct RingsKey: Equatable {
+        var terminals: [AgentTerminal]
+        var hidden: Set<String>, worktrees: Set<String>, untracked: Set<String>, disconnected: Set<String>
+        var claude: Bool, codex: Bool, projects: Bool
+        var order: [String]
+        var selected: String?
+        var limit: Int
+        var mode: RingMode
+        /// Sessions go to rest by the clock: looked at again every minute.
+        var minute: Int
+    }
+
+    @ObservationIgnored private var memo: (key: RingsKey?, visible: [AgentTerminal]?, rings: [Ring]?, numbered: [String]?) = (nil, nil, nil, nil)
+
+    private func ringsMemo<T>(_ part: KeyPath<(key: RingsKey?, visible: [AgentTerminal]?, rings: [Ring]?, numbered: [String]?), T?>) -> T? {
+        // Read here so SwiftUI still sees what the rings depend on.
+        let key = RingsKey(
+            terminals: terminals, hidden: preferences.hiddenTerminals, worktrees: preferences.hiddenWorktrees,
+            untracked: preferences.untrackedAgents, disconnected: preferences.disconnectedApps,
+            claude: preferences.tracksClaude, codex: preferences.tracksCodex, projects: preferences.showProjects,
+            order: preferences.ringOrder, selected: selectedTerminal, limit: preferences.maxTerminals,
+            mode: preferences.ringMode, minute: Int(Date().timeIntervalSinceReferenceDate / 60))
+        if memo.key != key { memo = (key, nil, nil, nil) }
+        return memo[keyPath: part]
     }
 
     /// Off in Settings: its agent untracked, its project switched off (Claude / Codex)
@@ -289,6 +320,13 @@ final class SidebarModel {
 
     /// Conversations of tracked agents that aren't hidden, in sidebar order.
     var visibleTerminals: [AgentTerminal] {
+        if let known = ringsMemo(\.visible) { return known }
+        let list = workOutVisibleTerminals()
+        memo.visible = list
+        return list
+    }
+
+    private func workOutVisibleTerminals() -> [AgentTerminal] {
         let shown = terminals.filter { !preferences.hiddenTerminals.contains($0.id) && !switchedOff($0) && !resting($0) }
         // Your dragged order first; sessions you never moved keep their place after.
         let rank = Dictionary(preferences.ringOrder.enumerated().map { ($1, $0) }, uniquingKeysWith: { a, _ in a })
@@ -411,6 +449,15 @@ final class SidebarModel {
     }
 
     private var sessionRings: [Ring] {
+        // (By agent: from the sessions, not the conversations; cheap, worked out each time.)
+        if preferences.ringMode == .agents { return workOutSessionRings() }
+        if let known = ringsMemo(\.rings) { return known }
+        let list = workOutSessionRings()
+        memo.rings = list
+        return list
+    }
+
+    private func workOutSessionRings() -> [Ring] {
         switch preferences.ringMode {
         case .agents: return groups.map(Ring.agent)
         case .terminals:
@@ -465,10 +512,16 @@ final class SidebarModel {
     func projectKey(of terminal: AgentTerminal) -> String { projectKey(ofWorktree: terminal.worktree) }
 
     func projectKey(ofWorktree worktree: String) -> String {
+        if let known = projectKeys[worktree] { return known }
         let parts = URL(filePath: worktree).pathComponents
         // The innermost one: "04_PROJETOS" above everything isn't a project.
-        return parts.last { $0.range(of: #"^\d+_"#, options: .regularExpression) != nil } ?? parts.last ?? ""
+        let key = parts.last { $0.range(of: #"^\d+_"#, options: .regularExpression) != nil } ?? parts.last ?? ""
+        projectKeys[worktree] = key
+        return key
     }
+
+    /// Each folder's project, worked out once (asked many times a redraw).
+    @ObservationIgnored private var projectKeys: [String: String] = [:]
 
     /// A project's short name over its group of rings: no number, and without a
     /// first word every project shares ("ACME_LEGACY" → "LEGACY", "CHROME_EXTENSION" → "CHROME").
