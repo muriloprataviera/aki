@@ -42,7 +42,9 @@ enum AppDelivery {
 
     private static func run(to bundleID: String, session: String?, conversation: (id: String, name: String)?,
                             marks: [Annotation], again: Bool) async -> TerminalJump.Delivery {
-        guard !marks.isEmpty, let app = NSRunningApplication.runningApplications(withBundleIdentifier: bundleID).first
+        // Without Accessibility its message box can't be found: said at once, not after a wait.
+        guard AXIsProcessTrusted(), !marks.isEmpty,
+              let app = NSRunningApplication.runningApplications(withBundleIdentifier: bundleID).first
         else { return .failed }
         var text = AnnotationText.forApp(marks)
         var pictures = marks.sorted { ($0["created_at"]?.string ?? "") < ($1["created_at"]?.string ?? "") }

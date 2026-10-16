@@ -1759,7 +1759,8 @@ struct TerminalCard: View {
             .frame(width: 12)
             Text(L10n.t(state == nil && model.deliverAt[terminal.id] != nil ? "Sending to the terminal in" : state == .sending ? "Sending…" : state == .sent ? "Sent to the terminal"
                         : state == .pasted ? "Left in its box: click to send"
-                        : state == .held ? "It's asking you something: answer it first" : state == .failed ? "Couldn't find its tab" : "Send to the terminal now"))
+                        : state == .held ? "It's asking you something: answer it first"
+                        : state == .failed && model.viaApp(terminal) ? "Couldn't send it" : state == .failed ? "Couldn't find its tab" : "Send to the terminal now"))
                 .font(CardType.bodyStrong)
             Spacer(minLength: 0)
             if state == nil, let wait = model.deliverAt[terminal.id] {
