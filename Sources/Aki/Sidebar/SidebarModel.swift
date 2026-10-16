@@ -965,13 +965,16 @@ final class SidebarModel {
         let pending = await pendingMarks(of: terminal)
         let waiting = pending.filter { $0["delivered_at"]?.string == nil }.map(\.id)
         var current = terminal
+        // Named in the message: those not sent yet (the agent may be on the others
+        // already, and would start them over as "new"); all of them on a send-again.
         let oldestFirst = pending.sorted { ($0["created_at"]?.string ?? "") < ($1["created_at"]?.string ?? "") }
+            .filter { waiting.isEmpty || waiting.contains($0.id) }
         current.pendingIDs = oldestFirst.map(\.id)
         // The words too, from the same list (each comment beside its own code).
         current.pendingComments = oldestFirst.reversed().prefix(3).map {
             $0["comment"]?.string.flatMap { $0.isEmpty ? nil : $0 } ?? "(no text)"
         }
-        current.pending = pending.count
+        current.pending = oldestFirst.count
         current.undelivered = waiting.count
         // To an app, only the marks not sent yet (it gets them whole, not by code).
         // Nothing open for it: the app only comes forward.

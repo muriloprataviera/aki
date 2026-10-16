@@ -11,6 +11,8 @@ public enum AnnotationText {
 
     public static func render(_ a: Annotation, home: AkiHome = .default) -> String {
         var lines = ["## \(markCode(a.id)) · \(a.id)  (\(shortDate(a["created_at"]?.string)))"]
+        // Done already: said, so an agent doesn't do it again.
+        if a.status == "completed" { lines.append("status:   completed (already done)") }
         if let url = a["url"]?.string, !url.isEmpty { lines.append("page:     \(url)") }
         if let app = a["app"]?.object {
             let name = app["name"]?.string ?? app["bundle_id"]?.string ?? "?"
