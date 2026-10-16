@@ -1045,6 +1045,9 @@ final class SidebarModel {
                 guard let self, !Task.isCancelled else { return }
                 guard let now = terminals.first(where: { $0.id == id }) else { break }
                 guard now.state == .waiting else {
+                    // (Not sent by itself if that was switched off meanwhile; a send-again
+                    // you asked for goes anyway.)
+                    guard all || preferences.autoDeliver else { break }
                     let unsent = all ? [] : await undeliveredIDs(of: now)
                     if all || !unsent.isEmpty { deliver(now, all: all) }
                     break
