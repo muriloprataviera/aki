@@ -857,7 +857,10 @@ final class SidebarModel {
         case "deliver":
             if let terminal = terminals.first(where: { $0.id == parts[1] }) { deliver(terminal) }
         case "queue":
-            break
+            // The marks with the agent: all of them, in this session's History.
+            pinned = nil
+            hovered = nil
+            openHistory(parts[1])
         case "unhideall":
             preferences.hiddenTerminals.removeAll()
         case "more":

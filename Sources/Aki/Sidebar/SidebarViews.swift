@@ -1711,7 +1711,8 @@ struct TerminalCard: View {
 
     private var actionsFirst: Bool { direction == .down }
 
-    /// "3 with the agent": the marks already handed over, listed while hovered.
+    /// "3 with the agent": the marks already handed over, always listed (newest three);
+    /// a click opens them all in this session's History.
     private var queueLine: some View {
         let key = "queue|" + terminal.id
         let open = model.hoveredTarget == key
@@ -1720,15 +1721,13 @@ struct TerminalCard: View {
                 Image(systemName: "tray.full.fill").font(.system(size: 10, weight: .bold)).frame(width: 12)
                 Text("\(terminal.pending) \(L10n.t("with the agent"))").font(CardType.bodyStrong)
                 Spacer(minLength: 0)
-                Image(systemName: open ? "chevron.up" : "chevron.down").font(.system(size: 8, weight: .bold))
+                Image(systemName: "chevron.right").font(.system(size: 8, weight: .bold))
             }
             .foregroundStyle(AkiPalette.textPrimary)
-            if open {
-                ForEach(Array(terminal.pendingComments.enumerated()), id: \.offset) { _, comment in
-                    HStack(alignment: .firstTextBaseline, spacing: 6) {
-                        Circle().fill(model.hue(of: terminal)).frame(width: 5, height: 5)
-                        Text(comment).font(CardType.body).foregroundStyle(secondary).lineLimit(2)
-                    }
+            ForEach(Array(terminal.pendingComments.enumerated()), id: \.offset) { _, comment in
+                HStack(alignment: .firstTextBaseline, spacing: 6) {
+                    Circle().fill(model.hue(of: terminal)).frame(width: 5, height: 5)
+                    Text(comment).font(CardType.body).foregroundStyle(open ? AkiPalette.textPrimary : secondary).lineLimit(2)
                 }
             }
         }
