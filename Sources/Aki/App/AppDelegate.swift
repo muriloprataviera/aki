@@ -5,6 +5,14 @@ import Carbon.HIToolbox
 
 enum AppMain {
     @MainActor static func run() -> Never {
+        // One Aki at a time: another already open (a second sidebar, shortcut and server
+        // would fight it) is brought forward instead.
+        if let id = Bundle.main.bundleIdentifier,
+           let other = NSRunningApplication.runningApplications(withBundleIdentifier: id)
+               .first(where: { $0.processIdentifier != getpid() && !$0.isTerminated }) {
+            other.activate()
+            exit(0)
+        }
         let app = NSApplication.shared
         let delegate = AppDelegate()
         app.delegate = delegate
@@ -81,10 +89,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
             default: self?.markStatusItem(false)
             }
         }
-        // An update restarts Aki: never while marks wait to be sent (they live in memory).
+        // An update restarts Aki: never while marks wait to be sent (they live in memory),
+        // nor mid-send (a paste half done, and the clipboard not given back yet).
         Updates.shared.canRestart = { [weak self] in
             guard let self else { return true }
-            return !self.marking.hasUnsentMarks
+            return !self.marking.hasUnsentMarks && !self.model.isSending
         }
         Updates.shared.start()
         followMacAppearance()

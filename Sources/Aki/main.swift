@@ -51,8 +51,10 @@ setvbuf(stdout, nil, _IOLBF, 0)
 
 let arguments = Array(CommandLine.arguments.dropFirst())
 
-// Opened from Finder / `open Aki.app` (no terminal attached) or `aki app`: run the app.
-if arguments.first == "app" || (arguments.isEmpty && isatty(STDIN_FILENO) == 0) {
+// Opened from Finder / `open Aki.app` / at login (started by launchd, no terminal) or
+// `aki app`: run the app. `aki` alone from an agent's shell (no terminal either) only
+// shows how to use it, never a second Aki.
+if arguments.first == "app" || (arguments.isEmpty && isatty(STDIN_FILENO) == 0 && getppid() == 1) {
     AppMain.run()
 }
 
