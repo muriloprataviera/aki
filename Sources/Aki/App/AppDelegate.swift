@@ -40,6 +40,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        // An app that hangs (or answers slowly mid-reply) never holds Aki up for the
+        // system's 6 s per Accessibility question: 1.5 s at most, everywhere.
+        AXUIElementSetMessagingTimeout(AXUIElementCreateSystemWide(), 1.5)
         // This build's icon, not one the Mac cached from an older version.
         NSApp.applicationIconImage = AkiBrand.appIcon
         // Older versions left Claude's and Codex's apps describing themselves for good.
