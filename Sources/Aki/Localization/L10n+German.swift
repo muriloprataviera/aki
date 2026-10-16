@@ -416,7 +416,7 @@ extension L10n {
         "Claude app": "Claude-App",
         "In the Claude app": "In der Claude-App",
         "In the Codex app": "In der Codex-App",
-        "Your recent conversations: marks sent to one open it in the app and go in there. Those untouched for a day wait in \"+N\".": "Deine letzten Unterhaltungen: An eine gesendete Markierungen öffnen sie in der App und landen dort. Seit einem Tag unbenutzte warten in „+N“.",
+        "Your recent conversations: marks sent to one open it in the app and go in there. Those untouched for six hours wait in \"+N\".": "Deine letzten Unterhaltungen: An eine gesendete Markierungen öffnen sie in der App und landen dort. Seit sechs Stunden unbenutzte warten in „+N“.",
         "Running · {n} conversations": "Offen · {n} Unterhaltungen",
         "Codex app": "Codex-App",
         "Claude Code in a terminal": "Claude Code im Terminal",
