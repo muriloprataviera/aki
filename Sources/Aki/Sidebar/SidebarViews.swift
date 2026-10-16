@@ -933,11 +933,12 @@ struct UsageRing: View {
                 .stroke(Self.tint(metric, shown), style: StrokeStyle(lineWidth: SidebarLayout.progressStroke * scale, lineCap: .round))
                 .rotationEffect(.degrees(-90))
                 .animation(.easeOut(duration: 0.4), value: percent)
-            // One turn in ~4 s while in use; still otherwise.
-            TimelineView(.animation(minimumInterval: 1.0 / 20, paused: !active)) { context in
+            // One turn in ~4 s while in use (turned by Core Animation); still otherwise.
+            if active {
+                SpinningGlyph(agent: limits.agent, size: SidebarLayout.glyph * scale * 0.85, color: limits.agent.working)
+            } else {
                 AgentGlyphView(agent: limits.agent, size: SidebarLayout.glyph * scale * 0.85)
-                    .foregroundStyle(active ? limits.agent.working : AkiPalette.fg.opacity(0.85))
-                    .rotationEffect(.degrees(active ? context.date.timeIntervalSinceReferenceDate.truncatingRemainder(dividingBy: 4) * 90 : 0))
+                    .foregroundStyle(AkiPalette.fg.opacity(0.85))
             }
         }
         .frame(width: SidebarLayout.ring * scale, height: SidebarLayout.ring * scale)
@@ -1245,35 +1246,40 @@ struct RingView: View {
 
             // The ring is the state, in Aki's colours: red when it waits for you (the one
             // thing that asks), a light arc turning slowly while it works, quiet otherwise.
-            // Moving at 20 frames a second, only this ring redrawn (a forever-animation
-            // redrew the whole sidebar at the screen's rate, all day).
-            let moving = !calm && (waiting || working || (listening && pending == 0))
-            TimelineView(.animation(minimumInterval: 1.0 / 20, paused: !moving)) { context in
-                let time = context.date.timeIntervalSinceReferenceDate
-                // 0…1…0, smoothly, once every `period` seconds.
-                let breath = { (period: Double) in moving ? 0.5 - 0.5 * cos(time / period * 2 * .pi) : 1 }
-                if waiting {
+            // The motion runs in Core Animation (`RingMotion`): no redraw of the sidebar.
+            if waiting {
+                if calm {
                     Circle()
                         .inset(by: track / 2)
                         .stroke(AkiPalette.red, style: StrokeStyle(lineWidth: progress + 1, lineCap: .round))
-                        .opacity(calm ? 0.8 : 0.45 + 0.55 * breath(2.8))
-                } else if working {
-                    // One turn in ~5 s: clearly running, calm enough to have on screen all day.
+                        .opacity(0.8)
+                } else {
+                    RingMotion(kind: .breathe(low: 0.45, high: 1, period: 2.8), color: AkiPalette.red, lineWidth: progress + 1, inset: track / 2)
+                }
+            } else if working {
+                // One turn in ~5 s: clearly running, calm enough to have on screen all day.
+                if calm {
                     Circle()
                         .inset(by: track / 2)
                         .trim(from: 0, to: 0.28)
                         .stroke(agent.working, style: StrokeStyle(lineWidth: progress, lineCap: .round))
                         .shadow(color: agent.working.opacity(0.6), radius: 3 * scale)
-                        .rotationEffect(.degrees(moving ? -90 + time.truncatingRemainder(dividingBy: 5) / 5 * 360 : -90))
-                } else if pending > 0 {
-                    Circle()
-                        .inset(by: track / 2)
-                        .stroke(AkiPalette.fg.opacity(0.75), style: StrokeStyle(lineWidth: progress, lineCap: .round))
-                } else if listening {
+                        .rotationEffect(.degrees(-90))
+                } else {
+                    RingMotion(kind: .turn(arc: 0.28, period: 5, glow: 3 * scale), color: agent.working, lineWidth: progress, inset: track / 2)
+                }
+            } else if pending > 0 {
+                Circle()
+                    .inset(by: track / 2)
+                    .stroke(AkiPalette.fg.opacity(0.75), style: StrokeStyle(lineWidth: progress, lineCap: .round))
+            } else if listening {
+                if calm {
                     Circle()
                         .inset(by: track / 2)
                         .stroke(AkiPalette.fg, style: StrokeStyle(lineWidth: progress, lineCap: .round))
-                        .opacity(0.2 + 0.5 * breath(1.8))
+                        .opacity(0.2)
+                } else {
+                    RingMotion(kind: .breathe(low: 0.2, high: 0.7, period: 1.8), color: AkiPalette.fg, lineWidth: progress, inset: track / 2)
                 }
             }
 
