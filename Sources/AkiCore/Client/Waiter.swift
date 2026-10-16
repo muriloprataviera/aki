@@ -18,8 +18,11 @@ public enum Waiter {
                 let filter = WorktreeFilter(worktree: worktree, sessionId: sessionId)
                 let mine = annotations.filter(filter.matches)
                 if seen == nil {
-                    // Whatever is already pending when we start isn't "new".
-                    seen = Set(mine.map(\.id))
+                    // Already pending when we start: not "new" once the agent has read it;
+                    // those it never read (sent while it was busy) come back at once.
+                    let unread = mine.filter { $0["read_at"]?.string == nil }
+                    seen = Set(mine.map(\.id)).subtracting(unread.map(\.id))
+                    if !unread.isEmpty { return unread }
                 } else {
                     for annotation in mine where !seen!.contains(annotation.id) && fresh[annotation.id] != annotation {
                         fresh[annotation.id] = annotation

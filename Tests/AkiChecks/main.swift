@@ -282,7 +282,12 @@ let waitAPI = AkiAPI(
 let waitServer = HTTPServer(port: 0) { await waitAPI.handle($0) }
 let waitPort = try await waitServer.start()
 let client = try AkiClient(home: home, port: waitPort)
-_ = try await waitAPI.store.upsert(Annotation(["id": "old", "worktree": "/repo/wt"]))
+_ = try await waitAPI.store.upsert(Annotation(["id": "unread", "worktree": "/repo/wt"]))
+let leftOver = try await Waiter.waitForNew(
+    client: client, worktree: "/repo/wt", idle: .milliseconds(600), timeout: .seconds(3), poll: .milliseconds(150))
+check(leftOver.map(\.id) == ["unread"], "a mark pending but never read comes back at once")
+try await client.update("unread", ["status": "completed"])
+_ = try await waitAPI.store.upsert(Annotation(["id": "old", "worktree": "/repo/wt", "read_at": "2026-10-16T00:00:00Z"]))
 async let waited = Waiter.waitForNew(
     client: client, worktree: "/repo/wt", idle: .milliseconds(600), timeout: .seconds(10), poll: .milliseconds(150))
 try await Task.sleep(for: .milliseconds(400))
