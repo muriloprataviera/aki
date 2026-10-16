@@ -15,8 +15,42 @@ public enum DesktopApps {
     public static let prefix = "app:"
 
     public static func bundleID(of terminalID: String) -> String? {
-        terminalID.hasPrefix(prefix) ? String(terminalID.dropFirst(prefix.count)) : nil
+        guard terminalID.hasPrefix(prefix) else { return nil }
+        return String(terminalID.dropFirst(prefix.count).prefix { $0 != "#" })
     }
+
+    /// One conversation of an app ("app:<bundle id>#<conversation id>"): Aki opens it by
+    /// the app's own link before pasting. Nil for the app's open conversation, whichever it is.
+    public static func conversation(of terminalID: String) -> String? {
+        guard terminalID.hasPrefix(prefix), let hash = terminalID.firstIndex(of: "#") else { return nil }
+        let id = String(terminalID[terminalID.index(after: hash)...])
+        return id.isEmpty ? nil : id
+    }
+
+    /// The app's own link to one of its conversations (Claude's chats, Codex's threads).
+    public static func link(to conversation: String, in bundleID: String) -> URL? {
+        // Only an id (letters, digits, dashes): never anything that changes the link.
+        guard !conversation.isEmpty, conversation.allSatisfy({ $0.isASCII && ($0.isLetter || $0.isNumber || $0 == "-") })
+        else { return nil }
+        switch bundleID {
+        case "com.anthropic.claudefordesktop": return URL(string: "claude://claude.ai/chat/\(conversation)")
+        case "com.openai.codex": return URL(string: "codex://threads/\(conversation)")
+        default: return nil
+        }
+    }
+
+    /// One of your conversations in an agent's app.
+    public struct Conversation: Sendable, Equatable {
+        public var id: String
+        public var name: String
+        public var updated: Date
+        /// Codex's log of it (to tell when it's answering); none for Claude's chats.
+        public var log: URL? = nil
+    }
+
+    /// How many of each app's recent conversations are offered as destinations (those
+    /// left untouched for a day wait in "+N").
+    public static let conversationsShown = 8
 
     /// An app's bundle (".../ChatGPT.app") from its main process's command line, when that
     /// is the app's own executable (not one of its helpers).

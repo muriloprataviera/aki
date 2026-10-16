@@ -934,6 +934,9 @@ final class SidebarModel {
                 // leave another conversation in front).
                 if DesktopApps.bundleID(of: terminal.id) == nil, let owner = TerminalApp.owner(of: terminal.pid)?.bundleIdentifier {
                     await AppDelivery.reveal(terminal.name, in: owner)
+                } else if let bundleID = DesktopApps.bundleID(of: terminal.id), let chat = DesktopApps.conversation(of: terminal.id) {
+                    // One of the app's conversations: that one, by its link.
+                    await AppDelivery.reveal(conversation: chat, in: bundleID)
                 } else {
                     TerminalJump.go(to: terminal)
                 }
@@ -975,6 +978,8 @@ final class SidebarModel {
         if DesktopApps.bundleID(of: terminal.id) == nil, viaApp(terminal),
            let owner = TerminalApp.owner(of: terminal.pid)?.bundleIdentifier {
             Task { await AppDelivery.reveal(terminal.name, in: owner) }
+        } else if let bundleID = DesktopApps.bundleID(of: terminal.id), let chat = DesktopApps.conversation(of: terminal.id) {
+            Task { await AppDelivery.reveal(conversation: chat, in: bundleID) }
         } else {
             TerminalJump.go(to: terminal)
         }

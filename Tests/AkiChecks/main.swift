@@ -428,6 +428,17 @@ do {
 check(SessionHistory.firstValue(of: "cwd", in: #"{"cwd":"/tmp/projeto \"A\"","type":"user"}"#) == #"/tmp/projeto "A""#, "a folder with quotes is read whole")
 check(SessionHistory.firstValue(of: "cwd", in: #"{"type":"session_meta","payload":{"id":"x","cwd":"/a \"b\"","base_instructions":"cut"#) == #"/a "b""#, "also from a line cut short")
 
+// The apps' own conversations, each a destination.
+check(DesktopApps.bundleID(of: "app:com.openai.codex#01a0-ab") == "com.openai.codex", "a conversation's app")
+check(DesktopApps.conversation(of: "app:com.openai.codex#01a0-ab") == "01a0-ab", "a conversation's id")
+check(DesktopApps.conversation(of: "app:com.openai.codex") == nil, "the app itself is no conversation")
+check(DesktopApps.link(to: "01a0-ab", in: "com.openai.codex")?.absoluteString == "codex://threads/01a0-ab", "codex thread link")
+check(DesktopApps.link(to: "abc-1", in: "com.anthropic.claudefordesktop")?.absoluteString == "claude://claude.ai/chat/abc-1", "claude chat link")
+check(DesktopApps.link(to: "a/../b?x", in: "com.openai.codex") == nil, "only an id goes in a link")
+check(ClaudeAppUsage.isConversationList("1/0/https://claude.ai/api/organizations/o/chat_conversations_v2?limit=30&offset=0"), "the chats list")
+check(!ClaudeAppUsage.isConversationList("1/0/https://claude.ai/api/organizations/o/chat_conversations_v2?starred=true"), "not the starred ones")
+let chats = ClaudeAppUsage.parseConversations(Data(#"{"data":[{"uuid":"a","name":"Old","updated_at":"2026-10-01T10:00:00Z"},{"uuid":"b","name":"New","updated_at":"2026-10-02T10:00:00Z"},{"uuid":"c","name":"","updated_at":"2026-10-03T10:00:00Z"}]}"#.utf8))
+check(chats?.map(\.id) == ["b", "a"], "chats newest first, unnamed ones left out")
+
 print(failures == 0 ? "\nall checks passed" : "\n\(failures) check(s) failed")
 exit(failures == 0 ? 0 : 1)
-

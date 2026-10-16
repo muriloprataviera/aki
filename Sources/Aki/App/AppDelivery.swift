@@ -13,8 +13,10 @@ enum AppDelivery {
     private static var lastFinished = Date.distantPast
 
     /// `session`: the name of one of the app's sessions (its Code tab): it has to be the
-    /// one open (picked on the app's list if not), or nothing is sent.
-    static func deliver(to bundleID: String, session: String? = nil, marks: [Annotation]) async -> TerminalJump.Delivery {
+    /// one open (picked on the app's list if not), or nothing is sent. `conversation`: one
+    /// of the app's conversations (its id and name), opened first by the app's own link.
+    static func deliver(to bundleID: String, session: String? = nil, conversation: (id: String, name: String)? = nil,
+                        marks: [Annotation]) async -> TerminalJump.Delivery {
         let previous = queue
         let task = Task { @MainActor in
             // Right after another one, the app is still redrawing its conversation (its
@@ -26,7 +28,7 @@ enum AppDelivery {
             concealing[bundleID]?.cancel()
             concealing[bundleID] = nil
             delivering.insert(bundleID)
-            let result = await run(to: bundleID, session: session, marks: marks)
+            let result = await run(to: bundleID, session: session, conversation: conversation, marks: marks)
             delivering.remove(bundleID)
             lastFinished = Date()
             concealLater(bundleID)
@@ -36,7 +38,8 @@ enum AppDelivery {
         return await task.value
     }
 
-    private static func run(to bundleID: String, session: String?, marks: [Annotation]) async -> TerminalJump.Delivery {
+    private static func run(to bundleID: String, session: String?, conversation: (id: String, name: String)?,
+                            marks: [Annotation]) async -> TerminalJump.Delivery {
         guard !marks.isEmpty, let app = NSRunningApplication.runningApplications(withBundleIdentifier: bundleID).first
         else { return .failed }
         let text = AnnotationText.forApp(marks)
@@ -60,6 +63,7 @@ enum AppDelivery {
         guard front() else { return .failed }
         // A chosen session: the one open, or picked on the app's list; never another one.
         if let session, await !open(session, pid) { return .failed }
+        if let conversation, await !open(conversation: conversation, bundleID: bundleID, pid) { return .failed }
         try? await Task.sleep(for: .milliseconds(350))
         let pasteboard = NSPasteboard.general
         // Its contents may take several seconds to show to Accessibility the first time
@@ -186,6 +190,34 @@ enum AppDelivery {
             let shown = await open(session, app.processIdentifier)
             concealLater(bundleID)
             return shown ? .sent : .failed
+        }
+        queue = task
+        _ = await task.value
+    }
+
+    /// Opens one of the app's conversations by its own link and waits for its page (by
+    /// its title, up to six seconds). Another conversation's page still showing: nothing
+    /// is sent. A page that doesn't tell its title: the link is trusted.
+    private static func open(conversation: (id: String, name: String), bundleID: String, _ pid: pid_t) async -> Bool {
+        guard let link = DesktopApps.link(to: conversation.id, in: bundleID), NSWorkspace.shared.open(link) else { return false }
+        try? await Task.sleep(for: .milliseconds(600))
+        var title = DesktopApps.pageTitle(pid)
+        let deadline = Date().addingTimeInterval(6)
+        while Date() < deadline, !(title.map { showing($0, conversation.name) } ?? false) {
+            try? await Task.sleep(for: .milliseconds(200))
+            title = DesktopApps.pageTitle(pid)
+        }
+        guard NSWorkspace.shared.frontmostApplication?.processIdentifier == pid else { return false }
+        return title.map { showing($0, conversation.name) } ?? true
+    }
+
+    /// Brings the app forward on one of its conversations (by its link), nothing pasted.
+    static func reveal(conversation id: String, in bundleID: String) async {
+        let previous = queue
+        let task = Task { @MainActor () -> TerminalJump.Delivery in
+            _ = await previous?.value
+            guard let link = DesktopApps.link(to: id, in: bundleID) else { return .failed }
+            return NSWorkspace.shared.open(link) ? .sent : .failed
         }
         queue = task
         _ = await task.value

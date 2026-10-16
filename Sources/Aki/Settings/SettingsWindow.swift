@@ -399,7 +399,11 @@ struct SettingsView: View {
         }
         let terminals = model.terminals.filter { t in DesktopApps.bundleID(of: t.id) == nil && !inApp.contains { $0.id == t.id } }
         func app(_ bundleID: String) -> (Bool, String) {
-            if apps.contains(where: { DesktopApps.bundleID(of: $0.id) == bundleID }) { return (true, L10n.t("Running")) }
+            if apps.contains(where: { DesktopApps.bundleID(of: $0.id) == bundleID }) {
+                let chats = apps.filter { DesktopApps.bundleID(of: $0.id) == bundleID && DesktopApps.conversation(of: $0.id) != nil }.count
+                return (true, chats == 0 ? L10n.t("Running")
+                    : L10n.t("Running · {n} conversations").replacingOccurrences(of: "{n}", with: "\(chats)"))
+            }
             let installed = NSWorkspace.shared.urlForApplication(withBundleIdentifier: bundleID) != nil
             return (false, L10n.t(installed ? "Installed, not open" : "Not installed"))
         }
@@ -483,6 +487,28 @@ struct SettingsView: View {
                     }
                 }
                 Caption(L10n.t("Switch a terminal off to leave it out of the sidebar."))
+            }
+            // The app's own conversations (Claude's chats, Codex's threads): each one a destination too.
+            let chats = model.terminals.filter { $0.agent == agent && DesktopApps.conversation(of: $0.id) != nil }
+            if !chats.isEmpty {
+                Section(L10n.t(agent == .claude ? "In the Claude app" : "In the Codex app")) {
+                    ForEach(chats, id: \.id) { chat in
+                        Toggle(isOn: Binding(
+                            get: { !preferences.hiddenTerminals.contains(chat.id) },
+                            set: { shown in
+                                if shown { preferences.hiddenTerminals.remove(chat.id) } else { preferences.hiddenTerminals.insert(chat.id) }
+                            }
+                        )) {
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(chat.name)
+                                if let updated = chat.updatedAt {
+                                    Text(updated.formatted(.relative(presentation: .named))).font(.caption).foregroundStyle(.secondary)
+                                }
+                            }
+                        }
+                    }
+                    Caption(L10n.t("Your recent conversations: marks sent to one open it in the app and go in there. Those untouched for a day wait in \"+N\"."))
+                }
             }
             Section(L10n.t("Connect")) {
                 setupRow(agent == .claude ? "claude" : "codex", agent.displayName, action: L10n.t("Connect"))

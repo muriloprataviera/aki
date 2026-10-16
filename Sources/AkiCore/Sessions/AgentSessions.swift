@@ -481,6 +481,21 @@ extension AgentSessions {
                 // date each pass made the sidebar redraw every three seconds.
                 updatedAt: Date(timeIntervalSince1970: (Date().timeIntervalSince1970 / 600).rounded(.down) * 600),
                 pendingImages: images(mine), undelivered: unsent(mine), orcaHandle: nil))
+            // The app's own recent conversations (Claude's chats, Codex's threads), each a
+            // destination of its own: Aki opens it by the app's link, then pastes. The ones
+            // left for a day wait in "+N".
+            let conversations = agent == .claude ? ClaudeAppUsage.conversations() : CodexAppThreads.recent()
+            for conversation in conversations.prefix(DesktopApps.conversationsShown) {
+                let chatID = id + "#" + conversation.id
+                let theirs = pending.filter { $0["session_id"]?.string == chatID }
+                let answering = conversation.log.map { CodexSessions.working(log: $0) } ?? false
+                result.append(AgentTerminal(
+                    id: chatID, agent: agent, pid: app.pid, name: conversation.name, named: true,
+                    worktree: worktree, branch: nil, state: answering ? .working : .idle,
+                    lastMessage: nil, pending: theirs.count, pendingComments: comments(theirs), pendingIDs: ids(theirs), pendingPlaces: places(theirs),
+                    updatedAt: conversation.updated,
+                    pendingImages: images(theirs), undelivered: unsent(theirs), orcaHandle: nil))
+            }
         }
         // The same Claude conversation open in two tabs (resumed twice) is one
         // destination: the one that moved last.

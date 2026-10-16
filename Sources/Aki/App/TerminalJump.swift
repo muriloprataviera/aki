@@ -233,7 +233,8 @@ enum TerminalJump {
     static func deliver(to terminal: AgentTerminal, marks: [Annotation] = []) async -> Delivery {
         // An agent's desktop app: its marks pasted in whole (it can't run `aki show`).
         if let bundleID = DesktopApps.bundleID(of: terminal.id) {
-            return await AppDelivery.deliver(to: bundleID, marks: marks)
+            let conversation = DesktopApps.conversation(of: terminal.id).map { (id: $0, name: terminal.name) }
+            return await AppDelivery.deliver(to: bundleID, conversation: conversation, marks: marks)
         }
         // A session the Claude (or Codex) app runs in its Code tab: no terminal, so
         // into the app, like the app itself.
