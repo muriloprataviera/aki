@@ -20,8 +20,12 @@ public enum CodexAppThreads {
 
     /// Those threads, by id, wherever they sit in the list (one with marks still waiting).
     public static func threads(ids: Set<String>, home: URL = UsageLimits.codexHome) -> [DesktopApps.Conversation] {
-        guard !ids.isEmpty else { return [] }
-        return query(limit: ids.count, home: home, ids: Array(ids.prefix(50)))
+        // In batches of 50 (one query each), so none is left out.
+        let all = Array(ids).sorted()
+        return stride(from: 0, to: all.count, by: 50).flatMap { start in
+            let batch = Array(all[start..<min(start + 50, all.count)])
+            return query(limit: batch.count, home: home, ids: batch)
+        }
     }
 
     static func query(limit: Int, home: URL, ids: [String] = []) -> [DesktopApps.Conversation] {
