@@ -62,6 +62,26 @@ public enum AgentSessions {
     }
 
     public static func headless(_ command: String) -> AgentSession.Agent? {
+        remembered(command, in: \.headless) { lookUpHeadless(command) }
+    }
+
+    /// What a command is, worked out once per command line: the same few hundred
+    /// processes are looked at three times every three seconds.
+    private struct Known { var kind: [String: Kind?] = [:], headless: [String: AgentSession.Agent?] = [:] }
+    nonisolated(unsafe) private static var known = Known()
+    private static let knownLock = NSLock()
+
+    private static func remembered<T>(_ command: String, in table: WritableKeyPath<Known, [String: T?]>, _ work: () -> T?) -> T? {
+        if let found = knownLock.withLock({ known[keyPath: table][command] }) { return found }
+        let value = work()
+        knownLock.withLock {
+            if known[keyPath: table].count > 5000 { known[keyPath: table].removeAll() }
+            known[keyPath: table][command] = .some(value)
+        }
+        return value
+    }
+
+    private static func lookUpHeadless(_ command: String) -> AgentSession.Agent? {
         let words = words(of: command)
         guard let first = words.first else { return nil }
         var program = URL(filePath: first).lastPathComponent
@@ -93,6 +113,10 @@ public enum AgentSessions {
     /// Interactive agent sessions and `aki wait` listeners; headless runs
     /// (`claude -p`, `codex exec`, `codex review`) don't count.
     public static func classify(_ command: String) -> Kind? {
+        remembered(command, in: \.kind) { lookUpKind(command) }
+    }
+
+    private static func lookUpKind(_ command: String) -> Kind? {
         let words = words(of: command)
         guard let first = words.first else { return nil }
         var program = URL(filePath: first).lastPathComponent
