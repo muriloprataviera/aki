@@ -63,7 +63,17 @@ enum AppDelivery {
         guard front() else { return .failed }
         // A chosen session: the one open, or picked on the app's list; never another one.
         if let session, await !open(session, pid) { return .failed }
-        if let conversation, await !open(conversation: conversation, bundleID: bundleID, pid) { return .failed }
+        // A chosen conversation: opened by its link; the page it shows then is the one
+        // everything goes into (checked before every paste and Enter, like a session).
+        var page: String?
+        if let conversation {
+            guard let shown = await open(conversation: conversation, bundleID: bundleID, pid) else { return .failed }
+            page = shown
+        }
+        func onPage() -> Bool {
+            guard conversation != nil, let page else { return true }
+            return DesktopApps.pageTitle(pid).map { showing($0, page) } ?? false
+        }
         try? await Task.sleep(for: .milliseconds(350))
         let pasteboard = NSPasteboard.general
         // Its contents may take several seconds to show to Accessibility the first time
@@ -88,6 +98,7 @@ enum AppDelivery {
         }
         // The chosen session still the one open, now that its box was found.
         if let session, !(DesktopApps.pageTitle(pid).map { showing($0, session) } ?? false) { return .failed }
+        guard onPage() else { return .failed }
         guard let found = candidate else {
             // Not in its message box: the message waits on the clipboard.
             pasteboard.clearContents()
@@ -105,6 +116,7 @@ enum AppDelivery {
             guard NSWorkspace.shared.frontmostApplication?.processIdentifier == pid, let now = messageBox(pid) else { return false }
             // Still the chosen session (you may have opened another meanwhile).
             if let session, !(DesktopApps.pageTitle(pid).map { showing($0, session) } ?? false) { return false }
+            guard onPage() else { return false }
             if CFEqual(now, box) { return true }
             // The app drew the box anew right after the paste, with Aki's text in it: the
             // same box for what follows (another conversation's box wouldn't hold it).
@@ -196,10 +208,13 @@ enum AppDelivery {
     }
 
     /// Opens one of the app's conversations by its own link and waits for its page (by
-    /// its title, up to six seconds). Another conversation's page still showing: nothing
-    /// is sent. A page that doesn't tell its title: the link is trusted.
-    private static func open(conversation: (id: String, name: String), bundleID: String, _ pid: pid_t) async -> Bool {
-        guard let link = DesktopApps.link(to: conversation.id, in: bundleID), NSWorkspace.shared.open(link) else { return false }
+    /// its title, up to six seconds). The page that was open still showing (the link went
+    /// nowhere): nothing is sent. A page that doesn't tell its title, or shows it its own
+    /// way (moved on from the one before): the link is trusted.
+    /// Returns the title it shows ("" when it tells none), nil when not opened.
+    private static func open(conversation: (id: String, name: String), bundleID: String, _ pid: pid_t) async -> String?? {
+        let before = DesktopApps.pageTitle(pid)
+        guard let link = DesktopApps.link(to: conversation.id, in: bundleID), NSWorkspace.shared.open(link) else { return nil }
         try? await Task.sleep(for: .milliseconds(600))
         var title = DesktopApps.pageTitle(pid)
         let deadline = Date().addingTimeInterval(6)
@@ -207,8 +222,9 @@ enum AppDelivery {
             try? await Task.sleep(for: .milliseconds(200))
             title = DesktopApps.pageTitle(pid)
         }
-        guard NSWorkspace.shared.frontmostApplication?.processIdentifier == pid else { return false }
-        return title.map { showing($0, conversation.name) } ?? true
+        guard NSWorkspace.shared.frontmostApplication?.processIdentifier == pid else { return nil }
+        guard let title else { return .some(nil) }
+        return showing(title, conversation.name) || (before != nil && title != before) ? .some(title) : nil
     }
 
     /// Brings the app forward on one of its conversations (by its link), nothing pasted.
