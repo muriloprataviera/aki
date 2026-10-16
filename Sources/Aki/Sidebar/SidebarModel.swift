@@ -931,9 +931,8 @@ final class SidebarModel {
             current.pending = pending.count
             current.undelivered = waiting.count
             // To an app, only the marks not sent yet (it gets them whole, not by code).
-            // An app whose marks all went already (maybe still in its box, unsent): it
-            // comes forward to send them, nothing pasted twice.
-            if waiting.isEmpty, viaApp(terminal) {
+            // Nothing open for it: the app only comes forward.
+            if pending.isEmpty, viaApp(terminal) {
                 // A Code session: that one opened in the app (going to the app alone could
                 // leave another conversation in front).
                 if DesktopApps.bundleID(of: terminal.id) == nil, let owner = TerminalApp.owner(of: terminal.pid)?.bundleIdentifier {
@@ -961,8 +960,12 @@ final class SidebarModel {
                 delivery[terminal.id] = nil
                 return
             }
-            let forApp = pending.filter { waiting.contains($0.id) }
-            let result = await TerminalJump.deliver(to: current, marks: forApp)
+            // Its marks all went already but are still open (the send not confirmed:
+            // left in its box, or never pasted): sent again, from the box when Aki's
+            // message is still there, else pasted anew.
+            let again = waiting.isEmpty && viaApp(terminal)
+            let forApp = again ? pending : pending.filter { waiting.contains($0.id) }
+            let result = await TerminalJump.deliver(to: current, marks: forApp, again: again)
             delivery[terminal.id] = result == .failed ? .failed : .sent
             if result != .failed { await markDelivered(waiting, for: terminal) }
             // An app can't close them with `aki done`: once pasted there, they're done.

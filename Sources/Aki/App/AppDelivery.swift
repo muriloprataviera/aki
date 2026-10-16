@@ -15,8 +15,10 @@ enum AppDelivery {
     /// `session`: the name of one of the app's sessions (its Code tab): it has to be the
     /// one open (picked on the app's list if not), or nothing is sent. `conversation`: one
     /// of the app's conversations (its id and name), opened first by the app's own link.
+    /// `again`: sent before but not confirmed: when Aki's message is still in the box,
+    /// only sent from there (not pasted twice); when it isn't, pasted anew.
     static func deliver(to bundleID: String, session: String? = nil, conversation: (id: String, name: String)? = nil,
-                        marks: [Annotation]) async -> TerminalJump.Delivery {
+                        marks: [Annotation], again: Bool = false) async -> TerminalJump.Delivery {
         let previous = queue
         let task = Task { @MainActor in
             // Right after another one, the app is still redrawing its conversation (its
@@ -28,7 +30,7 @@ enum AppDelivery {
             concealing[bundleID]?.cancel()
             concealing[bundleID] = nil
             delivering.insert(bundleID)
-            let result = await run(to: bundleID, session: session, conversation: conversation, marks: marks)
+            let result = await run(to: bundleID, session: session, conversation: conversation, marks: marks, again: again)
             delivering.remove(bundleID)
             lastFinished = Date()
             concealLater(bundleID)
@@ -39,7 +41,7 @@ enum AppDelivery {
     }
 
     private static func run(to bundleID: String, session: String?, conversation: (id: String, name: String)?,
-                            marks: [Annotation]) async -> TerminalJump.Delivery {
+                            marks: [Annotation], again: Bool) async -> TerminalJump.Delivery {
         guard !marks.isEmpty, let app = NSRunningApplication.runningApplications(withBundleIdentifier: bundleID).first
         else { return .failed }
         let text = AnnotationText.forApp(marks)
@@ -111,7 +113,11 @@ enum AppDelivery {
         // Aki's first line ("📍 Aki: 2 marks…"): how its message is told apart from
         // anything else written in a box or shown in the conversation.
         let header = String(text.prefix { $0 != "\n" })
-        var box = found, pastedText = false
+        // Sent before and still in the box, unsent: only Enter from here.
+        let waiting = again && value(of: found)?.contains(header) == true
+        // It went after all (its message shows in the conversation): not sent twice.
+        if again, !waiting, shows(header, pid, besides: found) { return .sent }
+        var box = found, pastedText = waiting
         func stillThere() -> Bool {
             guard NSWorkspace.shared.frontmostApplication?.processIdentifier == pid, let now = messageBox(pid) else { return false }
             // Still the chosen session (you may have opened another meanwhile).
@@ -127,7 +133,7 @@ enum AppDelivery {
             pasteboard.clearContents()
             if !saved.isEmpty { pasteboard.writeObjects(saved) }
         }
-        for picture in pictures {
+        for picture in pictures where !waiting {
             let item = NSPasteboardItem()
             if let image = NSImage(contentsOf: picture), let tiff = image.tiffRepresentation,
                let png = NSBitmapImageRep(data: tiff)?.representation(using: .png, properties: [:]) {
@@ -141,12 +147,14 @@ enum AppDelivery {
             try? await Task.sleep(for: .milliseconds(500))
         }
         guard stillThere() else { restore(); return .failed }
-        pasteboard.clearContents()
-        // Something of yours already written there: Aki's text after a blank line.
-        pasteboard.setString(isEmpty(box) == false ? "\n\n" + text : text, forType: .string)
-        pressPaste()
-        pastedText = true
-        try? await Task.sleep(for: .milliseconds(600))
+        if !waiting {
+            pasteboard.clearContents()
+            // Something of yours already written there: Aki's text after a blank line.
+            pasteboard.setString(isEmpty(box) == false ? "\n\n" + text : text, forType: .string)
+            pressPaste()
+            pastedText = true
+            try? await Task.sleep(for: .milliseconds(600))
+        }
         defer { restore() }
         // Sent once the box is empty again. Pictures still uploading hold the send back:
         // Enter again, for up to about fifteen seconds.
@@ -164,8 +172,9 @@ enum AppDelivery {
                     guard isEmpty(now) == true else { return .pasted }
                     // Only once Aki's message (its first line names these very marks) shows
                     // in the conversation: an empty box alone could be another conversation
-                    // you went to meanwhile. It may take a moment to show (up to two seconds).
-                    for _ in 0..<8 {
+                    // you went to meanwhile. It may take a moment to show (up to five seconds:
+                    // a new conversation of Codex's draws its first message slowly).
+                    for _ in 0..<20 {
                         if shows(header, pid, besides: now) { return .sent }
                         try? await Task.sleep(for: .milliseconds(250))
                     }

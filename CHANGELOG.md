@@ -4,6 +4,10 @@ What changed in each version of Aki. Versions follow [semantic versioning](https
 
 ## [Unreleased]
 
+### Fixed
+- The send arrow in History works again for the Codex and Claude apps: a mark that didn't go is sent again (from the box when it's still there), and one that already went isn't sent twice.
+- Marks sent to a new Codex conversation are counted as sent: Aki waits a little longer for the message to show.
+
 ## [0.8.7] — 2026-10-16
 
 ### Changed

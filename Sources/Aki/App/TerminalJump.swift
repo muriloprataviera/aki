@@ -230,18 +230,18 @@ enum TerminalJump {
     /// have something written in its input box, Aki's text goes after a blank line,
     /// apart from yours, and both are sent together. `.failed` when the tab isn't found
     /// or Orca refuses.
-    static func deliver(to terminal: AgentTerminal, marks: [Annotation] = []) async -> Delivery {
+    static func deliver(to terminal: AgentTerminal, marks: [Annotation] = [], again: Bool = false) async -> Delivery {
         // An agent's desktop app: its marks pasted in whole (it can't run `aki show`).
         if let bundleID = DesktopApps.bundleID(of: terminal.id) {
             let conversation = DesktopApps.conversation(of: terminal.id).map { (id: $0, name: terminal.name) }
-            return await AppDelivery.deliver(to: bundleID, conversation: conversation, marks: marks)
+            return await AppDelivery.deliver(to: bundleID, conversation: conversation, marks: marks, again: again)
         }
         // A session the Claude (or Codex) app runs in its Code tab: no terminal, so
         // into the app, like the app itself.
         if let owner = await MainActor.run(body: { TerminalApp.owner(of: terminal.pid)?.bundleIdentifier }),
            DesktopApps.known[owner] != nil {
             // Into that session: picked on the app's list, and never pasted into another.
-            let result = await AppDelivery.deliver(to: owner, session: terminal.name, marks: marks)
+            let result = await AppDelivery.deliver(to: owner, session: terminal.name, marks: marks, again: again)
             // (Claude's sessions only: they keep their transcript where Aki can read it.)
             guard result == .sent, terminal.agent == .claude else { return result }
             // Sent: checked in the session's own transcript (a conversation of the same name
