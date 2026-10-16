@@ -370,6 +370,7 @@ extension L10n {
         "Send to the terminal now": "今すぐターミナルに送信",
         "Sending…": "送信中…",
         "Sent to the terminal": "ターミナルに送信しました",
+        "It's asking you something: answer it first": "確認を求めています：先に答えてください",
         "Left in its box: click to send": "入力欄に残っています：クリックで送信",
         "Sending to it…": "送信中…",
         "Sent to it": "送信済み",

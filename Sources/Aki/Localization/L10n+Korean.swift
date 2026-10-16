@@ -370,6 +370,7 @@ extension L10n {
         "Send to the terminal now": "지금 터미널로 보내기",
         "Sending…": "보내는 중…",
         "Sent to the terminal": "터미널로 보냄",
+        "It's asking you something: answer it first": "무언가를 묻고 있어요: 먼저 답해 주세요",
         "Left in its box: click to send": "입력창에 남아 있음: 클릭해서 보내기",
         "Sending to it…": "보내는 중…",
         "Sent to it": "보냄",

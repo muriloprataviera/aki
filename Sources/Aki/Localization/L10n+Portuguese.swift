@@ -261,6 +261,7 @@ extension L10n {
         "This Mac's disk": "Disco deste Mac", "free of": "livres de", "No longer needed": "Sem uso",
         "Pictures on disk": "Fotos no disco",
         "Pictures of marks already resolved or deleted. Aki deletes them by itself as the agent resolves; this clears what's left.": "Fotos de marcas já resolvidas ou apagadas. O Aki apaga sozinho conforme o agente resolve; isto limpa o que sobrou.", "Send to the terminal now": "Enviar agora para o terminal", "Sending…": "Enviando…",
+        "It's asking you something: answer it first": "Ele está te perguntando algo: responda primeiro",
         "Left in its box: click to send": "Ficou na caixa: clique para enviar",
         "Sending to it…": "Enviando…",
         "Sent to it": "Enviado",

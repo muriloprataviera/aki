@@ -370,6 +370,7 @@ extension L10n {
         "Send to the terminal now": "立即发送到终端",
         "Sending…": "正在发送…",
         "Sent to the terminal": "已发送到终端",
+        "It's asking you something: answer it first": "它在问你问题：请先回答",
         "Left in its box: click to send": "还在输入框里：点击发送",
         "Sending to it…": "发送中…",
         "Sent to it": "已发送",

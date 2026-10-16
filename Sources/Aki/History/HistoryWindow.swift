@@ -587,6 +587,7 @@ private struct HistoryRow: View {
             case .sending: ProgressView().controlSize(.mini)
             case .sent: Image(systemName: "checkmark.circle.fill").foregroundStyle(Color.green.opacity(0.85))
             case .pasted: Image(systemName: "text.cursor").foregroundStyle(.white)
+            case .held: Image(systemName: "hand.raised.fill").foregroundStyle(Color.orange)
             case .failed: Image(systemName: "exclamationmark.triangle.fill").foregroundStyle(Color.orange)
             }
         }
@@ -595,7 +596,8 @@ private struct HistoryRow: View {
         .buttonStyle(.plain)
         .disabled(state == .sending || state == .sent)
         .help(L10n.t(state == .sending ? "Sending to it…" : state == .sent ? "Sent to it"
-                     : state == .pasted ? "Left in its box: click to send" : "Couldn't send it"))
+                     : state == .pasted ? "Left in its box: click to send"
+                     : state == .held ? "It's asking you something: answer it first" : "Couldn't send it"))
     }
 
     private func iconButton(_ symbol: String, _ help: String, _ action: @escaping () -> Void) -> some View {

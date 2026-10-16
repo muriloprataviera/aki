@@ -370,6 +370,7 @@ extension L10n {
         "Send to the terminal now": "Jetzt ans Terminal senden",
         "Sending…": "Wird gesendet …",
         "Sent to the terminal": "Ans Terminal gesendet",
+        "It's asking you something: answer it first": "Er fragt dich etwas: zuerst antworten",
         "Left in its box: click to send": "Liegt im Eingabefeld: zum Senden klicken",
         "Sending to it…": "Wird gesendet…",
         "Sent to it": "Gesendet",

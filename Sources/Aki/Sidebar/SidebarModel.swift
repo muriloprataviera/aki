@@ -910,7 +910,9 @@ final class SidebarModel {
     /// Where "Send to the terminal now" stands for each session.
     var delivery: [String: DeliveryState] = [:]
     /// `pasted`: in an app's message box, not confirmed sent (Enter from there sends it).
-    enum DeliveryState { case sending, sent, pasted, failed }
+    /// `held`: the agent is asking you something in its terminal (a permission): nothing
+    /// is typed there (an Enter would answer it), and the marks go once you've answered.
+    enum DeliveryState { case sending, sent, pasted, held, failed }
     /// Sessions asked to send again while a send to them was still going (`true`: asked
     /// to send every open mark again, History's arrow or the card's button).
     @ObservationIgnored private var sendAfter: [String: Bool] = [:]
@@ -949,6 +951,13 @@ final class SidebarModel {
     }
 
     private func send(_ terminal: AgentTerminal, all: Bool) async {
+        // Asking you something in its terminal: typing there would answer it ("Yes" on
+        // Enter). The marks wait; with sending by itself on, they go once you've answered.
+        if !viaApp(terminal), (terminals.first { $0.id == terminal.id } ?? terminal).state == .waiting {
+            delivery[terminal.id] = .held
+            if preferences.autoDeliver { deliverLater(to: [terminal.id]) }
+            return
+        }
         // The marks this request is about, taken before it goes: any arriving
         // meanwhile still count as not delivered (their own wait sends them).
         // One look at the store for both: the message names exactly the marks
@@ -1125,7 +1134,8 @@ final class SidebarModel {
                     // Turned off meanwhile: nothing goes by itself.
                     guard self.preferences.autoDeliver else { break }
                     guard let terminal = self.terminals.first(where: { $0.id == id }), terminal.undelivered > 0 else { break }
-                    if terminal.state != .working && terminal.state != .shell {
+                    // (Asking you something: not until you've answered.)
+                    if terminal.state != .working && terminal.state != .shell && terminal.state != .waiting {
                         self.deliver(terminal)
                         break
                     }

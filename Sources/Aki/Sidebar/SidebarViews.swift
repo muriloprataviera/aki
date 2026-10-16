@@ -1750,6 +1750,7 @@ struct TerminalCard: View {
                 case .sending: ProgressView().controlSize(.mini)
                 case .sent: Image(systemName: "checkmark.circle.fill")
                 case .pasted: Image(systemName: "text.cursor")
+                case .held: Image(systemName: "hand.raised.fill")
                 case .failed: Image(systemName: "exclamationmark.triangle.fill")
                 case nil: Image(systemName: "paperplane.fill")
                 }
@@ -1757,7 +1758,8 @@ struct TerminalCard: View {
             .font(.system(size: 10, weight: .bold))
             .frame(width: 12)
             Text(L10n.t(state == nil && model.deliverAt[terminal.id] != nil ? "Sending to the terminal in" : state == .sending ? "Sending…" : state == .sent ? "Sent to the terminal"
-                        : state == .pasted ? "Left in its box: click to send" : state == .failed ? "Couldn't find its tab" : "Send to the terminal now"))
+                        : state == .pasted ? "Left in its box: click to send"
+                        : state == .held ? "It's asking you something: answer it first" : state == .failed ? "Couldn't find its tab" : "Send to the terminal now"))
                 .font(CardType.bodyStrong)
             Spacer(minLength: 0)
             if state == nil, let wait = model.deliverAt[terminal.id] {
