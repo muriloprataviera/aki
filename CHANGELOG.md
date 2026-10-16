@@ -4,6 +4,8 @@ What changed in each version of Aki. Versions follow [semantic versioning](https
 
 ## [Unreleased]
 
+## [0.8.7] — 2026-10-16
+
 ### Changed
 - Sessions and conversations untouched for six hours (not a day) wait in "+N", so the sidebar keeps only what you're using.
 
