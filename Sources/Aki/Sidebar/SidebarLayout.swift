@@ -150,7 +150,9 @@ struct SidebarLayout: Equatable {
     /// Where the folded pill listens for the pointer: deeper and longer than the pill.
     var wakeRect: CGRect {
         let center = bodyStart + bodyLength / 2
-        let half = s(Self.pillLength) / 2 + 8
+        // Generous (twice the pill, and then some): a small target on a big screen made
+        // the folded sidebar hard to catch.
+        let half = s(Self.pillLength) + 24
         return rect(along: center - half, center + half, depth: 0, Self.bleed + Self.wakeDepth)
     }
 
