@@ -3,6 +3,21 @@
     <channel>
         <title>Aki</title>
         <item>
+            <title>0.8.8</title>
+            <pubDate>Fri, 16 Oct 2026 16:23:57 -0300</pubDate>
+            <sparkle:version>20261016192356</sparkle:version>
+            <sparkle:shortVersionString>0.8.8</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
+            <description><![CDATA[<h2>Aki 0.8.8</h2>
+<h3>Fixed</h3><ul>
+<li>The send arrow in History works again for the Codex and Claude apps: a mark that didn't go is sent again (from the box when it's still there), and one that already went isn't sent twice.</li>
+<li>Marks sent to a new Codex conversation are counted as sent: Aki waits a little longer for the message to show.</li>
+</ul>
+]]></description>
+            <enclosure url="https://aki-updates.vercel.app/0.8.8/Aki-0.8.8.zip" length="4095432" type="application/octet-stream" sparkle:edSignature="qY2v+YoiPvKVWQdRIT3hN3UozVc6qKcAfUFvGVHfGfaYA6XvEuCBAizy4wMiwrdPnh0E3nh0tbA+O6B1fBRaCQ=="/>
+        </item>
+        <item>
             <title>0.8.8-beta.1</title>
             <pubDate>Fri, 16 Oct 2026 16:12:42 -0300</pubDate>
             <sparkle:channel>beta</sparkle:channel>
@@ -33,21 +48,6 @@
             <enclosure url="https://aki-updates.vercel.app/0.8.7/Aki-0.8.7.zip" length="4080064" type="application/octet-stream" sparkle:edSignature="Iyqm8fzH5UOsTFN6cQtxLnqrQTM/So6VH5CgYr9VZ+ALu5fZJfs/ghdF0ldtta04iocWjsrM+ibpadHLkgJ7AQ=="/>
         </item>
         <item>
-            <title>0.8.7-beta.1</title>
-            <pubDate>Fri, 16 Oct 2026 12:17:02 -0300</pubDate>
-            <sparkle:channel>beta</sparkle:channel>
-            <sparkle:version>20261016151702</sparkle:version>
-            <sparkle:shortVersionString>0.8.7-beta.1</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
-            <description><![CDATA[<h2>Aki 0.8.7 beta 1</h2>
-<h3>Changed</h3><ul>
-<li>Sessions and conversations untouched for six hours (not a day) wait in "+N", so the sidebar keeps only what you're using.</li>
-</ul>
-]]></description>
-            <enclosure url="https://aki-updates.vercel.app/0.8.7-beta.1/Aki-0.8.7-beta.1.zip" length="4080034" type="application/octet-stream" sparkle:edSignature="uVZ8pi0+SdF7IH7Apxrek0NGAZP6Px+vUldBQD5dY+DnggN7fEzs1cb2uKQLLu+d8fDRnrardqUaGAeOr2lFBA=="/>
-        </item>
-        <item>
             <title>0.8.6</title>
             <pubDate>Fri, 16 Oct 2026 12:04:26 -0300</pubDate>
             <sparkle:version>20261016150426</sparkle:version>
@@ -61,23 +61,6 @@
 </ul>
 ]]></description>
             <enclosure url="https://aki-updates.vercel.app/0.8.6/Aki-0.8.6.zip" length="4080051" type="application/octet-stream" sparkle:edSignature="EEZ8ciJOcNJnFEM2jgOzTDNVD45OK2ZNpKdb+b0cUX/ecSZ5Mk+V5OFImyjm7xf9MgYULTaUhPMfikjYX8ARBg=="/>
-        </item>
-        <item>
-            <title>0.8.5</title>
-            <pubDate>Fri, 16 Oct 2026 11:41:14 -0300</pubDate>
-            <sparkle:version>20261016144113</sparkle:version>
-            <sparkle:shortVersionString>0.8.5</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
-            <description><![CDATA[<h2>Aki 0.8.5</h2>
-<h3>New</h3><ul>
-<li>Your conversations in the Claude app (chats) and the Codex app show in the sidebar, one ring each: marks sent to one open that conversation in the app and go in there. Those untouched for a day wait in "+N". Switch any off in Settings → Claude Code / Codex.</li>
-</ul>
-<h3>Fixed</h3><ul>
-<li>The "+N" card no longer runs off the bottom of the screen with many sessions.</li>
-</ul>
-]]></description>
-            <enclosure url="https://aki-updates.vercel.app/0.8.5/Aki-0.8.5.zip" length="4079929" type="application/octet-stream" sparkle:edSignature="I9Dk50JkiWHHib8gGLkpKW4s8k8g+KJ4Au1GsmE+wHXSe7P8PGJhFmRWxXjf6ZlJVjVbWtYAbyGUjiBtGLQ7AA=="/>
         </item>
     </channel>
 </rss>
