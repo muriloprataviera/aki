@@ -10,8 +10,11 @@ public enum Worktree {
     /// a folder's repository doesn't change while it's open.
     public static func root(of directory: String) -> String {
         if let known = rootLock.withLock({ roots[directory] }) { return known }
-        let output = run("/usr/bin/git", ["-C", directory, "rev-parse", "--show-toplevel"])
-            .trimmingCharacters(in: .whitespacesAndNewlines)
+        // Out of time (a folder iCloud is still downloading): the folder itself for now,
+        // not kept, so it's asked again later. No repository (an answer, empty): kept.
+        guard let answer = Command.output("/usr/bin/git", ["-C", directory, "rev-parse", "--show-toplevel"], anyEnd: true)
+        else { return directory }
+        let output = String(decoding: answer, as: UTF8.self).trimmingCharacters(in: .whitespacesAndNewlines)
         let root = output.isEmpty ? directory : output
         rootLock.withLock { roots[directory] = root }
         return root
