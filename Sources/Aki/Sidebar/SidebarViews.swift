@@ -1404,7 +1404,8 @@ struct MoreCard: View {
                 let quiet = terminals.filter { t in !byYou.contains { $0.id == t.id } }
                 // As many as the screen has room for (the card can't scroll: its rows are
                 // clicked by position); the rest are in the History's Sessions.
-                let room = max(4, Int(((NSScreen.main?.visibleFrame.height ?? 800) - 220) / 48))
+                let screen = NSScreen.screens.first { SidebarController.id(of: $0) == model.preferences.sidebarScreen } ?? NSScreen.screens.first
+                let room = max(4, Int(((screen?.visibleFrame.height ?? 800) - 220) / 48))
                 let shownQuiet = Array(quiet.prefix(room))
                 let shownByYou = Array(byYou.prefix(max(0, room - shownQuiet.count)))
                 let left = terminals.count - shownQuiet.count - shownByYou.count
