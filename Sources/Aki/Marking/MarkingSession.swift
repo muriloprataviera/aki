@@ -531,7 +531,7 @@ final class MarkingSession {
         // the preview says so); with words, Aki's own guess again.
         if !marks[index].imageChosen {
             marks[index].sendsImage = marks[index].comment.isEmpty
-                || Self.looksVisual(marks[index], text: marks[index].text ?? marks[index].element?.title)
+                || Self.looksVisual(marks[index], text: text(of: marks[index]))
         }
         self.editing = nil
         draft = ""
