@@ -722,7 +722,8 @@ final class SidebarController {
                 if twice, let terminal = model.terminals.first(where: { "term|" + $0.id == target }) {
                     model.pinned = nil
                     model.hovered = nil
-                    TerminalJump.go(to: terminal)
+                    // Its Orca tab, its terminal, or its conversation in the app.
+                    model.open(terminal)
                     if preferences.visibility != .alwaysShow { setExpanded(false) }
                     return true
                 }
@@ -751,7 +752,8 @@ final class SidebarController {
                 model.jumping = (terminal.id, TerminalJump.destinationName(for: terminal))
                 model.pinned = nil
                 model.hovered = nil
-                TerminalJump.go(to: terminal)
+                // Its Orca tab, its terminal, or its conversation in the app.
+                model.open(terminal)
                 // The launch reads for a beat, then the sidebar gets out of the way.
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.7) { [weak self] in
                     guard let self else { return }
@@ -819,7 +821,7 @@ final class SidebarController {
             let send = ClosureMenuItem(L10n.t("Send marks here")) { [weak self] in self?.model.select(terminal) }
             send.state = model.selectedTerminal == terminal.id ? .on : .off
             menu.addItem(send)
-            menu.addItem(ClosureMenuItem(L10n.t("Open in terminal")) { TerminalJump.go(to: terminal) })
+            menu.addItem(ClosureMenuItem(L10n.t("Open in terminal")) { [weak self] in self?.model.open(terminal) })
             let projectKey = model.projectKey(of: terminal)
             menu.addItem(ClosureMenuItem("\(L10n.t("Rename project")) “\(model.projectLabel(projectKey))”…") { [weak self] in
                 self?.startEditingProject(projectKey)
