@@ -3,6 +3,26 @@
     <channel>
         <title>Aki</title>
         <item>
+            <title>0.8.9-beta.1</title>
+            <pubDate>Fri, 16 Oct 2026 16:49:27 -0300</pubDate>
+            <sparkle:channel>beta</sparkle:channel>
+            <sparkle:version>20261016194926</sparkle:version>
+            <sparkle:shortVersionString>0.8.9-beta.1</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
+            <description><![CDATA[<h2>Aki 0.8.9-beta.1</h2>
+<h3>Fixed</h3><ul>
+<li>A mark sent with no comment always goes with its picture (the agent used to get "(no comment)" alone).</li>
+<li>Marks sent while a send to the same session is still going wait their turn instead of being lost.</li>
+<li>A message left in the Codex or Claude app's box shows as "Left in its box: click to send", not as sent, and the card keeps its send button.</li>
+<li>History's send arrow shows sending, sent or not sent, sends every open mark of that session, and is hidden where Aki can't type (Terminal, iTerm).</li>
+<li>Aki stops pressing Return when it only adds blank lines to an app's box, and gives the clipboard back only if you didn't copy something meanwhile.</li>
+<li>A stuck Orca no longer leaves sends stuck "sending" for good.</li>
+</ul>
+]]></description>
+            <enclosure url="https://aki-updates.vercel.app/0.8.9-beta.1/Aki-0.8.9-beta.1.zip" length="4109535" type="application/octet-stream" sparkle:edSignature="7EeiW1X2Y0MVvMlI/0HoTrw054EYeqNx/S78tI2+eftTGabGHHHRlF398ADHmekWkPfF+A9kRVEdIrg2NxaVBg=="/>
+        </item>
+        <item>
             <title>0.8.8</title>
             <pubDate>Fri, 16 Oct 2026 16:23:57 -0300</pubDate>
             <sparkle:version>20261016192356</sparkle:version>
