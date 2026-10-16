@@ -910,8 +910,9 @@ final class SidebarModel {
     var delivery: [String: DeliveryState] = [:]
     /// `pasted`: in an app's message box, not confirmed sent (Enter from there sends it).
     enum DeliveryState { case sending, sent, pasted, failed }
-    /// Sessions asked to send again while a send to them was still going.
-    @ObservationIgnored private var sendAfter: Set<String> = []
+    /// Sessions asked to send again while a send to them was still going (`true`: asked
+    /// to send every open mark again, History's arrow or the card's button).
+    @ObservationIgnored private var sendAfter: [String: Bool] = [:]
     /// Sessions a send is going to right now (apart from what the card shows after it).
     @ObservationIgnored private var sending: Set<String> = []
 
@@ -920,7 +921,7 @@ final class SidebarModel {
     func deliver(_ terminal: AgentTerminal, all: Bool = false) {
         // One at a time per session: asked meanwhile (new marks just sent), it goes
         // once this one is over, with whatever is still unsent then.
-        guard !sending.contains(terminal.id) else { sendAfter.insert(terminal.id); return }
+        guard !sending.contains(terminal.id) else { sendAfter[terminal.id] = all || sendAfter[terminal.id] == true; return }
         sending.insert(terminal.id)
         delivery[terminal.id] = .sending
         Task {
@@ -931,12 +932,16 @@ final class SidebarModel {
                 try? await Task.sleep(for: .seconds(3))
                 if !sending.contains(terminal.id), delivery[terminal.id] == shown { delivery[terminal.id] = nil }
             }
-            guard sendAfter.remove(terminal.id) != nil, !(await undeliveredIDs(of: terminal)).isEmpty else {
+            // Asked again meanwhile: new marks still unsent, or a send-again (which goes even
+            // with every mark sent once: one may sit in the app's box).
+            let again = sendAfter.removeValue(forKey: terminal.id)
+            let unsent = again == false ? await undeliveredIDs(of: terminal) : []
+            guard let again, again || !unsent.isEmpty else {
                 sending.remove(terminal.id)
                 return
             }
             sending.remove(terminal.id)
-            deliver(terminals.first { $0.id == terminal.id } ?? terminal)
+            deliver(terminals.first { $0.id == terminal.id } ?? terminal, all: again)
         }
     }
 
