@@ -43,7 +43,9 @@ public enum Command {
             return nil
         }
         if exited.wait(timeout: .now() + timeout) == .timedOut {
+            // Asked to stop, then made to (a shell waiting on its .zshrc may not listen).
             process.terminate()
+            if exited.wait(timeout: .now() + 1) == .timedOut { kill(process.processIdentifier, SIGKILL) }
             pipe.fileHandleForReading.readabilityHandler = nil
             return nil
         }
