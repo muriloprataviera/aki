@@ -357,39 +357,7 @@ enum TerminalJump {
 
     /// Orca's command, up to five seconds: an Orca stuck (or updating) never holds up
     /// the sidebar or a send. Over time it's stopped, and taken as failed.
-    private static func run(_ path: String, _ arguments: [String], timeout: TimeInterval = 5) -> Data? {
-        let process = Process()
-        process.executableURL = URL(filePath: path)
-        process.arguments = arguments
-        let pipe = Pipe()
-        process.standardOutput = pipe
-        process.standardError = FileHandle.nullDevice
-        let exited = DispatchSemaphore(value: 0)
-        process.terminationHandler = { _ in exited.signal() }
-        // Read as it comes (a long answer would fill the pipe and hold the command).
-        let output = OutputBuffer(), ended = DispatchSemaphore(value: 0)
-        pipe.fileHandleForReading.readabilityHandler = { handle in
-            let chunk = handle.availableData
-            if chunk.isEmpty { handle.readabilityHandler = nil; ended.signal() } else { output.append(chunk) }
-        }
-        do { try process.run() } catch {
-            pipe.fileHandleForReading.readabilityHandler = nil
-            return nil
-        }
-        if exited.wait(timeout: .now() + timeout) == .timedOut {
-            process.terminate()
-            pipe.fileHandleForReading.readabilityHandler = nil
-            return nil
-        }
-        // The rest of its answer (a second at most: something it started may hold the pipe).
-        if ended.wait(timeout: .now() + 1) == .timedOut { pipe.fileHandleForReading.readabilityHandler = nil }
-        return process.terminationStatus == 0 ? output.data : nil
-    }
-
-    private final class OutputBuffer: @unchecked Sendable {
-        private var collected = Data()
-        private let lock = NSLock()
-        func append(_ chunk: Data) { lock.withLock { collected.append(chunk) } }
-        var data: Data { lock.withLock { collected } }
+    private static func run(_ path: String, _ arguments: [String]) -> Data? {
+        Command.output(path, arguments, timeout: 5)
     }
 }

@@ -1023,16 +1023,8 @@ enum Setup {
     private static let paths = #"export PATH="$HOME/.local/bin:$HOME/.claude/local:/opt/homebrew/bin:/usr/local/bin:$PATH:/Applications/ChatGPT.app/Contents/Resources/codex-cli/bin:/Applications/Codex.app/Contents/Resources/codex-cli/bin:/Applications/Codex.app/Contents/Resources"; command -v claude >/dev/null || { AKI_CLAUDE=$(ls -d "$HOME/Library/Application Support/Claude/claude-code/"*/*/claude.app/Contents/MacOS/claude 2>/dev/null | sort -V | tail -1); [ -n "$AKI_CLAUDE" ] && claude() { "$AKI_CLAUDE" "$@"; }; }; "#
 
     private static func shell(_ command: String) async -> Bool {
-        await Task.detached {
-            let process = Process()
-            process.executableURL = URL(filePath: "/bin/zsh")
-            process.arguments = ["-lc", paths + command]
-            process.standardOutput = FileHandle.nullDevice
-            process.standardError = FileHandle.nullDevice
-            do { try process.run() } catch { return false }
-            process.waitUntilExit()
-            return process.terminationStatus == 0
-        }.value
+        // (Half a minute at most: a login shell that asks something would never end.)
+        await Task.detached { Command.succeeds("/bin/zsh", ["-lc", paths + command], timeout: 30) }.value
     }
 
     static func run(_ key: String) async -> Bool {

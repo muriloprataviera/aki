@@ -66,15 +66,6 @@ public enum Worktree {
     }
 
     private static func run(_ path: String, _ arguments: [String]) -> String {
-        let process = Process()
-        process.executableURL = URL(filePath: path)
-        process.arguments = arguments
-        let pipe = Pipe()
-        process.standardOutput = pipe
-        process.standardError = FileHandle.nullDevice
-        do { try process.run() } catch { return "" }
-        let data = pipe.fileHandleForReading.readDataToEndOfFile()
-        process.waitUntilExit()
-        return String(data: data, encoding: .utf8) ?? ""
+        Command.output(path, arguments).map { String(decoding: $0, as: UTF8.self) } ?? ""
     }
 }

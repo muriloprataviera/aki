@@ -1129,17 +1129,10 @@ final class SidebarModel {
         // From its own folder (a conversation begun in a subfolder lives there); only when
         // the agent's command is installed (the app alone gives none to a terminal).
         let program = entry.agent == .codex ? "codex" : "claude"
+        // Interactive and login, like the terminal that will run it (.zshrc too); ten
+        // seconds at most (a .zshrc that asks something would never end).
         let installed = await Task.detached {
-            let check = Process()
-            check.executableURL = URL(filePath: "/bin/zsh")
-            // Interactive and login, like the terminal that will run it (.zshrc too).
-            check.arguments = ["-ilc", "command -v \(program) >/dev/null"]
-            check.standardInput = FileHandle.nullDevice
-            check.standardOutput = FileHandle.nullDevice
-            check.standardError = FileHandle.nullDevice
-            guard (try? check.run()) != nil else { return false }
-            check.waitUntilExit()
-            return check.terminationStatus == 0
+            Command.succeeds("/bin/zsh", ["-ilc", "command -v \(program) >/dev/null"], timeout: 10)
         }.value
         if installed, await TerminalJump.createOrcaTerminal(in: entry.cwd, title: entry.title, command: "cd \(quoted) && \(command)") { return .orca }
         if entry.agent == .claude,
