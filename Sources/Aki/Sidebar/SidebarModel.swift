@@ -1064,6 +1064,9 @@ final class SidebarModel {
             if preferences.autoDeliver || all { sendOnceAnswered(terminal.id, all: all) }
             return
         }
+        // Going now: a send held for after your answer is this one.
+        answered[terminal.id]?.cancel()
+        answered[terminal.id] = nil
         // The marks this request is about, taken before it goes: any arriving
         // meanwhile still count as not delivered (their own wait sends them).
         // One look at the store for both: the message names exactly the marks
