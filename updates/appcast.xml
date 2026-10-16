@@ -3,6 +3,21 @@
     <channel>
         <title>Aki</title>
         <item>
+            <title>0.8.5-beta.1</title>
+            <pubDate>Thu, 15 Oct 2026 22:47:29 -0300</pubDate>
+            <sparkle:channel>beta</sparkle:channel>
+            <sparkle:version>20261016014728</sparkle:version>
+            <sparkle:shortVersionString>0.8.5-beta.1</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
+            <description><![CDATA[<h2>Aki 0.8.5 beta 1</h2>
+<h3>Fixed</h3><ul>
+<li>The "+N" card no longer runs off the bottom of the screen with many sessions.</li>
+</ul>
+]]></description>
+            <enclosure url="https://aki-updates.vercel.app/0.8.5-beta.1/Aki-0.8.5-beta.1.zip" length="4040710" type="application/octet-stream" sparkle:edSignature="KQW9Jh10QOvZh9wtP/JqsGTDctuPQ5Bz5nvw26o8zXyjFdSl9shF2h68rxOW/RHtBKyllnyxiXcEBlN0q2EgDQ=="/>
+        </item>
+        <item>
             <title>0.8.4</title>
             <pubDate>Thu, 15 Oct 2026 19:44:05 -0300</pubDate>
             <sparkle:version>20261015224404</sparkle:version>
