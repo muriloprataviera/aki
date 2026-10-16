@@ -1034,12 +1034,34 @@ final class SidebarModel {
         }
     }
 
+    /// Held while its agent asks you something: sent once you've answered (looked at
+    /// every two seconds, for half an hour at most). A send-again stays one; otherwise
+    /// only if something is still unsent then.
+    private func sendOnceAnswered(_ id: String, all: Bool) {
+        answered[id]?.cancel()
+        answered[id] = Task { [weak self] in
+            for _ in 0..<900 {
+                try? await Task.sleep(for: .seconds(2))
+                guard let self, !Task.isCancelled else { return }
+                guard let now = terminals.first(where: { $0.id == id }) else { break }
+                guard now.state == .waiting else {
+                    let unsent = all ? [] : await undeliveredIDs(of: now)
+                    if all || !unsent.isEmpty { deliver(now, all: all) }
+                    break
+                }
+            }
+            self?.answered[id] = nil
+        }
+    }
+
+    @ObservationIgnored private var answered: [String: Task<Void, Never>] = [:]
+
     private func send(_ terminal: AgentTerminal, all: Bool) async {
         // Asking you something in its terminal: typing there would answer it ("Yes" on
         // Enter). The marks wait; with sending by itself on, they go once you've answered.
         if !viaApp(terminal), (terminals.first { $0.id == terminal.id } ?? terminal).state == .waiting {
             delivery[terminal.id] = .held
-            if preferences.autoDeliver { deliverLater(to: [terminal.id]) }
+            if preferences.autoDeliver || all { sendOnceAnswered(terminal.id, all: all) }
             return
         }
         // The marks this request is about, taken before it goes: any arriving
