@@ -66,6 +66,7 @@ public enum Worktree {
     }
 
     private static func run(_ path: String, _ arguments: [String]) -> String {
-        Command.output(path, arguments).map { String(decoding: $0, as: UTF8.self) } ?? ""
+        // (As before, what it printed counts however it ended.)
+        Command.output(path, arguments, anyEnd: true).map { String(decoding: $0, as: UTF8.self) } ?? ""
     }
 }

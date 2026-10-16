@@ -4,10 +4,12 @@ import Foundation
 /// iCloud is still downloading, `lsof` on a stalled disk, an Orca updating, a slow
 /// `.zshrc`) is stopped and counts as failed, so it never holds up the sidebar or a send.
 public enum Command {
-    /// Its output when it ends well in time (exit 0), else nil.
-    public static func output(_ path: String, _ arguments: [String], timeout: TimeInterval = 5) -> Data? {
+    /// Its output when it ends well in time (exit 0), else nil. `anyEnd`: whatever it
+    /// printed however it ended (`lsof` ends in error when one of the processes asked
+    /// about is gone, and still lists the others').
+    public static func output(_ path: String, _ arguments: [String], timeout: TimeInterval = 5, anyEnd: Bool = false) -> Data? {
         let result = run(path, arguments, timeout: timeout, capture: true)
-        return result?.status == 0 ? result?.output : nil
+        return result?.status == 0 || anyEnd ? result?.output : nil
     }
 
     /// Whether it ended well in time (exit 0); its output isn't kept.
