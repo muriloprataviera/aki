@@ -4,6 +4,14 @@ What changed in each version of Aki. Versions follow [semantic versioning](https
 
 ## [Unreleased]
 
+### Fixed
+- A mark sent with no comment always goes with its picture (the agent used to get "(no comment)" alone).
+- Marks sent while a send to the same session is still going wait their turn instead of being lost.
+- A message left in the Codex or Claude app's box shows as "Left in its box: click to send", not as sent, and the card keeps its send button.
+- History's send arrow shows sending, sent or not sent, sends every open mark of that session, and is hidden where Aki can't type (Terminal, iTerm).
+- Aki stops pressing Return when it only adds blank lines to an app's box, and gives the clipboard back only if you didn't copy something meanwhile.
+- A stuck Orca no longer leaves sends stuck "sending" for good.
+
 ## [0.8.8] — 2026-10-16
 
 ### Fixed
