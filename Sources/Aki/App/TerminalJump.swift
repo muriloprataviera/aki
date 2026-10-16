@@ -243,7 +243,9 @@ enum TerminalJump {
             // Into that session: picked on the app's list, and never pasted into another.
             let result = await AppDelivery.deliver(to: owner, session: terminal.name, marks: marks, again: again)
             // (Claude's sessions only: they keep their transcript where Aki can read it.)
-            guard result == .sent, terminal.agent == .claude else { return result }
+            // A send again may go in parts, or not at all when its marks already show in
+            // the conversation: no single first line to look for, so the app's word counts.
+            guard result == .sent, terminal.agent == .claude, !again else { return result }
             // Sent: checked in the session's own transcript (a conversation of the same name
             // elsewhere would show it too). Not there: not taken as done.
             let header = String(AnnotationText.forApp(marks).prefix { $0 != "\n" })
