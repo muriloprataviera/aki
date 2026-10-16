@@ -494,7 +494,9 @@ final class SidebarController {
 
         let keepOpen = preferences.visibility == .alwaysShow || model.pinned != nil || model.editingProject != nil
         let inside = model.expanded
-            ? layout.bodyRect(expanded: true).insetBy(dx: -16, dy: -16).contains(point) || overCard || overOrb || overGrip || overResize
+            // (Where it woke counts too: a short sidebar is smaller than its wake area.)
+            ? layout.bodyRect(expanded: true).insetBy(dx: -16, dy: -16).contains(point) || layout.wakeRect.contains(point)
+                || overCard || overOrb || overGrip || overResize
                 || overMark || overHistory || overHide
                 || model.targets.contains { ($0.key.hasPrefix("project|") || $0.key == "projects-eye") && $0.value.insetBy(dx: -4, dy: -4).contains(point) }
             : layout.wakeRect.contains(point)
