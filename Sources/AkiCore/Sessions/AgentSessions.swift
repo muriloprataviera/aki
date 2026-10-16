@@ -346,7 +346,8 @@ public struct AgentTerminal: Identifiable, Equatable, Sendable {
 
 extension AgentSessions {
     /// Every agent conversation open right now, busiest first within each folder.
-    public static func terminals(pending: [Annotation] = []) -> [AgentTerminal] {
+    /// `keeping`: destinations kept even when they'd be left out (the one you chose).
+    public static func terminals(pending: [Annotation] = [], keeping: Set<String> = []) -> [AgentTerminal] {
         let all = runningProcesses()
         let processes = all.compactMap { p in classify(p.command).map { (p, $0) } }
         // Which sessions have an `aki wait` listening for them.
@@ -484,12 +485,23 @@ extension AgentSessions {
             // The app's own recent conversations (Claude's chats, Codex's threads), each a
             // destination of its own: Aki opens it by the app's link, then pastes. The ones
             // left for a day wait in "+N".
-            let conversations = agent == .claude ? ClaudeAppUsage.conversations() : CodexAppThreads.recent()
-            for (index, conversation) in conversations.enumerated() {
+            // Older ones still wanted (marks waiting for them, or the one you chose).
+            let wanted = Set((pending.compactMap { $0["session_id"]?.string } + keeping).compactMap { wantedID in
+                DesktopApps.bundleID(of: wantedID) == app.bundleID ? DesktopApps.conversation(of: wantedID) : nil
+            })
+            var conversations = agent == .claude ? ClaudeAppUsage.conversations() : CodexAppThreads.recent()
+            if agent == .codex {
+                let missing = wanted.subtracting(conversations.map(\.id))
+                if !missing.isEmpty { conversations += CodexAppThreads.threads(ids: missing) }
+            }
+            // Two of the same name can't be told apart in the app (Aki checks the page by its
+            // title): neither is offered.
+            var names: [String: Int] = [:]
+            for conversation in conversations { names[conversation.name, default: 0] += 1 }
+            for (index, conversation) in conversations.enumerated() where names[conversation.name] == 1 {
                 let chatID = id + "#" + conversation.id
                 let theirs = pending.filter { $0["session_id"]?.string == chatID }
-                // The recent ones, and any older one with marks still waiting for it.
-                guard index < DesktopApps.conversationsShown || !theirs.isEmpty else { continue }
+                guard index < DesktopApps.conversationsShown || wanted.contains(conversation.id) else { continue }
                 let answering = conversation.log.map { CodexSessions.working(log: $0) } ?? false
                 result.append(AgentTerminal(
                     id: chatID, agent: agent, pid: app.pid, name: conversation.name, named: true,

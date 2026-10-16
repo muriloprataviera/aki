@@ -18,7 +18,13 @@ public enum CodexAppThreads {
         return list
     }
 
-    static func query(limit: Int, home: URL) -> [DesktopApps.Conversation] {
+    /// Those threads, by id, wherever they sit in the list (one with marks still waiting).
+    public static func threads(ids: Set<String>, home: URL = UsageLimits.codexHome) -> [DesktopApps.Conversation] {
+        guard !ids.isEmpty else { return [] }
+        return query(limit: ids.count, home: home, ids: Array(ids.prefix(50)))
+    }
+
+    static func query(limit: Int, home: URL, ids: [String] = []) -> [DesktopApps.Conversation] {
         // The newest of the state files ("state_5.sqlite" now; a later Codex may number it anew).
         let files = (try? FileManager.default.contentsOfDirectory(atPath: home.path)) ?? []
         guard let name = files.filter({ $0.hasPrefix("state_") && $0.hasSuffix(".sqlite") })
@@ -26,18 +32,31 @@ public enum CodexAppThreads {
         else { return [] }
         var db: OpaquePointer?
         defer { sqlite3_close(db) }
-        guard sqlite3_open_v2(home.appending(path: name).path, &db, SQLITE_OPEN_READONLY, nil) == SQLITE_OK else { return [] }
+        // With Codex closed its write-ahead files are gone, and a read-only open can't make
+        // them: then the file is read as it is (nothing is writing to it).
+        let file = home.appending(path: name)
+        var link = URLComponents()
+        link.scheme = "file"
+        link.path = file.path
+        if !FileManager.default.fileExists(atPath: file.path + "-wal") { link.queryItems = [URLQueryItem(name: "immutable", value: "1")] }
+        guard let uri = link.string,
+              sqlite3_open_v2(uri, &db, SQLITE_OPEN_READONLY | SQLITE_OPEN_URI, nil) == SQLITE_OK
+        else { return [] }
         sqlite3_busy_timeout(db, 200)
         let sql = """
             SELECT id, COALESCE(NULLIF(TRIM(name), ''), ''), title, updated_at, rollout_path FROM threads
             WHERE source = 'vscode' AND archived = 0
               AND COALESCE(thread_source, 'user') NOT IN ('subagent', 'voice_chat')
+            \(ids.isEmpty ? "" : "AND id IN (" + Array(repeating: "?", count: ids.count).joined(separator: ",") + ")")
             ORDER BY updated_at DESC LIMIT ?
             """
         var statement: OpaquePointer?
         defer { sqlite3_finalize(statement) }
         guard sqlite3_prepare_v2(db, sql, -1, &statement, nil) == SQLITE_OK else { return [] }
-        sqlite3_bind_int(statement, 1, Int32(limit))
+        // Each id bound as text (never written into the query itself).
+        let transient = unsafeBitCast(-1, to: sqlite3_destructor_type.self)
+        for (index, id) in ids.enumerated() { sqlite3_bind_text(statement, Int32(index + 1), id, -1, transient) }
+        sqlite3_bind_int(statement, Int32(ids.count + 1), Int32(limit))
         func text(_ column: Int32) -> String {
             sqlite3_column_text(statement, column).map { String(cString: $0) } ?? ""
         }

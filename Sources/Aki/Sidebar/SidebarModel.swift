@@ -708,8 +708,9 @@ final class SidebarModel {
         let pending = await store.list(.init(status: "pending")).annotations
         let measureDisk = Date().timeIntervalSince(diskRead) > 60
         if measureDisk { diskRead = Date() }
+        let chosen = selectedTerminal.map { Set([$0]) } ?? []
         let (found, scanned, usage, busy) = await Task.detached {
-            (AgentSessions.scan(pending: pending), AgentSessions.terminals(pending: pending),
+            (AgentSessions.scan(pending: pending), AgentSessions.terminals(pending: pending, keeping: chosen),
              measureDisk ? DiskUsage.measure(pending: pending) : nil, AgentSessions.headlessBusy())
         }.value
         if busy != headlessBusy { headlessBusy = busy }
