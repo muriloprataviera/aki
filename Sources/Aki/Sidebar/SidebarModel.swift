@@ -912,18 +912,30 @@ final class SidebarModel {
     enum DeliveryState { case sending, sent, pasted, failed }
     /// Sessions asked to send again while a send to them was still going.
     @ObservationIgnored private var sendAfter: Set<String> = []
+    /// Sessions a send is going to right now (apart from what the card shows after it).
+    @ObservationIgnored private var sending: Set<String> = []
 
     /// Types the request into the session's tab now. `all`: an app gets every mark
     /// still open for it, not only those never sent (History's send arrow).
     func deliver(_ terminal: AgentTerminal, all: Bool = false) {
         // One at a time per session: asked meanwhile (new marks just sent), it goes
         // once this one is over, with whatever is still unsent then.
-        guard delivery[terminal.id] != .sending else { sendAfter.insert(terminal.id); return }
+        guard !sending.contains(terminal.id) else { sendAfter.insert(terminal.id); return }
+        sending.insert(terminal.id)
         delivery[terminal.id] = .sending
         Task {
             await send(terminal, all: all)
-            guard sendAfter.remove(terminal.id) != nil, !(await undeliveredIDs(of: terminal)).isEmpty else { return }
-            delivery[terminal.id] = nil
+            // How it went, shown for three seconds (unless another send starts meanwhile).
+            let shown = delivery[terminal.id]
+            Task {
+                try? await Task.sleep(for: .seconds(3))
+                if !sending.contains(terminal.id), delivery[terminal.id] == shown { delivery[terminal.id] = nil }
+            }
+            guard sendAfter.remove(terminal.id) != nil, !(await undeliveredIDs(of: terminal)).isEmpty else {
+                sending.remove(terminal.id)
+                return
+            }
+            sending.remove(terminal.id)
             deliver(terminals.first { $0.id == terminal.id } ?? terminal)
         }
     }
@@ -970,8 +982,6 @@ final class SidebarModel {
                    && TerminalApp.owner(of: $0.pid)?.bundleIdentifier == TerminalApp.owner(of: terminal.pid)?.bundleIdentifier
            }) {
             delivery[terminal.id] = .failed
-            try? await Task.sleep(for: .seconds(3))
-            delivery[terminal.id] = nil
             return
         }
         // Its marks all went already but are still open (the send not confirmed:
@@ -989,8 +999,6 @@ final class SidebarModel {
             for id in forApp.map(\.id) where still.contains(id) { _ = try? await store.update(id, with: ["status": "completed"]) }
             await refresh()
         }
-        try? await Task.sleep(for: .seconds(3))
-        delivery[terminal.id] = nil
     }
 
     /// Goes to a session: its Orca tab, its terminal, or its conversation in the app.

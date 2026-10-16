@@ -540,13 +540,13 @@ private struct HistoryRow: View {
                         .help(L10n.t("Move to another terminal"))
                     }
                     if !done, let resend {
-                        if let sendState { sendBadge(sendState) } else { iconButton("paperplane.fill", L10n.t("Send to the terminal now"), resend) }
+                        if let sendState { sendBadge(sendState, resend) } else { iconButton("paperplane.fill", L10n.t("Send to the terminal now"), resend) }
                     }
                     if !done { iconButton("checkmark", L10n.t("Mark as done"), resolve) }
                     iconButton("trash", L10n.t("Delete"), delete)
                 }
-            } else if !done, resend != nil, let sendState {
-                sendBadge(sendState)
+            } else if !done, let resend, let sendState {
+                sendBadge(sendState, resend)
             } else if done {
                 Image(systemName: "checkmark.circle.fill").font(.system(size: 11)).foregroundStyle(Color.green.opacity(0.8))
                     .help(L10n.t("Done marks"))
@@ -580,8 +580,9 @@ private struct HistoryRow: View {
     }
 
     /// Sending, sent, left in the app's box, or not sent: with its reason on the pointer.
-    private func sendBadge(_ state: SidebarModel.DeliveryState) -> some View {
-        Group {
+    /// Left in the box or not sent: a click sends again.
+    private func sendBadge(_ state: SidebarModel.DeliveryState, _ again: @escaping () -> Void) -> some View {
+        Button(action: again) {
             switch state {
             case .sending: ProgressView().controlSize(.mini)
             case .sent: Image(systemName: "checkmark.circle.fill").foregroundStyle(Color.green.opacity(0.85))
@@ -591,6 +592,8 @@ private struct HistoryRow: View {
         }
         .font(.system(size: 10, weight: .bold))
         .frame(width: 20, height: 20)
+        .buttonStyle(.plain)
+        .disabled(state == .sending || state == .sent)
         .help(L10n.t(state == .sending ? "Sending to it…" : state == .sent ? "Sent to it"
                      : state == .pasted ? "Left in its box: click to send" : "Couldn't send it"))
     }
