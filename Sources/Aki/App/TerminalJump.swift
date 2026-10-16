@@ -246,11 +246,12 @@ enum TerminalJump {
             guard result == .sent, terminal.agent == .claude else { return result }
             // Sent: checked in the session's own transcript (a conversation of the same name
             // elsewhere would show it too). Not there: not taken as done.
-            // A send again may have gone in parts: each mark by its code and its words.
+            // A send again may have gone in parts: each mark by its code and its words
+            // (its first line: the transcript keeps a line break escaped).
             let header = String(AnnotationText.forApp(marks).prefix { $0 != "\n" })
             let pieces = again
                 ? marks.map { mark in
-                    ["#" + MarkFolder.code(mark.id), String((mark["comment"]?.string ?? "").prefix(40))].filter { $0.count > 1 }
+                    ["#" + MarkFolder.code(mark.id), String((mark["comment"]?.string ?? "").prefix { !$0.isNewline }.prefix(40))].filter { $0.count > 1 }
                 }
                 : [[header]]
             for _ in 0..<16 {
