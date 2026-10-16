@@ -80,8 +80,15 @@ final class SettingsWindowController: NSObject, NSWindowDelegate {
     }
 
     func windowWillClose(_ notification: Notification) {
-        // Once it's gone (still visible while closing).
-        DispatchQueue.main.async { AppWindows.refresh() }
+        // Once it's gone (still visible while closing). Its views go too: closed, they
+        // kept checking permissions and running `claude mcp get` every few seconds.
+        DispatchQueue.main.async { [weak self] in
+            if let window = self?.window, !window.isVisible {
+                window.contentView = nil
+                self?.window = nil
+            }
+            AppWindows.refresh()
+        }
     }
 
     func windowDidBecomeKey(_ notification: Notification) {
