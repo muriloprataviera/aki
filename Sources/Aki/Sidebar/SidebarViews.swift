@@ -570,7 +570,9 @@ struct SidebarRoot: View {
         .animation(Motion.glide, value: model.hovered ?? model.pinned)
         .animation(Motion.hover, value: model.orbHovered)
         .animation(.spring(response: 0.25, dampingFraction: 0.75), value: model.jumping?.id)
-        .environment(\.colorScheme, .dark)
+        // The glass and the system's own colours in the theme Aki draws in (forced dark,
+        // a light Mac got black glass under ink text: unreadable).
+        .environment(\.colorScheme, preferences.isDark ? .dark : .light)
         .environment(\.notchSurfaceStyle, NotchSurfaceStyle(rawValue: preferences.surface.rawValue) ?? .solid)
     }
 

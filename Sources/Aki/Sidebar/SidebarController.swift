@@ -85,7 +85,8 @@ final class SidebarController {
     var quit: () -> Void = { NSApp.terminate(nil) }
 
     /// Grace before folding after the pointer leaves, and before dropping the card.
-    private static let foldGrace: TimeInterval = 0.8
+    /// How long the pointer may stray before an open sidebar folds (less felt jumpy).
+    private static let foldGrace: TimeInterval = 1.5
     private static let hoverGrace: TimeInterval = 0.6
 
     var isVisible: Bool { panel.isVisible }
@@ -199,6 +200,7 @@ final class SidebarController {
             MainActor.assumeIsolated { self?.relocate() }
         }
         observeLayoutInputs()
+        observeTheme()
         model.onLoaded = { [weak self] in self?.applyVisibility() }
         model.onProjectEditEnded = { [weak self] in self?.finishEditingProject() }
         model.chooseMoveTarget = { [weak self] terminal in self?.showMoveMenu(for: terminal) }
@@ -300,6 +302,15 @@ final class SidebarController {
     }
 
     private var lastInputs: LayoutInputs?
+
+    /// The panel in the theme Aki draws in (its glass and colours resolve against it),
+    /// following the setting and the Mac.
+    private func observeTheme() {
+        let dark = withObservationTracking { preferences.isDark } onChange: { [weak self] in
+            Task { @MainActor in self?.observeTheme() }
+        }
+        panel.appearance = NSAppearance(named: dark ? .darkAqua : .aqua)
+    }
 
     private func observeLayoutInputs() {
         let inputs = withObservationTracking {
@@ -483,7 +494,7 @@ final class SidebarController {
 
         let keepOpen = preferences.visibility == .alwaysShow || model.pinned != nil || model.editingProject != nil
         let inside = model.expanded
-            ? layout.bodyRect(expanded: true).insetBy(dx: -6, dy: -6).contains(point) || overCard || overOrb || overGrip || overResize
+            ? layout.bodyRect(expanded: true).insetBy(dx: -16, dy: -16).contains(point) || overCard || overOrb || overGrip || overResize
                 || overMark || overHistory || overHide
                 || model.targets.contains { ($0.key.hasPrefix("project|") || $0.key == "projects-eye") && $0.value.insetBy(dx: -4, dy: -4).contains(point) }
             : layout.wakeRect.contains(point)
