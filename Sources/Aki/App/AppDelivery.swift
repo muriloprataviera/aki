@@ -44,8 +44,8 @@ enum AppDelivery {
                             marks: [Annotation], again: Bool) async -> TerminalJump.Delivery {
         guard !marks.isEmpty, let app = NSRunningApplication.runningApplications(withBundleIdentifier: bundleID).first
         else { return .failed }
-        let text = AnnotationText.forApp(marks)
-        let pictures = marks.sorted { ($0["created_at"]?.string ?? "") < ($1["created_at"]?.string ?? "") }
+        var text = AnnotationText.forApp(marks)
+        var pictures = marks.sorted { ($0["created_at"]?.string ?? "") < ($1["created_at"]?.string ?? "") }
             .compactMap { AnnotationImage.file(for: $0) }
         let pid = app.processIdentifier
         exposeContents(pid)
@@ -112,11 +112,30 @@ enum AppDelivery {
         // Enter goes to whatever has the focus, so it's checked before every one.
         // Aki's first line ("📍 Aki: 2 marks…"): how its message is told apart from
         // anything else written in a box or shown in the conversation.
-        let header = String(text.prefix { $0 != "\n" })
-        // Sent before and still in the box, unsent: only Enter from here.
-        let waiting = again && value(of: found)?.contains(header) == true
-        // It went after all (its message shows in the conversation): not sent twice.
-        if again, !waiting, shows(header, pid, besides: found) { return .sent }
+        var header = String(text.prefix { $0 != "\n" })
+        // Sent before but not confirmed (maybe in several goes): mark by mark, by the
+        // codes on Aki's first lines. Those shown in the conversation went already;
+        // those still in the box go with Enter; only the rest is pasted.
+        var waiting = false
+        if again {
+            let code = { (mark: Annotation) in MarkFolder.code(mark.id) }
+            let sent = codes(in: conversationLines(pid, besides: found))
+            let boxed = codes(in: value(of: found) ?? "")
+            let left = marks.filter { !sent.contains(code($0)) }
+            if left.isEmpty { return .sent }
+            let toPaste = left.filter { !boxed.contains(code($0)) }
+            if toPaste.isEmpty {
+                waiting = true
+                // Its own first line, as it sits in the box.
+                header = (value(of: found) ?? "").split(separator: "\n").map(String.init)
+                    .first { $0.hasPrefix("📍 Aki:") && $0.contains("#" + code(left[0])) } ?? header
+            } else {
+                text = AnnotationText.forApp(toPaste)
+                header = String(text.prefix { $0 != "\n" })
+                pictures = toPaste.sorted { ($0["created_at"]?.string ?? "") < ($1["created_at"]?.string ?? "") }
+                    .compactMap { AnnotationImage.file(for: $0) }
+            }
+        }
         var box = found, pastedText = waiting
         func stillThere() -> Bool {
             guard NSWorkspace.shared.frontmostApplication?.processIdentifier == pid, let now = messageBox(pid) else { return false }
@@ -474,6 +493,39 @@ enum AppDelivery {
     }
 
     /// Whether the box has nothing written in it (the message went); nil when it doesn't say.
+    /// The codes on Aki's first lines in `text` ("📍 Aki: 2 marcas na tela (#a1b2, #c3d4).").
+    static func codes(in text: String) -> Set<String> {
+        var found = Set<String>()
+        for line in text.split(separator: "\n") where line.hasPrefix("📍 Aki:") {
+            guard let open = line.lastIndex(of: "("), let close = line.lastIndex(of: ")"), open < close else { continue }
+            for code in line[line.index(after: open)..<close].split(separator: ",") {
+                let trimmed = code.trimmingCharacters(in: .whitespaces)
+                if trimmed.hasPrefix("#") { found.insert(String(trimmed.dropFirst())) }
+            }
+        }
+        return found
+    }
+
+    /// Every text shown in the app's window that holds one of Aki's first lines, but the box's.
+    private static func conversationLines(_ pid: pid_t, besides box: AXUIElement) -> String {
+        guard let window = focusedWindow(pid) else { return "" }
+        var queue = [window], seen = 0, lines: [String] = []
+        while !queue.isEmpty, seen < 4000 {
+            let node = queue.removeFirst()
+            seen += 1
+            var role: CFTypeRef?
+            AXUIElementCopyAttributeValue(node, kAXRoleAttribute as CFString, &role)
+            if role as? String == "AXTextArea" || role as? String == "AXStaticText" {
+                if !CFEqual(node, box), let text = value(of: node), text.contains("📍 Aki:") { lines.append(text) }
+                if role as? String == "AXTextArea" { continue }
+            }
+            var children: CFTypeRef?
+            if AXUIElementCopyAttributeValue(node, kAXChildrenAttribute as CFString, &children) == .success,
+               let list = children as? [AXUIElement] { queue.append(contentsOf: list) }
+        }
+        return lines.joined(separator: "\n")
+    }
+
     private static func isEmpty(_ box: AXUIElement) -> Bool? {
         var value: CFTypeRef?
         guard AXUIElementCopyAttributeValue(box, kAXValueAttribute as CFString, &value) == .success,
