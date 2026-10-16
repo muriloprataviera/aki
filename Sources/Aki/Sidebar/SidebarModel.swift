@@ -855,7 +855,8 @@ final class SidebarModel {
             if preferences.hiddenTerminals.contains(parts[1]) { preferences.hiddenTerminals.remove(parts[1]) }
             else { preferences.hiddenTerminals.insert(parts[1]) }
         case "deliver":
-            if let terminal = terminals.first(where: { $0.id == parts[1] }) { deliver(terminal) }
+            // By hand: every mark still open there (one may sit in an app's box).
+            if let terminal = terminals.first(where: { $0.id == parts[1] }) { deliver(terminal, all: true) }
         case "queue":
             // The marks with the agent: all of them, in this session's History.
             pinned = nil
@@ -934,14 +935,16 @@ final class SidebarModel {
             }
             // Asked again meanwhile: new marks still unsent, or a send-again (which goes even
             // with every mark sent once: one may sit in the app's box).
-            let again = sendAfter.removeValue(forKey: terminal.id)
-            let unsent = again == false ? await undeliveredIDs(of: terminal) : []
-            guard let again, again || !unsent.isEmpty else {
-                sending.remove(terminal.id)
-                return
+            // (Looked at again after each look at the store: another ask may come in meanwhile.)
+            while let again = sendAfter.removeValue(forKey: terminal.id) {
+                let unsent = again ? [] : await undeliveredIDs(of: terminal)
+                if again || !unsent.isEmpty {
+                    sending.remove(terminal.id)
+                    deliver(terminals.first { $0.id == terminal.id } ?? terminal, all: again)
+                    return
+                }
             }
             sending.remove(terminal.id)
-            deliver(terminals.first { $0.id == terminal.id } ?? terminal, all: again)
         }
     }
 
