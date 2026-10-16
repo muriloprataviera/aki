@@ -3,6 +3,21 @@
     <channel>
         <title>Aki</title>
         <item>
+            <title>0.8.7-beta.1</title>
+            <pubDate>Fri, 16 Oct 2026 12:17:02 -0300</pubDate>
+            <sparkle:channel>beta</sparkle:channel>
+            <sparkle:version>20261016151702</sparkle:version>
+            <sparkle:shortVersionString>0.8.7-beta.1</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
+            <description><![CDATA[<h2>Aki 0.8.7 beta 1</h2>
+<h3>Changed</h3><ul>
+<li>Sessions and conversations untouched for six hours (not a day) wait in "+N", so the sidebar keeps only what you're using.</li>
+</ul>
+]]></description>
+            <enclosure url="https://aki-updates.vercel.app/0.8.7-beta.1/Aki-0.8.7-beta.1.zip" length="4080034" type="application/octet-stream" sparkle:edSignature="uVZ8pi0+SdF7IH7Apxrek0NGAZP6Px+vUldBQD5dY+DnggN7fEzs1cb2uKQLLu+d8fDRnrardqUaGAeOr2lFBA=="/>
+        </item>
+        <item>
             <title>0.8.6</title>
             <pubDate>Fri, 16 Oct 2026 12:04:26 -0300</pubDate>
             <sparkle:version>20261016150426</sparkle:version>
