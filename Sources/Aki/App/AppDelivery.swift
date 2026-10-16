@@ -208,23 +208,33 @@ enum AppDelivery {
     }
 
     /// Opens one of the app's conversations by its own link and waits for its page (by
-    /// its title, up to six seconds). The page that was open still showing (the link went
-    /// nowhere): nothing is sent. A page that doesn't tell its title, or shows it its own
-    /// way (moved on from the one before): the link is trusted.
+    /// its title, up to six seconds). Another title (the link went nowhere, or you opened
+    /// another one meanwhile): nothing is sent. A page that tells no title: the link is trusted.
     /// Returns the title it shows ("" when it tells none), nil when not opened.
     private static func open(conversation: (id: String, name: String), bundleID: String, _ pid: pid_t) async -> String?? {
-        let before = DesktopApps.pageTitle(pid)
         guard let link = DesktopApps.link(to: conversation.id, in: bundleID), NSWorkspace.shared.open(link) else { return nil }
         try? await Task.sleep(for: .milliseconds(600))
         var title = DesktopApps.pageTitle(pid)
         let deadline = Date().addingTimeInterval(6)
-        while Date() < deadline, !(title.map { showing($0, conversation.name) } ?? false) {
+        while Date() < deadline, !(title.map { titled($0, conversation.name) } ?? false) {
             try? await Task.sleep(for: .milliseconds(200))
             title = DesktopApps.pageTitle(pid)
         }
         guard NSWorkspace.shared.frontmostApplication?.processIdentifier == pid else { return nil }
         guard let title else { return .some(nil) }
-        return showing(title, conversation.name) || (before != nil && title != before) ? .some(title) : nil
+        return titled(title, conversation.name) ? .some(title) : nil
+    }
+
+    /// The page names that conversation: exactly, or with the app's own name beside it
+    /// ("Revisar NFs no Drive - Codex"). Any other title is another conversation.
+    private static func titled(_ title: String, _ name: String) -> Bool {
+        if showing(title, name) { return true }
+        let page = title.trimmingCharacters(in: .whitespacesAndNewlines), wanted = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        return [" - ", " – ", " — ", " · ", " | "].contains { separator in
+            ["codex", "chatgpt", "claude"].contains { app in
+                page.lowercased() == (wanted + separator + app).lowercased() || page.lowercased() == (app + separator + wanted).lowercased()
+            }
+        }
     }
 
     /// Brings the app forward on one of its conversations (by its link), nothing pasted.
