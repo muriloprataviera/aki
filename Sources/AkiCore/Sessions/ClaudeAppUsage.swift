@@ -96,7 +96,14 @@ public enum ClaudeAppUsage {
         // The newest few hundred first, then the entry found last time (a busy cache may
         // have pushed it past them).
         let remembered = lastFoundLock.withLock { listFound }
-        let order = Array(candidates.prefix(600)) + candidates.dropFirst(600).filter { $0.0 == remembered }
+        // None known yet: the whole cache, at most every ten minutes (only each entry's
+        // address is read).
+        let deep = lastFoundLock.withLock { () -> Bool in
+            guard remembered == nil, Date().timeIntervalSince(lastListScan) > 600 else { return false }
+            lastListScan = Date()
+            return true
+        }
+        let order = Array(candidates.prefix(600)) + candidates.dropFirst(600).filter { deep || $0.0 == remembered }
         var list: [DesktopApps.Conversation]?
         for (url, _) in order {
             if let body = body(of: url, if: isConversationList), let found = parseConversations(body) {
@@ -116,6 +123,7 @@ public enum ClaudeAppUsage {
     }
 
     nonisolated(unsafe) private static var listFound: URL?
+    nonisolated(unsafe) private static var lastListScan = Date.distantPast
 
     /// Every chat seen in a list since Aki started, by id: one that has left the app's first
     /// page (with marks waiting for it, or chosen) is still known by its name.

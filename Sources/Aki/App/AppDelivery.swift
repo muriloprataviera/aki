@@ -232,8 +232,9 @@ enum AppDelivery {
         if showing(title, name) { return true }
         let page = title.trimmingCharacters(in: .whitespacesAndNewlines), wanted = name.trimmingCharacters(in: .whitespacesAndNewlines)
         return [" - ", " – ", " — ", " · ", " | "].contains { separator in
-            ["codex", "chatgpt", "claude"].contains { app in
-                page.lowercased() == (wanted + separator + app).lowercased() || page.lowercased() == (app + separator + wanted).lowercased()
+            // The conversation's name exactly (only the app's own name in any case).
+            ["Codex", "ChatGPT", "Claude"].contains { app in
+                [wanted + separator + app, app + separator + wanted].contains(page)
             }
         }
     }
