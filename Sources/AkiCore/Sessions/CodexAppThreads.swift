@@ -9,8 +9,9 @@ public enum CodexAppThreads {
     nonisolated(unsafe) private static var read: (list: [DesktopApps.Conversation], at: Date) = ([], .distantPast)
     private static let lock = NSLock()
 
+    /// The newest ones (more than are shown: an older one may still have marks waiting).
     /// Looked at every quarter of a minute at most (the sidebar asks every three seconds).
-    public static func recent(limit: Int = DesktopApps.conversationsShown, home: URL = UsageLimits.codexHome) -> [DesktopApps.Conversation] {
+    public static func recent(limit: Int = 50, home: URL = UsageLimits.codexHome) -> [DesktopApps.Conversation] {
         if let known = lock.withLock({ Date().timeIntervalSince(read.at) < 15 ? read.list : nil }) { return known }
         let list = query(limit: limit, home: home)
         lock.withLock { read = (list, Date()) }

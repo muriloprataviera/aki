@@ -208,8 +208,8 @@ enum AppDelivery {
     }
 
     /// Opens one of the app's conversations by its own link and waits for its page (by
-    /// its title, up to six seconds). Another title (the link went nowhere, or you opened
-    /// another one meanwhile): nothing is sent. A page that tells no title: the link is trusted.
+    /// its title, up to six seconds). Another title or none (the link went nowhere, still
+    /// loading, or you opened another one meanwhile): nothing is sent.
     /// Returns the title it shows ("" when it tells none), nil when not opened.
     private static func open(conversation: (id: String, name: String), bundleID: String, _ pid: pid_t) async -> String?? {
         guard let link = DesktopApps.link(to: conversation.id, in: bundleID), NSWorkspace.shared.open(link) else { return nil }
@@ -221,8 +221,9 @@ enum AppDelivery {
             title = DesktopApps.pageTitle(pid)
         }
         guard NSWorkspace.shared.frontmostApplication?.processIdentifier == pid else { return nil }
-        guard let title else { return .some(nil) }
-        return titled(title, conversation.name) ? .some(title) : nil
+        // Its page not confirmed (no title, or another one): nothing is sent.
+        guard let title, titled(title, conversation.name) else { return nil }
+        return .some(title)
     }
 
     /// The page names that conversation: exactly, or with the app's own name beside it

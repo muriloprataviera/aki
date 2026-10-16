@@ -485,9 +485,11 @@ extension AgentSessions {
             // destination of its own: Aki opens it by the app's link, then pastes. The ones
             // left for a day wait in "+N".
             let conversations = agent == .claude ? ClaudeAppUsage.conversations() : CodexAppThreads.recent()
-            for conversation in conversations.prefix(DesktopApps.conversationsShown) {
+            for (index, conversation) in conversations.enumerated() {
                 let chatID = id + "#" + conversation.id
                 let theirs = pending.filter { $0["session_id"]?.string == chatID }
+                // The recent ones, and any older one with marks still waiting for it.
+                guard index < DesktopApps.conversationsShown || !theirs.isEmpty else { continue }
                 let answering = conversation.log.map { CodexSessions.working(log: $0) } ?? false
                 result.append(AgentTerminal(
                     id: chatID, agent: agent, pid: app.pid, name: conversation.name, named: true,
