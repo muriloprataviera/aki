@@ -23,6 +23,9 @@ What changed in each version of Aki. Versions follow [semantic versioning](https
 - Aki stops pressing Return when it only adds blank lines to an app's box, and gives the clipboard back only if you didn't copy something meanwhile.
 - A stuck Orca no longer leaves sends stuck "sending" for good.
 
+- On a light Mac the sidebar and its cards are light, instead of black glass under dark text.
+- The folded sidebar is easier to catch (a bigger area wakes it) and doesn't fold the moment the pointer strays.
+
 ### Changed
 - Much lighter on the Mac: the rings and the agents' symbols turn in Core Animation (no redraw of the sidebar), the sidebar works its order out once per change, transcripts, Codex logs and the process list are read again only when they change, following Orca's tab never stalls Aki and Orca stops describing itself when it's not in front, and closed windows stop working.
 
