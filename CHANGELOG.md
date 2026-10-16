@@ -24,7 +24,7 @@ What changed in each version of Aki. Versions follow [semantic versioning](https
 - A stuck Orca no longer leaves sends stuck "sending" for good.
 
 ### Changed
-- Much lighter on the Mac: rings move at 20 frames a second instead of the screen's full rate, the sidebar works its order out once per change, transcripts, Codex logs and the process list are read again only when they change, following Orca's tab never stalls Aki and Orca stops describing itself when it's not in front, and closed windows stop working.
+- Much lighter on the Mac: the rings and the agents' symbols turn in Core Animation (no redraw of the sidebar), the sidebar works its order out once per change, transcripts, Codex logs and the process list are read again only when they change, following Orca's tab never stalls Aki and Orca stops describing itself when it's not in front, and closed windows stop working.
 
 ## [0.8.8] — 2026-10-16
 
