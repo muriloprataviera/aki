@@ -936,8 +936,9 @@ final class SidebarModel {
             if preferences.hiddenTerminals.contains(parts[1]) { preferences.hiddenTerminals.remove(parts[1]) }
             else { preferences.hiddenTerminals.insert(parts[1]) }
         case "deliver":
-            // By hand: every mark still open there (one may sit in an app's box).
-            if let terminal = terminals.first(where: { $0.id == parts[1] }) { deliver(terminal, all: true) }
+            // By hand: to an app, every mark still open there (one may sit in its box); to a
+            // terminal, the ones not sent yet (the agent may be on the others).
+            if let terminal = terminals.first(where: { $0.id == parts[1] }) { deliver(terminal, all: viaApp(terminal)) }
         case "queue":
             // The marks with the agent: all of them, in this session's History.
             pinned = nil
@@ -1051,7 +1052,7 @@ final class SidebarModel {
         // Named in the message: those not sent yet (the agent may be on the others
         // already, and would start them over as "new"); all of them on a send-again.
         let oldestFirst = pending.sorted { ($0["created_at"]?.string ?? "") < ($1["created_at"]?.string ?? "") }
-            .filter { waiting.isEmpty || waiting.contains($0.id) }
+            .filter { all || waiting.isEmpty || waiting.contains($0.id) }
         current.pendingIDs = oldestFirst.map(\.id)
         // The words too, from the same list (each comment beside its own code).
         current.pendingComments = oldestFirst.reversed().prefix(3).map {
