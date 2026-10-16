@@ -4,6 +4,8 @@ What changed in each version of Aki. Versions follow [semantic versioning](https
 
 ## [Unreleased]
 
+## [0.8.9] — 2026-10-16
+
 ### Fixed
 - Aki never types into a terminal while Claude Code is asking you something (a permission): its Enter used to answer it. The marks wait and go once you've answered.
 - Esc on a queued mark you opened again closes it as it was, instead of deleting it.
