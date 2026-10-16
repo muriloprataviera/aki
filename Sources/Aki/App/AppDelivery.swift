@@ -153,7 +153,10 @@ enum AppDelivery {
             if pastedText, value(of: now)?.contains(header) == true { box = now; return true }
             return false
         }
+        // What Aki last put there: anything you copied since stays yours.
+        var ours = pasteboard.changeCount
         func restore() {
+            guard pasteboard.changeCount == ours else { return }
             pasteboard.clearContents()
             if !saved.isEmpty { pasteboard.writeObjects(saved) }
         }
@@ -167,6 +170,7 @@ enum AppDelivery {
             guard stillThere() else { restore(); return .failed }
             pasteboard.clearContents()
             pasteboard.writeObjects([item])
+            ours = pasteboard.changeCount
             pressPaste()
             try? await Task.sleep(for: .milliseconds(500))
         }
@@ -175,6 +179,7 @@ enum AppDelivery {
             pasteboard.clearContents()
             // Something of yours already written there: Aki's text after a blank line.
             pasteboard.setString(isEmpty(box) == false ? "\n\n" + text : text, forType: .string)
+            ours = pasteboard.changeCount
             pressPaste()
             pastedText = true
             try? await Task.sleep(for: .milliseconds(600))
@@ -185,6 +190,7 @@ enum AppDelivery {
         for _ in 0..<30 {
             // Gone elsewhere with it all in the box: not pasted again.
             guard stillThere() else { return .pasted }
+            let before = value(of: box)
             press(36)  // Return
             try? await Task.sleep(for: .milliseconds(500))
             // A new conversation moves on to its own page once sent: another message
@@ -210,7 +216,14 @@ enum AppDelivery {
             case true?: return .sent
             // A box that doesn't tell its text: no proof it went, so not counted as done.
             case nil: return .pasted
-            case false?: continue
+            // Return only made a new line in it (an app that sends with ⌘Return): no more
+            // Returns piling blank lines into it; it waits there for you to send.
+            case false?:
+                if let before, let after = value(of: box), after.count > before.count,
+                   after.trimmingCharacters(in: .whitespacesAndNewlines) == before.trimmingCharacters(in: .whitespacesAndNewlines) {
+                    return .pasted
+                }
+                continue
             }
         }
         // Still unsent after all that: it's all in the box, one Enter away. Not pasted

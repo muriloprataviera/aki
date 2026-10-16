@@ -220,7 +220,10 @@ private struct HistoryView: View {
                                                move: { t in act { await model.moveMark(a.id, to: t) } },
                                                resolve: { act { _ = try? await model.store.update(a.id, with: ["status": .string("completed")]) } },
                                                delete: { act { _ = try? await model.store.delete(a.id) } },
-                                               resend: terminal(of: a).map { t in { model.deliver(t) } })
+                                               // Only where Aki can type (not Terminal or iTerm), and every
+                                               // mark still open there, this one included.
+                                               resend: terminal(of: a).flatMap { t in model.canDeliver(t) ? { model.deliver(t, all: true) } : nil },
+                                               sendState: terminal(of: a).flatMap { model.delivery[$0.id] })
                                 }
                             } header: {
                                 Text(dayTitle(day).uppercased()).font(.system(size: 9, weight: .bold)).tracking(0.6)
@@ -466,6 +469,8 @@ private struct HistoryRow: View {
     let resolve: () -> Void
     let delete: () -> Void
     let resend: (() -> Void)?
+    /// How the last send to its session went (shown whether hovered or not).
+    var sendState: SidebarModel.DeliveryState? = nil
     @State private var hovered = false
 
     private var done: Bool { annotation.status == "completed" }
@@ -534,10 +539,14 @@ private struct HistoryRow: View {
                         .hoverLift()
                         .help(L10n.t("Move to another terminal"))
                     }
-                    if !done, let resend { iconButton("paperplane.fill", L10n.t("Send to the terminal now"), resend) }
+                    if !done, let resend {
+                        if let sendState { sendBadge(sendState) } else { iconButton("paperplane.fill", L10n.t("Send to the terminal now"), resend) }
+                    }
                     if !done { iconButton("checkmark", L10n.t("Mark as done"), resolve) }
                     iconButton("trash", L10n.t("Delete"), delete)
                 }
+            } else if !done, resend != nil, let sendState {
+                sendBadge(sendState)
             } else if done {
                 Image(systemName: "checkmark.circle.fill").font(.system(size: 11)).foregroundStyle(Color.green.opacity(0.8))
                     .help(L10n.t("Done marks"))
@@ -568,6 +577,22 @@ private struct HistoryRow: View {
         }
         parts.append(Bytes.text(Int64(HistorySize.of(annotation))))
         return parts.joined(separator: " · ")
+    }
+
+    /// Sending, sent, left in the app's box, or not sent: with its reason on the pointer.
+    private func sendBadge(_ state: SidebarModel.DeliveryState) -> some View {
+        Group {
+            switch state {
+            case .sending: ProgressView().controlSize(.mini)
+            case .sent: Image(systemName: "checkmark.circle.fill").foregroundStyle(Color.green.opacity(0.85))
+            case .pasted: Image(systemName: "text.cursor").foregroundStyle(.white)
+            case .failed: Image(systemName: "exclamationmark.triangle.fill").foregroundStyle(Color.orange)
+            }
+        }
+        .font(.system(size: 10, weight: .bold))
+        .frame(width: 20, height: 20)
+        .help(L10n.t(state == .sending ? "Sending to it…" : state == .sent ? "Sent to it"
+                     : state == .pasted ? "Left in its box: click to send" : "Couldn't send it"))
     }
 
     private func iconButton(_ symbol: String, _ help: String, _ action: @escaping () -> Void) -> some View {

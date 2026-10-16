@@ -908,76 +908,89 @@ final class SidebarModel {
     @ObservationIgnored private var waits: [String: Task<Void, Never>] = [:]
     /// Where "Send to the terminal now" stands for each session.
     var delivery: [String: DeliveryState] = [:]
-    enum DeliveryState { case sending, sent, failed }
+    /// `pasted`: in an app's message box, not confirmed sent (Enter from there sends it).
+    enum DeliveryState { case sending, sent, pasted, failed }
+    /// Sessions asked to send again while a send to them was still going.
+    @ObservationIgnored private var sendAfter: Set<String> = []
 
-    /// Types the request into the session's tab now.
-    func deliver(_ terminal: AgentTerminal) {
-        guard delivery[terminal.id] != .sending else { return }
+    /// Types the request into the session's tab now. `all`: an app gets every mark
+    /// still open for it, not only those never sent (History's send arrow).
+    func deliver(_ terminal: AgentTerminal, all: Bool = false) {
+        // One at a time per session: asked meanwhile (new marks just sent), it goes
+        // once this one is over, with whatever is still unsent then.
+        guard delivery[terminal.id] != .sending else { sendAfter.insert(terminal.id); return }
         delivery[terminal.id] = .sending
         Task {
-            // The marks this request is about, taken before it goes: any arriving
-            // meanwhile still count as not delivered (their own wait sends them).
-            // One look at the store for both: the message names exactly the marks
-            // then recorded as delivered (a mark arriving later waits for its own).
-            let pending = await pendingMarks(of: terminal)
-            let waiting = pending.filter { $0["delivered_at"]?.string == nil }.map(\.id)
-            var current = terminal
-            let oldestFirst = pending.sorted { ($0["created_at"]?.string ?? "") < ($1["created_at"]?.string ?? "") }
-            current.pendingIDs = oldestFirst.map(\.id)
-            // The words too, from the same list (each comment beside its own code).
-            current.pendingComments = oldestFirst.reversed().prefix(3).map {
-                $0["comment"]?.string.flatMap { $0.isEmpty ? nil : $0 } ?? "(no text)"
+            await send(terminal, all: all)
+            guard sendAfter.remove(terminal.id) != nil, !(await undeliveredIDs(of: terminal)).isEmpty else { return }
+            delivery[terminal.id] = nil
+            deliver(terminals.first { $0.id == terminal.id } ?? terminal)
+        }
+    }
+
+    private func send(_ terminal: AgentTerminal, all: Bool) async {
+        // The marks this request is about, taken before it goes: any arriving
+        // meanwhile still count as not delivered (their own wait sends them).
+        // One look at the store for both: the message names exactly the marks
+        // then recorded as delivered (a mark arriving later waits for its own).
+        let pending = await pendingMarks(of: terminal)
+        let waiting = pending.filter { $0["delivered_at"]?.string == nil }.map(\.id)
+        var current = terminal
+        let oldestFirst = pending.sorted { ($0["created_at"]?.string ?? "") < ($1["created_at"]?.string ?? "") }
+        current.pendingIDs = oldestFirst.map(\.id)
+        // The words too, from the same list (each comment beside its own code).
+        current.pendingComments = oldestFirst.reversed().prefix(3).map {
+            $0["comment"]?.string.flatMap { $0.isEmpty ? nil : $0 } ?? "(no text)"
+        }
+        current.pending = pending.count
+        current.undelivered = waiting.count
+        // To an app, only the marks not sent yet (it gets them whole, not by code).
+        // Nothing open for it: the app only comes forward.
+        if pending.isEmpty, viaApp(terminal) {
+            // A Code session: that one opened in the app (going to the app alone could
+            // leave another conversation in front).
+            if DesktopApps.bundleID(of: terminal.id) == nil, let owner = TerminalApp.owner(of: terminal.pid)?.bundleIdentifier {
+                await AppDelivery.reveal(terminal.name, in: owner)
+            } else if let bundleID = DesktopApps.bundleID(of: terminal.id), let chat = DesktopApps.conversation(of: terminal.id) {
+                // One of the app's conversations: that one, by its link.
+                await AppDelivery.reveal(conversation: chat, in: bundleID)
+            } else {
+                TerminalJump.go(to: terminal)
             }
-            current.pending = pending.count
-            current.undelivered = waiting.count
-            // To an app, only the marks not sent yet (it gets them whole, not by code).
-            // Nothing open for it: the app only comes forward.
-            if pending.isEmpty, viaApp(terminal) {
-                // A Code session: that one opened in the app (going to the app alone could
-                // leave another conversation in front).
-                if DesktopApps.bundleID(of: terminal.id) == nil, let owner = TerminalApp.owner(of: terminal.pid)?.bundleIdentifier {
-                    await AppDelivery.reveal(terminal.name, in: owner)
-                } else if let bundleID = DesktopApps.bundleID(of: terminal.id), let chat = DesktopApps.conversation(of: terminal.id) {
-                    // One of the app's conversations: that one, by its link.
-                    await AppDelivery.reveal(conversation: chat, in: bundleID)
-                } else {
-                    TerminalJump.go(to: terminal)
-                }
-                delivery[terminal.id] = nil
-                return
-            }
-            // A Code session in an app goes by its name there: two with the same name and
-            // Aki can't tell them apart, so nothing is sent.
-            if viaApp(terminal), DesktopApps.bundleID(of: terminal.id) == nil,
-               terminals.contains(where: {
-                   // Another Code session of the same app (not the app's own ring, which
-                   // may show this very session's name).
-                   $0.id != terminal.id && DesktopApps.bundleID(of: $0.id) == nil && $0.name == terminal.name
-                       && TerminalApp.owner(of: $0.pid)?.bundleIdentifier == TerminalApp.owner(of: terminal.pid)?.bundleIdentifier
-               }) {
-                delivery[terminal.id] = .failed
-                try? await Task.sleep(for: .seconds(3))
-                delivery[terminal.id] = nil
-                return
-            }
-            // Its marks all went already but are still open (the send not confirmed:
-            // left in its box, or never pasted): sent again, from the box when Aki's
-            // message is still there, else pasted anew.
-            let again = waiting.isEmpty && viaApp(terminal)
-            let forApp = again ? pending : pending.filter { waiting.contains($0.id) }
-            let result = await TerminalJump.deliver(to: current, marks: forApp, again: again)
-            delivery[terminal.id] = result == .failed ? .failed : .sent
-            if result != .failed { await markDelivered(waiting, for: terminal) }
-            // An app can't close them with `aki done`: once pasted there, they're done.
-            // Only those still this app's (one moved elsewhere meanwhile waits for its new one).
-            if result == .sent, viaApp(terminal) {
-                let still = Set(await pendingMarks(of: terminal).map(\.id))
-                for id in forApp.map(\.id) where still.contains(id) { _ = try? await store.update(id, with: ["status": "completed"]) }
-                await refresh()
-            }
+            delivery[terminal.id] = nil
+            return
+        }
+        // A Code session in an app goes by its name there: two with the same name and
+        // Aki can't tell them apart, so nothing is sent.
+        if viaApp(terminal), DesktopApps.bundleID(of: terminal.id) == nil,
+           terminals.contains(where: {
+               // Another Code session of the same app (not the app's own ring, which
+               // may show this very session's name).
+               $0.id != terminal.id && DesktopApps.bundleID(of: $0.id) == nil && $0.name == terminal.name
+                   && TerminalApp.owner(of: $0.pid)?.bundleIdentifier == TerminalApp.owner(of: terminal.pid)?.bundleIdentifier
+           }) {
+            delivery[terminal.id] = .failed
             try? await Task.sleep(for: .seconds(3))
             delivery[terminal.id] = nil
+            return
         }
+        // Its marks all went already but are still open (the send not confirmed:
+        // left in its box, or never pasted): sent again, from the box when Aki's
+        // message is still there, else pasted anew.
+        let again = (waiting.isEmpty || all) && viaApp(terminal)
+        let forApp = again ? pending : pending.filter { waiting.contains($0.id) }
+        let result = await TerminalJump.deliver(to: current, marks: forApp, again: again)
+        delivery[terminal.id] = result == .failed ? .failed : result == .pasted ? .pasted : .sent
+        if result != .failed { await markDelivered(waiting, for: terminal) }
+        // An app can't close them with `aki done`: once pasted there, they're done.
+        // Only those still this app's (one moved elsewhere meanwhile waits for its new one).
+        if result == .sent, viaApp(terminal) {
+            let still = Set(await pendingMarks(of: terminal).map(\.id))
+            for id in forApp.map(\.id) where still.contains(id) { _ = try? await store.update(id, with: ["status": "completed"]) }
+            await refresh()
+        }
+        try? await Task.sleep(for: .seconds(3))
+        delivery[terminal.id] = nil
     }
 
     /// Goes to a session: its Orca tab, its terminal, or its conversation in the app.
@@ -1028,7 +1041,13 @@ final class SidebarModel {
     }
 
     /// Delivered through an agent's app: the app itself, or a Code session it runs.
-    private func viaApp(_ terminal: AgentTerminal) -> Bool {
+    /// Whether Aki can type into it: an agent's app, or an Orca tab (never Terminal or iTerm).
+    func canDeliver(_ terminal: AgentTerminal) -> Bool {
+        viaApp(terminal) || terminal.orcaHandle != nil
+            || TerminalApp.owner(of: terminal.pid).map { $0.bundleIdentifier == "com.stablyai.orca" || $0.bundleURL?.lastPathComponent == "Orca.app" } ?? false
+    }
+
+    func viaApp(_ terminal: AgentTerminal) -> Bool {
         DesktopApps.bundleID(of: terminal.id) != nil
             || TerminalApp.owner(of: terminal.pid)?.bundleIdentifier.map { DesktopApps.known[$0] != nil } == true
     }
