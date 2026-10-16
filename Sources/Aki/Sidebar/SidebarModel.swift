@@ -622,7 +622,8 @@ final class SidebarModel {
     /// doubt (two sessions with that name) leaves the destination as it was.
     /// The agent tab you were in, and when you last were: marking right after picks it
     /// first (before the page's port), the strongest hint of where a print goes.
-    var lastTabPick: (id: String, at: Date)?
+    /// (Refreshed every 0.4 s and read only when marking starts: not observed.)
+    @ObservationIgnored var lastTabPick: (id: String, at: Date)?
 
     /// The tab you were in when you chose a session on the sidebar: that choice holds
     /// until you go to another tab.
@@ -645,9 +646,12 @@ final class SidebarModel {
         guard preferences.followOrcaTab else { return }
         // Orca not in front: coming back to the same tab later counts as a click again.
         if NSWorkspace.shared.frontmostApplication?.bundleIdentifier != OrcaFocus.bundleID {
+            OrcaFocus.leave()
             if let tab = lastOrcaTab, !tab.hasPrefix("?") { lastOrcaTab = "?" + tab }
             return
         }
+        // Marking: the overlay has the keyboard, and the tab you were in is already known.
+        guard !marking else { return }
         guard let title = OrcaFocus.focusedTabTitle() else { return }
         // The name without the status sign in front (✳ resting, a spinner working): a
         // session starting to work isn't you clicking its tab.

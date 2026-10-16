@@ -11,8 +11,18 @@ enum OrcaFocus {
     @MainActor static func focusedTabTitle() -> String? {
         guard let orca = NSWorkspace.shared.frontmostApplication, orca.bundleIdentifier == bundleID else { return nil }
         let app = AXUIElementCreateApplication(orca.processIdentifier)
-        // Orca draws with Chromium: its tree is built only when asked for.
-        AXUIElementSetAttributeValue(app, "AXManualAccessibility" as CFString, kCFBooleanTrue)
+        // A busy Orca answers late: each question gets a fifth of a second, and one
+        // that doesn't come in time ends this look (asked again in 0.4 s), so the
+        // sidebar and the keyboard never wait on it.
+        AXUIElementSetMessagingTimeout(app, 0.2)
+        stalled = false
+        // Orca draws with Chromium: its tree is built only when asked for. Asked once
+        // while it's in front (`leave` stops it): described, Orca redoes it at every
+        // line a terminal prints.
+        if described != orca.processIdentifier {
+            AXUIElementSetAttributeValue(app, "AXManualAccessibility" as CFString, kCFBooleanTrue)
+            described = orca.processIdentifier
+        }
         guard let input = element(app, "AXFocusedUIElement"),
               (string(input, "AXDescription") ?? "") == "Terminal input",
               let pane = ancestor(of: input, withClass: "pane")
@@ -27,6 +37,23 @@ enum OrcaFocus {
     }
 
     @MainActor private static var last: (input: AXUIElement, title: String?, at: Date)?
+
+    /// The Orca asked to describe itself (its process), until it leaves the front.
+    @MainActor private static var described: pid_t?
+
+    /// Whether that process is the Orca being followed now (it keeps describing itself).
+    @MainActor static func describes(_ pid: pid_t) -> Bool { described == pid }
+
+    /// Orca went to the back: it stops describing itself (nothing reads it there).
+    @MainActor static func leave() {
+        guard let pid = described else { return }
+        described = nil
+        last = nil
+        AXUIElementSetAttributeValue(AXUIElementCreateApplication(pid), "AXManualAccessibility" as CFString, kCFBooleanFalse)
+    }
+
+    /// A question timed out during this look: the rest of it is skipped.
+    nonisolated(unsafe) private static var stalled = false
 
     @MainActor private static func tabTitle(over pane: AXUIElement) -> String? {
         let paneFrame = frame(pane)
@@ -75,8 +102,11 @@ enum OrcaFocus {
     }
 
     private static func copy(_ e: AXUIElement, _ key: String) -> AnyObject? {
+        guard !stalled else { return nil }
         var value: AnyObject?
-        return AXUIElementCopyAttributeValue(e, key as CFString, &value) == .success ? value : nil
+        let result = AXUIElementCopyAttributeValue(e, key as CFString, &value)
+        if result == .cannotComplete { stalled = true }
+        return result == .success ? value : nil
     }
 
     private static func string(_ e: AXUIElement, _ key: String) -> String? { copy(e, key) as? String }
