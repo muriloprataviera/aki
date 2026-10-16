@@ -25,7 +25,8 @@ public enum CodexAppThreads {
     public static func allNames(except ids: Set<String>, home: URL = UsageLimits.codexHome) -> [String] {
         let all = lock.withLock { Date().timeIntervalSince(names.at) < 60 ? names.list : nil }
             ?? {
-                let list = query(limit: -1, home: home)  // -1: no limit (SQLite).map { (id: $0.id, name: $0.name) }
+                // -1: no limit (SQLite).
+                let list = query(limit: -1, home: home).map { (id: $0.id, name: $0.name) }
                 lock.withLock { names = (list, Date()) }
                 return list
             }()
