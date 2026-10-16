@@ -518,13 +518,21 @@ final class MarkingSession {
             if !words.isEmpty { marks[i].text = words }
         }
         if !marks[i].imageChosen {
+            // (A comment left empty already chose the picture.)
             marks[i].sendsImage = Self.looksVisual(marks[i], text: marks[i].text ?? marks[i].element?.title)
+                || (editing != id && marks[i].comment.isEmpty)
         }
     }
 
     func commitDraft() {
         guard let editing, let index = marks.firstIndex(where: { $0.id == editing }) else { return }
         marks[index].comment = draft.trimmingCharacters(in: .whitespacesAndNewlines)
+        // No comment and Aki left to choose: the picture is the request, so it goes (and
+        // the preview says so); with words, Aki's own guess again.
+        if !marks[index].imageChosen {
+            marks[index].sendsImage = marks[index].comment.isEmpty
+                || Self.looksVisual(marks[index], text: marks[index].text ?? marks[index].element?.title)
+        }
         self.editing = nil
         draft = ""
     }
@@ -741,14 +749,12 @@ final class MarkingSession {
             fields.merge(terminal.identityFields) { _, new in new }
             // Its own folder: marks/<day>/<code>/ with the crop and a record of the request.
             let folder = MarkFolder.make(for: id, home: home)
-            // No comment and Aki left to choose: the picture is the request, so it goes.
-            let sendsImage = mark.sendsImage || (mark.comment.isEmpty && !mark.imageChosen)
-            if sendsImage, let folder, let crop = grab.crop(cropRect(for: mark, in: grab)), let jpeg = jpegData(crop) {
+            if mark.sendsImage, let folder, let crop = grab.crop(cropRect(for: mark, in: grab)), let jpeg = jpegData(crop) {
                 let file = folder.appending(path: "crop.jpg")
                 if (try? jpeg.write(to: file, options: .atomic)) != nil { fields["image_path"] = .string(file.path) }
             }
             // The crop was asked for and couldn't be written: not sent without it.
-            if sendsImage, fields["image_path"] == nil {
+            if mark.sendsImage, fields["image_path"] == nil {
                 if let folder { try? FileManager.default.removeItem(at: folder) }
                 failed.append(mark.id)
                 continue
