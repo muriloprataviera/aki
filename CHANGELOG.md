@@ -5,12 +5,26 @@ What changed in each version of Aki. Versions follow [semantic versioning](https
 ## [Unreleased]
 
 ### Fixed
+- Aki never types into a terminal while Claude Code is asking you something (a permission): its Enter used to answer it. The marks wait and go once you've answered.
+- Esc on a queued mark you opened again closes it as it was, instead of deleting it.
+- `aki wait` returns marks sent while the agent was busy, instead of waiting for the next one.
+- The terminal message names only the marks not sent yet (an agent busy with one no longer starts it over), and `aki show` says when a mark is already done.
+- Running `aki` from an agent's shell shows its usage instead of opening a second Aki; only one Aki runs at a time.
+- An update never restarts Aki in the middle of a send.
+- The picture limit never deletes a pending mark's picture.
+- The Screen Recording alert offers to restart Aki when it comes back (macOS applies the permission only after a restart).
+- A send to the Codex or Claude app without Accessibility fails at once, with the right message.
+- Every program Aki runs (git, lsof, Orca's command, the shell) has a time limit: one stuck no longer stops the sidebar or a send.
+- A rare crash while marking on a slow web page.
 - A mark sent with no comment always goes with its picture (the agent used to get "(no comment)" alone).
 - Marks sent while a send to the same session is still going wait their turn instead of being lost.
 - A message left in the Codex or Claude app's box shows as "Left in its box: click to send", not as sent, and the card keeps its send button.
 - History's send arrow shows sending, sent or not sent, sends every open mark of that session, and is hidden where Aki can't type (Terminal, iTerm).
 - Aki stops pressing Return when it only adds blank lines to an app's box, and gives the clipboard back only if you didn't copy something meanwhile.
 - A stuck Orca no longer leaves sends stuck "sending" for good.
+
+### Changed
+- Much lighter on the Mac: rings move at 20 frames a second instead of the screen's full rate, the sidebar works its order out once per change, transcripts, Codex logs and the process list are read again only when they change, following Orca's tab never stalls Aki and Orca stops describing itself when it's not in front, and closed windows stop working.
 
 ## [0.8.8] — 2026-10-16
 
