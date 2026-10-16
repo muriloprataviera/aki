@@ -166,13 +166,34 @@ public enum ClaudeSessions {
 
     /// The agent's latest words in this session, for the card: the last assistant
     /// text in the transcript, read from the end of the file only.
+    /// Read again only when the transcript changed (size or date): asked for every
+    /// session every few seconds.
     public static func lastAgentMessage(sessionId: String, cwd: String, projects: URL = projects) -> String? {
         let file = transcript(sessionId: sessionId, cwd: cwd, projects: projects)
+        let values = try? file.resourceValues(forKeys: [.fileSizeKey, .contentModificationDateKey])
+        guard let size = values?.fileSize, let modified = values?.contentModificationDate else { return nil }
+        if let known = lastMessagesLock.withLock({ lastMessages[file.path] }), known.size == size, known.modified == modified {
+            return known.message
+        }
+        let message = readLastAgentMessage(file)
+        lastMessagesLock.withLock {
+            if lastMessages.count > 300 { lastMessages.removeAll() }
+            lastMessages[file.path] = (size, modified, message)
+        }
+        return message
+    }
+
+    nonisolated(unsafe) private static var lastMessages: [String: (size: Int, modified: Date, message: String?)] = [:]
+    private static let lastMessagesLock = NSLock()
+
+    private static func readLastAgentMessage(_ file: URL) -> String? {
         guard let handle = try? FileHandle(forReadingFrom: file) else { return nil }
         defer { try? handle.close() }
         let size = (try? handle.seekToEnd()) ?? 0
         try? handle.seek(toOffset: size > 262_144 ? size - 262_144 : 0)
-        guard let data = try? handle.readToEnd(), let text = String(data: data, encoding: .utf8) else { return nil }
+        // (Decoded leniently: the cut may fall inside a character.)
+        guard let data = try? handle.readToEnd() else { return nil }
+        let text = String(decoding: data, as: UTF8.self)
         for line in text.split(separator: "\n").reversed() {
             guard line.contains("\"type\":\"assistant\""),
                 let json = try? JSONSerialization.jsonObject(with: Data(line.utf8)) as? [String: Any],
