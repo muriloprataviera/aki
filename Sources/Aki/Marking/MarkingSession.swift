@@ -504,6 +504,7 @@ final class MarkingSession {
         commitDraft()
         guard let mark = marks.first(where: { $0.id == id }) else { return }
         editing = id
+        reopened = (id, mark.comment)
         draft = mark.comment
         focusScreen(mark.screen)
     }
@@ -526,6 +527,7 @@ final class MarkingSession {
 
     func commitDraft() {
         guard let editing, let index = marks.firstIndex(where: { $0.id == editing }) else { return }
+        reopened = nil
         marks[index].comment = draft.trimmingCharacters(in: .whitespacesAndNewlines)
         // No comment and Aki left to choose: the picture is the request, so it goes (and
         // the preview says so); with words, Aki's own guess again.
@@ -537,9 +539,20 @@ final class MarkingSession {
         draft = ""
     }
 
-    /// Drops the mark being written.
+    /// A queued mark opened again to check it (and its comment then): esc closes it as it
+    /// was, never drops it.
+    private var reopened: (id: UUID, comment: String)?
+
+    /// Drops the mark being written (one opened again keeps its comment and stays).
     func cancelEditing() {
         guard let editing else { return }
+        if let reopened, reopened.id == editing, let index = marks.firstIndex(where: { $0.id == editing }) {
+            marks[index].comment = reopened.comment
+            self.reopened = nil
+            self.editing = nil
+            draft = ""
+            return
+        }
         marks.removeAll { $0.id == editing }
         self.editing = nil
         draft = ""
