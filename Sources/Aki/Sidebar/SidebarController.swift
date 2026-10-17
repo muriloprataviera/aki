@@ -77,6 +77,10 @@ final class SidebarController {
     private var lastCardClick: (key: String, at: Date)?
     private var previousAppForEditing: NSRunningApplication?
     private var unhoverWork: DispatchWorkItem?
+    /// Last spot on the open card's ring: heading from there toward the card, the
+    /// rings crossed on the way don't take the card over (it used to vanish under you).
+    private var aimFrom: CGPoint?
+    private var aimWork: DispatchWorkItem?
 
     var openHistory: () -> Void = {}
     var openSettings: () -> Void = {}
@@ -88,6 +92,8 @@ final class SidebarController {
     /// How long the pointer may stray before an open sidebar folds (less felt jumpy).
     private static let foldGrace: TimeInterval = 1.5
     private static let hoverGrace: TimeInterval = 0.6
+    /// How long the pointer may rest on another ring, on its way to the card, before that ring wins.
+    private static let aimGrace: TimeInterval = 0.3
 
     var isVisible: Bool { panel.isVisible }
 
@@ -543,11 +549,35 @@ final class SidebarController {
             if let index {
                 unhoverWork?.cancel()
                 unhoverWork = nil
-                if model.hovered != index {
+                if model.hovered == index {
+                    aimFrom = point
+                    aimWork?.cancel()
+                    aimWork = nil
+                } else if model.hovered != nil, headingToCard(point) {
+                    // On the way to the card: it stays, unless the pointer rests here.
+                    if aimWork == nil {
+                        let work = DispatchWorkItem { [weak self] in
+                            MainActor.assumeIsolated {
+                                guard let self else { return }
+                                self.aimWork = nil
+                                self.aimFrom = nil
+                                self.cursorMoved()
+                            }
+                        }
+                        aimWork = work
+                        DispatchQueue.main.asyncAfter(deadline: .now() + Self.aimGrace, execute: work)
+                    }
+                } else {
+                    aimWork?.cancel()
+                    aimWork = nil
                     if model.hovered == nil { TerminalJump.prefetch() }
                     model.hovered = index
+                    aimFrom = point
                 }
-            } else if model.hovered != nil, !overCard, unhoverWork == nil {
+            } else if overCard {
+                aimWork?.cancel()
+                aimWork = nil
+            } else if model.hovered != nil, unhoverWork == nil {
                 let work = DispatchWorkItem { [weak self] in
                     MainActor.assumeIsolated {
                         self?.unhoverWork = nil
@@ -559,6 +589,23 @@ final class SidebarController {
             }
         }
         updateInteractiveRects(cursor: point)
+    }
+
+    /// Whether the pointer is moving from its ring toward the open card: inside the
+    /// triangle from where it left the ring to the card's far side.
+    private func headingToCard(_ point: CGPoint) -> Bool {
+        guard let from = aimFrom, let card = model.targets["card"] else { return false }
+        let (a, b): (CGPoint, CGPoint) = switch preferences.edge {
+        case .right: (CGPoint(x: card.minX, y: card.minY), CGPoint(x: card.minX, y: card.maxY))
+        case .left: (CGPoint(x: card.maxX, y: card.minY), CGPoint(x: card.maxX, y: card.maxY))
+        case .bottom: (CGPoint(x: card.minX, y: card.minY), CGPoint(x: card.maxX, y: card.minY))
+        case .top: (CGPoint(x: card.minX, y: card.maxY), CGPoint(x: card.maxX, y: card.maxY))
+        }
+        func side(_ p: CGPoint, _ q: CGPoint, _ r: CGPoint) -> CGFloat {
+            (q.x - p.x) * (r.y - p.y) - (q.y - p.y) * (r.x - p.x)
+        }
+        let s1 = side(from, a, point), s2 = side(a, b, point), s3 = side(b, from, point)
+        return (s1 >= 0 && s2 >= 0 && s3 >= 0) || (s1 <= 0 && s2 <= 0 && s3 <= 0)
     }
 
     private func setExpanded(_ expanded: Bool) {
@@ -575,6 +622,9 @@ final class SidebarController {
             model.hideButtonHovered = false
             unhoverWork?.cancel()
             unhoverWork = nil
+            aimWork?.cancel()
+            aimWork = nil
+            aimFrom = nil
         }
         updateInteractiveRects()
     }

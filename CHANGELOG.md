@@ -4,6 +4,9 @@ What changed in each version of Aki. Versions follow [semantic versioning](https
 
 ## [Unreleased]
 
+### Fixed
+- A session's card no longer vanishes on the way to it: heading from the ring toward the card, the rings crossed on the way don't take it over.
+
 ## [0.8.9] — 2026-10-16
 
 ### Fixed
