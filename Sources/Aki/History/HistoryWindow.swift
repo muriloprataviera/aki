@@ -509,55 +509,79 @@ private struct HistoryRow: View {
                 Text(details).font(.system(size: 9.5)).foregroundStyle(.white.opacity(0.5)).lineLimit(1)
             }
             Spacer(minLength: 4)
-            if hovered {
-                HStack(spacing: 3) {
-                    if !done {
-                        // Another terminal: the mark moves there (and goes to it if sending by itself is on).
-                        Menu {
-                            let others = sessions.filter { $0.0.id != annotation["session_id"]?.string }
-                            ForEach(others.filter { $0.1 != nil }, id: \.0.id) { t, n in
-                                Button { move(t) } label: {
-                                    SessionMenuLabel(terminal: t, title: "\(n ?? 0)  \(t.agent.displayName) · \(t.name)")
-                                }
-                            }
-                            let rest = others.filter { $0.1 == nil }
-                            if !rest.isEmpty {
-                                Divider()
-                                ForEach(rest, id: \.0.id) { t, _ in
-                                    Button { move(t) } label: {
-                                        SessionMenuLabel(terminal: t, title: "\(t.agent.displayName) · \(t.name) — \(URL(filePath: t.worktree).lastPathComponent)")
-                                    }
-                                }
-                            }
-                        } label: {
-                            Image(systemName: "arrow.left.arrow.right").font(.system(size: 9, weight: .bold)).foregroundStyle(.white)
-                                .frame(width: 20, height: 20).background(Circle().fill(Color.white.opacity(0.14)))
-                        }
-                        .menuStyle(.borderlessButton)
-                        .menuIndicator(.hidden)
-                        .fixedSize()
-                        .hoverLift()
-                        .help(L10n.t("Move to another terminal"))
-                    }
-                    if !done, let resend {
-                        if let sendState { sendBadge(sendState, resend) } else { iconButton("paperplane.fill", L10n.t("Send to the terminal now"), resend) }
-                    }
-                    if !done { iconButton("checkmark", L10n.t("Mark as done"), resolve) }
-                    iconButton("trash", L10n.t("Delete"), delete)
+            // The row's state, always in its place: the actions come over it on hover,
+            // so nothing moves (they used to take its place, the text rewrapped, the row
+            // changed height and the pointer landed on another mark).
+            Group {
+                if !done, let resend, let sendState {
+                    sendBadge(sendState, resend)
+                } else if done {
+                    Image(systemName: "checkmark.circle.fill").font(.system(size: 11)).foregroundStyle(Color.green.opacity(0.8))
+                        .help(L10n.t("Done marks"))
+                } else {
+                    Circle().fill(Color.white.opacity(0.7)).frame(width: 6, height: 6).padding(.trailing, 3)
+                        .help(L10n.t("Pending"))
                 }
-            } else if !done, let resend, let sendState {
-                sendBadge(sendState, resend)
-            } else if done {
-                Image(systemName: "checkmark.circle.fill").font(.system(size: 11)).foregroundStyle(Color.green.opacity(0.8))
-                    .help(L10n.t("Done marks"))
-            } else {
-                Circle().fill(Color.white.opacity(0.7)).frame(width: 6, height: 6).padding(.trailing, 3)
-                    .help(L10n.t("Pending"))
             }
+            .opacity(hovered ? 0 : 1)
         }
         .padding(.horizontal, 7).padding(.vertical, 6)
-        .background(RoundedRectangle(cornerRadius: 8).fill(Color.white.opacity(hovered ? 0.07 : 0)))
-        .onHover { inside in withAnimation(.easeOut(duration: 0.12)) { hovered = inside } }
+        .overlay(alignment: .trailing) {
+            if hovered {
+                actions
+                    .padding(.leading, 10)
+                    .padding(.trailing, 6)
+                    .padding(.vertical, 4)
+                    .background(
+                        RoundedRectangle(cornerRadius: 8).fill(Color(white: 0.17))
+                            .shadow(color: .black.opacity(0.35), radius: 6, x: -2))
+                    .transition(.opacity)
+            }
+        }
+        .background(RoundedRectangle(cornerRadius: 8).fill(Color.white.opacity(hovered ? 0.11 : 0)))
+        .overlay(RoundedRectangle(cornerRadius: 8).strokeBorder(Color.white.opacity(hovered ? 0.14 : 0), lineWidth: 1))
+        // The whole row answers the pointer, gaps included.
+        .contentShape(Rectangle())
+        .onHover { inside in withAnimation(.easeOut(duration: 0.1)) { hovered = inside } }
+    }
+
+    /// Move, send, done, delete: over the row's end while the pointer is on it.
+    private var actions: some View {
+        HStack(spacing: 3) {
+            if !done {
+                // Another terminal: the mark moves there (and goes to it if sending by itself is on).
+                Menu {
+                    let others = sessions.filter { $0.0.id != annotation["session_id"]?.string }
+                    ForEach(others.filter { $0.1 != nil }, id: \.0.id) { t, n in
+                        Button { move(t) } label: {
+                            SessionMenuLabel(terminal: t, title: "\(n ?? 0)  \(t.agent.displayName) · \(t.name)")
+                        }
+                    }
+                    let rest = others.filter { $0.1 == nil }
+                    if !rest.isEmpty {
+                        Divider()
+                        ForEach(rest, id: \.0.id) { t, _ in
+                            Button { move(t) } label: {
+                                SessionMenuLabel(terminal: t, title: "\(t.agent.displayName) · \(t.name) — \(URL(filePath: t.worktree).lastPathComponent)")
+                            }
+                        }
+                    }
+                } label: {
+                    Image(systemName: "arrow.left.arrow.right").font(.system(size: 9, weight: .bold)).foregroundStyle(.white)
+                        .frame(width: 20, height: 20).background(Circle().fill(Color.white.opacity(0.14)))
+                }
+                .menuStyle(.borderlessButton)
+                .menuIndicator(.hidden)
+                .fixedSize()
+                .hoverLift()
+                .help(L10n.t("Move to another terminal"))
+            }
+            if !done, let resend {
+                if let sendState { sendBadge(sendState, resend) } else { iconButton("paperplane.fill", L10n.t("Send to the terminal now"), resend) }
+            }
+            if !done { iconButton("checkmark", L10n.t("Mark as done"), resolve) }
+            iconButton("trash", L10n.t("Delete"), delete)
+        }
     }
 
     private var comment: String {
