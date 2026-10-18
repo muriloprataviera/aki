@@ -972,6 +972,10 @@ final class SidebarModel {
             pinned = nil
             hovered = nil
             openHistory(parts[1])
+        case "codexaccount":
+            preferences.codexAccount = true
+            codexAccountRead = .distantPast
+            Task { await refresh() }
         case "unhideall":
             preferences.hiddenTerminals.removeAll()
         case "more":

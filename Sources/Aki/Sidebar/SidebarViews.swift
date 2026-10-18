@@ -1126,11 +1126,13 @@ struct CodexAccountSection: View {
                 Text(L10n.t("More from Codex")).font(CardType.bodyStrong).foregroundStyle(AkiPalette.textPrimary)
                 Text(L10n.t("Limit resets saved, all-time numbers, what you call most. Aki asks OpenAI with the sign-in Codex keeps on this Mac."))
                     .font(CardType.body).foregroundStyle(secondary).fixedSize(horizontal: false, vertical: true)
-                Button(L10n.t("Show")) { model.preferences.codexAccount = true }
-                    .buttonStyle(.plain)
+                // (The card takes clicks by target, like its other lines.)
+                let key = "codexaccount|on"
+                Text(L10n.t("Show"))
                     .font(CardType.bodyStrong).foregroundStyle(AkiPalette.textPrimary)
                     .padding(.horizontal, 10).padding(.vertical, 3)
-                    .background(Capsule().fill(AkiPalette.fg.opacity(0.14)))
+                    .background(Capsule().fill(AkiPalette.fg.opacity(model.hoveredTarget == key ? 0.24 : 0.14)))
+                    .clickTarget(key)
             }
         } else if let account = model.codexAccount {
             VStack(alignment: .leading, spacing: 7.5) {
