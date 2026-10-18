@@ -1181,7 +1181,8 @@ struct UsageDetails: View {
 
     /// Since the start: OpenAI's own numbers when you turned them on (Codex), else the logs on this Mac.
     @ViewBuilder private var allTimePage: some View {
-        let account = agent == .codex ? model.codexAccount : nil
+        // OpenAI's numbers only when its profile answered; else the logs on this Mac.
+        let account = agent == .codex ? model.codexAccount.flatMap { $0.hasStats ? $0 : nil } : nil
         let figures = allTimeFigures(account)
         if !figures.isEmpty {
             Hairline()
@@ -1200,7 +1201,8 @@ struct UsageDetails: View {
                 SplitRow(L10n.t("Called most"), account.invocations.prefix(2).map { "\($0.name) \($0.count)" }.joined(separator: " · "), secondary)
                     .font(CardType.body).lineLimit(1)
             }
-            let weeks = account.map { $0.weeks.suffix(16).map { ($0.start, $0.tokens) } } ?? spend?.weeks.map { ($0.start, $0.total.tokens) } ?? []
+            let remote = account.map { $0.weeks.suffix(16).map { ($0.start, $0.tokens) } } ?? []
+            let weeks = remote.count > 1 ? remote : spend?.weeks.map { ($0.start, $0.total.tokens) } ?? []
             if weeks.count > 1 { WeekBars(weeks: weeks, secondary: secondary) }
             Text(L10n.t(account != nil ? "From OpenAI, for your whole account."
                 : model.ledgerBackfilling ? "Reading your older logs…" : "From the logs on this Mac."))

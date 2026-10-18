@@ -354,6 +354,24 @@ check(codexAccount.lifetimeTokens == 2701713581 && codexAccount.threads == 4133,
 check(codexAccount.invocations.map(\.name) == ["github", "orca-cli"], "Codex calls named by plugin or skill")
 check(codexAccount.weeks.map(\.tokens) == [9, 5], "Codex weeks oldest first")
 
+// Codex's older logs come zstd-compressed: unpacked whole, and a cut file refused.
+let packedLog = FileManager.default.temporaryDirectory.appending(path: "aki-check-\(UUID().uuidString).jsonl.zst")
+let unpackedLog = FileManager.default.temporaryDirectory.appending(path: "aki-check-\(UUID().uuidString).jsonl")
+let packedBytes = Data(base64Encoded: "KLUv/QRYkQAAbGluZSBvbmUKbGluZSB0d28KK4y37g==")!
+try? packedBytes.write(to: packedLog)
+check(TokenLedger.unpack(packedLog, to: unpackedLog) && (try? String(contentsOf: unpackedLog, encoding: .utf8)) == "line one\nline two\n",
+      "a zstd log unpacked")
+try? packedBytes.prefix(packedBytes.count - 4).write(to: packedLog)
+check(!TokenLedger.unpack(packedLog, to: unpackedLog), "a cut zstd log refused")
+try? FileManager.default.removeItem(at: packedLog)
+try? FileManager.default.removeItem(at: unpackedLog)
+// A real one, on demand: AKI_ZST_SAMPLE=<log.jsonl.zst> AKI_ZST_EXPECT=<same, unpacked by zstd -d>.
+if let sample = ProcessInfo.processInfo.environment["AKI_ZST_SAMPLE"], let expect = ProcessInfo.processInfo.environment["AKI_ZST_EXPECT"] {
+    check(TokenLedger.unpack(URL(fileURLWithPath: sample), to: unpackedLog)
+          && (try? Data(contentsOf: unpackedLog)) == (try? Data(contentsOf: URL(fileURLWithPath: expect))), "a real Codex log unpacked as zstd does")
+    try? FileManager.default.removeItem(at: unpackedLog)
+}
+
 // Days in a row up to today (or yesterday), the longest run, the busiest day.
 let streakNow = ISO8601DateFormatter().date(from: "2026-10-18T15:00:00Z")!
 var utc = Calendar(identifier: .gregorian)

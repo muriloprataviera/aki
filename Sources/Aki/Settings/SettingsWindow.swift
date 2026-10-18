@@ -781,6 +781,12 @@ struct SettingsView: View {
             }
         }
         .formStyle(.grouped)
+        // Counted while you look, even with the limits rings off ("Only pointing").
+        .onAppear {
+            model.usagePaneOpen = true
+            Task { await model.refresh() }
+        }
+        .onDisappear { model.usagePaneOpen = false }
     }
 
     private var storagePane: some View {

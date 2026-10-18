@@ -1,3 +1,4 @@
+import CZstd
 import Foundation
 
 /// Tokens each AI used on this Mac, and what they'd cost at API prices, from the
@@ -45,7 +46,14 @@ public final class TokenLedger: @unchecked Sendable {
         /// counted by `backfill` (nil until the first pass of a version that keeps it).
         var historyFrom: Int?
         var backfilled: Bool?
+        /// What `backfill` counted (the requests before `historyFrom`), kept apart so a
+        /// newer reading replaces it instead of adding to it.
+        var backfill: [String: [String: Int]]?
+        var backfillVersion: Int?
     }
+
+    /// Raised when the reading of old logs changes (2: Codex's compressed logs too).
+    static let backfillVersion = 2
 
     /// How far back it keeps (the week shown, plus a day).
     static let keep: TimeInterval = 8 * 24 * 3600
@@ -56,6 +64,10 @@ public final class TokenLedger: @unchecked Sendable {
     private let claudeRoot: URL
     private let codexRoot: URL
     private var loaded = false
+    /// Requests older than this aren't taken (a pass sets it to the week's start): a
+    /// session resumed after the week is read again from its start, and its old requests
+    /// are already in the history or the backfill. The backfill's scratch takes them all.
+    private var oldest = Int.min
 
     public init(home: AkiHome = .default,
                 claudeRoot: URL = FileManager.default.homeDirectoryForCurrentUser.appending(path: ".claude/projects"),
@@ -79,6 +91,7 @@ public final class TokenLedger: @unchecked Sendable {
             }
         }
         let since = now.addingTimeInterval(-Self.keep)
+        oldest = Int(since.timeIntervalSince1970)
         var changed = false
         var seen = Set<String>()
         // Codex moves a session it archives out of `sessions`: its tokens still count.
@@ -139,40 +152,84 @@ public final class TokenLedger: @unchecked Sendable {
     public func daily(agent: String) -> [String: Int] {
         lock.withLock {
             var days = state.history?[agent] ?? [:]
+            for (day, tokens) in state.backfill?[agent] ?? [:] { days[day, default: 0] += tokens }
             for event in state.events.values where event.agent == agent { days[Self.day(event.ts), default: 0] += event.tokens }
             return days
         }
     }
 
     /// Whether the logs before the week were counted already (once, after the first `update`).
-    public var needsBackfill: Bool { lock.withLock { loaded && state.backfilled != true && state.historyFrom != nil } }
+    public var needsBackfill: Bool {
+        lock.withLock { loaded && state.backfillVersion != Self.backfillVersion && state.historyFrom != nil }
+    }
 
     /// Counts once, by day, every request older than the week in all the logs (they
     /// can go back months: run in the background). Each log is read on its own, so
     /// memory stays at one log's requests; a request seen in another log (a forked
-    /// Codex session) counts once.
+    /// Codex session) counts once. Codex compresses its older logs (`.jsonl.zst`):
+    /// each is unpacked to a temporary file, read, and the file goes.
     public func backfill() {
         guard let before = lock.withLock({ state.historyFrom }) else { return }
         let archived = codexRoot.deletingLastPathComponent().appending(path: "archived_sessions")
         var days: [String: [String: Int]] = [:]
         var counted = Set<String>()
+        let unpacked = FileManager.default.temporaryDirectory.appending(path: "aki-log-\(UUID().uuidString).jsonl")
+        defer { try? FileManager.default.removeItem(at: unpacked) }
         for (root, agent) in [(claudeRoot, "claude"), (codexRoot, "codex"), (archived, "codex")] {
-            for url in Self.logs(in: root, since: .distantPast) {
+            let packed = agent == "codex" ? Self.logs(in: root, since: .distantPast, ext: "zst") : []
+            for url in Self.logs(in: root, since: .distantPast) + packed {
                 let scratch = TokenLedger(scratchFor: self)
-                _ = scratch.read(url, agent: agent)
+                if url.pathExtension == "zst" {
+                    guard Self.unpack(url, to: unpacked) else { continue }
+                    _ = scratch.read(unpacked, agent: agent)
+                } else {
+                    _ = scratch.read(url, agent: agent)
+                }
                 for (key, event) in scratch.state.events where event.ts < before && counted.insert(key).inserted {
                     days[agent, default: [:]][Self.day(event.ts), default: 0] += event.tokens
                 }
             }
         }
         lock.withLock {
-            var history = state.history ?? [:]
-            for (agent, byDay) in days {
-                for (day, tokens) in byDay { history[agent, default: [:]][day, default: 0] += tokens }
+            // The first reading (betas of 0.10) added its days into `history`: those, up to
+            // the day it began, go, so this reading doesn't count them twice.
+            if state.backfilled == true, state.backfillVersion == nil, let history = state.history {
+                let last = Self.day(before)
+                state.history = history.mapValues { $0.filter { $0.key > last } }
             }
-            state.history = history
+            state.backfill = days
             state.backfilled = true
+            state.backfillVersion = Self.backfillVersion
             saveLocked(Date())
+        }
+    }
+
+    /// Unpacks one zstd file into `out` (replaced). False when it isn't one, or is cut short.
+    public static func unpack(_ url: URL, to out: URL) -> Bool {
+        guard let packed = try? Data(contentsOf: url), let context = ZSTD_createDStream() else { return false }
+        defer { ZSTD_freeDStream(context) }
+        FileManager.default.createFile(atPath: out.path, contents: nil, attributes: [.posixPermissions: 0o600])
+        guard let writer = try? FileHandle(forWritingTo: out) else { return false }
+        defer { try? writer.close() }
+        var buffer = [UInt8](repeating: 0, count: 1 << 20)
+        return packed.withUnsafeBytes { source -> Bool in
+            var input = ZSTD_inBuffer(src: source.baseAddress, size: source.count, pos: 0)
+            var last = 0
+            // Until the input is used and the last frame flushed (it can still hold output
+            // with no input left); a pass that moves nothing is a file cut short.
+            while input.pos < input.size || last != 0 {
+                let before = input.pos
+                let chunk = buffer.withUnsafeMutableBytes { target -> Data? in
+                    var output = ZSTD_outBuffer(dst: target.baseAddress, size: target.count, pos: 0)
+                    last = ZSTD_decompressStream(context, &output, &input)
+                    guard ZSTD_isError(last) == 0 else { return nil }
+                    return Data(bytes: target.baseAddress!, count: output.pos)
+                }
+                guard let chunk, !chunk.isEmpty || input.pos > before else { return false }
+                writer.write(chunk)
+            }
+            // 0: the last frame ended where the file does.
+            return last == 0
         }
     }
 
@@ -197,12 +254,12 @@ public final class TokenLedger: @unchecked Sendable {
         dayLock.withLock { dayFormat.string(from: Date(timeIntervalSince1970: TimeInterval(ts))) }
     }
 
-    static func logs(in root: URL, since: Date) -> [URL] {
+    static func logs(in root: URL, since: Date, ext: String = "jsonl") -> [URL] {
         let keys: [URLResourceKey] = [.contentModificationDateKey]
         guard let walk = FileManager.default.enumerator(at: root, includingPropertiesForKeys: keys, options: [.skipsHiddenFiles])
         else { return [] }
         var found: [URL] = []
-        for case let url as URL in walk where url.pathExtension == "jsonl" {
+        for case let url as URL in walk where url.pathExtension == ext {
             let modified = (try? url.resourceValues(forKeys: [.contentModificationDateKey]).contentModificationDate) ?? .distantPast
             if modified >= since { found.append(url) }
         }
@@ -269,6 +326,7 @@ public final class TokenLedger: @unchecked Sendable {
         let event = Event(
             agent: "claude", ts: Int(date.timeIntervalSince1970), project: Self.project(found.cwd), model: found.model,
             input: found.input, output: found.output, cacheRead: found.cacheRead, cacheWrite: found.cacheWrite)
+        guard event.ts >= oldest else { return false }
         let key = found.key ?? "s:\(folder):\(found.stamp)"
         if let before = state.events[key], before.output >= event.output { return false }
         state.events[key] = event
@@ -397,7 +455,7 @@ public final class TokenLedger: @unchecked Sendable {
         }
         // Not by file: a forked or archived session carries the same reports under another path.
         let key = "c:\(stamp):\(all):\(output):\(cached)"
-        guard state.events[key] == nil else { return false }
+        guard Int(date.timeIntervalSince1970) >= oldest, state.events[key] == nil else { return false }
         state.events[key] = Event(
             agent: "codex", ts: Int(date.timeIntervalSince1970), project: Self.project(cursor.cwd ?? ""),
             // No model named: priced as the current Codex family.

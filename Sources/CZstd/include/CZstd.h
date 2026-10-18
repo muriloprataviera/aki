@@ -1,9 +1,10 @@
-// The four Zstandard entry points Aki uses (to read the Claude app's cached usage), and nothing else.
+// The Zstandard entry points Aki uses (to read the Claude app's cached usage, and
+// Codex's compressed session logs), and nothing else.
 //
 // `zstddeclib.c` beside this file is the official single-file *decoder*
 // amalgamation, and it carries the whole of `zstd.h` inside itself rather than
 // shipping it as a header — so there is no header to include. Declaring only
-// what is called keeps the vendored surface to four functions instead of the
+// what is called keeps the vendored surface to a few functions instead of the
 // 150 kB of public API the real `zstd.h` would add, and keeps the vendored `.c`
 // pristine: it is never edited, so re-generating it is a straight overwrite.
 //
@@ -43,6 +44,28 @@ unsigned ZSTD_isError(size_t result);
 /// Chunked responses declare nothing, so this is a cheap early reject for the
 /// frames that do declare an oversized body — not the only guard.
 unsigned long long ZSTD_getFrameContentSize(const void *src, size_t srcSize);
+
+/// Streaming decompression, for files whose size isn't known up front (Codex's
+/// `.jsonl.zst` logs): feed the input, take the output a buffer at a time.
+typedef struct ZSTD_DCtx_s ZSTD_DCtx;
+typedef ZSTD_DCtx ZSTD_DStream;
+
+typedef struct ZSTD_inBuffer_s {
+  const void* src;    /**< start of input buffer */
+  size_t size;        /**< size of input buffer */
+  size_t pos;         /**< position where reading stopped. Will be updated. Necessarily 0 <= pos <= size */
+} ZSTD_inBuffer;
+
+typedef struct ZSTD_outBuffer_s {
+  void*  dst;         /**< start of output buffer */
+  size_t size;        /**< size of output buffer */
+  size_t pos;         /**< position where writing stopped. Will be updated. Necessarily 0 <= pos <= size */
+} ZSTD_outBuffer;
+
+ZSTD_DStream* ZSTD_createDStream(void);
+size_t ZSTD_freeDStream(ZSTD_DStream* zds);
+/// 0 once a frame is fully decoded and flushed; otherwise a hint, or an error code.
+size_t ZSTD_decompressStream(ZSTD_DStream* zds, ZSTD_outBuffer* output, ZSTD_inBuffer* input);
 
 #define ZSTD_CONTENTSIZE_UNKNOWN (0ULL - 1)
 #define ZSTD_CONTENTSIZE_ERROR   (0ULL - 2)

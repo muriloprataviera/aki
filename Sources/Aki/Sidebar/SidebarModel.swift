@@ -737,6 +737,9 @@ final class SidebarModel {
     var ledgerBackfilling = false
     var codexAccountFailure: CodexAccount.Failure?
     @ObservationIgnored private var codexAccountRead = Date.distantPast
+    @ObservationIgnored private var codexAccountTask: Task<Void, Never>?
+    /// Settings → Usage is open: the tokens are counted even with the limits rings off.
+    var usagePaneOpen = false
 
     /// Room Aki's pictures take on this Mac (measured once a minute, and after a clean-up).
     var diskUsage = DiskUsage()
@@ -838,7 +841,7 @@ final class SidebarModel {
         let limits = [claude ?? seen(.claude), codexRead.limits ?? seen(.codex)].compactMap { $0?.current() }
         if limits != self.usage { self.usage = limits }
         // Tokens: the logs' new lines every 30 s, in the background (the first pass reads the week).
-        if preferences.showUsage, !ledgerBusy, Date().timeIntervalSince(ledgerRead) > 30 {
+        if preferences.showUsage || usagePaneOpen, !ledgerBusy, Date().timeIntervalSince(ledgerRead) > 30 {
             ledgerBusy = true
             ledgerRead = Date()
             let ledger = self.ledger
@@ -868,8 +871,12 @@ final class SidebarModel {
         // OpenAI's numbers for your Codex account: every 10 minutes, only when turned on.
         if preferences.codexAccount, Date().timeIntervalSince(codexAccountRead) > 600 {
             codexAccountRead = Date()
-            Task {
-                switch await CodexAccount.fetch() {
+            let preferences = self.preferences
+            codexAccountTask = Task {
+                // Turned off while asking: nothing more is sent, and nothing shows.
+                let result = await CodexAccount.fetch(wanted: { await MainActor.run { preferences.codexAccount } })
+                guard preferences.codexAccount, !Task.isCancelled else { return }
+                switch result {
                 case .success(let account):
                     codexAccount = account
                     codexAccountFailure = nil
@@ -877,7 +884,9 @@ final class SidebarModel {
                     codexAccountFailure = failure
                 }
             }
-        } else if !preferences.codexAccount, codexAccount != nil || codexAccountFailure != nil {
+        } else if !preferences.codexAccount, codexAccount != nil || codexAccountFailure != nil || codexAccountTask != nil {
+            codexAccountTask?.cancel()
+            codexAccountTask = nil
             codexAccount = nil
             codexAccountFailure = nil
             codexAccountRead = .distantPast

@@ -33,6 +33,8 @@ public struct CodexAccount: Sendable, Equatable {
     public var invocations: [Invocation] = []
     public var weeks: [Week] = []
     public var plan: String?
+    /// The profile answered (all-time numbers); `/usage` alone gives only the resets.
+    public var hasStats = false
     public var updated = Date()
 
     public init() {}
@@ -45,12 +47,15 @@ public struct CodexAccount: Sendable, Equatable {
         case unavailable
     }
 
-    /// Asks both addresses; whatever answers is kept.
-    public static func fetch(home: URL = UsageLimits.codexHome) async -> Result<CodexAccount, Failure> {
+    /// Asks both addresses; whatever answers is kept. `wanted` is asked before each
+    /// request: turned off meanwhile, nothing more is sent.
+    public static func fetch(home: URL = UsageLimits.codexHome,
+                             wanted: @Sendable () async -> Bool = { true }) async -> Result<CodexAccount, Failure> {
         guard let credential = credential(home: home) else { return .failure(.notSignedIn) }
         var account = CodexAccount()
         var answered = false
         for path in ["usage", "profiles/me"] {
+            guard await wanted(), !Task.isCancelled else { return .failure(.unavailable) }
             var request = URLRequest(url: URL(string: "https://chatgpt.com/backend-api/wham/" + path)!, timeoutInterval: 15)
             request.setValue("Bearer " + credential.token, forHTTPHeaderField: "Authorization")
             request.setValue(credential.account, forHTTPHeaderField: "ChatGPT-Account-Id")
@@ -94,6 +99,7 @@ public struct CodexAccount: Sendable, Equatable {
             let stats = json["stats"] as? [String: Any]
         else { return false }
         func int(_ key: String) -> Int? { (stats[key] as? NSNumber)?.intValue }
+        hasStats = true
         lifetimeTokens = int("lifetime_tokens")
         threads = int("total_threads")
         busiestDay = int("peak_daily_tokens")
