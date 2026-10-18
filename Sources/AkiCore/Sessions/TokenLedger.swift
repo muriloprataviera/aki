@@ -515,6 +515,8 @@ public struct TokenSpend: Sendable, Equatable {
     public var longestStreak = 0
     /// The day with the most tokens, as far back as the logs go.
     public var busiest: Day?
+    /// Tokens week by week (weeks starting on the calendar's first day), the last 16, oldest first.
+    public var weeks: [Day] = []
 
     /// `weekStart`: when the limit week began (its renewal minus 7 days); nil = the last 7 days.
     /// `daily`: tokens per day ("2026-10-18") over all the logs, for the streak and the busiest day.
@@ -600,6 +602,18 @@ public struct TokenSpend: Sendable, Equatable {
         longestStreak = max(longestStreak, streak)
         if let top = used.max(by: { $0.value < $1.value }), let start = format.date(from: top.key) {
             busiest = Day(start: start, total: Total(tokens: top.value, cost: 0))
+        }
+        var byWeek: [Date: Int] = [:]
+        for (key, tokens) in used {
+            guard let date = format.date(from: key), let week = calendar.dateInterval(of: .weekOfYear, for: date)?.start else { continue }
+            byWeek[week, default: 0] += tokens
+        }
+        if let thisWeek = calendar.dateInterval(of: .weekOfYear, for: now)?.start {
+            weeks = (0..<16).reversed().compactMap { back in
+                calendar.date(byAdding: .weekOfYear, value: -back, to: thisWeek).map { Day(start: $0, total: Total(tokens: byWeek[$0] ?? 0, cost: 0)) }
+            }
+            // From the first week with any use.
+            if let first = weeks.firstIndex(where: { $0.total.tokens > 0 }) { weeks.removeFirst(first) }
         }
     }
 
