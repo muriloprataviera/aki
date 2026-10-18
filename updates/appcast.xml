@@ -3,6 +3,23 @@
     <channel>
         <title>Aki</title>
         <item>
+            <title>0.10.0-beta.10</title>
+            <pubDate>Sun, 18 Oct 2026 20:17:08 -0300</pubDate>
+            <sparkle:channel>beta</sparkle:channel>
+            <sparkle:version>20261018231707</sparkle:version>
+            <sparkle:shortVersionString>0.10.0-beta.10</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
+            <description><![CDATA[<h2>Aki 0.10.0 beta</h2>
+<h3>New</h3><ul>
+<li>Right-click a limits ring to choose, for that AI alone, what it shows and the line under it: the time left in the 5-hour session, the time until the week renews, or the month on plans with a monthly limit.</li>
+<li>Settings → Usage: each AI's models and projects this week, the days in a row, the busiest day and tokens week by week. The limits card links to it.</li>
+<li>Codex: "More from Codex" in Settings → Usage (off until you turn it on) adds your limit resets saved, all-time numbers, longest task and what you call most, asked of OpenAI with the sign-in Codex keeps on your Mac.</li>
+</ul>
+]]></description>
+            <enclosure url="https://aki-updates.vercel.app/0.10.0-beta.10/Aki-0.10.0-beta.10.zip" length="4281967" type="application/octet-stream" sparkle:edSignature="Hk7ePaK0gMhQJMBBFZ020X7J7vuMKdIkH/QVobPh9Ww0+FLmu4mORzEbRmDjqtkSqKdBEWiqIjW2HnfAPaKRCQ=="/>
+        </item>
+        <item>
             <title>0.10.0-beta.7</title>
             <pubDate>Sun, 18 Oct 2026 19:51:59 -0300</pubDate>
             <sparkle:channel>beta</sparkle:channel>
@@ -35,23 +52,6 @@
 </ul>
 ]]></description>
             <enclosure url="https://aki-updates.vercel.app/0.10.0-beta.6/Aki-0.10.0-beta.6.zip" length="4249051" type="application/octet-stream" sparkle:edSignature="XI6fbsMYIB1tto33MzznpFLKHawJQdWNCoWzbrONEiYyqX32xMnj4abeC+15xvF/iU49iV1gLhVvhdPtVIRNAg=="/>
-        </item>
-        <item>
-            <title>0.10.0-beta.5</title>
-            <pubDate>Sun, 18 Oct 2026 19:29:36 -0300</pubDate>
-            <sparkle:channel>beta</sparkle:channel>
-            <sparkle:version>20261018222935</sparkle:version>
-            <sparkle:shortVersionString>0.10.0-beta.5</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
-            <description><![CDATA[<h2>Aki 0.10.0 beta</h2>
-<h3>New</h3><ul>
-<li>Right-click a limits ring to choose, for that AI alone, what it shows and the line under it: the time left in the 5-hour session, the time until the week renews, or the month on plans with a monthly limit.</li>
-<li>The limits card shows the models you used this week, the days in a row and your busiest day.</li>
-<li>Codex card: "More from Codex" (off until you click Show) adds your limit resets saved, all-time numbers, longest task and what you call most, asked of OpenAI with the sign-in Codex keeps on your Mac.</li>
-</ul>
-]]></description>
-            <enclosure url="https://aki-updates.vercel.app/0.10.0-beta.5/Aki-0.10.0-beta.5.zip" length="4240547" type="application/octet-stream" sparkle:edSignature="7tyYLCXpM4LtVr6NnHeEFUrVNEL7AdiKxTvFHj5vfNWA711WPI4DBVkoWuuVW2JbRZTxh1AKinfLQOWXWaU9Ag=="/>
         </item>
         <item>
             <title>0.9.0</title>
