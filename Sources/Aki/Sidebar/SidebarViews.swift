@@ -1008,9 +1008,6 @@ struct UsageCard: View {
         return sums.map { ($0.key, $0.value.share, $0.value.cost) }.sorted { $0.share > $1.share }
     }
 
-    /// Which part of the card shows: the limits (first), the week's spending, all time.
-    private var tab: UsageTab { model.usageTabs[limits.agent.rawValue] ?? .limits }
-
     var body: some View {
         TooltipShell(direction: direction, surface: surface) {
             VStack(alignment: .leading, spacing: 7.5) {
@@ -1022,25 +1019,9 @@ struct UsageCard: View {
                         Text(limits.updated.formatted(.relative(presentation: .named))).font(CardType.body).foregroundStyle(secondary)
                     }
                 }
-                // Three short pages instead of one card taller than the screen.
-                HStack(spacing: 4) {
-                    ForEach(UsageTab.allCases, id: \.self) { item in
-                        let key = "usagetab|\(limits.agent.rawValue):\(item.rawValue)"
-                        Text(item.title)
-                            .font(CardType.bodyStrong)
-                            .foregroundStyle(item == tab ? AkiPalette.textPrimary : secondary)
-                            .lineLimit(1).minimumScaleFactor(0.8)
-                            .padding(.horizontal, 8).padding(.vertical, 3)
-                            .frame(maxWidth: .infinity)
-                            .background(Capsule().fill(AkiPalette.fg.opacity(item == tab ? 0.16 : model.hoveredTarget == key ? 0.08 : 0)))
-                            .clickTarget(key)
-                    }
-                }
-                switch tab {
-                case .limits: limitsPage
-                case .week: weekPage
-                case .allTime: allTimePage
-                }
+                limitsPage
+                weekPage
+                allTimePage
             }
         }
     }
@@ -1085,7 +1066,8 @@ struct UsageCard: View {
     @ViewBuilder private var weekPage: some View {
         if let spend {
             if !spend.models.isEmpty {
-                Text(L10n.t("Models")).font(CardType.bodyStrong).foregroundStyle(AkiPalette.textPrimary)
+                Hairline()
+                Text(L10n.t("Models this week")).font(CardType.bodyStrong).foregroundStyle(AkiPalette.textPrimary)
                 ForEach(spend.models.prefix(4), id: \.name) { model in
                     ShareRow(label: TokenSpend.modelName(model.name), share: model.share, cost: model.total.cost, secondary: secondary)
                 }
@@ -1096,7 +1078,7 @@ struct UsageCard: View {
             }
             if !projects.isEmpty {
                 Hairline()
-                Text(L10n.t("Projects")).font(CardType.bodyStrong).foregroundStyle(AkiPalette.textPrimary)
+                Text(L10n.t("Used most this week")).font(CardType.bodyStrong).foregroundStyle(AkiPalette.textPrimary)
                 ForEach(projects.prefix(4), id: \.label) { project in
                     ShareRow(label: project.label, share: project.share, cost: project.cost, secondary: secondary)
                 }
@@ -1105,6 +1087,7 @@ struct UsageCard: View {
                 .font(CardType.body).foregroundStyle(secondary.opacity(0.8))
                 .fixedSize(horizontal: false, vertical: true)
         } else {
+            Hairline()
             Text(L10n.t("Counting tokens…")).font(CardType.body).foregroundStyle(secondary)
         }
     }
@@ -1112,65 +1095,56 @@ struct UsageCard: View {
     /// Since the start: OpenAI's own numbers when you turned them on (Codex), else the logs on this Mac.
     @ViewBuilder private var allTimePage: some View {
         let account = limits.agent == .codex ? model.codexAccount : nil
-        if let account {
-            if let streak = account.streak {
-                SplitRow(L10n.t("In a row"), "\(streak) \(L10n.t(streak == 1 ? "day" : "days")) · \(L10n.t("best")) \(account.longestStreak ?? streak)", secondary)
-            }
-            if let busiest = account.busiestDay {
-                SplitRow(L10n.t("Busiest day"), "\(TokenSpend.short(busiest)) \(L10n.t("tokens"))", secondary)
-            }
-            if let lifetime = account.lifetimeTokens {
-                SplitRow(L10n.t("Total"), "\(TokenSpend.short(lifetime)) \(L10n.t("tokens"))" + (account.threads.map { " · \($0) \(L10n.t("chats"))" } ?? ""), secondary)
-            }
-            if let longest = account.longestTurn, longest >= 60 {
-                SplitRow(L10n.t("Longest task"), UsageRing.left(until: Date().addingTimeInterval(longest)), secondary)
-            }
-            if let saved = account.resetsSaved {
-                SplitRow(L10n.t("Limit resets saved"), saved == 0 ? "0" : "\(saved) · \(account.resetsUsable ?? 0) \(L10n.t("usable now"))", secondary)
-            }
-            if account.weeks.count > 1 {
-                WeekBars(weeks: account.weeks.suffix(16).map { ($0.start, $0.tokens) }, secondary: secondary)
-            }
-            if !account.invocations.isEmpty {
-                Hairline()
-                Text(L10n.t("Called most")).font(CardType.bodyStrong).foregroundStyle(AkiPalette.textPrimary)
-                ForEach(account.invocations.prefix(3), id: \.name) { item in
-                    SplitRow(item.name, "\(item.count)×", secondary)
+        let figures = allTimeFigures(account)
+        if !figures.isEmpty {
+            Hairline()
+            Text(L10n.t("All time")).font(CardType.bodyStrong).foregroundStyle(AkiPalette.textPrimary)
+            // Three to a row: a figure big, what it is under it.
+            LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 6, alignment: .leading), count: 3), alignment: .leading, spacing: 6) {
+                ForEach(figures, id: \.label) { figure in
+                    VStack(alignment: .leading, spacing: 0) {
+                        Text(figure.value).font(CardType.bodyStrong).foregroundStyle(AkiPalette.textPrimary).monospacedDigit()
+                            .lineLimit(1).minimumScaleFactor(0.7)
+                        Text(figure.label).font(CardType.body).foregroundStyle(secondary).lineLimit(1).minimumScaleFactor(0.7)
+                    }
                 }
             }
-            Text(L10n.t("From OpenAI, for your whole account."))
+            if let account, !account.invocations.isEmpty {
+                SplitRow(L10n.t("Called most"), account.invocations.prefix(2).map { "\($0.name) \($0.count)" }.joined(separator: " · "), secondary)
+                    .font(CardType.body).lineLimit(1)
+            }
+            let weeks = account.map { $0.weeks.suffix(16).map { ($0.start, $0.tokens) } } ?? spend?.weeks.map { ($0.start, $0.total.tokens) } ?? []
+            if weeks.count > 1 { WeekBars(weeks: weeks, secondary: secondary) }
+            Text(L10n.t(account != nil ? "From OpenAI, for your whole account."
+                : model.ledgerBackfilling ? "Reading your older logs…" : "From the logs on this Mac."))
                 .font(CardType.body).foregroundStyle(secondary.opacity(0.8))
-        } else if let spend {
-            if spend.streak > 0 {
-                SplitRow(L10n.t("In a row"), "\(spend.streak) \(L10n.t(spend.streak == 1 ? "day" : "days")) · \(L10n.t("best")) \(spend.longestStreak)", secondary)
-            }
-            if let busiest = spend.busiest {
-                SplitRow(L10n.t("Busiest day"), "\(TokenSpend.short(busiest.total.tokens)) · \(busiest.start.formatted(.dateTime.month(.abbreviated).day().locale(L10n.locale)))", secondary)
-            }
-            if spend.weeks.count > 1 {
-                WeekBars(weeks: spend.weeks.map { ($0.start, $0.total.tokens) }, secondary: secondary)
-            }
-            Text(L10n.t(model.ledgerBackfilling ? "Reading your older logs…" : "From the logs on this Mac."))
-                .font(CardType.body).foregroundStyle(secondary.opacity(0.8))
-        } else {
-            Text(L10n.t("Counting tokens…")).font(CardType.body).foregroundStyle(secondary)
         }
         if limits.agent == .codex, account == nil {
             Hairline()
             CodexAccountSection(model: model, secondary: secondary)
         }
     }
-}
 
-/// The pages of a limits card.
-enum UsageTab: String, CaseIterable {
-    case limits, week, allTime
-    var title: String {
-        switch self {
-        case .limits: L10n.t("Limits")
-        case .week: L10n.t("This week")
-        case .allTime: L10n.t("All time")
+    /// OpenAI's own numbers when you turned them on (Codex), else the logs on this Mac.
+    private func allTimeFigures(_ account: CodexAccount?) -> [(value: String, label: String)] {
+        var figures: [(value: String, label: String)] = []
+        if let account {
+            if let streak = account.streak { figures.append(("\(streak) · \(account.longestStreak ?? streak)", L10n.t("In a row") + " · " + L10n.t("best"))) }
+            if let busiest = account.busiestDay { figures.append((TokenSpend.short(busiest), L10n.t("Busiest day"))) }
+            if let lifetime = account.lifetimeTokens { figures.append((TokenSpend.short(lifetime), L10n.t("Total"))) }
+            if let threads = account.threads { figures.append(("\(threads)", L10n.t("chats"))) }
+            if let longest = account.longestTurn, longest >= 60 { figures.append((UsageRing.left(until: Date().addingTimeInterval(longest)), L10n.t("Longest task"))) }
+            if let saved = account.resetsSaved { figures.append(("\(saved)", L10n.t("Limit resets saved"))) }
+        } else if let spend {
+            if spend.streak > 0 { figures.append(("\(spend.streak) · \(spend.longestStreak)", L10n.t("In a row") + " · " + L10n.t("best"))) }
+            if let busiest = spend.busiest {
+                figures.append((TokenSpend.short(busiest.total.tokens),
+                                L10n.t("Busiest day") + " · " + busiest.start.formatted(.dateTime.day().month(.twoDigits).locale(L10n.locale))))
+            }
         }
+        // Each label once (the grid tells them apart by it).
+        var seen = Set<String>()
+        return figures.filter { seen.insert($0.label).inserted }
     }
 }
 

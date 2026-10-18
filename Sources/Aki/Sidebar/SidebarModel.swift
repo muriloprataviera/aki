@@ -733,8 +733,6 @@ final class SidebarModel {
     @ObservationIgnored private var ledgerBusy = false
     /// What OpenAI says of your Codex account (only with "More from Codex" on).
     var codexAccount: CodexAccount?
-    /// The page each limits card shows ("claude" → .week); the limits until you pick another.
-    var usageTabs: [String: UsageTab] = [:]
     /// The logs before the week being read, once (the all-time page says so).
     var ledgerBackfilling = false
     var codexAccountFailure: CodexAccount.Failure?
@@ -978,9 +976,6 @@ final class SidebarModel {
             pinned = nil
             hovered = nil
             openHistory(parts[1])
-        case "usagetab":
-            let pick = parts[1].split(separator: ":").map(String.init)
-            if pick.count == 2, let tab = UsageTab(rawValue: pick[1]) { usageTabs[pick[0]] = tab }
         case "codexaccount":
             preferences.codexAccount = true
             codexAccountRead = .distantPast
