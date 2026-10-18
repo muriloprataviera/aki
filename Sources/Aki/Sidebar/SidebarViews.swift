@@ -1000,18 +1000,26 @@ struct UsageCard: View {
 
     var body: some View {
         TooltipShell(direction: direction, surface: surface) {
-            VStack(alignment: .leading, spacing: 7.5) {
-                HStack(spacing: 6) {
-                    AgentGlyphView(agent: limits.agent, size: 14).foregroundStyle(AkiPalette.fg)
-                    Text(limits.agent.displayName).font(CardType.title).foregroundStyle(AkiPalette.textPrimary)
-                    Spacer(minLength: 4)
-                    if limits.updated > .distantPast {
-                        Text(limits.updated.formatted(.relative(presentation: .named))).font(CardType.body).foregroundStyle(secondary)
+            // As much as the card's room holds, like Codenotch: the limits always, then the
+            // week's models and projects, then all time, each only if it fits whole (a card
+            // taller than its room was cut at the top). The link to the rest always shows.
+            FitColumn(maxHeight: SidebarLayout.cardMaxHeight - 2 * SidebarLayout.cardPadding - 6, spacing: 7.5) {
+                VStack(alignment: .leading, spacing: 7.5) {
+                    HStack(spacing: 6) {
+                        AgentGlyphView(agent: limits.agent, size: 14).foregroundStyle(AkiPalette.fg)
+                        Text(limits.agent.displayName).font(CardType.title).foregroundStyle(AkiPalette.textPrimary)
+                        Spacer(minLength: 4)
+                        if limits.updated > .distantPast {
+                            Text(limits.updated.formatted(.relative(presentation: .named))).font(CardType.body).foregroundStyle(secondary)
+                        }
                     }
+                    limitsPage
                 }
-                limitsPage
+                UsageDetails(model: model, agent: limits.agent, secondary: secondary, part: .week)
+                UsageDetails(model: model, agent: limits.agent, secondary: secondary, part: .allTime)
                 // The rest (models, projects, all time) lives in Settings → Usage.
                 let key = "usagedetails|" + limits.agent.rawValue
+                VStack(alignment: .leading, spacing: 7.5) {
                 Hairline()
                 HStack(spacing: 4) {
                     Text(L10n.t("Models, projects and all time"))
@@ -1023,6 +1031,7 @@ struct UsageCard: View {
                 .padding(.horizontal, 4).padding(.vertical, 3)
                 .background(RoundedRectangle(cornerRadius: 5).fill(AkiPalette.fg.opacity(model.hoveredTarget == key ? 0.08 : 0)))
                 .clickTarget(key)
+                }
             }
         }
     }
@@ -1066,11 +1075,59 @@ struct UsageCard: View {
 
 }
 
+/// A column that keeps its first and last views and, in between, each one in order
+/// while the total fits `maxHeight`; one that doesn't fit is left out with all after
+/// it (placed off the panel, at no size).
+struct FitColumn: Layout {
+    let maxHeight: CGFloat
+    let spacing: CGFloat
+
+    private func shown(_ subviews: Subviews, width: CGFloat?) -> (count: Int, heights: [CGFloat]) {
+        let heights = subviews.map { $0.sizeThatFits(ProposedViewSize(width: width, height: nil)).height }
+        guard heights.count > 2 else { return (heights.count, heights) }
+        var total = heights[0] + spacing + heights[heights.count - 1]
+        var count = 1
+        for height in heights[1..<(heights.count - 1)] {
+            // An empty part (nothing to show yet) takes no room or spacing.
+            guard height > 0 else { count += 1; continue }
+            guard total + spacing + height <= maxHeight else { break }
+            total += spacing + height
+            count += 1
+        }
+        return (count, heights)
+    }
+
+    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
+        let (count, heights) = shown(subviews, width: proposal.width)
+        let kept = Array(heights.prefix(count)) + (count < heights.count ? [heights[heights.count - 1]] : [])
+        let visible = kept.filter { $0 > 0 }
+        let width = proposal.width ?? subviews.map { $0.sizeThatFits(.unspecified).width }.max() ?? 0
+        return CGSize(width: width, height: visible.reduce(0, +) + spacing * CGFloat(max(visible.count - 1, 0)))
+    }
+
+    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
+        let (count, heights) = shown(subviews, width: bounds.width)
+        var y = bounds.minY
+        for (index, subview) in subviews.enumerated() {
+            let keep = index < count || index == subviews.count - 1
+            guard keep, heights[index] > 0 else {
+                subview.place(at: CGPoint(x: -10_000, y: -10_000), proposal: .zero)
+                continue
+            }
+            subview.place(at: CGPoint(x: bounds.minX, y: y), proposal: ProposedViewSize(width: bounds.width, height: heights[index]))
+            y += heights[index] + spacing
+        }
+    }
+}
+
 /// What a limits card leaves to Settings: the week's models and projects, and all time.
 struct UsageDetails: View {
     let model: SidebarModel
     let agent: AgentSession.Agent
     let secondary: Color
+    var part: Part = .all
+
+    enum Part { case week, allTime, all }
 
     private var spend: TokenSpend? { model.spend[agent.rawValue] }
 
@@ -1086,9 +1143,10 @@ struct UsageDetails: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 7.5) {
-            weekPage
-            allTimePage
+        // Rows closer than the card's blocks, as Codenotch keeps its lists.
+        VStack(alignment: .leading, spacing: 5) {
+            if part != .allTime { weekPage }
+            if part != .week { allTimePage }
         }
     }
 
