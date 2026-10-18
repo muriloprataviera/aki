@@ -3,6 +3,23 @@
     <channel>
         <title>Aki</title>
         <item>
+            <title>0.9.0</title>
+            <pubDate>Sat, 17 Oct 2026 23:31:28 -0300</pubDate>
+            <sparkle:version>20261018023127</sparkle:version>
+            <sparkle:shortVersionString>0.9.0</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
+            <description><![CDATA[<h2>Aki 0.9.0</h2>
+<h3>New</h3><ul>
+<li>Sent a mark to the wrong session? In History, "Send to another terminal" sends a copy to the right one and keeps the original where it went, even once it's done.</li>
+</ul>
+<h3>Fixed</h3><ul>
+<li>A session's card stays open while you move the pointer up to it: the rings and the drag handle on the way no longer close it or swap it for another.</li>
+</ul>
+]]></description>
+            <enclosure url="https://aki-updates.vercel.app/0.9.0/Aki-0.9.0.zip" length="4155926" type="application/octet-stream" sparkle:edSignature="bV6zG5/5GZmCobQLQo/wa4N8hHgCQSqCzHjbpugCz8SIMamVYXXP/dUGd4/oLapOhATMSJloUcP1E9XNnPRiDQ=="/>
+        </item>
+        <item>
             <title>0.8.10-beta.1</title>
             <pubDate>Sat, 17 Oct 2026 13:37:39 -0300</pubDate>
             <sparkle:channel>beta</sparkle:channel>
@@ -42,42 +59,6 @@
             <enclosure url="https://aki-updates.vercel.app/0.8.9/Aki-0.8.9.zip" length="4149452" type="application/octet-stream" sparkle:edSignature="9FbDhuHe9zDTzmesuKeRYnP3MKFSbsUk0Yi1uguyZP7fVrGkFzfUxBo5SO4SZPBE9/EBrLAt61yxVbyXiV5aAg=="/>
         </item>
         <item>
-            <title>0.8.9-beta.4</title>
-            <pubDate>Fri, 16 Oct 2026 19:47:03 -0300</pubDate>
-            <sparkle:channel>beta</sparkle:channel>
-            <sparkle:version>20261016224702</sparkle:version>
-            <sparkle:shortVersionString>0.8.9-beta.4</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
-            <description><![CDATA[<h2>Aki 0.8.9-beta.4</h2>
-<h3>Fixed</h3><ul>
-<li>Aki never types into a terminal while Claude Code is asking you something (a permission): its Enter used to answer it. The marks wait and go once you've answered.</li>
-<li>Esc on a queued mark you opened again closes it as it was, instead of deleting it.</li>
-<li>aki wait returns marks sent while the agent was busy, instead of waiting for the next one.</li>
-<li>The terminal message names only the marks not sent yet (an agent busy with one no longer starts it over), and aki show says when a mark is already done.</li>
-<li>Running aki from an agent's shell shows its usage instead of opening a second Aki; only one Aki runs at a time.</li>
-<li>An update never restarts Aki in the middle of a send.</li>
-<li>The picture limit never deletes a pending mark's picture.</li>
-<li>The Screen Recording alert offers to restart Aki when it comes back (macOS applies the permission only after a restart).</li>
-<li>A send to the Codex or Claude app without Accessibility fails at once, with the right message.</li>
-<li>Every program Aki runs (git, lsof, Orca's command, the shell) has a time limit: one stuck no longer stops the sidebar or a send.</li>
-<li>A rare crash while marking on a slow web page.</li>
-<li>A mark sent with no comment always goes with its picture (the agent used to get "(no comment)" alone).</li>
-<li>Marks sent while a send to the same session is still going wait their turn instead of being lost.</li>
-<li>A message left in the Codex or Claude app's box shows as "Left in its box: click to send", not as sent, and the card keeps its send button.</li>
-<li>History's send arrow shows sending, sent or not sent, sends every open mark of that session, and is hidden where Aki can't type (Terminal, iTerm).</li>
-<li>Aki stops pressing Return when it only adds blank lines to an app's box, and gives the clipboard back only if you didn't copy something meanwhile.</li>
-<li>A stuck Orca no longer leaves sends stuck "sending" for good.</li>
-<li>On a light Mac the sidebar and its cards are light, instead of black glass under dark text.</li>
-<li>The folded sidebar is easier to catch (a bigger area wakes it) and doesn't fold the moment the pointer strays.</li>
-</ul>
-<h3>Changed</h3><ul>
-<li>Much lighter on the Mac: the rings and the agents' symbols turn in Core Animation (no redraw of the sidebar), the sidebar works its order out once per change, transcripts, Codex logs and the process list are read again only when they change, following Orca's tab never stalls Aki and Orca stops describing itself when it's not in front, and closed windows stop working.</li>
-</ul>
-]]></description>
-            <enclosure url="https://aki-updates.vercel.app/0.8.9-beta.4/Aki-0.8.9-beta.4.zip" length="4149546" type="application/octet-stream" sparkle:edSignature="B1gOhT36an17iDjcyjU6W4mqvzkVOAGEAkku6BRrIpCFBJpnVQ9kPCTIzZ/vs3Wwf2fwkVHP9sAGVii4tdH1Dg=="/>
-        </item>
-        <item>
             <title>0.8.8</title>
             <pubDate>Fri, 16 Oct 2026 16:23:57 -0300</pubDate>
             <sparkle:version>20261016192356</sparkle:version>
@@ -91,20 +72,6 @@
 </ul>
 ]]></description>
             <enclosure url="https://aki-updates.vercel.app/0.8.8/Aki-0.8.8.zip" length="4095432" type="application/octet-stream" sparkle:edSignature="qY2v+YoiPvKVWQdRIT3hN3UozVc6qKcAfUFvGVHfGfaYA6XvEuCBAizy4wMiwrdPnh0E3nh0tbA+O6B1fBRaCQ=="/>
-        </item>
-        <item>
-            <title>0.8.7</title>
-            <pubDate>Fri, 16 Oct 2026 12:25:34 -0300</pubDate>
-            <sparkle:version>20261016152533</sparkle:version>
-            <sparkle:shortVersionString>0.8.7</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
-            <description><![CDATA[<h2>Aki 0.8.7</h2>
-<h3>Changed</h3><ul>
-<li>Sessions and conversations untouched for six hours (not a day) wait in "+N", so the sidebar keeps only what you're using.</li>
-</ul>
-]]></description>
-            <enclosure url="https://aki-updates.vercel.app/0.8.7/Aki-0.8.7.zip" length="4080064" type="application/octet-stream" sparkle:edSignature="Iyqm8fzH5UOsTFN6cQtxLnqrQTM/So6VH5CgYr9VZ+ALu5fZJfs/ghdF0ldtta04iocWjsrM+ibpadHLkgJ7AQ=="/>
         </item>
     </channel>
 </rss>
