@@ -3,6 +3,23 @@
     <channel>
         <title>Aki</title>
         <item>
+            <title>0.10.0-beta.3</title>
+            <pubDate>Sun, 18 Oct 2026 19:12:11 -0300</pubDate>
+            <sparkle:channel>beta</sparkle:channel>
+            <sparkle:version>20261018221211</sparkle:version>
+            <sparkle:shortVersionString>0.10.0-beta.3</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
+            <description><![CDATA[<h2>Aki 0.10.0 beta</h2>
+<h3>New</h3><ul>
+<li>Right-click a limits ring to choose, for that AI alone, what it shows and the line under it: the time left in the 5-hour session, the time until the week renews, or the month on plans with a monthly limit.</li>
+<li>The limits card shows the models you used this week, the days in a row and your busiest day.</li>
+<li>Codex card: "More from Codex" (off until you click Show) adds your limit resets saved, all-time numbers, longest task and what you call most, asked of OpenAI with the sign-in Codex keeps on your Mac.</li>
+</ul>
+]]></description>
+            <enclosure url="https://aki-updates.vercel.app/0.10.0-beta.3/Aki-0.10.0-beta.3.zip" length="4228305" type="application/octet-stream" sparkle:edSignature="nPYZo0KIZx4NNXo+4tVjQWYq4FiRLTKoQKrZuL67IUkaL2KkCQIbA32+whqCcHywWp/5KUZLYzv6SchirmYqDA=="/>
+        </item>
+        <item>
             <title>0.10.0-beta.2</title>
             <pubDate>Sun, 18 Oct 2026 18:55:48 -0300</pubDate>
             <sparkle:channel>beta</sparkle:channel>
@@ -50,20 +67,6 @@
 </ul>
 ]]></description>
             <enclosure url="https://aki-updates.vercel.app/0.9.0/Aki-0.9.0.zip" length="4155926" type="application/octet-stream" sparkle:edSignature="bV6zG5/5GZmCobQLQo/wa4N8hHgCQSqCzHjbpugCz8SIMamVYXXP/dUGd4/oLapOhATMSJloUcP1E9XNnPRiDQ=="/>
-        </item>
-        <item>
-            <title>0.8.10-beta.1</title>
-            <pubDate>Sat, 17 Oct 2026 13:37:39 -0300</pubDate>
-            <sparkle:channel>beta</sparkle:channel>
-            <sparkle:version>20261017163739</sparkle:version>
-            <sparkle:shortVersionString>0.8.10-beta.1</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
-            <description><![CDATA[<h2>Aki 0.8.10 beta</h2><ul>
-<li>A session's card no longer vanishes while you move the pointer to it.</li>
-</ul>
-]]></description>
-            <enclosure url="https://aki-updates.vercel.app/0.8.10-beta.1/Aki-0.8.10-beta.1.zip" length="4150415" type="application/octet-stream" sparkle:edSignature="8Xqt2u6Kv4fKwlvBL+iQgVRAf6OYEKtB3PRuyENgOklk5YysKM1WM/APyKbaiFahRr5aiRZQlPsN12KJogAwDA=="/>
         </item>
         <item>
             <title>0.8.9</title>
