@@ -259,27 +259,46 @@ enum AppLanguage: String, CaseIterable, Identifiable {
 }
 
 
-/// What a limits ring (or the line under it) shows.
+/// What a limits ring (or the line under it) shows: a share used, or the time
+/// left until a window renews (those only fit under the ring).
 enum UsageMetric: String, CaseIterable, Identifiable {
-    case week, today, fiveHour, none
+    case week, today, fiveHour, month, fiveHourLeft, weekLeft, none
     var id: String { rawValue }
     var title: String {
         switch self {
         case .week: L10n.t("Week")
         case .today: L10n.t("Pace")
         case .fiveHour: L10n.t("5-hour session")
+        case .month: L10n.t("Month")
+        case .fiveHourLeft: L10n.t("Time left in the 5-hour session")
+        case .weekLeft: L10n.t("Time until the week renews")
         case .none: L10n.t("Just what the ring shows")
         }
     }
     /// The short name under the ring.
     var short: String {
         switch self {
-        case .week: L10n.t("week").uppercased()
+        case .week, .weekLeft: L10n.t("week").uppercased()
         case .today: L10n.t("pace").uppercased()
-        case .fiveHour: "5H"
+        case .fiveHour, .fiveHourLeft: "5H"
+        case .month: L10n.t("month").uppercased()
         case .none: ""
         }
     }
+    /// A share, so it can fill the ring (the times only go under it).
+    var isShare: Bool { [.week, .today, .fiveHour, .month].contains(self) }
+}
+
+extension Preferences {
+    /// What `agent`'s ring shows in big, and the line under it.
+    func usageRing(for agent: AgentSession.Agent) -> UsageMetric {
+        usageChoices["\(agent.rawValue).ring"].flatMap(UsageMetric.init(rawValue:)) ?? usageRing
+    }
+    func usageLine(for agent: AgentSession.Agent) -> UsageMetric {
+        usageChoices["\(agent.rawValue).line"].flatMap(UsageMetric.init(rawValue:)) ?? usageLine
+    }
+    func setUsageRing(_ metric: UsageMetric, for agent: AgentSession.Agent) { usageChoices["\(agent.rawValue).ring"] = metric.rawValue }
+    func setUsageLine(_ metric: UsageMetric, for agent: AgentSession.Agent) { usageChoices["\(agent.rawValue).line"] = metric.rawValue }
 }
 
 /// Every user setting, persisted in UserDefaults. Observable, so views and the
@@ -398,8 +417,11 @@ final class Preferences {
     var ringOrder: [String] { didSet { defaults.set(ringOrder, forKey: Keys.ringOrder) } }
     /// Agent sessions the user chose not to see as rings (by session id).
     /// What each limits ring shows, the line under it, and the AIs whose ring is off.
+    /// The two first are what a ring shows until you choose for its AI (`usageChoices`).
     var usageRing: UsageMetric { didSet { defaults.set(usageRing.rawValue, forKey: Keys.usageRing) } }
     var usageLine: UsageMetric { didSet { defaults.set(usageLine.rawValue, forKey: Keys.usageLine) } }
+    /// Each AI's own choice: "claude.ring" / "codex.line" → a metric.
+    var usageChoices: [String: String] { didSet { defaults.set(usageChoices, forKey: Keys.usageChoices) } }
     var hiddenUsage: Set<String> {
         didSet { defaults.set(Array(hiddenUsage).sorted(), forKey: Keys.hiddenUsage) }
     }
@@ -484,6 +506,7 @@ final class Preferences {
         hiddenTerminals = Set(defaults.stringArray(forKey: Keys.hiddenTerminals) ?? [])
         usageRing = value(Keys.usageRing, UsageMetric.week)
         usageLine = value(Keys.usageLine, UsageMetric.today)
+        usageChoices = defaults.dictionary(forKey: Keys.usageChoices) as? [String: String] ?? [:]
         hiddenUsage = Set(defaults.stringArray(forKey: Keys.hiddenUsage) ?? [])
         ringOrder = defaults.stringArray(forKey: Keys.ringOrder) ?? []
         disconnectedApps = Set(defaults.stringArray(forKey: Keys.disconnectedApps) ?? [])
@@ -536,6 +559,7 @@ final class Preferences {
         static let hiddenTerminals = "hiddenTerminals"
         static let usageRing = "usageRing"
         static let usageLine = "usageLine"
+        static let usageChoices = "usageChoices"
         static let hiddenUsage = "hiddenUsage"
         static let ringOrder = "ringOrder"
         static let disconnectedApps = "disconnectedApps"

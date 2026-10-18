@@ -717,18 +717,21 @@ struct RingCell: View {
             if case .usage(let limits) = ring, model.preferences.ringMode == .terminals {
                 // What the ring shows in big, and the line you chose under it (right-click
                 // the ring to change either; the card has the rest).
-                let main = model.preferences.usageRing == .none ? UsageMetric.week : model.preferences.usageRing
+                let main = UsageRing.main(model.preferences.usageRing(for: limits.agent), of: limits)
                 let big = UsageRing.value(main, of: limits)
-                let line = model.preferences.usageLine
-                let small = UsageRing.value(line, of: limits)
-                VStack(spacing: 0) {
-                    Text(big.map { "\($0)%" } ?? "–")
-                        .font(.system(size: (SidebarLayout.labelFont + 1) * scale, weight: .heavy, design: .rounded).monospacedDigit())
-                        .foregroundStyle(UsageRing.tint(main, big ?? 0))
-                    Text(line == .none ? main.short : small.map { "\(line.short) \($0)%" } ?? main.short)
-                        .font(.system(size: 7.5 * scale, weight: .bold).monospacedDigit())
-                        .tracking(0.4 * scale)
-                        .foregroundStyle(line == .none ? AkiPalette.textSecondary : small.map { UsageRing.tint(line, $0) } ?? AkiPalette.textSecondary)
+                let line = model.preferences.usageLine(for: limits.agent)
+                // (Redrawn each minute: the time left runs down with no new report.)
+                TimelineView(.everyMinute) { _ in
+                    let small = UsageRing.line(line, of: limits)
+                    VStack(spacing: 0) {
+                        Text(big.map { "\($0)%" } ?? "–")
+                            .font(.system(size: (SidebarLayout.labelFont + 1) * scale, weight: .heavy, design: .rounded).monospacedDigit())
+                            .foregroundStyle(UsageRing.tint(main, big ?? 0))
+                        Text(small?.text ?? main.short)
+                            .font(.system(size: 7.5 * scale, weight: .bold).monospacedDigit())
+                            .tracking(0.4 * scale)
+                            .foregroundStyle(small?.color ?? AkiPalette.textSecondary)
+                    }
                 }
                 .lineLimit(1)
                 .frame(width: (SidebarLayout.ring + 22) * scale, height: SidebarLayout.labelHeight * scale)
@@ -876,7 +879,7 @@ struct RingCell: View {
             }
             .frame(width: SidebarLayout.ring * scale, height: SidebarLayout.ring * scale)
         case .usage(let limits):
-            UsageRing(limits: limits, scale: scale, metric: model.preferences.usageRing == .none ? .week : model.preferences.usageRing,
+            UsageRing(limits: limits, scale: scale, metric: UsageRing.main(model.preferences.usageRing(for: limits.agent), of: limits),
                       active: model.headlessBusy.contains(limits.agent)
                         || model.terminals.contains { $0.agent == limits.agent && $0.state == .working })
         }
@@ -915,9 +918,44 @@ struct UsageRing: View {
         switch metric {
         case .week: limits.week?.percent
         case .fiveHour: limits.fiveHour?.percent
+        case .month: limits.month?.percent
         case .today: limits.week.flatMap { DayShare(week: $0) }.map { Int(($0.used * 100).rounded()) }
-        case .none: nil
+        case .fiveHourLeft, .weekLeft, .none: nil
         }
+    }
+
+    /// What this AI reports, so its menu offers only that (all of them before it reports).
+    static func offered(for limits: UsageLimits) -> [UsageMetric] {
+        let found = UsageMetric.allCases.filter { $0 == .none || value($0, of: limits) != nil || line($0, of: limits) != nil }
+        return found.count > 1 ? found : UsageMetric.allCases
+    }
+
+    /// The share the ring fills: the one chosen, or the first this AI reports
+    /// (Codex on some plans has no 5-hour window, on others only a month).
+    static func main(_ chosen: UsageMetric, of limits: UsageLimits) -> UsageMetric {
+        if chosen.isShare, value(chosen, of: limits) != nil { return chosen }
+        return [UsageMetric.week, .month, .fiveHour].first { value($0, of: limits) != nil } ?? .week
+    }
+
+    /// The line under the ring: "5H 13%", "5H 1h47", "WEEK 3d 4h" (nil: just the ring's name).
+    static func line(_ metric: UsageMetric, of limits: UsageLimits) -> (text: String, color: Color)? {
+        switch metric {
+        case .none: return nil
+        case .fiveHourLeft, .weekLeft:
+            let limit = metric == .fiveHourLeft ? limits.fiveHour : limits.week
+            guard let limit, let resets = limit.resets else { return nil }
+            return ("\(metric.short) \(left(until: resets))", tint(limit.percent))
+        default:
+            return value(metric, of: limits).map { ("\(metric.short) \($0)%", tint(metric, $0)) }
+        }
+    }
+
+    /// How long until `date`, short: "47 min", "1h47", "3d 4h".
+    static func left(until date: Date, now: Date = Date()) -> String {
+        let minutes = max(0, Int((date.timeIntervalSince(now) / 60).rounded(.up)))
+        if minutes < 60 { return "\(minutes) min" }
+        if minutes < 24 * 60 { return "\(minutes / 60)h\(String(format: "%02d", minutes % 60))" }
+        return "\(minutes / (24 * 60))d \(minutes % (24 * 60) / 60)h"
     }
 
     var metric: UsageMetric = .week
@@ -981,7 +1019,7 @@ struct UsageCard: View {
                         Text(limits.updated.formatted(.relative(presentation: .named))).font(CardType.body).foregroundStyle(secondary)
                     }
                 }
-                if limits.week == nil, limits.fiveHour == nil {
+                if limits.week == nil, limits.fiveHour == nil, limits.month == nil {
                     Text(L10n.t(limits.agent == .claude
                         ? "Its numbers show once Claude reports them: send a message in the Claude app or Claude Code."
                         : "Its numbers show once Codex reports them: send a message in Codex."))
@@ -992,6 +1030,9 @@ struct UsageCard: View {
                 }
                 if let five = limits.fiveHour {
                     LimitBlock(title: L10n.t("5-hour session"), limit: five, length: 5 * 3600, secondary: secondary)
+                }
+                if let month = limits.month {
+                    LimitBlock(title: L10n.t("Month"), limit: month, length: 30 * 24 * 3600, secondary: secondary)
                 }
                 if let week = limits.week, let today = DayShare(week: week) {
                     VStack(alignment: .leading, spacing: 3) {

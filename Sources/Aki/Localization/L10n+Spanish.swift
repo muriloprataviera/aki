@@ -273,6 +273,7 @@ extension L10n {
         "Point at anything on screen. Your coding agent reads it.": "Señala cualquier cosa en la pantalla. Tu agente la lee.",
         "Built on open source": "Hecho con código abierto",
         "In the ring": "En el anillo", "Under the ring": "Debajo del anillo", "Hide this ring": "Ocultar este anillo", "Show the %@ limits ring": "Mostrar el anillo de límites de %@", "Just what the ring shows": "Solo el nombre del anillo", "Support Aki": "Apoyar Aki", "Donate if you like it": "Dona si te gusta",
+        "Month": "Mes", "month": "mes", "Time left in the 5-hour session": "Tiempo restante de la sesión de 5 h", "Time until the week renews": "Tiempo hasta que se renueve la semana",
         "Done": "Listo",
         "Failed": "Error",
         "Hidden sessions": "Sesiones ocultas",

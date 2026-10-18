@@ -273,6 +273,7 @@ extension L10n {
         "Point at anything on screen. Your coding agent reads it.": "画面上の何でも指すだけ。コーディングエージェントが読み取ります。",
         "Built on open source": "オープンソースを基に開発",
         "In the ring": "リングに表示", "Under the ring": "リングの下", "Hide this ring": "このリングを隠す", "Show the %@ limits ring": "%@ の上限リングを表示", "Just what the ring shows": "リングの名前だけ", "Support Aki": "Aki を支援", "Donate if you like it": "気に入ったら寄付を",
+        "Month": "月", "month": "月", "Time left in the 5-hour session": "5時間セッションの残り時間", "Time until the week renews": "週のリセットまでの時間",
         "Done": "完了",
         "Failed": "失敗",
         "Hidden sessions": "非表示のセッション",

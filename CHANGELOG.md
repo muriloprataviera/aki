@@ -4,6 +4,9 @@ What changed in each version of Aki. Versions follow [semantic versioning](https
 
 ## [Unreleased]
 
+### Added
+- Limits rings: right-click one to choose, for that AI alone, what it shows and the line under it. New: the time left in the 5-hour session ("5H 1h47"), the time until the week renews, and the month on plans that have a monthly limit. Each menu offers only what that AI reports.
+
 ## [0.9.0] — 2026-10-17
 
 ### Added

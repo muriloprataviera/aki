@@ -1,18 +1,21 @@
 import Foundation
 
-/// How much of an AI account's limits is used: the 5-hour window and the week.
+/// How much of an AI account's limits is used: the 5-hour window, the week and,
+/// on plans that have one, the month.
 /// Read from what each agent already leaves on this Mac, never asked of a server.
 public struct UsageLimits: Sendable, Equatable {
     public var agent: AgentSession.Agent
     public var fiveHour: ClaudeStatus.Limit?
     public var week: ClaudeStatus.Limit?
+    public var month: ClaudeStatus.Limit?
     /// When the agent last reported them.
     public var updated: Date
 
-    public init(agent: AgentSession.Agent, fiveHour: ClaudeStatus.Limit?, week: ClaudeStatus.Limit?, updated: Date) {
+    public init(agent: AgentSession.Agent, fiveHour: ClaudeStatus.Limit?, week: ClaudeStatus.Limit?, month: ClaudeStatus.Limit? = nil, updated: Date) {
         self.agent = agent
         self.fiveHour = fiveHour
         self.week = week
+        self.month = month
         self.updated = updated
     }
 
@@ -29,7 +32,8 @@ public struct UsageLimits: Sendable, Equatable {
             return limit
         }
         return UsageLimits(agent: agent, fiveHour: fresh(fiveHour, length: 5 * 3600),
-                           week: fresh(week, length: 7 * 24 * 3600), updated: updated)
+                           week: fresh(week, length: 7 * 24 * 3600), month: fresh(month, length: 30 * 24 * 3600),
+                           updated: updated)
     }
 
     /// Claude: what its status line last said (account-wide, any session).
@@ -128,7 +132,7 @@ public struct UsageLimits: Sendable, Equatable {
     }
 
     /// One log line: `{"payload": {"type": "token_count", "rate_limits": {"primary": {...}, "secondary": {...}}}}`.
-    /// Which window is the week goes by its length, not its name.
+    /// Which window is which goes by its length, not its name.
     public static func parseCodex(line: Data, updated: Date) -> UsageLimits? {
         guard let json = try? JSONSerialization.jsonObject(with: line) as? [String: Any],
             let payload = json["payload"] as? [String: Any],
@@ -136,6 +140,7 @@ public struct UsageLimits: Sendable, Equatable {
         else { return nil }
         var fiveHour: ClaudeStatus.Limit?
         var week: ClaudeStatus.Limit?
+        var month: ClaudeStatus.Limit?
         for key in ["primary", "secondary"] {
             guard let window = limits[key] as? [String: Any],
                 let used = (window["used_percent"] as? NSNumber)?.doubleValue
@@ -143,11 +148,11 @@ public struct UsageLimits: Sendable, Equatable {
             let minutes = (window["window_minutes"] as? NSNumber)?.intValue ?? 0
             let resets = (window["resets_at"] as? NSNumber).map { Date(timeIntervalSince1970: $0.doubleValue) }
             let limit = ClaudeStatus.Limit(percent: Int(used.rounded()), resets: resets)
-            if minutes >= 24 * 60 { week = limit } else if minutes > 0 { fiveHour = limit }
+            if minutes >= 28 * 24 * 60 { month = limit } else if minutes >= 24 * 60 { week = limit } else if minutes > 0 { fiveHour = limit }
         }
-        guard fiveHour != nil || week != nil else { return nil }
+        guard fiveHour != nil || week != nil || month != nil else { return nil }
         // When the report was made (the log's own clock), not when the file last changed.
         let stamp = (json["timestamp"] as? String).flatMap(parseTime) ?? updated
-        return UsageLimits(agent: .codex, fiveHour: fiveHour, week: week, updated: stamp)
+        return UsageLimits(agent: .codex, fiveHour: fiveHour, week: week, month: month, updated: stamp)
     }
 }

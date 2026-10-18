@@ -273,6 +273,7 @@ extension L10n {
         "Point at anything on screen. Your coding agent reads it.": "화면의 무엇이든 가리키세요. 코딩 에이전트가 읽습니다.",
         "Built on open source": "오픈 소스 기반",
         "In the ring": "링에 표시", "Under the ring": "링 아래", "Hide this ring": "이 링 숨기기", "Show the %@ limits ring": "%@ 한도 링 보기", "Just what the ring shows": "링 이름만", "Support Aki": "Aki 후원하기", "Donate if you like it": "마음에 들면 후원하기",
+        "Month": "월간", "month": "월", "Time left in the 5-hour session": "5시간 세션 남은 시간", "Time until the week renews": "주간 한도 갱신까지 남은 시간",
         "Done": "완료",
         "Failed": "실패",
         "Hidden sessions": "숨긴 세션",

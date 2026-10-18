@@ -949,15 +949,18 @@ final class SidebarController {
             let prefs = preferences
             menu.addItem(.sectionHeader(title: limits.agent.displayName))
             menu.addItem(.sectionHeader(title: L10n.t("In the ring")))
-            for metric in [UsageMetric.week, .today, .fiveHour] {
-                let item = ClosureMenuItem(metric.title) { prefs.usageRing = metric }
-                item.state = prefs.usageRing == metric ? .on : .off
+            // Each AI chooses for itself, among what it reports.
+            let agent = limits.agent, offered = UsageRing.offered(for: limits)
+            let shown = UsageRing.main(prefs.usageRing(for: agent), of: limits)
+            for metric in offered where metric.isShare {
+                let item = ClosureMenuItem(metric.title) { prefs.setUsageRing(metric, for: agent) }
+                item.state = shown == metric ? .on : .off
                 menu.addItem(item)
             }
             menu.addItem(.sectionHeader(title: L10n.t("Under the ring")))
-            for metric in UsageMetric.allCases {
-                let item = ClosureMenuItem(metric.title) { prefs.usageLine = metric }
-                item.state = prefs.usageLine == metric ? .on : .off
+            for metric in offered {
+                let item = ClosureMenuItem(metric.title) { prefs.setUsageLine(metric, for: agent) }
+                item.state = prefs.usageLine(for: agent) == metric ? .on : .off
                 menu.addItem(item)
             }
             menu.addItem(.separator())

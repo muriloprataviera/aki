@@ -341,6 +341,8 @@ let codexLine = #"{"type":"event_msg","payload":{"type":"token_count","rate_limi
 let codexLimits = UsageLimits.parseCodex(line: Data(codexLine.utf8), updated: Date())
 check(codexLimits?.week?.percent == 17, "Codex week read from the 7-day window")
 check(codexLimits?.fiveHour?.percent == 42, "Codex 5-hour window read")
+let monthly = UsageLimits.parseCodex(line: Data(#"{"payload":{"rate_limits":{"primary":{"used_percent":3.0,"window_minutes":43200,"resets_at":4102444800},"secondary":null}}}"#.utf8), updated: Date())
+check(monthly?.month?.percent == 3 && monthly?.week == nil, "Codex 30-day window read as the month")
 check(UsageLimits.parseCodex(line: Data(#"{"payload":{"rate_limits":{"primary":null,"secondary":null}}}"#.utf8), updated: Date()) == nil,
       "no windows, no limits")
 let renewed = UsageLimits.parseCodex(line: Data(codexLine.replacingOccurrences(of: "4102444800", with: "1000").utf8), updated: Date())?.current()
