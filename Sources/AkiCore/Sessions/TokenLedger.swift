@@ -199,15 +199,18 @@ public final class TokenLedger: @unchecked Sendable {
         for (root, agent) in [(claudeRoot, "claude"), (codexRoot, "codex"), (archived, "codex")] {
             let packed = agent == "codex" ? Self.logs(in: root, since: .distantPast, ext: "zst") : []
             for url in Self.logs(in: root, since: .distantPast) + packed {
-                let scratch = TokenLedger(scratchFor: self)
-                if url.pathExtension == "zst" {
-                    guard Self.unpack(url, to: unpacked) else { continue }
-                    _ = scratch.read(unpacked, agent: agent)
-                } else {
-                    _ = scratch.read(url, agent: agent)
-                }
-                for (key, event) in scratch.state.events where event.ts < before && counted.insert(key).inserted {
-                    days[agent, default: [:]][Self.day(event.ts), default: 0] += event.tokens
+                // Each log's temporaries go with it (months of logs otherwise piled up to GBs).
+                autoreleasepool {
+                    let scratch = TokenLedger(scratchFor: self)
+                    if url.pathExtension == "zst" {
+                        guard Self.unpack(url, to: unpacked) else { return }
+                        _ = scratch.read(unpacked, agent: agent)
+                    } else {
+                        _ = scratch.read(url, agent: agent)
+                    }
+                    for (key, event) in scratch.state.events where event.ts < before && counted.insert(key).inserted {
+                        days[agent, default: [:]][Self.day(event.ts), default: 0] += event.tokens
+                    }
                 }
             }
         }
@@ -234,7 +237,7 @@ public final class TokenLedger: @unchecked Sendable {
 
     /// Unpacks one zstd file into `out` (replaced). False when it isn't one, or is cut short.
     public static func unpack(_ url: URL, to out: URL) -> Bool {
-        guard let packed = try? Data(contentsOf: url), let context = ZSTD_createDStream() else { return false }
+        guard let packed = try? Data(contentsOf: url, options: .alwaysMapped), let context = ZSTD_createDStream() else { return false }
         defer { ZSTD_freeDStream(context) }
         FileManager.default.createFile(atPath: out.path, contents: nil, attributes: [.posixPermissions: 0o600])
         guard let writer = try? FileHandle(forWritingTo: out) else { return false }
@@ -310,7 +313,7 @@ public final class TokenLedger: @unchecked Sendable {
         var changed = false
         var carry = Data()
         // In pieces: a log can be hundreds of MB.
-        while let chunk = try? handle.read(upToCount: 8 << 20), !chunk.isEmpty {
+        while let chunk = autoreleasepool(invoking: { try? handle.read(upToCount: 8 << 20) }), !chunk.isEmpty {
             var data = carry
             data.append(chunk)
             guard let lastNewline = data.lastIndex(of: 0x0A) else {
@@ -332,10 +335,13 @@ public final class TokenLedger: @unchecked Sendable {
                 }
             }
             let origin = complete.startIndex
-            for range in lines {
-                let line = complete[(origin + range.lowerBound)..<(origin + range.upperBound)]
-                let added = agent == "claude" ? claudeLine(line, folder: folder) : codexLine(line, path: path, cursor: &cursor)
-                if added { changed = true }
+            // The parses' temporaries go with each piece.
+            autoreleasepool {
+                for range in lines {
+                    let line = complete[(origin + range.lowerBound)..<(origin + range.upperBound)]
+                    let added = agent == "claude" ? claudeLine(line, folder: folder) : codexLine(line, path: path, cursor: &cursor)
+                    if added { changed = true }
+                }
             }
             cursor.offset += complete.count
         }

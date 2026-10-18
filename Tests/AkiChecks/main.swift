@@ -407,6 +407,21 @@ ledger.update(now: later.addingTimeInterval(12 * 86400))
 check(ledger.daily(agent: "claude").values.reduce(0, +) == 1116, "a session that ended while Aki was closed counted")
 try? FileManager.default.removeItem(at: ledgerRoot)
 
+// The real logs' first reading, timed, with its peak memory: AKI_BACKFILL_BENCH=1 (never in CI).
+if ProcessInfo.processInfo.environment["AKI_BACKFILL_BENCH"] == "1" {
+    let benchHome = FileManager.default.temporaryDirectory.appending(path: "aki-bench-\(UUID().uuidString)")
+    let bench = TokenLedger(home: AkiHome(url: benchHome))
+    let started = Date()
+    bench.update()
+    let firstPass = Date().timeIntervalSince(started)
+    bench.backfill()
+    var usage = rusage()
+    getrusage(RUSAGE_SELF, &usage)
+    print(String(format: "  bench: first pass %.1f s, backfill %.1f s, peak %d MB, codex days %d",
+                 firstPass, Date().timeIntervalSince(started) - firstPass, usage.ru_maxrss / 1_048_576, bench.daily(agent: "codex").count))
+    try? FileManager.default.removeItem(at: benchHome)
+}
+
 // Days in a row up to today (or yesterday), the longest run, the busiest day.
 let streakNow = ISO8601DateFormatter().date(from: "2026-10-18T15:00:00Z")!
 var utc = Calendar(identifier: .gregorian)
