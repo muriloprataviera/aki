@@ -201,7 +201,16 @@ public final class TokenLedger: @unchecked Sendable {
         }
         lock.withLock {
             // All of it is in `days` now (the history held only requests before `before`,
-            // and an earlier reading's sums too): the history starts over from here.
+            // and an earlier reading's sums too): the history starts over from here. A day
+            // the logs no longer have (deleted, unreadable) keeps what was counted before.
+            for (agent, byDay) in state.history ?? [:] {
+                for (day, tokens) in byDay { days[agent, default: [:]][day] = max(days[agent]?[day] ?? 0, tokens + (state.backfill?[agent]?[day] ?? 0)) }
+            }
+            for (agent, byDay) in state.backfill ?? [:] {
+                for (day, tokens) in byDay where state.history?[agent]?[day] == nil {
+                    days[agent, default: [:]][day] = max(days[agent]?[day] ?? 0, tokens)
+                }
+            }
             state.backfill = days
             state.history = [:]
             state.historyFrom = before
