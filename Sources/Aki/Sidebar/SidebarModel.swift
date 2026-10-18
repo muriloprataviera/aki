@@ -1254,6 +1254,31 @@ final class SidebarModel {
         }
     }
 
+    /// A mark that already went (or is done) goes again to another session as a new
+    /// one: the original stays in History, under the session it was sent to.
+    func copyMark(_ id: String, to target: AgentTerminal) async {
+        guard let original = await store.get(id) else { return }
+        var fields = original.fields
+        for key in ["id", "created_at", "updated_at", "size_bytes", "delivered_at", "read_at", "image_path",
+                    "resolved_at", "resolution"] { fields[key] = nil }
+        fields.merge(target.identityFields) { _, new in new }
+        fields.merge(["session_id": .string(target.id), "worktree": .string(target.worktree),
+                      "status": .string("pending")]) { _, new in new }
+        guard let copy = try? await store.upsert(Annotation(fields)) else { return }
+        // Its own picture (the original's goes once that one is done).
+        if let path = original["image_path"]?.string, FileManager.default.fileExists(atPath: path),
+            let folder = MarkFolder.make(for: copy.id, created: MarkFolder.created(copy))
+        {
+            let ext = URL(filePath: path).pathExtension.isEmpty ? "jpg" : URL(filePath: path).pathExtension
+            let file = folder.appending(path: "crop.\(ext)")
+            if (try? FileManager.default.copyItem(at: URL(filePath: path), to: file)) != nil {
+                _ = try? await store.update(copy.id, with: ["image_path": .string(file.path)])
+            }
+        }
+        await refresh()
+        deliverLater(to: [target.id])
+    }
+
     /// One mark to another session; it's sent there like a fresh one.
     func moveMark(_ id: String, to target: AgentTerminal) async {
         if let source = await store.list(.init(status: "pending")).annotations.first(where: { $0.id == id })?["session_id"]?.string {

@@ -254,7 +254,7 @@ extension L10n {
         "Save name": "Salvar nome", "Context": "Contexto", "renews": "renova", "Week": "Semana", "Your limits": "Seus limites", "Settings": "Configurações", "Kept open · click to let go": "Fixa aberta · clique para soltar", "4 corners": "4 cantos", "Flares": "Bracinhos", "Shape": "Formato",
         "A card with four round corners, or flares that hug the screen edge.": "Um cartão com 4 cantos arredondados, ou bracinhos que abraçam a borda da tela.", "Hide Aki": "Ocultar o Aki", "File": "Arquivo", "Close Window": "Fechar janela",
         "Edit": "Editar", "Undo": "Desfazer", "Redo": "Refazer", "Cut": "Recortar", "Copy": "Copiar", "Paste": "Colar",
-        "Select All": "Selecionar tudo", "Move to another terminal": "Mudar de terminal", "History": "Histórico", "All": "Todas", "All sessions": "Todas as sessões",
+        "Select All": "Selecionar tudo", "Move to another terminal": "Mudar de terminal", "Send to another terminal": "Enviar para outro terminal", "History": "Histórico", "All": "Todas", "All sessions": "Todas as sessões",
         "Nothing here yet. Mark with {mark}.": "Nada aqui ainda. Marque com {mark}.", "closed session": "sessão fechada",
         "{history} opens and closes this · esc closes": "{history} abre e fecha · esc fecha", "Yesterday": "Ontem",
         "Mark as done": "Marcar como feita", "Done marks": "Feitas", "with the agent": "com o agente", "Delete": "Apagar", "Disk space": "Espaço em disco", "Pictures sent": "Fotos enviadas",

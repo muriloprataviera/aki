@@ -217,7 +217,11 @@ private struct HistoryView: View {
                                     HistoryRow(annotation: a, name: name(of: a), number: number(of: a),
                                                identity: SessionIdentity(annotation: a, terminal: terminal(of: a)),
                                                sessions: model.allTerminals.map { ($0, model.number(of: $0.id)) },
-                                               move: { t in act { await model.moveMark(a.id, to: t) } },
+                                               // Not sent yet: it moves. Already sent or done: a copy goes, the original stays.
+                                               move: { t in act {
+                                                   if a.status == "completed" || a["delivered_at"]?.string != nil { await model.copyMark(a.id, to: t) }
+                                                   else { await model.moveMark(a.id, to: t) }
+                                               } },
                                                resolve: { act { _ = try? await model.store.update(a.id, with: ["status": .string("completed")]) } },
                                                delete: { act { _ = try? await model.store.delete(a.id) } },
                                                // Only where Aki can type (not Terminal or iTerm), and every
@@ -548,8 +552,9 @@ private struct HistoryRow: View {
     /// Move, send, done, delete: over the row's end while the pointer is on it.
     private var actions: some View {
         HStack(spacing: 3) {
-            if !done {
+            Group {
                 // Another terminal: the mark moves there (and goes to it if sending by itself is on).
+                // A done one too: sent to the wrong session, it goes again to the right one.
                 Menu {
                     let others = sessions.filter { $0.0.id != annotation["session_id"]?.string }
                     ForEach(others.filter { $0.1 != nil }, id: \.0.id) { t, n in
@@ -574,7 +579,7 @@ private struct HistoryRow: View {
                 .menuIndicator(.hidden)
                 .fixedSize()
                 .hoverLift()
-                .help(L10n.t("Move to another terminal"))
+                .help(L10n.t(done || annotation["delivered_at"]?.string != nil ? "Send to another terminal" : "Move to another terminal"))
             }
             if !done, let resend {
                 if let sendState { sendBadge(sendState, resend) } else { iconButton("paperplane.fill", L10n.t("Send to the terminal now"), resend) }

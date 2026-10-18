@@ -348,7 +348,7 @@ extension L10n {
         "Copy": "コピー",
         "Paste": "ペースト",
         "Select All": "すべてを選択",
-        "Move to another terminal": "別のターミナルに移動",
+        "Move to another terminal": "別のターミナルに移動", "Send to another terminal": "別のターミナルに送る",
         "History": "履歴",
         "All": "すべて",
         "All sessions": "すべてのセッション",

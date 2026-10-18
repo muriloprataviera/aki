@@ -310,6 +310,15 @@ struct SidebarLayout: Equatable {
             : CGRect(x: c.x - long / 2, y: c.y - short / 2, width: long, height: short)
     }
 
+    /// Just the handle's dots: there the grip wins even over an open card.
+    var gripCoreRect: CGRect {
+        let c = gripCenter
+        let long = s(44), short = s(24)
+        return edge.isVertical
+            ? CGRect(x: c.x - short / 2, y: c.y - long / 2, width: short, height: long)
+            : CGRect(x: c.x - long / 2, y: c.y - short / 2, width: long, height: short)
+    }
+
     var notchEdge: NotchEdge {
         switch edge {
         case .left: .left

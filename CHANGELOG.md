@@ -4,8 +4,13 @@ What changed in each version of Aki. Versions follow [semantic versioning](https
 
 ## [Unreleased]
 
+## [0.9.0] — 2026-10-17
+
+### Added
+- History: a mark sent to the wrong session can go to another one. "Send to another terminal" sends a copy and keeps the original where it went, even once it's done.
+
 ### Fixed
-- A session's card no longer vanishes on the way to it: heading from the ring toward the card, the rings crossed on the way don't take it over.
+- A session's card stays open while you move the pointer up to it: the rings and the drag handle crossed on the way no longer close it or swap it for another.
 
 ## [0.8.9] — 2026-10-16
 

@@ -348,7 +348,7 @@ extension L10n {
         "Copy": "Copier",
         "Paste": "Coller",
         "Select All": "Tout sélectionner",
-        "Move to another terminal": "Changer de terminal",
+        "Move to another terminal": "Changer de terminal", "Send to another terminal": "Envoyer vers un autre terminal",
         "History": "Historique",
         "All": "Toutes",
         "All sessions": "Toutes les sessions",

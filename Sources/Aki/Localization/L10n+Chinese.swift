@@ -348,7 +348,7 @@ extension L10n {
         "Copy": "拷贝",
         "Paste": "粘贴",
         "Select All": "全选",
-        "Move to another terminal": "移到另一个终端",
+        "Move to another terminal": "移到另一个终端", "Send to another terminal": "发送到另一个终端",
         "History": "历史记录",
         "All": "全部",
         "All sessions": "所有会话",

@@ -348,7 +348,7 @@ extension L10n {
         "Copy": "복사하기",
         "Paste": "붙여넣기",
         "Select All": "전체 선택",
-        "Move to another terminal": "다른 터미널로 이동",
+        "Move to another terminal": "다른 터미널로 이동", "Send to another terminal": "다른 터미널로 보내기",
         "History": "기록",
         "All": "전체",
         "All sessions": "모든 세션",

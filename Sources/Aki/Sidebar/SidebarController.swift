@@ -169,7 +169,14 @@ final class SidebarController {
             guard let self, self.model.gripHovered else { return false }
             let point = CGPoint(x: windowPoint.x, y: self.panel.frame.height - windowPoint.y)
             let carries = self.layout.gripRect.contains(point)
-            if carries { self.setCursor(.closedHand) }
+            if carries {
+                self.setCursor(.closedHand)
+                // Moving the bar: the open card steps aside.
+                self.unhoverWork?.cancel()
+                self.unhoverWork = nil
+                self.model.pinned = nil
+                self.model.hovered = nil
+            }
             return carries
         }
 
@@ -468,7 +475,12 @@ final class SidebarController {
             .map { String($0.key.dropFirst("project|".count)) } : nil
         // A project's name wins over the grip under it (the grip would rise over the name).
         if model.resizeHovered != overResize { model.resizeHovered = overResize }
-        let overGrip = model.expanded && overName == nil && !overResize && layout.gripRect.contains(point)
+        // With a card open, the grip's wide zone (it rises over the rings, on the way to
+        // the card) gives way: on a ring, on the card or heading to it, the pointer is after
+        // the card. On the dots themselves the grip still wins.
+        let towardCard = model.hovered != nil && !layout.gripCoreRect.contains(point)
+            && (overCard || layout.cellIndex(at: point) != nil || headingToCard(point))
+        let overGrip = model.expanded && overName == nil && !overResize && !towardCard && layout.gripRect.contains(point)
         let overMark = model.expanded && model.preferences.showSessions && !overCard && layout.markOrbRect.contains(point)
         if model.markButtonHovered != overMark { model.markButtonHovered = overMark }
         // The card's other two corners (4-corner shape only).
@@ -482,14 +494,8 @@ final class SidebarController {
             : layout.endZone(start: true).contains(point) ? 0 : layout.endZone(start: false).contains(point) ? 1 : nil
         if model.cornerEnd != end { model.cornerEnd = end }
         if model.hideButtonHovered != overHide { model.hideButtonHovered = overHide }
-        // On the drag handle: no card, right away, so nothing gets in the way.
-        // A card opened by a click stays: crossing the grip on the way to it
-        // mustn't close it.
-        if overGrip, model.pinned == nil, model.hovered != nil {
-            unhoverWork?.cancel()
-            unhoverWork = nil
-            model.hovered = nil
-        }
+        // The grip no longer closes the card on sight (its dots sit on the way to the
+        // card): the card goes once the bar is actually dragged, or after the usual grace.
         if model.orbHovered != overOrb { model.orbHovered = overOrb }
         if model.gripHovered != overGrip { model.gripHovered = overGrip }
         let overUpdate = model.targets["update|now"]?.insetBy(dx: -3, dy: -3).contains(point) ?? false
@@ -545,7 +551,8 @@ final class SidebarController {
 
         if model.expanded, model.jumping == nil {
             // On the drag handle or the shortcut, no card opens.
-            let index = model.rings.isEmpty || overMark || overGrip || overHistory || overHide ? nil : layout.cellIndex(at: point)
+            // The card wins over the rings under its edge.
+            let index = model.rings.isEmpty || overCard || overMark || overGrip || overHistory || overHide ? nil : layout.cellIndex(at: point)
             if let index {
                 unhoverWork?.cancel()
                 unhoverWork = nil
@@ -575,8 +582,12 @@ final class SidebarController {
                     aimFrom = point
                 }
             } else if overCard {
+                // Reached the card: a close started on the way (over the grip, between
+                // rings) is called off.
                 aimWork?.cancel()
                 aimWork = nil
+                unhoverWork?.cancel()
+                unhoverWork = nil
             } else if model.hovered != nil, unhoverWork == nil {
                 let work = DispatchWorkItem { [weak self] in
                     MainActor.assumeIsolated {
@@ -594,7 +605,10 @@ final class SidebarController {
     /// Whether the pointer is moving from its ring toward the open card: inside the
     /// triangle from where it left the ring to the card's far side.
     private func headingToCard(_ point: CGPoint) -> Bool {
-        guard let from = aimFrom, let card = model.targets["card"] else { return false }
+        guard let start = aimFrom, let card = model.targets["card"] else { return false }
+        // The apex set back a little from the ring: a quick diagonal start still counts.
+        let back = 28 * layout.scale
+        let from = CGPoint(x: start.x + layout.towardEdge.dx * back, y: start.y + layout.towardEdge.dy * back)
         let (a, b): (CGPoint, CGPoint) = switch preferences.edge {
         case .right: (CGPoint(x: card.minX, y: card.minY), CGPoint(x: card.minX, y: card.maxY))
         case .left: (CGPoint(x: card.maxX, y: card.minY), CGPoint(x: card.maxX, y: card.maxY))
