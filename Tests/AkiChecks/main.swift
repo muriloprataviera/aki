@@ -372,6 +372,35 @@ if let sample = ProcessInfo.processInfo.environment["AKI_ZST_SAMPLE"], let expec
     try? FileManager.default.removeItem(at: unpackedLog)
 }
 
+// The history counts each request once: a first pass, the reading of older logs, then
+// a session resumed after more than a week (read again from its start).
+let ledgerRoot = FileManager.default.temporaryDirectory.appending(path: "aki-ledger-\(UUID().uuidString)")
+let claudeLogs = ledgerRoot.appending(path: "claude/project")
+try? FileManager.default.createDirectory(at: claudeLogs, withIntermediateDirectories: true)
+let ledgerLog = claudeLogs.appending(path: "session.jsonl")
+func claudeTurn(_ id: String, _ at: Date, _ tokens: Int) -> String {
+    #"{"type":"assistant","timestamp":"\#(ISO8601DateFormatter().string(from: at))","requestId":"\#(id)","cwd":"/tmp","message":{"model":"claude-opus-4-5","usage":{"input_tokens":\#(tokens),"output_tokens":0}}}"# + "\n"
+}
+let ledgerNow = Date()
+try? (claudeTurn("r1", ledgerNow.addingTimeInterval(-20 * 86400), 100) + claudeTurn("r2", ledgerNow.addingTimeInterval(-3 * 86400), 10)
+      + claudeTurn("r3", ledgerNow.addingTimeInterval(-3600), 1)).write(to: ledgerLog, atomically: true, encoding: .utf8)
+let ledger = TokenLedger(home: AkiHome(url: ledgerRoot.appending(path: "home")), claudeRoot: ledgerRoot.appending(path: "claude"),
+                         codexRoot: ledgerRoot.appending(path: "codex/sessions"))
+ledger.update(now: ledgerNow)
+if ledger.needsBackfill { ledger.backfill() }
+check(ledger.daily(agent: "claude").values.reduce(0, +) == 111, "old and new requests counted once")
+// Ten days on, the session resumed: one new request, the file read again from its start.
+let later = ledgerNow.addingTimeInterval(10 * 86400)
+if let handle = try? FileHandle(forWritingTo: ledgerLog) {
+    handle.seekToEndOfFile()
+    handle.write(Data(claudeTurn("r4", later.addingTimeInterval(-3600), 1000).utf8))
+    try? handle.close()
+}
+try? FileManager.default.setAttributes([.modificationDate: later], ofItemAtPath: ledgerLog.path)
+ledger.update(now: later)
+check(ledger.daily(agent: "claude").values.reduce(0, +) == 1111, "a resumed session's old requests not counted again")
+try? FileManager.default.removeItem(at: ledgerRoot)
+
 // Days in a row up to today (or yesterday), the longest run, the busiest day.
 let streakNow = ISO8601DateFormatter().date(from: "2026-10-18T15:00:00Z")!
 var utc = Calendar(identifier: .gregorian)

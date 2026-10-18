@@ -92,6 +92,8 @@ public final class TokenLedger: @unchecked Sendable {
             loaded = true
             if let data = try? Data(contentsOf: file), let saved = try? JSONDecoder().decode(State.self, from: data) {
                 state = saved
+                // Saved before `counted` existed: what's older than the requests kept was counted.
+                if state.counted == nil, state.historyFrom != nil { state.counted = state.events.values.map(\.ts).min() ?? state.historyFrom }
             }
         }
         let since = now.addingTimeInterval(-Self.keep)
@@ -174,11 +176,11 @@ public final class TokenLedger: @unchecked Sendable {
     /// Codex session) counts once. Codex compresses its older logs (`.jsonl.zst`):
     /// each is unpacked to a temporary file, read, and the file goes.
     public func backfill() {
-        guard let before = lock.withLock({ state.historyFrom }) else { return }
+        // Everything before what the passes count from now on, rebuilt from the logs (no
+        // pass runs meanwhile: the caller waits for it).
+        guard let before = lock.withLock({ state.counted ?? state.historyFrom }) else { return }
         let archived = codexRoot.deletingLastPathComponent().appending(path: "archived_sessions")
         var days: [String: [String: Int]] = [:]
-        // The same, from uncompressed logs only: what the first reading (betas of 0.10) added.
-        var plainDays: [String: [String: Int]] = [:]
         var counted = Set<String>()
         let unpacked = FileManager.default.temporaryDirectory.appending(path: "aki-log-\(UUID().uuidString).jsonl")
         defer { try? FileManager.default.removeItem(at: unpacked) }
@@ -194,23 +196,15 @@ public final class TokenLedger: @unchecked Sendable {
                 }
                 for (key, event) in scratch.state.events where event.ts < before && counted.insert(key).inserted {
                     days[agent, default: [:]][Self.day(event.ts), default: 0] += event.tokens
-                    if url.pathExtension != "zst" { plainDays[agent, default: [:]][Self.day(event.ts), default: 0] += event.tokens }
                 }
             }
         }
         lock.withLock {
-            // The first reading (betas of 0.10) added its days into `history`: taken back
-            // out (the same logs give the same sums), the rest of the history stays.
-            if state.backfilled == true, state.backfillVersion == nil, var history = state.history {
-                for (agent, byDay) in plainDays {
-                    for (day, tokens) in byDay {
-                        let left = (history[agent]?[day] ?? 0) - tokens
-                        history[agent]?[day] = left > 0 ? left : nil
-                    }
-                }
-                state.history = history
-            }
+            // All of it is in `days` now (the history held only requests before `before`,
+            // and an earlier reading's sums too): the history starts over from here.
             state.backfill = days
+            state.history = [:]
+            state.historyFrom = before
             state.backfilled = true
             state.backfillVersion = Self.backfillVersion
             saveLocked(Date())
