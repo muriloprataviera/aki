@@ -5,6 +5,16 @@ import AkiCore
 import AppKit
 import SwiftUI
 
+/// Text colour for a surface that isn't Aki's own (Settings stays dark in the light
+/// theme): nil, the theme's.
+private struct AkiPrimaryKey: EnvironmentKey { static let defaultValue: Color? = nil }
+extension EnvironmentValues {
+    var akiPrimary: Color? {
+        get { self[AkiPrimaryKey.self] }
+        set { self[AkiPrimaryKey.self] = newValue }
+    }
+}
+
 enum AkiPalette {
     // The brand (brand/tokens.json): paper, ink and one red, #FF3B1F, only on what
     // marks something. No gradients, no neon. Night is the dark surface.
@@ -1126,6 +1136,7 @@ struct UsageDetails: View {
     let agent: AgentSession.Agent
     let secondary: Color
     var part: Part = .all
+    @Environment(\.akiPrimary) private var primaryOverride
 
     enum Part { case week, allTime, all }
 
@@ -1154,7 +1165,7 @@ struct UsageDetails: View {
         if let spend {
             if !spend.models.isEmpty {
                 Hairline()
-                Text(L10n.t("Models this week")).font(CardType.bodyStrong).foregroundStyle(AkiPalette.textPrimary)
+                Text(L10n.t("Models this week")).font(CardType.bodyStrong).foregroundStyle((primaryOverride ?? AkiPalette.textPrimary))
                 ForEach(spend.models.prefix(4), id: \.name) { model in
                     ShareRow(label: TokenSpend.modelName(model.name), share: model.share, cost: model.total.cost, secondary: secondary)
                 }
@@ -1165,7 +1176,7 @@ struct UsageDetails: View {
             }
             if !projects.isEmpty {
                 Hairline()
-                Text(L10n.t("Used most this week")).font(CardType.bodyStrong).foregroundStyle(AkiPalette.textPrimary)
+                Text(L10n.t("Used most this week")).font(CardType.bodyStrong).foregroundStyle((primaryOverride ?? AkiPalette.textPrimary))
                 ForEach(projects.prefix(4), id: \.label) { project in
                     ShareRow(label: project.label, share: project.share, cost: project.cost, secondary: secondary)
                 }
@@ -1186,12 +1197,12 @@ struct UsageDetails: View {
         let figures = allTimeFigures(account)
         if !figures.isEmpty {
             Hairline()
-            Text(L10n.t("All time")).font(CardType.bodyStrong).foregroundStyle(AkiPalette.textPrimary)
+            Text(L10n.t("All time")).font(CardType.bodyStrong).foregroundStyle((primaryOverride ?? AkiPalette.textPrimary))
             // Three to a row: a figure big, what it is under it.
             LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 6, alignment: .leading), count: 3), alignment: .leading, spacing: 6) {
                 ForEach(figures, id: \.label) { figure in
                     VStack(alignment: .leading, spacing: 0) {
-                        Text(figure.value).font(CardType.bodyStrong).foregroundStyle(AkiPalette.textPrimary).monospacedDigit()
+                        Text(figure.value).font(CardType.bodyStrong).foregroundStyle((primaryOverride ?? AkiPalette.textPrimary)).monospacedDigit()
                             .lineLimit(1).minimumScaleFactor(0.7)
                         Text(figure.label).font(CardType.body).foregroundStyle(secondary).lineLimit(1).minimumScaleFactor(0.7)
                     }
@@ -1219,7 +1230,6 @@ struct UsageDetails: View {
             if let lifetime = account.lifetimeTokens { figures.append((TokenSpend.short(lifetime), L10n.t("Total"))) }
             if let threads = account.threads { figures.append(("\(threads)", L10n.t("chats"))) }
             if let longest = account.longestTurn, longest >= 60 { figures.append((UsageRing.left(until: Date().addingTimeInterval(longest)), L10n.t("Longest task"))) }
-            if let saved = account.resetsSaved { figures.append(("\(saved)", L10n.t("Limit resets saved"))) }
         } else if let spend {
             if spend.streak > 0 { figures.append(("\(spend.streak) · \(spend.longestStreak)", L10n.t("In a row") + " · " + L10n.t("best"))) }
             if let busiest = spend.busiest {
@@ -1227,6 +1237,8 @@ struct UsageDetails: View {
                                 L10n.t("Busiest day") + " · " + busiest.start.formatted(.dateTime.day().month(.twoDigits).locale(L10n.locale))))
             }
         }
+        // The resets come with the limits (`/usage`), even when the profile didn't answer.
+        if agent == .codex, let saved = model.codexAccount?.resetsSaved { figures.append(("\(saved)", L10n.t("Limit resets saved"))) }
         // Each label once (the grid tells them apart by it).
         var seen = Set<String>()
         return figures.filter { seen.insert($0.label).inserted }
@@ -1239,11 +1251,12 @@ struct ShareRow: View {
     let share: Double
     let cost: Double
     let secondary: Color
+    @Environment(\.akiPrimary) private var primary
 
     var body: some View {
         HStack(spacing: 6) {
             Text(label)
-                .font(CardType.body).foregroundStyle(AkiPalette.textPrimary)
+                .font(CardType.body).foregroundStyle(primary ?? AkiPalette.textPrimary)
                 .lineLimit(1).truncationMode(.middle)
             Spacer(minLength: 4)
             Text("\(Int((share * 100).rounded()))%").font(CardType.body).foregroundStyle(secondary).monospacedDigit()
@@ -2295,6 +2308,7 @@ struct SplitRow: View {
     let leading: String
     let trailing: String
     let secondary: Color
+    @Environment(\.akiPrimary) private var primary
 
     init(_ leading: String, _ trailing: String, _ secondary: Color) {
         self.leading = leading
@@ -2304,7 +2318,7 @@ struct SplitRow: View {
 
     var body: some View {
         HStack(spacing: 7.5) {
-            Text(leading).foregroundStyle(AkiPalette.textPrimary)
+            Text(leading).foregroundStyle(primary ?? AkiPalette.textPrimary)
             Spacer(minLength: 0)
             Text(trailing).foregroundStyle(secondary)
         }
@@ -2314,8 +2328,10 @@ struct SplitRow: View {
 }
 
 struct Hairline: View {
+    @Environment(\.akiPrimary) private var primary
+
     var body: some View {
-        Rectangle().fill(AkiPalette.ringTrack).frame(height: 0.94)
+        Rectangle().fill(primary.map { $0.opacity(0.16) } ?? AkiPalette.ringTrack).frame(height: 0.94)
     }
 }
 

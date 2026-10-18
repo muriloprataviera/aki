@@ -767,6 +767,7 @@ struct SettingsView: View {
                 if model.spend[agent.rawValue] != nil || model.usage.contains(where: { $0.agent == agent }) {
                     Section(agent.displayName) {
                         UsageDetails(model: model, agent: agent, secondary: .white.opacity(0.5))
+                            .environment(\.akiPrimary, .white)
                             .padding(.vertical, 4)
                         if agent == .codex {
                             Toggle(L10n.t("More from Codex"), isOn: $preferences.codexAccount)

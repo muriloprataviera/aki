@@ -399,6 +399,12 @@ if let handle = try? FileHandle(forWritingTo: ledgerLog) {
 try? FileManager.default.setAttributes([.modificationDate: later], ofItemAtPath: ledgerLog.path)
 ledger.update(now: later)
 check(ledger.daily(agent: "claude").values.reduce(0, +) == 1111, "a resumed session's old requests not counted again")
+// Aki closed for twelve days; a session that ran and ended three days into them still counts.
+let ended = claudeLogs.appending(path: "ended.jsonl")
+try? claudeTurn("r5", later.addingTimeInterval(3 * 86400), 5).write(to: ended, atomically: true, encoding: .utf8)
+try? FileManager.default.setAttributes([.modificationDate: later.addingTimeInterval(3 * 86400)], ofItemAtPath: ended.path)
+ledger.update(now: later.addingTimeInterval(12 * 86400))
+check(ledger.daily(agent: "claude").values.reduce(0, +) == 1116, "a session that ended while Aki was closed counted")
 try? FileManager.default.removeItem(at: ledgerRoot)
 
 // Days in a row up to today (or yesterday), the longest run, the busiest day.

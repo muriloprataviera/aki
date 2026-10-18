@@ -102,8 +102,11 @@ public final class TokenLedger: @unchecked Sendable {
         var seen = Set<String>()
         // Codex moves a session it archives out of `sessions`: its tokens still count.
         let archived = codexRoot.deletingLastPathComponent().appending(path: "archived_sessions")
+        // Logs changed since what's counted, not only this week: Aki closed for longer than
+        // a week, a session that ended meanwhile still has requests not counted.
+        let changedSince = min(since, state.counted.map { Date(timeIntervalSince1970: TimeInterval($0)) } ?? since)
         for (root, agent) in [(claudeRoot, "claude"), (codexRoot, "codex"), (archived, "codex")] {
-            for url in Self.logs(in: root, since: since) {
+            for url in Self.logs(in: root, since: changedSince) {
                 seen.insert(url.path)
                 if read(url, agent: agent) { changed = true }
             }

@@ -882,6 +882,8 @@ final class SidebarModel {
                     codexAccountFailure = nil
                 case .failure(let failure):
                     codexAccountFailure = failure
+                    // Signed out, or the sign-in expired: the old numbers go, and the reason shows.
+                    if failure != .unavailable { codexAccount = nil }
                 }
             }
         } else if !preferences.codexAccount, codexAccount != nil || codexAccountFailure != nil || codexAccountTask != nil {
