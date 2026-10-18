@@ -345,6 +345,27 @@ let monthly = UsageLimits.parseCodex(line: Data(#"{"payload":{"rate_limits":{"pr
 check(monthly?.month?.percent == 3 && monthly?.week == nil, "Codex 30-day window read as the month")
 check(UsageLimits.parseCodex(line: Data(#"{"payload":{"rate_limits":{"primary":null,"secondary":null}}}"#.utf8), updated: Date()) == nil,
       "no windows, no limits")
+// What OpenAI says of a Codex account: resets saved, all-time numbers, weeks in order.
+var codexAccount = CodexAccount()
+codexAccount.addUsage(Data(#"{"plan_type":"prolite","rate_limit_reset_credits":{"available_count":3,"applicable_available_count":0}}"#.utf8))
+codexAccount.addProfile(Data(#"{"stats":{"lifetime_tokens":2701713581,"total_threads":4133,"longest_running_turn_sec":15359,"most_used_reasoning_effort":"medium","top_invocations":[{"type":"plugin","plugin_name":"github","skill_name":null,"usage_count":299},{"type":"skill","plugin_name":null,"skill_name":"orca-cli","usage_count":6}],"weekly_usage_buckets":[{"start_date":"2026-03-09","tokens":5},{"start_date":"2026-03-02","tokens":9}]}}"#.utf8))
+check(codexAccount.resetsSaved == 3 && codexAccount.resetsUsable == 0, "Codex resets saved read")
+check(codexAccount.lifetimeTokens == 2701713581 && codexAccount.threads == 4133, "Codex all-time numbers read")
+check(codexAccount.invocations.map(\.name) == ["github", "orca-cli"], "Codex calls named by plugin or skill")
+check(codexAccount.weeks.map(\.tokens) == [9, 5], "Codex weeks oldest first")
+
+// Days in a row up to today (or yesterday), the longest run, the busiest day.
+let streakNow = ISO8601DateFormatter().date(from: "2026-10-18T15:00:00Z")!
+var utc = Calendar(identifier: .gregorian)
+utc.timeZone = TimeZone(identifier: "UTC")!
+let streakSpend = TokenSpend.of([], weekStart: nil, daily: ["2026-10-17": 5, "2026-10-16": 9, "2026-10-14": 1, "2026-10-01": 2,
+                                                             "2026-10-02": 2, "2026-10-03": 2, "2026-10-04": 2],
+                                now: streakNow, calendar: utc)
+check(streakSpend.streak == 2, "streak counts back from yesterday when today is empty")
+check(streakSpend.longestStreak == 4, "longest run found")
+check(streakSpend.busiest?.total.tokens == 9, "busiest day found")
+check(TokenSpend.modelName("claude-opus-4-1-20250805") == "Opus 4.1" && TokenSpend.modelName("gpt-6.1-sol") == "gpt-6.1-sol",
+      "model names shortened")
 let renewed = UsageLimits.parseCodex(line: Data(codexLine.replacingOccurrences(of: "4102444800", with: "1000").utf8), updated: Date())?.current()
 check(renewed?.week?.percent == 0, "a window that already renewed reads 0%")
 check((renewed?.week?.resets ?? .distantPast) > Date(), "a renewed week keeps a start (its next renewal)")

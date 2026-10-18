@@ -18,6 +18,8 @@ public final class TokenLedger: @unchecked Sendable {
         public var output: Int
         public var cacheRead: Int
         public var cacheWrite: Int
+        /// How hard it was asked to think (Codex says it; Claude Code doesn't).
+        public var effort: String?
 
         public var tokens: Int { input + output + cacheRead + cacheWrite }
     }
@@ -28,6 +30,7 @@ public final class TokenLedger: @unchecked Sendable {
         /// Codex names the folder and model in earlier lines than its token counts.
         var cwd: String?
         var model: String?
+        var effort: String?
         /// Codex's running total: a token report that doesn't raise it isn't a new request.
         var total: Int?
     }
@@ -35,6 +38,13 @@ public final class TokenLedger: @unchecked Sendable {
     struct State: Codable {
         var cursors: [String: Cursor] = [:]
         var events: [String: Event] = [:]
+        /// Tokens per AI per day ("2026-10-18") of the requests that left the week, kept
+        /// for good (a few bytes a day) for the streak and the busiest day.
+        var history: [String: [String: Int]]?
+        /// Requests from here on enter `history` as they leave; the ones before were
+        /// counted by `backfill` (nil until the first pass of a version that keeps it).
+        var historyFrom: Int?
+        var backfilled: Bool?
     }
 
     /// How far back it keeps (the week shown, plus a day).
@@ -84,6 +94,14 @@ public final class TokenLedger: @unchecked Sendable {
         state.cursors = state.cursors.filter { seen.contains($0.key) }
         let cutoff = Int(since.timeIntervalSince1970)
         let oldEvents = state.events.count
+        // Before going, a request adds to its day.
+        if state.historyFrom == nil { state.historyFrom = cutoff }
+        let from = state.historyFrom ?? cutoff
+        var history = state.history ?? [:]
+        for event in state.events.values where event.ts < cutoff && event.ts >= from {
+            history[event.agent, default: [:]][Self.day(event.ts), default: 0] += event.tokens
+        }
+        state.history = history
         state.events = state.events.filter { $0.value.ts >= cutoff }
         if state.cursors.count != oldCursors || state.events.count != oldEvents { changed = true }
         if changed { dirty = true }
@@ -115,6 +133,68 @@ public final class TokenLedger: @unchecked Sendable {
     /// Every request of one AI in the window kept.
     public func events(agent: String) -> [Event] {
         lock.withLock { state.events.values.filter { $0.agent == agent } }
+    }
+
+    /// Tokens per day ("2026-10-18") of one AI, as far back as its logs go.
+    public func daily(agent: String) -> [String: Int] {
+        lock.withLock {
+            var days = state.history?[agent] ?? [:]
+            for event in state.events.values where event.agent == agent { days[Self.day(event.ts), default: 0] += event.tokens }
+            return days
+        }
+    }
+
+    /// Whether the logs before the week were counted already (once, after the first `update`).
+    public var needsBackfill: Bool { lock.withLock { loaded && state.backfilled != true && state.historyFrom != nil } }
+
+    /// Counts once, by day, every request older than the week in all the logs (they
+    /// can go back months: run in the background). Each log is read on its own, so
+    /// memory stays at one log's requests; a request seen in another log (a forked
+    /// Codex session) counts once.
+    public func backfill() {
+        guard let before = lock.withLock({ state.historyFrom }) else { return }
+        let archived = codexRoot.deletingLastPathComponent().appending(path: "archived_sessions")
+        var days: [String: [String: Int]] = [:]
+        var counted = Set<String>()
+        for (root, agent) in [(claudeRoot, "claude"), (codexRoot, "codex"), (archived, "codex")] {
+            for url in Self.logs(in: root, since: .distantPast) {
+                let scratch = TokenLedger(scratchFor: self)
+                _ = scratch.read(url, agent: agent)
+                for (key, event) in scratch.state.events where event.ts < before && counted.insert(key).inserted {
+                    days[agent, default: [:]][Self.day(event.ts), default: 0] += event.tokens
+                }
+            }
+        }
+        lock.withLock {
+            var history = state.history ?? [:]
+            for (agent, byDay) in days {
+                for (day, tokens) in byDay { history[agent, default: [:]][day, default: 0] += tokens }
+            }
+            state.history = history
+            state.backfilled = true
+            saveLocked(Date())
+        }
+    }
+
+    /// An empty ledger reading the same folders, for `backfill` (never saved).
+    private init(scratchFor ledger: TokenLedger) {
+        file = URL(fileURLWithPath: "/dev/null")
+        claudeRoot = ledger.claudeRoot
+        codexRoot = ledger.codexRoot
+        loaded = true
+    }
+
+    private static let dayFormat: DateFormatter = {
+        let format = DateFormatter()
+        format.locale = Locale(identifier: "en_US_POSIX")
+        format.dateFormat = "yyyy-MM-dd"
+        return format
+    }()
+    private static let dayLock = NSLock()
+
+    /// The local day of a time, as "2026-10-18".
+    public static func day(_ ts: Int) -> String {
+        dayLock.withLock { dayFormat.string(from: Date(timeIntervalSince1970: TimeInterval(ts))) }
     }
 
     static func logs(in root: URL, since: Date) -> [URL] {
@@ -298,6 +378,7 @@ public final class TokenLedger: @unchecked Sendable {
             if let cwd = payload["cwd"] as? String, !cwd.isEmpty { cursor.cwd = cwd }
             // The model sits in different places by version (even deep in the session's header).
             if let model = payload["model"] as? String ?? Self.firstModel(in: line), !model.isEmpty { cursor.model = model }
+            if let effort = payload["effort"] as? String, !effort.isEmpty { cursor.effort = effort }
             return false
         }
         guard !contextOnly, payload["type"] as? String == "token_count",
@@ -320,7 +401,8 @@ public final class TokenLedger: @unchecked Sendable {
         state.events[key] = Event(
             agent: "codex", ts: Int(date.timeIntervalSince1970), project: Self.project(cursor.cwd ?? ""),
             // No model named: priced as the current Codex family.
-            model: cursor.model ?? "gpt-6", input: max(0, all - cached), output: output, cacheRead: cached, cacheWrite: 0)
+            model: cursor.model ?? "gpt-6", input: max(0, all - cached), output: output, cacheRead: cached, cacheWrite: 0,
+            effort: cursor.effort)
         return true
     }
 
@@ -415,14 +497,28 @@ public struct TokenSpend: Sendable, Equatable {
         public var total: Total
         public var share: Double
     }
+    /// A model, or an effort, and its part of the week's tokens.
+    public struct Share: Sendable, Equatable {
+        public var name: String
+        public var total: Total
+        public var share: Double
+    }
 
     public var today = Total()
     public var days: [Day] = []
     public var week = Total()
     public var projects: [Project] = []
+    public var models: [Share] = []
+    public var efforts: [Share] = []
+    /// Days in a row with some use, up to today (or yesterday, today still empty), and the longest run.
+    public var streak = 0
+    public var longestStreak = 0
+    /// The day with the most tokens, as far back as the logs go.
+    public var busiest: Day?
 
     /// `weekStart`: when the limit week began (its renewal minus 7 days); nil = the last 7 days.
-    public static func of(_ events: [TokenLedger.Event], weekStart: Date?, now: Date = Date(),
+    /// `daily`: tokens per day ("2026-10-18") over all the logs, for the streak and the busiest day.
+    public static func of(_ events: [TokenLedger.Event], weekStart: Date?, daily: [String: Int] = [:], now: Date = Date(),
                           calendar: Calendar = .current) -> TokenSpend {
         var spend = TokenSpend()
         let todayStart = calendar.startOfDay(for: now)
@@ -431,6 +527,8 @@ public struct TokenSpend: Sendable, Equatable {
         }
         let weekFrom = Int((weekStart ?? now.addingTimeInterval(-7 * 24 * 3600)).timeIntervalSince1970)
         var byProject: [String: Total] = [:]
+        var byModel: [String: Total] = [:]
+        var byEffort: [String: Total] = [:]
         for event in events {
             let cost = TokenPrices.cost(event) ?? 0
             let date = Date(timeIntervalSince1970: TimeInterval(event.ts))
@@ -447,12 +545,73 @@ public struct TokenSpend: Sendable, Equatable {
                 spend.week.cost += cost
                 byProject[event.project, default: Total()].tokens += event.tokens
                 byProject[event.project, default: Total()].cost += cost
+                byModel[event.model, default: Total()].tokens += event.tokens
+                byModel[event.model, default: Total()].cost += cost
+                if let effort = event.effort {
+                    byEffort[effort, default: Total()].tokens += event.tokens
+                    byEffort[effort, default: Total()].cost += cost
+                }
             }
         }
         let weekTokens = max(spend.week.tokens, 1)
         spend.projects = byProject.map { Project(path: $0.key, total: $0.value, share: Double($0.value.tokens) / Double(weekTokens)) }
             .sorted { $0.total.tokens > $1.total.tokens }
+        func shares(_ sums: [String: Total]) -> [Share] {
+            let all = max(sums.values.map(\.tokens).reduce(0, +), 1)
+            return sums.map { Share(name: $0.key, total: $0.value, share: Double($0.value.tokens) / Double(all)) }
+                .sorted { $0.total.tokens > $1.total.tokens }
+        }
+        spend.models = shares(byModel)
+        spend.efforts = shares(byEffort)
+        spend.addHistory(daily, now: now, calendar: calendar)
         return spend
+    }
+
+    /// The streak and the busiest day, from the tokens per day.
+    mutating func addHistory(_ daily: [String: Int], now: Date, calendar: Calendar) {
+        let used = daily.filter { $0.value > 0 }
+        guard !used.isEmpty else { return }
+        let format = DateFormatter()
+        format.locale = Locale(identifier: "en_US_POSIX")
+        format.calendar = calendar
+        format.timeZone = calendar.timeZone
+        format.dateFormat = "yyyy-MM-dd"
+        func key(_ date: Date) -> String { format.string(from: date) }
+        // Today not started yet doesn't break it.
+        var day = calendar.startOfDay(for: now)
+        if used[key(day)] == nil, let yesterday = calendar.date(byAdding: .day, value: -1, to: day) { day = yesterday }
+        while used[key(day)] != nil, let before = calendar.date(byAdding: .day, value: -1, to: day) {
+            streak += 1
+            day = before
+        }
+        // The longest run: over the days in order.
+        let dates = used.keys.compactMap { format.date(from: $0) }.sorted()
+        var run = 0
+        var previous: Date?
+        for date in dates {
+            if let previous, let next = calendar.date(byAdding: .day, value: 1, to: previous), calendar.isDate(next, inSameDayAs: date) {
+                run += 1
+            } else {
+                run = 1
+            }
+            longestStreak = max(longestStreak, run)
+            previous = date
+        }
+        longestStreak = max(longestStreak, streak)
+        if let top = used.max(by: { $0.value < $1.value }), let start = format.date(from: top.key) {
+            busiest = Day(start: start, total: Total(tokens: top.value, cost: 0))
+        }
+    }
+
+    /// "Opus 4.1" for "claude-opus-4-1-20250805", "Sonnet 4.5" for "claude-sonnet-4-5"; others as named.
+    public static func modelName(_ model: String) -> String {
+        guard model.hasPrefix("claude-") else { return model }
+        var parts = model.dropFirst("claude-".count).split(separator: "-").map(String.init)
+        // A date at the end (8 digits) goes.
+        if let last = parts.last, last.count == 8, Int(last) != nil { parts.removeLast() }
+        guard let family = parts.first else { return model }
+        let version = parts.dropFirst().joined(separator: ".")
+        return family.prefix(1).uppercased() + family.dropFirst() + (version.isEmpty ? "" : " " + version)
     }
 
     /// "1.2M", "830K", "950".

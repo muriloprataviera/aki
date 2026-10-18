@@ -702,6 +702,9 @@ struct SettingsView: View {
                 .pickerStyle(.segmented)
                 Caption(L10n.t("What the card beside a ring shows."))
 
+                Toggle(L10n.t("More from Codex"), isOn: $preferences.codexAccount)
+                Caption(L10n.t("Limit resets saved, all-time numbers and what you call most, asked of OpenAI with the sign-in Codex keeps on this Mac. Off, Aki asks no server about your usage."))
+
                 HStack {
                     Caption(L10n.t("Drag the dots beside the settings button, or hold ⌥ and drag the sidebar, to slide it along its edge."))
                     Spacer()

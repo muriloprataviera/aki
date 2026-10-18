@@ -1052,19 +1052,30 @@ struct UsageCard: View {
                     SplitRow(L10n.t("Today"), "\(TokenSpend.short(spend.today.tokens)) \(L10n.t("tokens")) · \(TokenSpend.money(spend.today.cost))", secondary)
                     SplitRow(L10n.t("This week"), "\(TokenSpend.short(spend.week.tokens)) \(L10n.t("tokens")) · \(TokenSpend.money(spend.week.cost))", secondary)
                     SpendBars(days: spend.days, secondary: secondary)
+                    // How steady: days in a row, and the busiest day the logs remember.
+                    if spend.streak > 0 {
+                        SplitRow(L10n.t("In a row"), "\(spend.streak) \(L10n.t(spend.streak == 1 ? "day" : "days")) · \(L10n.t("best")) \(spend.longestStreak)", secondary)
+                    }
+                    if let busiest = spend.busiest {
+                        SplitRow(L10n.t("Busiest day"), "\(TokenSpend.short(busiest.total.tokens)) · \(busiest.start.formatted(.dateTime.month(.abbreviated).day().locale(L10n.locale)))", secondary)
+                    }
+                    if !spend.models.isEmpty {
+                        Hairline()
+                        Text(L10n.t("Models this week")).font(CardType.bodyStrong).foregroundStyle(AkiPalette.textPrimary)
+                        ForEach(spend.models.prefix(4), id: \.name) { model in
+                            ShareRow(label: TokenSpend.modelName(model.name), share: model.share, cost: model.total.cost, secondary: secondary)
+                        }
+                        // Codex says how hard it was asked to think.
+                        if !spend.efforts.isEmpty {
+                            Text("\(L10n.t("Effort")): " + spend.efforts.prefix(3).map { "\($0.name) \(Int(($0.share * 100).rounded()))%" }.joined(separator: " · "))
+                                .font(CardType.body).foregroundStyle(secondary).lineLimit(1).minimumScaleFactor(0.8)
+                        }
+                    }
                     if !projects.isEmpty {
                         Hairline()
                         Text(L10n.t("Used most this week")).font(CardType.bodyStrong).foregroundStyle(AkiPalette.textPrimary)
                         ForEach(projects.prefix(4), id: \.label) { project in
-                            HStack(spacing: 6) {
-                                Text(project.label)
-                                    .font(CardType.body).foregroundStyle(AkiPalette.textPrimary)
-                                    .lineLimit(1).truncationMode(.middle)
-                                Spacer(minLength: 4)
-                                Text("\(Int((project.share * 100).rounded()))%").font(CardType.body).foregroundStyle(secondary).monospacedDigit()
-                                Text(TokenSpend.money(project.cost)).font(CardType.body).foregroundStyle(secondary).monospacedDigit()
-                                    .frame(minWidth: 38, alignment: .trailing)
-                            }
+                            ShareRow(label: project.label, share: project.share, cost: project.cost, secondary: secondary)
                         }
                     }
                     Text(L10n.t("$ at API prices, an estimate: your plan is a flat fee."))
@@ -1074,7 +1085,105 @@ struct UsageCard: View {
                     Hairline()
                     Text(L10n.t("Counting tokens…")).font(CardType.body).foregroundStyle(secondary)
                 }
+                if limits.agent == .codex {
+                    Hairline()
+                    CodexAccountSection(model: model, secondary: secondary)
+                }
             }
+        }
+    }
+}
+
+/// A name, its part of the week and its $ (a project, a model).
+struct ShareRow: View {
+    let label: String
+    let share: Double
+    let cost: Double
+    let secondary: Color
+
+    var body: some View {
+        HStack(spacing: 6) {
+            Text(label)
+                .font(CardType.body).foregroundStyle(AkiPalette.textPrimary)
+                .lineLimit(1).truncationMode(.middle)
+            Spacer(minLength: 4)
+            Text("\(Int((share * 100).rounded()))%").font(CardType.body).foregroundStyle(secondary).monospacedDigit()
+            Text(TokenSpend.money(cost)).font(CardType.body).foregroundStyle(secondary).monospacedDigit()
+                .frame(minWidth: 38, alignment: .trailing)
+        }
+    }
+}
+
+/// OpenAI's numbers for your Codex account, or the offer to show them (off until you
+/// click: it's the one thing Aki asks a server).
+struct CodexAccountSection: View {
+    let model: SidebarModel
+    let secondary: Color
+
+    var body: some View {
+        if !model.preferences.codexAccount {
+            VStack(alignment: .leading, spacing: 4) {
+                Text(L10n.t("More from Codex")).font(CardType.bodyStrong).foregroundStyle(AkiPalette.textPrimary)
+                Text(L10n.t("Limit resets saved, all-time numbers, what you call most. Aki asks OpenAI with the sign-in Codex keeps on this Mac."))
+                    .font(CardType.body).foregroundStyle(secondary).fixedSize(horizontal: false, vertical: true)
+                Button(L10n.t("Show")) { model.preferences.codexAccount = true }
+                    .buttonStyle(.plain)
+                    .font(CardType.bodyStrong).foregroundStyle(AkiPalette.textPrimary)
+                    .padding(.horizontal, 10).padding(.vertical, 3)
+                    .background(Capsule().fill(AkiPalette.fg.opacity(0.14)))
+            }
+        } else if let account = model.codexAccount {
+            VStack(alignment: .leading, spacing: 7.5) {
+                Text(L10n.t("Your Codex account")).font(CardType.bodyStrong).foregroundStyle(AkiPalette.textPrimary)
+                if let saved = account.resetsSaved {
+                    SplitRow(L10n.t("Limit resets saved"), saved == 0 ? "0"
+                        : "\(saved) · \(account.resetsUsable ?? 0) \(L10n.t("usable now"))", secondary)
+                }
+                if let lifetime = account.lifetimeTokens {
+                    SplitRow(L10n.t("All time"), "\(TokenSpend.short(lifetime)) \(L10n.t("tokens"))"
+                        + (account.threads.map { " · \($0) \(L10n.t("chats"))" } ?? ""), secondary)
+                }
+                if let longest = account.longestTurn, longest >= 60 {
+                    SplitRow(L10n.t("Longest task"), UsageRing.left(until: Date().addingTimeInterval(longest)), secondary)
+                }
+                if let effort = account.effort {
+                    SplitRow(L10n.t("Effort used most"), effort + (account.effortShare.map { " · \(Int($0.rounded()))%" } ?? ""), secondary)
+                }
+                if !account.invocations.isEmpty {
+                    SplitRow(L10n.t("Called most"), account.invocations.prefix(3).map { "\($0.name) \($0.count)" }.joined(separator: " · "), secondary)
+                }
+                if account.weeks.count > 1 {
+                    WeekBars(weeks: Array(account.weeks.suffix(16)), secondary: secondary)
+                }
+            }
+        } else if let failure = model.codexAccountFailure {
+            Text(L10n.t(failure == .notSignedIn ? "Codex isn't signed in to a ChatGPT account on this Mac."
+                : failure == .expired ? "Codex's sign-in needs renewing: open Codex once." : "OpenAI didn't answer; Aki tries again in 10 minutes."))
+                .font(CardType.body).foregroundStyle(secondary).fixedSize(horizontal: false, vertical: true)
+        } else {
+            Text(L10n.t("Asking OpenAI…")).font(CardType.body).foregroundStyle(secondary)
+        }
+    }
+}
+
+/// Tokens week by week (the oldest first), small bars with no labels.
+struct WeekBars: View {
+    let weeks: [CodexAccount.Week]
+    let secondary: Color
+
+    var body: some View {
+        let most = max(weeks.map(\.tokens).max() ?? 0, 1)
+        VStack(alignment: .leading, spacing: 2) {
+            HStack(alignment: .bottom, spacing: 2) {
+                ForEach(Array(weeks.enumerated()), id: \.offset) { i, week in
+                    RoundedRectangle(cornerRadius: 1.5)
+                        .fill(i == weeks.count - 1 ? AnyShapeStyle(AkiPalette.auroraDiagonal) : AnyShapeStyle(secondary.opacity(0.7)))
+                        .frame(height: max(2, 26 * CGFloat(week.tokens) / CGFloat(most)))
+                        .frame(maxWidth: .infinity)
+                }
+            }
+            .frame(height: 26, alignment: .bottom)
+            Text(L10n.t("Tokens per week")).font(CardType.body).foregroundStyle(secondary.opacity(0.8))
         }
     }
 }

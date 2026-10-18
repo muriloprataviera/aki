@@ -731,6 +731,10 @@ final class SidebarModel {
     @ObservationIgnored private let ledger = TokenLedger()
     @ObservationIgnored private var ledgerRead = Date.distantPast
     @ObservationIgnored private var ledgerBusy = false
+    /// What OpenAI says of your Codex account (only with "More from Codex" on).
+    var codexAccount: CodexAccount?
+    var codexAccountFailure: CodexAccount.Failure?
+    @ObservationIgnored private var codexAccountRead = Date.distantPast
 
     /// Room Aki's pictures take on this Mac (measured once a minute, and after a clean-up).
     var diskUsage = DiskUsage()
@@ -842,13 +846,37 @@ final class SidebarModel {
                     var result: [String: TokenSpend] = [:]
                     for agent in ["claude", "codex"] {
                         let week = limits.first { $0.agent.rawValue == agent }?.week?.resets
-                        result[agent] = TokenSpend.of(ledger.events(agent: agent), weekStart: week?.addingTimeInterval(-7 * 24 * 3600))
+                        result[agent] = TokenSpend.of(ledger.events(agent: agent), weekStart: week?.addingTimeInterval(-7 * 24 * 3600),
+                                                      daily: ledger.daily(agent: agent))
                     }
                     return result
                 }.value
                 if found != spend { spend = found }
+                // Once: the logs before the week, by day (the streak, the busiest day). Months of
+                // logs, so slowly, on its own; the next pass shows them.
+                if ledger.needsBackfill {
+                    await Task.detached(priority: .background) { ledger.backfill() }.value
+                    ledgerRead = .distantPast
+                }
                 ledgerBusy = false
             }
+        }
+        // OpenAI's numbers for your Codex account: every 10 minutes, only when turned on.
+        if preferences.codexAccount, Date().timeIntervalSince(codexAccountRead) > 600 {
+            codexAccountRead = Date()
+            Task {
+                switch await CodexAccount.fetch() {
+                case .success(let account):
+                    codexAccount = account
+                    codexAccountFailure = nil
+                case .failure(let failure):
+                    codexAccountFailure = failure
+                }
+            }
+        } else if !preferences.codexAccount, codexAccount != nil || codexAccountFailure != nil {
+            codexAccount = nil
+            codexAccountFailure = nil
+            codexAccountRead = .distantPast
         }
         // Every mark of a session resolved by its agent: a ✓ on its ring.
         for terminal in open where terminal.pending == 0 && !movedFrom.contains(terminal.id) {

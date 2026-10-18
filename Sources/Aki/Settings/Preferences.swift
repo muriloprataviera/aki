@@ -405,6 +405,8 @@ final class Preferences {
     var maxTerminals: Int { didSet { defaults.set(maxTerminals, forKey: Keys.maxTerminals) } }
     var ringMode: RingMode { didSet { defaults.set(ringMode.rawValue, forKey: Keys.ringMode) } }
     var cardDetail: CardDetail { didSet { defaults.set(cardDetail.rawValue, forKey: Keys.cardDetail) } }
+    /// Ask OpenAI for your Codex account's numbers with Codex's own sign-in (off until you turn it on).
+    var codexAccount: Bool { didSet { defaults.set(codexAccount, forKey: Keys.codexAccount) } }
     /// Terminals the user chose not to see in the sidebar.
     var hiddenWorktrees: Set<String> {
         didSet { defaults.set(Array(hiddenWorktrees).sorted(), forKey: Keys.hidden) }
@@ -500,6 +502,7 @@ final class Preferences {
         tracksCodex = defaults.object(forKey: Keys.tracksCodex) as? Bool ?? true
         untrackedAgents = Set(defaults.stringArray(forKey: Keys.untrackedAgents) ?? [])
         cardDetail = value(Keys.cardDetail, CardDetail.compact)
+        codexAccount = defaults.bool(forKey: Keys.codexAccount)
         ringMode = value(Keys.ringMode, RingMode.terminals)
         maxTerminals = defaults.object(forKey: Keys.maxTerminals) as? Int ?? 10
         hiddenWorktrees = Set(defaults.stringArray(forKey: Keys.hidden) ?? [])
@@ -553,6 +556,7 @@ final class Preferences {
         static let along = "sidebarAlong"
         static let sidebarScreen = "sidebarScreen"
         static let cardDetail = "cardDetail"
+        static let codexAccount = "codexAccount"
         static let ringMode = "ringMode"
         static let maxTerminals = "maxTerminals"
         static let hidden = "hiddenWorktrees"

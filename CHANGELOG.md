@@ -6,6 +6,8 @@ What changed in each version of Aki. Versions follow [semantic versioning](https
 
 ### Added
 - Limits rings: right-click one to choose, for that AI alone, what it shows and the line under it. New: the time left in the 5-hour session ("5H 1h47"), the time until the week renews, and the month on plans that have a monthly limit. Each menu offers only what that AI reports.
+- Limits card: the models used this week (and, for Codex, how hard it was asked to think), the days in a row you used each AI and the busiest day, counted from the logs on your Mac.
+- Codex card: "More from Codex" (off until you click Show) asks OpenAI, with the sign-in Codex keeps on your Mac, for your limit resets saved, all-time tokens and chats, longest task, the effort and tools you use most, and tokens week by week.
 
 ## [0.9.0] — 2026-10-17
 
