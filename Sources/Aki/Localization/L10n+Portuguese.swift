@@ -236,6 +236,9 @@ extension L10n {
         "Point at anything on screen. Your coding agent reads it.":
             "Aponte para qualquer coisa na tela. Seu agente lê.",
         "Built on open source": "Feito com código aberto", "In the ring": "No anel", "Under the ring": "Embaixo do anel", "Hide this ring": "Esconder este anel", "Show the %@ limits ring": "Mostrar o anel de limites do %@", "Just what the ring shows": "Só o nome do anel", "Support Aki": "Apoiar o Aki", "Donate if you like it": "Doe se gostou",
+        "Models, projects and all time": "Modelos, projetos e desde o início",
+        "The models and projects of your week, and your numbers since the start.": "Os modelos e projetos da sua semana, e os seus números desde o início.",
+        "Usage": "Uso",
         "Models this week": "Modelos esta semana",
         "From OpenAI, for your whole account.": "Da OpenAI, para a conta toda.",
         "Total": "Total",

@@ -997,16 +997,6 @@ struct UsageCard: View {
     private var secondary: Color { surface == .solid ? AkiPalette.textSecondary : AkiPalette.glassTextSecondary }
     private var spend: TokenSpend? { model.spend[limits.agent.rawValue] }
 
-    /// Worktrees of one project summed under its name, as the sidebar groups them.
-    private var projects: [(label: String, share: Double, cost: Double)] {
-        var sums: [String: (share: Double, cost: Double)] = [:]
-        for project in spend?.projects ?? [] {
-            let label = project.path.isEmpty ? L10n.t("Other") : model.projectLabel(model.projectKey(ofWorktree: project.path))
-            sums[label, default: (0, 0)].share += project.share
-            sums[label, default: (0, 0)].cost += project.total.cost
-        }
-        return sums.map { ($0.key, $0.value.share, $0.value.cost) }.sorted { $0.share > $1.share }
-    }
 
     var body: some View {
         TooltipShell(direction: direction, surface: surface) {
@@ -1020,8 +1010,19 @@ struct UsageCard: View {
                     }
                 }
                 limitsPage
-                weekPage
-                allTimePage
+                // The rest (models, projects, all time) lives in Settings → Usage.
+                let key = "usagedetails|" + limits.agent.rawValue
+                Hairline()
+                HStack(spacing: 4) {
+                    Text(L10n.t("Models, projects and all time"))
+                    Spacer(minLength: 4)
+                    Image(systemName: "arrow.up.right")
+                }
+                .font(CardType.bodyStrong)
+                .foregroundStyle(model.hoveredTarget == key ? AkiPalette.textPrimary : secondary)
+                .padding(.horizontal, 4).padding(.vertical, 3)
+                .background(RoundedRectangle(cornerRadius: 5).fill(AkiPalette.fg.opacity(model.hoveredTarget == key ? 0.08 : 0)))
+                .clickTarget(key)
             }
         }
     }
@@ -1063,6 +1064,34 @@ struct UsageCard: View {
         }
     }
 
+}
+
+/// What a limits card leaves to Settings: the week's models and projects, and all time.
+struct UsageDetails: View {
+    let model: SidebarModel
+    let agent: AgentSession.Agent
+    let secondary: Color
+
+    private var spend: TokenSpend? { model.spend[agent.rawValue] }
+
+    /// Worktrees of one project summed under its name, as the sidebar groups them.
+    private var projects: [(label: String, share: Double, cost: Double)] {
+        var sums: [String: (share: Double, cost: Double)] = [:]
+        for project in spend?.projects ?? [] {
+            let label = project.path.isEmpty ? L10n.t("Other") : model.projectLabel(model.projectKey(ofWorktree: project.path))
+            sums[label, default: (0, 0)].share += project.share
+            sums[label, default: (0, 0)].cost += project.total.cost
+        }
+        return sums.map { ($0.key, $0.value.share, $0.value.cost) }.sorted { $0.share > $1.share }
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 7.5) {
+            weekPage
+            allTimePage
+        }
+    }
+
     @ViewBuilder private var weekPage: some View {
         if let spend {
             if !spend.models.isEmpty {
@@ -1094,7 +1123,7 @@ struct UsageCard: View {
 
     /// Since the start: OpenAI's own numbers when you turned them on (Codex), else the logs on this Mac.
     @ViewBuilder private var allTimePage: some View {
-        let account = limits.agent == .codex ? model.codexAccount : nil
+        let account = agent == .codex ? model.codexAccount : nil
         let figures = allTimeFigures(account)
         if !figures.isEmpty {
             Hairline()
@@ -1118,10 +1147,6 @@ struct UsageCard: View {
             Text(L10n.t(account != nil ? "From OpenAI, for your whole account."
                 : model.ledgerBackfilling ? "Reading your older logs…" : "From the logs on this Mac."))
                 .font(CardType.body).foregroundStyle(secondary.opacity(0.8))
-        }
-        if limits.agent == .codex, account == nil {
-            Hairline()
-            CodexAccountSection(model: model, secondary: secondary)
         }
     }
 

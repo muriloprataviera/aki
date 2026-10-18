@@ -8,6 +8,7 @@ import SwiftUI
 
 extension Notification.Name {
     static let akiShowAgents = Notification.Name("akiShowAgents")
+    static let akiShowUsage = Notification.Name("akiShowUsage")
 }
 
 @MainActor
@@ -37,6 +38,14 @@ final class SettingsWindowController: NSObject, NSWindowDelegate {
         // After the window's first draw (a new one listens only once it's up).
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
             NotificationCenter.default.post(name: .akiShowAgents, object: nil)
+        }
+    }
+
+    /// Straight to Usage (from a limits card).
+    func showUsage() {
+        show()
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+            NotificationCenter.default.post(name: .akiShowUsage, object: nil)
         }
     }
 
@@ -122,7 +131,7 @@ final class SettingsWindowController: NSObject, NSWindowDelegate {
 
 private enum SettingsSection: String, CaseIterable, Identifiable, Hashable {
     // Sidebar order: everyday settings first, plumbing last.
-    case setup, general, appearance, annotations, keyboard, agents, claude, codex, terminals, storage
+    case setup, general, appearance, annotations, keyboard, agents, claude, codex, usage, terminals, storage
     var id: String { rawValue }
 
     /// One pane per agent, folded under Agents in the sidebar.
@@ -143,6 +152,7 @@ private enum SettingsSection: String, CaseIterable, Identifiable, Hashable {
         case .claude: "Claude Code"
         case .codex: "Codex"
         case .terminals: L10n.t("Terminals")
+        case .usage: L10n.t("Usage")
         case .appearance: L10n.t("Appearance")
         case .annotations: L10n.t("Marking")
         case .setup: L10n.t("Get started")
@@ -158,6 +168,7 @@ private enum SettingsSection: String, CaseIterable, Identifiable, Hashable {
         case .claude: L10n.t("Claude Code's terminals and connection.")
         case .codex: L10n.t("Codex's terminals and connection.")
         case .terminals: L10n.t("Where your agents run. Aki isn't a terminal: it connects to the ones you already use.")
+        case .usage: L10n.t("The models and projects of your week, and your numbers since the start.")
         case .appearance: L10n.t("How the sidebar looks and where it sits.")
         case .annotations: L10n.t("How marking works.")
         case .setup: L10n.t("What Aki needs from your Mac, and why.")
@@ -172,6 +183,7 @@ private enum SettingsSection: String, CaseIterable, Identifiable, Hashable {
         case .agents: "person.crop.circle.fill"
         case .claude, .codex: "terminal"
         case .terminals: "macwindow.on.rectangle"
+        case .usage: "chart.bar.fill"
         case .appearance: "paintbrush.fill"
         case .annotations: "scope"
         case .setup: "checklist"
@@ -245,6 +257,7 @@ struct SettingsView: View {
             .clipped()
         }
         .onReceive(NotificationCenter.default.publisher(for: .akiShowAgents)) { _ in selectSection(.agents) }
+        .onReceive(NotificationCenter.default.publisher(for: .akiShowUsage)) { _ in selectSection(.usage) }
         // Rebuilt when the language changes, so segmented pickers pick up new titles.
         .id(preferences.language)
         .tint(Color(nsColor: .controlAccentColor))
@@ -363,6 +376,7 @@ struct SettingsView: View {
         case .claude: agentPane(.claude)
         case .codex: agentPane(.codex)
         case .terminals: terminalsPane
+        case .usage: usagePane
         case .appearance: appearancePane
         case .annotations: annotationsPane
         case .setup: GetStartedPane(openAgents: { selectSection(.agents) })
@@ -702,9 +716,6 @@ struct SettingsView: View {
                 .pickerStyle(.segmented)
                 Caption(L10n.t("What the card beside a ring shows."))
 
-                Toggle(L10n.t("More from Codex"), isOn: $preferences.codexAccount)
-                Caption(L10n.t("Limit resets saved, all-time numbers and what you call most, asked of OpenAI with the sign-in Codex keeps on this Mac. Off, Aki asks no server about your usage."))
-
                 HStack {
                     Caption(L10n.t("Drag the dots beside the settings button, or hold ⌥ and drag the sidebar, to slide it along its edge."))
                     Spacer()
@@ -744,6 +755,29 @@ struct SettingsView: View {
                 }
                 .pickerStyle(.segmented)
                 Caption(L10n.t("Automatic: the text always, the crop only when what you marked looks visual. You can still change each mark."))
+            }
+        }
+        .formStyle(.grouped)
+    }
+
+    /// What the limits cards leave out: each AI's week by model and project, and all time.
+    private var usagePane: some View {
+        Form {
+            ForEach([AkiCore.AgentSession.Agent.claude, .codex], id: \.self) { agent in
+                if model.spend[agent.rawValue] != nil || model.usage.contains(where: { $0.agent == agent }) {
+                    Section(agent.displayName) {
+                        UsageDetails(model: model, agent: agent, secondary: .white.opacity(0.5))
+                            .padding(.vertical, 4)
+                        if agent == .codex {
+                            Toggle(L10n.t("More from Codex"), isOn: $preferences.codexAccount)
+                            Caption(L10n.t("Limit resets saved, all-time numbers and what you call most, asked of OpenAI with the sign-in Codex keeps on this Mac. Off, Aki asks no server about your usage."))
+                            if preferences.codexAccount, model.codexAccount == nil, let failure = model.codexAccountFailure {
+                                Caption(L10n.t(failure == .notSignedIn ? "Codex isn't signed in to a ChatGPT account on this Mac."
+                                    : failure == .expired ? "Codex's sign-in needs renewing: open Codex once." : "OpenAI didn't answer; Aki tries again in 10 minutes."))
+                            }
+                        }
+                    }
+                }
             }
         }
         .formStyle(.grouped)

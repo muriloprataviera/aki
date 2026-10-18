@@ -86,6 +86,7 @@ final class SidebarController {
     var openSettings: () -> Void = {}
     /// Settings, on Agents' "What Aki found".
     var openFound: () -> Void = {}
+    var openUsage: () -> Void = {}
     var quit: () -> Void = { NSApp.terminate(nil) }
 
     /// Grace before folding after the pointer leaves, and before dropping the card.
@@ -802,6 +803,12 @@ final class SidebarController {
                     // Its Orca tab, its terminal, or its conversation in the app.
                     model.open(terminal)
                     if preferences.visibility != .alwaysShow { setExpanded(false) }
+                    return true
+                }
+                if target.hasPrefix("usagedetails|") {
+                    model.pinned = nil
+                    model.hovered = nil
+                    openUsage()
                     return true
                 }
                 _ = model.perform(target)
