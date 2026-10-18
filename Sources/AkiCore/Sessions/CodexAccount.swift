@@ -63,7 +63,9 @@ public struct CodexAccount: Sendable, Equatable {
             guard let (data, response) = try? await URLSession.shared.data(for: request),
                 let status = (response as? HTTPURLResponse)?.statusCode
             else { continue }
-            if status == 401 || status == 403 { return .failure(.expired) }
+            // 401: the sign-in itself is refused. A 403 on one address may only mean no access
+            // to it: the other's answer still counts.
+            if status == 401 { return .failure(.expired) }
             guard status == 200 else { continue }
             if path == "usage" { answered = account.addUsage(data) || answered } else { answered = account.addProfile(data) || answered }
         }

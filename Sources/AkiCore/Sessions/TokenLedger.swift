@@ -110,6 +110,15 @@ public final class TokenLedger: @unchecked Sendable {
                 seen.insert(url.path)
                 if read(url, agent: agent) { changed = true }
             }
+            // Codex compresses a log some days after it ends: one compressed since the last
+            // count may hold requests never read (Aki closed meanwhile). Read once (its cursor
+            // keeps its size); what was read before is a known request, or already counted.
+            if agent == "codex" {
+                for url in Self.logs(in: root, since: changedSince, ext: "zst") {
+                    seen.insert(url.path)
+                    if readPacked(url, agent: agent) { changed = true }
+                }
+            }
         }
         // Logs no longer written to and requests past the week go.
         let oldCursors = state.cursors.count
@@ -332,6 +341,24 @@ public final class TokenLedger: @unchecked Sendable {
         }
         // A last line still being written waits for its newline.
         state.cursors[path] = cursor
+        return changed
+    }
+
+    /// A compressed log, whole, once: unpacked to a temporary file and read from its start.
+    private func readPacked(_ url: URL, agent: String) -> Bool {
+        guard let attributes = try? FileManager.default.attributesOfItem(atPath: url.path) else { return false }
+        let size = (attributes[.size] as? Int) ?? 0
+        let inode = (attributes[.systemFileNumber] as? Int) ?? 0
+        if let cursor = state.cursors[url.path], cursor.inode == inode, cursor.offset == size { return false }
+        let unpacked = FileManager.default.temporaryDirectory.appending(path: "aki-log-\(UUID().uuidString).jsonl")
+        defer {
+            try? FileManager.default.removeItem(at: unpacked)
+            state.cursors[unpacked.path] = nil
+        }
+        // Not readable now (cut short, still being written): tried again next pass.
+        guard Self.unpack(url, to: unpacked) else { return false }
+        let changed = read(unpacked, agent: agent)
+        state.cursors[url.path] = Cursor(offset: size, inode: inode)
         return changed
     }
 
