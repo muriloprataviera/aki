@@ -50,6 +50,8 @@ public final class TokenLedger: @unchecked Sendable {
         /// newer reading replaces it instead of adding to it.
         var backfill: [String: [String: Int]]?
         var backfillVersion: Int?
+        /// Everything before this is counted (the last pass's week start).
+        var counted: Int?
     }
 
     /// Raised when the reading of old logs changes (2: Codex's compressed logs too).
@@ -64,9 +66,11 @@ public final class TokenLedger: @unchecked Sendable {
     private let claudeRoot: URL
     private let codexRoot: URL
     private var loaded = false
-    /// Requests older than this aren't taken (a pass sets it to the week's start): a
-    /// session resumed after the week is read again from its start, and its old requests
-    /// are already in the history or the backfill. The backfill's scratch takes them all.
+    /// Requests older than this aren't taken: they're already in the history (they left
+    /// the week at an earlier pass) or the backfill. A session resumed after a week is read
+    /// again from its start; its requests not yet counted (Aki closed meanwhile) are still
+    /// newer than this, enter the week and go to the history as usual. The backfill's
+    /// scratch takes them all.
     private var oldest = Int.min
 
     public init(home: AkiHome = .default,
@@ -91,7 +95,7 @@ public final class TokenLedger: @unchecked Sendable {
             }
         }
         let since = now.addingTimeInterval(-Self.keep)
-        oldest = Int(since.timeIntervalSince1970)
+        oldest = state.counted ?? Int.min
         var changed = false
         var seen = Set<String>()
         // Codex moves a session it archives out of `sessions`: its tokens still count.
@@ -116,6 +120,7 @@ public final class TokenLedger: @unchecked Sendable {
         }
         state.history = history
         state.events = state.events.filter { $0.value.ts >= cutoff }
+        state.counted = max(state.counted ?? cutoff, cutoff)
         if state.cursors.count != oldCursors || state.events.count != oldEvents { changed = true }
         if changed { dirty = true }
         // Saved every ten minutes at most (and on quit): rewritten each pass, several
@@ -172,6 +177,8 @@ public final class TokenLedger: @unchecked Sendable {
         guard let before = lock.withLock({ state.historyFrom }) else { return }
         let archived = codexRoot.deletingLastPathComponent().appending(path: "archived_sessions")
         var days: [String: [String: Int]] = [:]
+        // The same, from uncompressed logs only: what the first reading (betas of 0.10) added.
+        var plainDays: [String: [String: Int]] = [:]
         var counted = Set<String>()
         let unpacked = FileManager.default.temporaryDirectory.appending(path: "aki-log-\(UUID().uuidString).jsonl")
         defer { try? FileManager.default.removeItem(at: unpacked) }
@@ -187,15 +194,21 @@ public final class TokenLedger: @unchecked Sendable {
                 }
                 for (key, event) in scratch.state.events where event.ts < before && counted.insert(key).inserted {
                     days[agent, default: [:]][Self.day(event.ts), default: 0] += event.tokens
+                    if url.pathExtension != "zst" { plainDays[agent, default: [:]][Self.day(event.ts), default: 0] += event.tokens }
                 }
             }
         }
         lock.withLock {
-            // The first reading (betas of 0.10) added its days into `history`: those, up to
-            // the day it began, go, so this reading doesn't count them twice.
-            if state.backfilled == true, state.backfillVersion == nil, let history = state.history {
-                let last = Self.day(before)
-                state.history = history.mapValues { $0.filter { $0.key > last } }
+            // The first reading (betas of 0.10) added its days into `history`: taken back
+            // out (the same logs give the same sums), the rest of the history stays.
+            if state.backfilled == true, state.backfillVersion == nil, var history = state.history {
+                for (agent, byDay) in plainDays {
+                    for (day, tokens) in byDay {
+                        let left = (history[agent]?[day] ?? 0) - tokens
+                        history[agent]?[day] = left > 0 ? left : nil
+                    }
+                }
+                state.history = history
             }
             state.backfill = days
             state.backfilled = true
