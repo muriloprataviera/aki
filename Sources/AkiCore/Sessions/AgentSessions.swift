@@ -435,7 +435,7 @@ extension AgentSessions {
                 if let target = a["session_id"]?.string { return target == id }
                 return a["worktree"]?.string == worktree
             }.map(MarkFolder.created)
-            return ([prompts[conversation], PromptHistory.started(pid)].compactMap { $0 } + made).max()
+            return ([prompts[conversation], PromptHistory.started(pid), PromptHistory.switched(pid, to: conversation)].compactMap { $0 } + made).max()
         }
         let codexKeepsHistory = FileManager.default.fileExists(atPath: PromptHistory.codex.path)
 

@@ -316,7 +316,11 @@ final class SidebarModel {
     /// Without a prompt history (an app's chat): untouched for five hours, nothing
     /// for it, not working and not the destination.
     func resting(_ t: AgentTerminal) -> Bool {
-        if let sent = t.lastSent { return Date().timeIntervalSince(sent) > 5 * 3600 }
+        if let sent = t.lastSent {
+            // Done with a long job and asking you something since: back in sight.
+            if t.state == .waiting, let updated = t.updatedAt, updated > sent { return false }
+            return Date().timeIntervalSince(sent) > 5 * 3600
+        }
         guard t.pending == 0, t.id != selectedTerminal,
             let updated = t.updatedAt, Date().timeIntervalSince(updated) > 5 * 3600
         else { return false }

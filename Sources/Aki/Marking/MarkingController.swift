@@ -420,8 +420,8 @@ final class MarkingController {
     }
 
     /// On a localhost page, the session whose folder runs that port: one named with the
-    /// port ("CORES LOGO 3000"), else the one that started the server, else the one you
-    /// picked if it's among them, else one that talked about the port, else the most
+    /// port ("CORES LOGO 3000"), else the one you picked if it's among them, else the one
+    /// that started the server, else one that talked about the port, else the most
     /// recently active. The same for Claude and Codex.
     private static func sessionServing(_ url: String?, among terminals: [AgentTerminal], selected: String?) async -> String? {
         guard let url, let parts = URL(string: url), let port = parts.port,
@@ -443,6 +443,8 @@ final class MarkingController {
         }
         let here = terminals.filter { $0.worktree == server.worktree }
         if let hit = named(here) { return hit.id }
+        // The one you picked, when it's in that folder: yours over any guess.
+        if let selected, here.contains(where: { $0.id == selected }) { return selected }
         // The agent that ran the dev server (it's working on that page), wherever it was
         // opened: the project's root while the server runs in one of its worktrees.
         let pids = Set(terminals.map(\.pid))
@@ -453,7 +455,6 @@ final class MarkingController {
         }
         // The session may run in a folder above the one serving: its name still tells.
         if let hit = named(terminals) { return hit.id }
-        if let selected, here.contains(where: { $0.id == selected }) { return selected }
         // Several in that folder: the ones that talked about the port lately ("localhost:5173").
         if here.count > 1 {
             let talking = await Task.detached(operation: {

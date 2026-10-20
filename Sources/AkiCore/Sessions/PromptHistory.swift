@@ -70,6 +70,24 @@ public enum PromptHistory {
         return nil
     }
 
+    private static let switchLock = NSLock()
+    nonisolated(unsafe) private static var conversations: [Int32: (id: String, at: Date?)] = [:]
+
+    /// When a process moved to another conversation (`/clear`, `/resume`, Codex's `/new`):
+    /// its first prompt there is still to come, and the history names the old one. Nil
+    /// for the conversation it had when first seen (Aki just opened knows no switch).
+    public static func switched(_ pid: Int32, to conversation: String, now: Date = Date()) -> Date? {
+        switchLock.withLock {
+            guard let known = conversations[pid] else {
+                conversations[pid] = (conversation, nil)
+                return nil
+            }
+            if known.id == conversation { return known.at }
+            conversations[pid] = (conversation, now)
+            return now
+        }
+    }
+
     /// When a process started (a conversation just opened has had no prompt yet).
     public static func started(_ pid: Int32) -> Date? {
         var info = kinfo_proc()
