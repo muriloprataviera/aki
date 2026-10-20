@@ -426,9 +426,12 @@ extension AgentSessions {
         // The last thing you sent each conversation (a prompt, or a mark made for it),
         // and when its process opened.
         let prompts = PromptHistory.lastSent(since: Date().addingTimeInterval(-6 * 3600))
+        // Nil when its prompts can't be known (no id, no history kept): it rests the old way.
         func sent(_ id: String?, pid: Int32, marks: [Annotation]) -> Date? {
-            ([id.flatMap { prompts[$0] }, PromptHistory.started(pid)] + marks.map { Optional(MarkFolder.created($0)) }).compactMap { $0 }.max()
+            guard let id else { return nil }
+            return ([prompts[id], PromptHistory.started(pid)] + marks.map { Optional(MarkFolder.created($0)) }).compactMap { $0 }.max()
         }
+        let codexKeepsHistory = FileManager.default.fileExists(atPath: PromptHistory.codex.path)
 
         var result: [AgentTerminal] = []
         for session in ClaudeSessions.live() {
@@ -473,8 +476,8 @@ extension AgentSessions {
                 lastMessage: ClaudeSessions.lastAgentMessage(sessionId: id, cwd: cwd),
                 pending: mine.count, pendingComments: comments(mine), pendingIDs: ids(mine), pendingPlaces: places(mine), updatedAt: nil,
                 pendingImages: images(mine), undelivered: unsent(mine), orcaHandle: nil,
-                log: ClaudeSessions.transcript(sessionId: id, cwd: cwd, projects: ClaudeSessions.projects),
-                lastSent: sent(id, pid: process.pid, marks: mine)))
+                // The app's prompts aren't in Claude Code's history: not known.
+                log: ClaudeSessions.transcript(sessionId: id, cwd: cwd, projects: ClaudeSessions.projects)))
         }
         // Other agents keep no registry: one entry per process, named after its folder.
         let others = processes.compactMap { process, kind -> (Process, AgentSession.Agent)? in
@@ -499,7 +502,7 @@ extension AgentSessions {
                 worktree: worktree, branch: branchOf(worktree), state: process.cpu >= 8 || (codexLogs[process.pid] ?? []).contains(where: { CodexSessions.working(log: $0) }) ? .working : .idle,
                 lastMessage: nil, pending: mine.count, pendingComments: comments(mine), pendingIDs: ids(mine), pendingPlaces: places(mine), updatedAt: written,
                 pendingImages: images(mine), undelivered: unsent(mine), orcaHandle: terminalHandle(of: process.pid), log: log,
-                lastSent: sent(log.flatMap(CodexSessions.conversationID(of:)), pid: process.pid, marks: mine)))
+                lastSent: codexKeepsHistory ? sent(log.flatMap(CodexSessions.conversationID(of:)), pid: process.pid, marks: mine) : nil))
         }
         // The agents' own desktop apps: one destination each, the conversation open in it.
         for app in DesktopApps.running(in: all) {
