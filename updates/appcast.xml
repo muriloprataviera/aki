@@ -3,6 +3,25 @@
     <channel>
         <title>Aki</title>
         <item>
+            <title>0.10.1</title>
+            <pubDate>Tue, 20 Oct 2026 17:46:51 -0300</pubDate>
+            <sparkle:version>20261020204651</sparkle:version>
+            <sparkle:shortVersionString>0.10.1</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
+            <description><![CDATA[<h2>Aki 0.10.1</h2>
+<h3>Changed</h3><ul>
+<li>A session you sent nothing to for five hours (no message, no mark) waits in "+N", even if it keeps running on its own, and comes back as soon as you send it something. One that finished a long job and is asking you something stays in sight. Codex sessions too.</li>
+<li>Marking opens faster: the screens are known ahead, so it no longer asks the Mac for every window before showing.</li>
+</ul>
+<h3>Fixed</h3><ul>
+<li>A mark on a localhost page goes to the agent working on it, Codex as much as Claude: the one you picked, then the one that started the page's server, then the one that talked about its address lately, then the one used last.</li>
+<li>Two servers on one port: the page belongs to the one the browser opens at that address.</li>
+</ul>
+]]></description>
+            <enclosure url="https://aki-updates.vercel.app/0.10.1/Aki-0.10.1.zip" length="4317503" type="application/octet-stream" sparkle:edSignature="NWefWoEnIenwY23Bln+PnET/wenqoT/2Hzybho5XHB89u4rRJKN9v8qyjT/OyTaJ8lIYLOcPIEi6P1LSm4ksDw=="/>
+        </item>
+        <item>
             <title>0.10.1-beta.5</title>
             <pubDate>Tue, 20 Oct 2026 17:15:25 -0300</pubDate>
             <sparkle:channel>beta</sparkle:channel>
@@ -21,46 +40,6 @@
 </ul>
 ]]></description>
             <enclosure url="https://aki-updates.vercel.app/0.10.1-beta.5/Aki-0.10.1-beta.5.zip" length="4310522" type="application/octet-stream" sparkle:edSignature="9Lyz8jRxXOzDMDpjmH3xTOR67e1grwtv1njjA2DtpjIjHesgF9EaCpjODCxjcIj/wrFnqQTZrOorBduoImEiCA=="/>
-        </item>
-        <item>
-            <title>0.10.1-beta.4</title>
-            <pubDate>Tue, 20 Oct 2026 17:10:15 -0300</pubDate>
-            <sparkle:channel>beta</sparkle:channel>
-            <sparkle:version>20261020201014</sparkle:version>
-            <sparkle:shortVersionString>0.10.1-beta.4</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
-            <description><![CDATA[<h2>Aki 0.10.1 beta</h2>
-<h3>Changed</h3><ul>
-<li>A session you sent nothing to for five hours (no message, no mark) waits in "+N", even if it keeps running on its own, is the destination or has old marks waiting, and comes back as soon as you send it something. Codex sessions too.</li>
-<li>Marking opens faster: the screens are known ahead, so it no longer asks the Mac for every window before showing.</li>
-</ul>
-<h3>Fixed</h3><ul>
-<li>A mark on a localhost page goes to the agent working on it, Codex as much as Claude: the one that started the page's server, then the one you picked, then the one that talked about its address lately, then the one used last.</li>
-<li>Two servers on one port: the page belongs to the one the browser opens.</li>
-</ul>
-]]></description>
-            <enclosure url="https://aki-updates.vercel.app/0.10.1-beta.4/Aki-0.10.1-beta.4.zip" length="4310362" type="application/octet-stream" sparkle:edSignature="a2yFPNhGxLPVVuXWsuFBkNlznAm/+/XPro4zEInploj+Ljr7VEipL8GFBs5wKTN+QnocwQJduLvCiuEjZkLTCQ=="/>
-        </item>
-        <item>
-            <title>0.10.1-beta.3</title>
-            <pubDate>Tue, 20 Oct 2026 17:04:16 -0300</pubDate>
-            <sparkle:channel>beta</sparkle:channel>
-            <sparkle:version>20261020200415</sparkle:version>
-            <sparkle:shortVersionString>0.10.1-beta.3</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
-            <description><![CDATA[<h2>Aki 0.10.1 beta</h2>
-<h3>Changed</h3><ul>
-<li>A session you sent nothing to for five hours waits in "+N", even if it keeps running on its own, and comes back as soon as you send it something. Codex sessions too.</li>
-<li>Marking opens faster: the screens are known ahead, so it no longer asks the Mac for every window before showing.</li>
-</ul>
-<h3>Fixed</h3><ul>
-<li>A mark on a localhost page goes to the agent working on it, Codex as much as Claude: the one that started the page's server, then the one you picked, then the one that talked about its address lately, then the one used last.</li>
-<li>Two servers on one port: the page belongs to the one the browser opens.</li>
-</ul>
-]]></description>
-            <enclosure url="https://aki-updates.vercel.app/0.10.1-beta.3/Aki-0.10.1-beta.3.zip" length="4309726" type="application/octet-stream" sparkle:edSignature="cR2YrTf638zo2p0Vg33kxTB0V5c9sgoozW0x8ZkohtS7jcmBT0ZqvkycEs0gCj4aQ/kmKaS8oYDrZ+TTZ4rgCQ=="/>
         </item>
         <item>
             <title>0.10.0</title>
@@ -95,31 +74,6 @@
 </ul>
 ]]></description>
             <enclosure url="https://aki-updates.vercel.app/0.9.0/Aki-0.9.0.zip" length="4155926" type="application/octet-stream" sparkle:edSignature="bV6zG5/5GZmCobQLQo/wa4N8hHgCQSqCzHjbpugCz8SIMamVYXXP/dUGd4/oLapOhATMSJloUcP1E9XNnPRiDQ=="/>
-        </item>
-        <item>
-            <title>0.8.9</title>
-            <pubDate>Fri, 16 Oct 2026 20:43:58 -0300</pubDate>
-            <sparkle:version>20261016234358</sparkle:version>
-            <sparkle:shortVersionString>0.8.9</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
-            <description><![CDATA[<h2>Aki 0.8.9</h2>
-<h3>Much lighter on your Mac</h3><ul>
-<li>Aki now uses a small fraction of the processor it used before when it's just sitting there: the rings and the agents' symbols turn in Core Animation, and what Aki reads (sessions, Codex logs, processes) is read again only when it changes.</li>
-<li>A busy or stuck app (Orca, the Codex or Claude app, git) can no longer freeze Aki.</li>
-</ul>
-<h3>Fixed</h3><ul>
-<li>Aki never types into a terminal while Claude Code is asking you something (a permission): its Enter used to answer it. The marks wait and go once you've answered.</li>
-<li>Sending to the Codex and Claude apps is reliable: a mark with only a picture goes with its picture, text you already wrote goes along, History's send arrow sends what didn't go (and never twice), and a message left in the app's box says so instead of "Sent".</li>
-<li>Marks sent while another send is going wait their turn instead of being lost.</li>
-<li>On a light Mac the sidebar and its cards are light, instead of black glass under dark text.</li>
-<li>The folded sidebar is easier to catch and doesn't fold the moment the pointer strays.</li>
-<li>Esc on a queued mark you opened again no longer deletes it; the picture limit never deletes a pending mark's picture; an update never restarts Aki mid-send.</li>
-<li>The Screen Recording alert offers to restart Aki when it comes back.</li>
-<li>aki wait returns marks sent while the agent was busy, and running aki from an agent's shell no longer opens a second Aki.</li>
-</ul>
-]]></description>
-            <enclosure url="https://aki-updates.vercel.app/0.8.9/Aki-0.8.9.zip" length="4149452" type="application/octet-stream" sparkle:edSignature="9FbDhuHe9zDTzmesuKeRYnP3MKFSbsUk0Yi1uguyZP7fVrGkFzfUxBo5SO4SZPBE9/EBrLAt61yxVbyXiV5aAg=="/>
         </item>
     </channel>
 </rss>
