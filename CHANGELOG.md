@@ -5,7 +5,7 @@ What changed in each version of Aki. Versions follow [semantic versioning](https
 ## [Unreleased]
 
 ### Added
-- Settings → Marks → "Under the pointer": "Just a picture" works like the Mac's ⌘⇧4, with nothing outlined: drag an area or click a point. "Elements" (as before) outlines what's under the pointer, and a click marks it.
+- Settings → Marking → "Under the pointer": "Just a picture" works like the Mac's ⌘⇧4, with nothing outlined: drag an area or click a point. "Elements" (as before) outlines what's under the pointer, and a click marks it.
 
 ## [0.10.1] — 2026-10-20
 
