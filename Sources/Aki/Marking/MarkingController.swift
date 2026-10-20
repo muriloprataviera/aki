@@ -436,7 +436,8 @@ final class MarkingController {
             // Two named with it: the one used last.
             latest(list.filter { $0.name.range(of: "(?<![0-9])\(port)(?![0-9])", options: .regularExpression) != nil })
         }
-        guard let server = await Task.detached(operation: { Worktree.server(ofPort: port) }).value else {
+        let host = parts.host() ?? "localhost"
+        guard let server = await Task.detached(operation: { Worktree.server(ofPort: port, host: host) }).value else {
             // The folder serving it unknown (a container, another machine): the name still tells.
             return named(terminals)?.id
         }
@@ -445,9 +446,10 @@ final class MarkingController {
         // The agent that ran the dev server (it's working on that page), wherever it was
         // opened: the project's root while the server runs in one of its worktrees.
         let pids = Set(terminals.map(\.pid))
-        if let starter = await Task.detached(operation: { AgentSessions.starter(of: server.pid, among: pids) }).value,
-            let hit = latest(terminals.filter { $0.pid == starter }) {
-            return hit.id
+        // Only when that tells one conversation: an app's chats all share its process.
+        if let starter = await Task.detached(operation: { AgentSessions.starter(of: server.pid, among: pids) }).value {
+            let hits = terminals.filter { $0.pid == starter }
+            if hits.count == 1 { return hits[0].id }
         }
         // The session may run in a folder above the one serving: its name still tells.
         if let hit = named(terminals) { return hit.id }

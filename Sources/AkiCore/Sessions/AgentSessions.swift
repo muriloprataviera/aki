@@ -367,7 +367,8 @@ public struct AgentTerminal: Identifiable, Equatable, Sendable {
 extension AgentSessions {
     /// Every agent conversation open right now, busiest first within each folder.
     /// `keeping`: destinations kept even when they'd be left out (the one you chose).
-    public static func terminals(pending: [Annotation] = [], keeping: Set<String> = []) -> [AgentTerminal] {
+    /// `recent`: marks made lately, sent or not (one is something you sent that session).
+    public static func terminals(pending: [Annotation] = [], recent: [Annotation] = [], keeping: Set<String> = []) -> [AgentTerminal] {
         let all = runningProcesses()
         let processes = all.compactMap { p in classify(p.command).map { (p, $0) } }
         // Which sessions have an `aki wait` listening for them.
@@ -427,9 +428,14 @@ extension AgentSessions {
         // and when its process opened.
         let prompts = PromptHistory.lastSent(since: Date().addingTimeInterval(-6 * 3600))
         // Nil when its prompts can't be known (no id, no history kept): it rests the old way.
-        func sent(_ id: String?, pid: Int32, marks: [Annotation]) -> Date? {
-            guard let id else { return nil }
-            return ([prompts[id], PromptHistory.started(pid)] + marks.map { Optional(MarkFolder.created($0)) }).compactMap { $0 }.max()
+        // `prompts`: its id in the prompt history; `id`: the destination's (marks name it).
+        func sent(_ conversation: String?, id: String, pid: Int32, worktree: String) -> Date? {
+            guard let conversation else { return nil }
+            let made = recent.filter { a in
+                if let target = a["session_id"]?.string { return target == id }
+                return a["worktree"]?.string == worktree
+            }.map(MarkFolder.created)
+            return ([prompts[conversation], PromptHistory.started(pid)].compactMap { $0 } + made).max()
         }
         let codexKeepsHistory = FileManager.default.fileExists(atPath: PromptHistory.codex.path)
 
@@ -453,7 +459,8 @@ extension AgentSessions {
                 pending: mine.count, pendingComments: comments(mine), pendingIDs: ids(mine), pendingPlaces: places(mine), updatedAt: session.updatedAt,
                 pendingImages: images(mine), undelivered: unsent(mine), orcaHandle: terminalHandle(of: session.pid),
                 log: ClaudeSessions.transcript(sessionId: session.sessionId, cwd: session.cwd, projects: ClaudeSessions.projects),
-                lastSent: sent(session.sessionId, pid: session.pid, marks: mine)))
+                // The app's prompts aren't in Claude Code's history: not known.
+                lastSent: session.desktop ? nil : sent(session.sessionId, id: session.sessionId, pid: session.pid, worktree: worktree)))
         }
         // The Claude app's Code sessions that wrote no registry entry: found by their
         // process (the app's own Claude Code, run as a program), the session's id in its
@@ -502,7 +509,7 @@ extension AgentSessions {
                 worktree: worktree, branch: branchOf(worktree), state: process.cpu >= 8 || (codexLogs[process.pid] ?? []).contains(where: { CodexSessions.working(log: $0) }) ? .working : .idle,
                 lastMessage: nil, pending: mine.count, pendingComments: comments(mine), pendingIDs: ids(mine), pendingPlaces: places(mine), updatedAt: written,
                 pendingImages: images(mine), undelivered: unsent(mine), orcaHandle: terminalHandle(of: process.pid), log: log,
-                lastSent: codexKeepsHistory ? sent(log.flatMap(CodexSessions.conversationID(of:)), pid: process.pid, marks: mine) : nil))
+                lastSent: codexKeepsHistory ? sent(log.flatMap(CodexSessions.conversationID(of:)), id: id, pid: process.pid, worktree: worktree) : nil))
         }
         // The agents' own desktop apps: one destination each, the conversation open in it.
         for app in DesktopApps.running(in: all) {

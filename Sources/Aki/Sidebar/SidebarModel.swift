@@ -800,12 +800,19 @@ final class SidebarModel {
     @ObservationIgnored private var refreshAgain = false
 
     private func refreshOnce() async {
-        let pending = await store.list(.init(status: "pending")).annotations
+        let all = await store.list().annotations
+        let pending = all.filter { $0.status == "pending" }
+        // Marks made in the last hours, sent or not: a session you marked for isn't idle.
+        // (Their dates are UTC ISO 8601 text, so text order is time order: no parsing.)
+        let iso = ISO8601DateFormatter()
+        iso.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        let since = iso.string(from: Date().addingTimeInterval(-6 * 3600))
+        let recent = all.filter { ($0["created_at"]?.string ?? "") > since }
         let measureDisk = Date().timeIntervalSince(diskRead) > 60
         if measureDisk { diskRead = Date() }
         let chosen = selectedTerminal.map { Set([$0]) } ?? []
         let (found, scanned, usage, busy) = await Task.detached {
-            (AgentSessions.scan(pending: pending), AgentSessions.terminals(pending: pending, keeping: chosen),
+            (AgentSessions.scan(pending: pending), AgentSessions.terminals(pending: pending, recent: recent, keeping: chosen),
              measureDisk ? DiskUsage.measure(pending: pending) : nil, AgentSessions.headlessBusy())
         }.value
         if busy != headlessBusy { headlessBusy = busy }

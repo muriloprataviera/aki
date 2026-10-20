@@ -25,9 +25,9 @@ public enum Worktree {
         server(ofPort: port)?.worktree
     }
 
-    /// The process listening on a local port and its worktree.
-    public static func server(ofPort port: Int) -> (pid: Int32, worktree: String)? {
-        guard let pid = listeningPorts()[port], let cwd = cwd(of: pid), cwd != "/" else { return nil }
+    /// The process listening on a local port and its worktree, for a page at `host`.
+    public static func server(ofPort port: Int, host: String = "localhost") -> (pid: Int32, worktree: String)? {
+        guard let pid = listeningPorts(host: host)[port], let cwd = cwd(of: pid), cwd != "/" else { return nil }
         return (pid, root(of: cwd))
     }
 
@@ -54,15 +54,21 @@ public enum Worktree {
     }
 
     /// TCP port → pid for every listening socket of the current user.
-    static func listeningPorts() -> [Int: Int32] {
-        listeningPorts(lsof: run("/usr/sbin/lsof", ["-nP", "-iTCP", "-sTCP:LISTEN", "-Fpn"]))
+    static func listeningPorts(host: String = "localhost") -> [Int: Int32] {
+        listeningPorts(lsof: run("/usr/sbin/lsof", ["-nP", "-iTCP", "-sTCP:LISTEN", "-Fpn"]), host: host)
     }
 
     /// Two processes on one port (one on `[::1]:5173`, another on `*:5173`): the one the
-    /// browser reaches for "localhost", which tries ::1 first, then 127.0.0.1.
-    public static func listeningPorts(lsof output: String) -> [Int: Int32] {
+    /// browser reaches at `host`. For "localhost" it tries ::1 first, then 127.0.0.1;
+    /// "127.0.0.1" never reaches one on ::1 only, nor "[::1]" one on 127.0.0.1.
+    public static func listeningPorts(lsof output: String, host: String = "localhost") -> [Int: Int32] {
+        let wildcard: (Substring) -> Bool = { $0.hasPrefix("*") || $0.hasPrefix("[::]") }
         func rank(_ address: Substring) -> Int {
-            address.hasPrefix("[::1]") ? 0 : address.hasPrefix("127.") ? 1 : address.hasPrefix("*") || address.hasPrefix("[::]") ? 2 : 3
+            switch host {
+            case "127.0.0.1", "0.0.0.0": address.hasPrefix("127.") ? 0 : wildcard(address) ? 1 : 3
+            case "::1", "[::1]": address.hasPrefix("[::1]") ? 0 : wildcard(address) ? 1 : 3
+            default: address.hasPrefix("[::1]") ? 0 : address.hasPrefix("127.") ? 1 : wildcard(address) ? 2 : 3
+            }
         }
         var ports: [Int: (pid: Int32, rank: Int)] = [:]
         var pid: Int32?

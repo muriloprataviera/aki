@@ -23,6 +23,8 @@ public struct ClaudeSession: Equatable, Sendable {
     public var nameSource: String?
     public var status: Status
     public var updatedAt: Date?
+    /// A Code session of the Claude app (its prompts aren't in Claude Code's history).
+    public var desktop = false
 }
 
 public enum ClaudeSessions {
@@ -61,7 +63,8 @@ public enum ClaudeSessions {
         let name = (json["name"] as? String).flatMap { $0.isEmpty ? nil : $0 }
         return ClaudeSession(
             pid: pid, sessionId: id, cwd: cwd, name: name, nameSource: json["nameSource"] as? String,
-            status: ClaudeSession.Status(rawValue: json["status"] as? String ?? "") ?? .unknown, updatedAt: updated)
+            status: ClaudeSession.Status(rawValue: json["status"] as? String ?? "") ?? .unknown, updatedAt: updated,
+            desktop: isDesktop(json["entrypoint"] as? String))
     }
 
     /// The session this process runs under: walks up the parent processes to the
