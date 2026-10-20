@@ -548,5 +548,23 @@ check(AgentSessions.mentions(port: 5173, log: talk), "a log that talks about the
 check(!AgentSessions.mentions(port: 517, log: talk) && !AgentSessions.mentions(port: 3000, log: talk), "not another port, nor part of one")
 try? FileManager.default.removeItem(at: talk)
 
+// The last prompt sent to each conversation, from the end of the histories.
+let nowMS = Date().timeIntervalSince1970 * 1000
+let claudeHistory = FileManager.default.temporaryDirectory.appending(path: "aki-history-\(getpid()).jsonl")
+let codexHistory = FileManager.default.temporaryDirectory.appending(path: "aki-codex-history-\(getpid()).jsonl")
+try? Data((
+    [#"{"display":"old","timestamp":\#(Int(nowMS - 9 * 3600_000)),"sessionId":"a"}"#,
+     #"{"display":"x","timestamp":\#(Int(nowMS - 2 * 3600_000)),"sessionId":"b"}"#,
+     #"{"display":"y","timestamp":\#(Int(nowMS - 3600_000)),"sessionId":"b"}"#].joined(separator: "\n") + "\n").utf8).write(to: claudeHistory)
+try? Data(#"{"session_id":"c","ts":\#(Int(nowMS / 1000) - 600),"text":"z"}"#.utf8).write(to: codexHistory)
+let sentAt = PromptHistory.lastSent(since: Date().addingTimeInterval(-6 * 3600), files: [claudeHistory, codexHistory])
+check(sentAt["a"] == nil, "a prompt older than the window isn't looked for")
+check(abs((sentAt["b"]?.timeIntervalSince1970 ?? 0) * 1000 - (nowMS - 3600_000)) < 1000, "the last prompt to a Claude session")
+check(sentAt["c"] != nil, "and to a Codex conversation")
+check(PromptHistory.started(getpid()).map { Date().timeIntervalSince($0) < 3600 } == true, "when a process started")
+check(CodexSessions.conversationID(of: URL(filePath: "/x/rollout-2026-10-20T10-00-00-01a155b7-0c44-7672-b0ed-01b3b43af09b.jsonl")) == "01a155b7-0c44-7672-b0ed-01b3b43af09b", "a Codex conversation's id from its log")
+try? FileManager.default.removeItem(at: claudeHistory)
+try? FileManager.default.removeItem(at: codexHistory)
+
 print(failures == 0 ? "\nall checks passed" : "\n\(failures) check(s) failed")
 exit(failures == 0 ? 0 : 1)

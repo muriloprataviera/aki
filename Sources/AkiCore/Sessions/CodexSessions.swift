@@ -92,11 +92,15 @@ public enum CodexSessions {
     /// The name Codex gave a conversation ("Revisar NFs no Drive"), from its index
     /// (`session_index.jsonl`, by the id that ends the log's file name).
     public static func threadName(of log: URL, home: URL = UsageLimits.codexHome) -> String? {
+        conversationID(of: log).flatMap { threadNames(home: home)[$0] }
+    }
+
+    /// The conversation's id, from its log's name.
+    public static func conversationID(of log: URL) -> String? {
         let name = log.deletingPathExtension().lastPathComponent
         // "rollout-<date>-<uuid>": the uuid is the last five dash-separated groups.
         let id = name.split(separator: "-").suffix(5).joined(separator: "-")
-        guard id.count == 36 else { return nil }
-        return threadNames(home: home)[id]
+        return id.count == 36 ? id : nil
     }
 
     /// Of a process's logs, its own conversation's (not a subagent's), written last.

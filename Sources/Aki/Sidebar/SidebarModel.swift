@@ -310,12 +310,15 @@ final class SidebarModel {
         return visible + terminals.filter { (preferences.hiddenTerminals.contains($0.id) || resting($0)) && !switchedOff($0) }
     }
 
-    /// Untouched for more than five hours, with nothing for it, not working and not the
-    /// destination: it waits in "+N" and comes back by itself when it moves again.
-    /// (A question it asked hours ago, or a shell left open, has gone stale too.)
+    /// Nothing sent to it for five hours, with no mark for it and not the destination:
+    /// it waits in "+N" and comes back by itself when you send it something again
+    /// (even if it's still working: a loop that runs alone doesn't keep it out).
+    /// Without a prompt history (an app's chat), untouched for five hours and not working.
     func resting(_ t: AgentTerminal) -> Bool {
+        guard t.pending == 0, t.id != selectedTerminal else { return false }
+        if let sent = t.lastSent { return Date().timeIntervalSince(sent) > 5 * 3600 }
         guard let updated = t.updatedAt, Date().timeIntervalSince(updated) > 5 * 3600 else { return false }
-        return t.pending == 0 && t.id != selectedTerminal && t.state != .working
+        return t.state != .working
     }
 
     /// Conversations of tracked agents that aren't hidden, in sidebar order.
