@@ -234,6 +234,7 @@ final class MarkingController {
         // Only the week's limits: marking is off, from every way in (menu, sidebar, aki://mark).
         guard Preferences.shared.showSessions else { return }
         starting = true
+        let began = CACurrentMediaTime()
         previousApp = NSWorkspace.shared.frontmostApplication
         let context = MarkContext.current(withURL: false)
         // The pin pointer at once, while the screen is being captured (Aki may be in
@@ -375,6 +376,7 @@ final class MarkingController {
                 panel.orderFrontRegardless()
                 panels.append(panel)
             }
+            MarkingSpeed.note(began: began, asked: asked, captured: captured, shown: CACurrentMediaTime(), screens: grabs.count)
             // The agent may just have changed in Orca: a fresh look, after the overlay is up
             // (it takes about half a second; followTerminals brings the result in).
             Task { await model.refresh() }
@@ -1086,4 +1088,21 @@ final class FirstClickHostingView<Content: View>: NSHostingView<Content> {
     }
 
     override func cursorUpdate(with event: NSEvent) { AkiCursor.set(AkiCursor.pin) }
+}
+
+/// How long marking takes to show, step by step, when asked for (`defaults write
+/// ai.useaki.Aki measureMarking -bool true`): the last 30 in ~/.aki/marking-speed.log.
+enum MarkingSpeed {
+    @MainActor static func note(began: CFTimeInterval, asked: CFTimeInterval, captured: CFTimeInterval, shown: CFTimeInterval, screens: Int) {
+        guard UserDefaults.standard.bool(forKey: "measureMarking") else { return }
+        func ms(_ a: CFTimeInterval, _ b: CFTimeInterval) -> Int { Int(((b - a) * 1000).rounded()) }
+        // The first frame drawn: the next turn of the main loop after the panels are in front.
+        DispatchQueue.main.async {
+            let drawn = CACurrentMediaTime()
+            let line = "\(ISO8601DateFormatter().string(from: Date())) screens=\(screens) before=\(ms(began, asked))ms capture=\(ms(asked, captured))ms panels=\(ms(captured, shown))ms draw=\(ms(shown, drawn))ms total=\(ms(began, drawn))ms"
+            let file = FileManager.default.homeDirectoryForCurrentUser.appending(path: ".aki/marking-speed.log")
+            let old = (try? String(contentsOf: file, encoding: .utf8))?.split(separator: "\n").suffix(29).map(String.init) ?? []
+            try? (old + [line]).joined(separator: "\n").appending("\n").write(to: file, atomically: true, encoding: .utf8)
+        }
+    }
 }

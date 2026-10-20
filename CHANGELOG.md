@@ -4,6 +4,9 @@ What changed in each version of Aki. Versions follow [semantic versioning](https
 
 ## [Unreleased]
 
+### Changed
+- Marking opens faster: the screens are known ahead, so it no longer asks the Mac for every window before showing.
+
 ### Fixed
 - A mark on a localhost page goes to the agent working on it, Codex as much as Claude: the one that started the page's server, then the one you picked, then the one that talked about its address lately, then the one used last. Codex sessions now know when they were last active, so they no longer lose to a Claude in the same folder.
 - Two servers on one port (one on `[::1]`, another on all addresses): the page belongs to the one the browser opens.

@@ -86,16 +86,28 @@ struct ScreenGrab {
             CGRequestScreenCaptureAccess()
             return nil
         }
+        // Nothing to leave out (marking's start, before its overlays): the displays known
+        // from before, without asking the Mac for every window first (a tenth of a second).
+        if windowNumbers?.isEmpty == true, !knownDisplays().isEmpty {
+            let grabs = await capture(displays: knownDisplays(), excluding: [])
+            if grabs.count == NSScreen.screens.count { return grabs }
+        }
         guard let content = try? await SCShareableContent.excludingDesktopWindows(false, onScreenWindowsOnly: true)
         else { return nil }
         let ours = content.windows.filter {
             if let windowNumbers { return windowNumbers.contains($0.windowID) }
             return $0.owningApplication?.processID == ProcessInfo.processInfo.processIdentifier
         }
+        remember(content.displays)
+        return await capture(displays: content.displays, excluding: ours)
+    }
+
+    /// Every screen's picture, in order (a screen not among `displays` is left out).
+    private static func capture(displays: [SCDisplay], excluding ours: [SCWindow]) async -> [ScreenGrab] {
         // All screens at once (one after the other, three screens took 0.3 s), in order.
         let screens = NSScreen.screens.compactMap { screen -> (NSScreen, SCContentFilter, SCStreamConfiguration)? in
             guard let number = screen.deviceDescription[NSDeviceDescriptionKey("NSScreenNumber")] as? CGDirectDisplayID,
-                let display = content.displays.first(where: { $0.displayID == number })
+                let display = displays.first(where: { $0.displayID == number })
             else { return nil }
             let configuration = SCStreamConfiguration()
             configuration.width = Int(screen.frame.width * screen.backingScaleFactor)
@@ -113,6 +125,29 @@ struct ScreenGrab {
             return images
         }
         return screens.indices.compactMap { index in images[index].map { ScreenGrab(screen: screens[index].0, image: $0) } }
+    }
+
+    private static let displaysLock = NSLock()
+    nonisolated(unsafe) private static var displays: [SCDisplay] = []
+
+    private static func knownDisplays() -> [SCDisplay] { displaysLock.withLock { displays } }
+    private static func remember(_ list: [SCDisplay]) { displaysLock.withLock { displays = list } }
+
+    /// Learns the displays ahead of the first marking, and again when screens change.
+    @MainActor static func prepare() {
+        func learn() {
+            remember([])
+            guard CGPreflightScreenCaptureAccess() else { return }
+            Task.detached {
+                if let content = try? await SCShareableContent.excludingDesktopWindows(false, onScreenWindowsOnly: true) {
+                    remember(content.displays)
+                }
+            }
+        }
+        learn()
+        NotificationCenter.default.addObserver(
+            forName: NSApplication.didChangeScreenParametersNotification, object: nil, queue: .main
+        ) { _ in learn() }
     }
 }
 
