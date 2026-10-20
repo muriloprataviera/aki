@@ -5,7 +5,7 @@ What changed in each version of Aki. Versions follow [semantic versioning](https
 ## [Unreleased]
 
 ### Changed
-- A session you sent nothing to for five hours (was: untouched for six) waits in "+N", even if it keeps running on its own, and comes back as soon as you send it something. Codex sessions now do too.
+- A session you sent nothing to for five hours (no message, no mark; was: untouched for six) waits in "+N", even if it keeps running on its own, is the destination or has old marks waiting, and comes back as soon as you send it something. Codex sessions now do too.
 - Marking opens faster: the screens are known ahead, so it no longer asks the Mac for every window before showing.
 
 ### Fixed

@@ -423,10 +423,11 @@ extension AgentSessions {
             list.sorted { ($0["created_at"]?.string ?? "") < ($1["created_at"]?.string ?? "") }.map(\.id)
         }
 
-        // The last thing you sent each conversation, and when its process opened.
+        // The last thing you sent each conversation (a prompt, or a mark made for it),
+        // and when its process opened.
         let prompts = PromptHistory.lastSent(since: Date().addingTimeInterval(-6 * 3600))
-        func sent(_ id: String?, pid: Int32) -> Date? {
-            [id.flatMap { prompts[$0] }, PromptHistory.started(pid)].compactMap { $0 }.max()
+        func sent(_ id: String?, pid: Int32, marks: [Annotation]) -> Date? {
+            ([id.flatMap { prompts[$0] }, PromptHistory.started(pid)] + marks.map { Optional(MarkFolder.created($0)) }).compactMap { $0 }.max()
         }
 
         var result: [AgentTerminal] = []
@@ -449,7 +450,7 @@ extension AgentSessions {
                 pending: mine.count, pendingComments: comments(mine), pendingIDs: ids(mine), pendingPlaces: places(mine), updatedAt: session.updatedAt,
                 pendingImages: images(mine), undelivered: unsent(mine), orcaHandle: terminalHandle(of: session.pid),
                 log: ClaudeSessions.transcript(sessionId: session.sessionId, cwd: session.cwd, projects: ClaudeSessions.projects),
-                lastSent: sent(session.sessionId, pid: session.pid)))
+                lastSent: sent(session.sessionId, pid: session.pid, marks: mine)))
         }
         // The Claude app's Code sessions that wrote no registry entry: found by their
         // process (the app's own Claude Code, run as a program), the session's id in its
@@ -473,7 +474,7 @@ extension AgentSessions {
                 pending: mine.count, pendingComments: comments(mine), pendingIDs: ids(mine), pendingPlaces: places(mine), updatedAt: nil,
                 pendingImages: images(mine), undelivered: unsent(mine), orcaHandle: nil,
                 log: ClaudeSessions.transcript(sessionId: id, cwd: cwd, projects: ClaudeSessions.projects),
-                lastSent: sent(id, pid: process.pid)))
+                lastSent: sent(id, pid: process.pid, marks: mine)))
         }
         // Other agents keep no registry: one entry per process, named after its folder.
         let others = processes.compactMap { process, kind -> (Process, AgentSession.Agent)? in
@@ -498,7 +499,7 @@ extension AgentSessions {
                 worktree: worktree, branch: branchOf(worktree), state: process.cpu >= 8 || (codexLogs[process.pid] ?? []).contains(where: { CodexSessions.working(log: $0) }) ? .working : .idle,
                 lastMessage: nil, pending: mine.count, pendingComments: comments(mine), pendingIDs: ids(mine), pendingPlaces: places(mine), updatedAt: written,
                 pendingImages: images(mine), undelivered: unsent(mine), orcaHandle: terminalHandle(of: process.pid), log: log,
-                lastSent: sent(log.flatMap(CodexSessions.conversationID(of:)), pid: process.pid)))
+                lastSent: sent(log.flatMap(CodexSessions.conversationID(of:)), pid: process.pid, marks: mine)))
         }
         // The agents' own desktop apps: one destination each, the conversation open in it.
         for app in DesktopApps.running(in: all) {
