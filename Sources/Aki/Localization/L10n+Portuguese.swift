@@ -337,7 +337,7 @@ extension L10n {
         "Claude app": "App do Claude",
         "In the Claude app": "No app do Claude",
         "In the Codex app": "No app do Codex",
-        "Your recent conversations: marks sent to one open it in the app and go in there. Those untouched for six hours wait in \"+N\".": "Suas conversas recentes: marcas mandadas para uma delas abrem essa conversa no app e entram nela. As paradas há seis horas esperam no \"+N\".",
+        "Your recent conversations: marks sent to one open it in the app and go in there. Those untouched for five hours wait in \"+N\".": "Suas conversas recentes: marcas mandadas para uma delas abrem essa conversa no app e entram nela. As paradas há cinco horas esperam no \"+N\".",
         "Running · {n} conversations": "Aberto · {n} conversas",
         "Codex app": "App do Codex",
         "Claude Code in a terminal": "Claude Code no terminal",

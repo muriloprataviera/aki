@@ -528,7 +528,7 @@ struct SettingsView: View {
                             }
                         }
                     }
-                    Caption(L10n.t("Your recent conversations: marks sent to one open it in the app and go in there. Those untouched for six hours wait in \"+N\"."))
+                    Caption(L10n.t("Your recent conversations: marks sent to one open it in the app and go in there. Those untouched for five hours wait in \"+N\"."))
                 }
             }
             Section(L10n.t("Connect")) {

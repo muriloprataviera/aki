@@ -449,7 +449,7 @@ extension L10n {
         "Claude app": "Claude 应用",
         "In the Claude app": "在 Claude 应用中",
         "In the Codex app": "在 Codex 应用中",
-        "Your recent conversations: marks sent to one open it in the app and go in there. Those untouched for six hours wait in \"+N\".": "你最近的对话：发送到某个对话的标记会在应用中打开该对话并送达。六小时未用的对话会放在“+N”中。",
+        "Your recent conversations: marks sent to one open it in the app and go in there. Those untouched for five hours wait in \"+N\".": "你最近的对话：发送到某个对话的标记会在应用中打开该对话并送达。五小时未用的对话会放在“+N”中。",
         "Running · {n} conversations": "已打开 · {n} 个对话",
         "Codex app": "Codex 应用",
         "Claude Code in a terminal": "终端中的 Claude Code",

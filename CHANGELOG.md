@@ -5,6 +5,7 @@ What changed in each version of Aki. Versions follow [semantic versioning](https
 ## [Unreleased]
 
 ### Changed
+- Sessions untouched for five hours (was six) wait in "+N" and come back by themselves when they move again. Codex sessions now do too.
 - Marking opens faster: the screens are known ahead, so it no longer asks the Mac for every window before showing.
 
 ### Fixed

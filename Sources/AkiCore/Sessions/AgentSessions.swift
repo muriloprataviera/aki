@@ -507,7 +507,7 @@ extension AgentSessions {
                 pendingImages: images(mine), undelivered: unsent(mine), orcaHandle: nil))
             // The app's own recent conversations (Claude's chats, Codex's threads), each a
             // destination of its own: Aki opens it by the app's link, then pastes. The ones
-            // left for six hours wait in "+N".
+            // left for five hours wait in "+N".
             // Older ones still wanted (marks waiting for them, or the one you chose).
             let wanted = Set((pending.compactMap { $0["session_id"]?.string } + keeping).compactMap { wantedID in
                 DesktopApps.bundleID(of: wantedID) == app.bundleID ? DesktopApps.conversation(of: wantedID) : nil

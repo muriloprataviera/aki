@@ -49,7 +49,7 @@ public enum DesktopApps {
     }
 
     /// How many of each app's recent conversations are offered as destinations (those
-    /// left untouched for six hours wait in "+N").
+    /// left untouched for five hours wait in "+N").
     public static let conversationsShown = 8
 
     /// An app's bundle (".../ChatGPT.app") from its main process's command line, when that

@@ -449,7 +449,7 @@ extension L10n {
         "Claude app": "Claude 앱",
         "In the Claude app": "Claude 앱에서",
         "In the Codex app": "Codex 앱에서",
-        "Your recent conversations: marks sent to one open it in the app and go in there. Those untouched for six hours wait in \"+N\".": "최근 대화: 대화로 보낸 표시는 앱에서 그 대화를 열고 거기로 들어갑니다. 6시간 동안 쓰지 않은 대화는 \"+N\"에서 기다립니다.",
+        "Your recent conversations: marks sent to one open it in the app and go in there. Those untouched for five hours wait in \"+N\".": "최근 대화: 대화로 보낸 표시는 앱에서 그 대화를 열고 거기로 들어갑니다. 5시간 동안 쓰지 않은 대화는 \"+N\"에서 기다립니다.",
         "Running · {n} conversations": "열림 · 대화 {n}개",
         "Codex app": "Codex 앱",
         "Claude Code in a terminal": "터미널의 Claude Code",
