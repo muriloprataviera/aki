@@ -536,5 +536,17 @@ check(!ClaudeAppUsage.isConversationList("1/0/https://claude.ai/api/organization
 let chats = ClaudeAppUsage.parseConversations(Data(#"{"data":[{"uuid":"a","name":"Old","updated_at":"2026-10-01T10:00:00Z"},{"uuid":"b","name":"New","updated_at":"2026-10-02T10:00:00Z"},{"uuid":"c","name":"","updated_at":"2026-10-03T10:00:00Z"}]}"#.utf8))
 check(chats?.map(\.id) == ["b", "a"], "chats newest first, unnamed ones left out")
 
+// A localhost page goes to the agent working on it, Claude or Codex alike.
+let doubled = Worktree.listeningPorts(lsof: "p49823\nn*:5173\nn*:1337\np27690\nn[::1]:5173\np3512\nn127.0.0.1:3014\np9\nn*:3014")
+check(doubled[5173] == 27690 && doubled[1337] == 49823, "two servers on a port: the one on ::1, where the browser goes")
+check(doubled[3014] == 3512, "then the one on 127.0.0.1")
+check(AgentSessions.starter(of: getpid(), among: [1, getppid()]) == getppid(), "the agent that started a server is found up its parents")
+check(AgentSessions.starter(of: getpid(), among: [1]) == nil, "no agent above it: none")
+let talk = FileManager.default.temporaryDirectory.appending(path: "aki-talk-\(getpid()).jsonl")
+try? Data(#"{"text":"open http://localhost:5173/menu"}"#.utf8).write(to: talk)
+check(AgentSessions.mentions(port: 5173, log: talk), "a log that talks about the port")
+check(!AgentSessions.mentions(port: 517, log: talk) && !AgentSessions.mentions(port: 3000, log: talk), "not another port, nor part of one")
+try? FileManager.default.removeItem(at: talk)
+
 print(failures == 0 ? "\nall checks passed" : "\n\(failures) check(s) failed")
 exit(failures == 0 ? 0 : 1)

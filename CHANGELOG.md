@@ -4,6 +4,10 @@ What changed in each version of Aki. Versions follow [semantic versioning](https
 
 ## [Unreleased]
 
+### Fixed
+- A mark on a localhost page goes to the agent working on it, Codex as much as Claude: the one that started the page's server, then the one you picked, then the one that talked about its address lately, then the one used last. Codex sessions now know when they were last active, so they no longer lose to a Claude in the same folder.
+- Two servers on one port (one on `[::1]`, another on all addresses): the page belongs to the one the browser opens.
+
 ## [0.10.0] — 2026-10-18
 
 ### Added

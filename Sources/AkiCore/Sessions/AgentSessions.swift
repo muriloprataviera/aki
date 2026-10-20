@@ -358,6 +358,8 @@ public struct AgentTerminal: Identifiable, Equatable, Sendable {
     public var undelivered: Int = 0
     /// Exact Orca tab identity injected when the process starts (never guessed by folder).
     public var orcaHandle: String? = nil
+    /// The conversation's log (Claude's transcript, Codex's rollout), when known.
+    public var log: URL? = nil
 }
 
 extension AgentSessions {
@@ -437,7 +439,8 @@ extension AgentSessions {
                 worktree: worktree, branch: branchOf(worktree), state: state,
                 lastMessage: ClaudeSessions.lastAgentMessage(sessionId: session.sessionId, cwd: session.cwd),
                 pending: mine.count, pendingComments: comments(mine), pendingIDs: ids(mine), pendingPlaces: places(mine), updatedAt: session.updatedAt,
-                pendingImages: images(mine), undelivered: unsent(mine), orcaHandle: terminalHandle(of: session.pid)))
+                pendingImages: images(mine), undelivered: unsent(mine), orcaHandle: terminalHandle(of: session.pid),
+                log: ClaudeSessions.transcript(sessionId: session.sessionId, cwd: session.cwd, projects: ClaudeSessions.projects)))
         }
         // The Claude app's Code sessions that wrote no registry entry: found by their
         // process (the app's own Claude Code, run as a program), the session's id in its
@@ -459,7 +462,8 @@ extension AgentSessions {
                 worktree: worktree, branch: branchOf(worktree), state: process.cpu >= 8 ? .working : .idle,
                 lastMessage: ClaudeSessions.lastAgentMessage(sessionId: id, cwd: cwd),
                 pending: mine.count, pendingComments: comments(mine), pendingIDs: ids(mine), pendingPlaces: places(mine), updatedAt: nil,
-                pendingImages: images(mine), undelivered: unsent(mine), orcaHandle: nil))
+                pendingImages: images(mine), undelivered: unsent(mine), orcaHandle: nil,
+                log: ClaudeSessions.transcript(sessionId: id, cwd: cwd, projects: ClaudeSessions.projects)))
         }
         // Other agents keep no registry: one entry per process, named after its folder.
         let others = processes.compactMap { process, kind -> (Process, AgentSession.Agent)? in
@@ -474,13 +478,16 @@ extension AgentSessions {
             let worktree = root(cwd)
             let id = "\(agent.rawValue):\(process.pid)"
             // Codex names its conversations ("Revisar NFs no Drive"): that, else the folder.
-            let thread = agent == .codex ? CodexSessions.newest(codexLogs[process.pid] ?? []).flatMap { CodexSessions.threadName(of: $0) } : nil
+            let log = agent == .codex ? CodexSessions.newest(codexLogs[process.pid] ?? []) : nil
+            let thread = log.flatMap { CodexSessions.threadName(of: $0) }
             let mine = marks(for: id, worktree: worktree)
+            // Last active: when its conversation was last written (as Claude's registry says).
+            let written = log.flatMap { try? $0.resourceValues(forKeys: [.contentModificationDateKey]).contentModificationDate }
             result.append(AgentTerminal(
                 id: id, agent: agent, pid: process.pid, name: thread ?? URL(filePath: worktree).lastPathComponent, named: thread != nil,
                 worktree: worktree, branch: branchOf(worktree), state: process.cpu >= 8 || (codexLogs[process.pid] ?? []).contains(where: { CodexSessions.working(log: $0) }) ? .working : .idle,
-                lastMessage: nil, pending: mine.count, pendingComments: comments(mine), pendingIDs: ids(mine), pendingPlaces: places(mine), updatedAt: nil,
-                pendingImages: images(mine), undelivered: unsent(mine), orcaHandle: terminalHandle(of: process.pid)))
+                lastMessage: nil, pending: mine.count, pendingComments: comments(mine), pendingIDs: ids(mine), pendingPlaces: places(mine), updatedAt: written,
+                pendingImages: images(mine), undelivered: unsent(mine), orcaHandle: terminalHandle(of: process.pid), log: log))
         }
         // The agents' own desktop apps: one destination each, the conversation open in it.
         for app in DesktopApps.running(in: all) {
@@ -560,4 +567,25 @@ public func tabNameWithoutStatus(_ title: String) -> String {
           trimmed.unicodeScalars.dropFirst().first == " "
     else { return trimmed }
     return String(String.UnicodeScalarView(trimmed.unicodeScalars.dropFirst())).trimmingCharacters(in: .whitespaces)
+}
+
+extension AgentSessions {
+    /// Of the agents' processes `pids`, the one that started `pid` (the agent that ran
+    /// the dev server: its nearest ancestor among them).
+    public static func starter(of pid: Int32, among pids: Set<Int32>) -> Int32? {
+        var current = pid
+        for _ in 0..<16 {
+            if pids.contains(current) { return current }
+            guard let parent = ClaudeSessions.parentPID(of: current), parent > 1 else { return nil }
+            current = parent
+        }
+        return nil
+    }
+
+    /// Whether the end of a conversation's log names a local port ("localhost:5173",
+    /// "127.0.0.1:5173"): the agent is working on that page.
+    public static func mentions(port: Int, log: URL, bytes: UInt64 = 256 * 1024) -> Bool {
+        let (text, _) = CodexSessions.tail(of: log, bytes: bytes)
+        return text.range(of: "(localhost|127\\.0\\.0\\.1|0\\.0\\.0\\.0|\\[::1\\]):\(port)(?![0-9])", options: .regularExpression) != nil
+    }
 }

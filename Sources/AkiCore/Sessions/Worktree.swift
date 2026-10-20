@@ -22,8 +22,13 @@ public enum Worktree {
 
     /// Worktree serving a local TCP port, if any process in a folder listens on it.
     public static func forPort(_ port: Int) -> String? {
+        server(ofPort: port)?.worktree
+    }
+
+    /// The process listening on a local port and its worktree.
+    public static func server(ofPort port: Int) -> (pid: Int32, worktree: String)? {
         guard let pid = listeningPorts()[port], let cwd = cwd(of: pid), cwd != "/" else { return nil }
-        return root(of: cwd)
+        return (pid, root(of: cwd))
     }
 
     /// Ports served from inside `worktree`.
@@ -50,17 +55,27 @@ public enum Worktree {
 
     /// TCP port → pid for every listening socket of the current user.
     static func listeningPorts() -> [Int: Int32] {
-        let output = run("/usr/sbin/lsof", ["-nP", "-iTCP", "-sTCP:LISTEN", "-Fpn"])
-        var ports: [Int: Int32] = [:]
+        listeningPorts(lsof: run("/usr/sbin/lsof", ["-nP", "-iTCP", "-sTCP:LISTEN", "-Fpn"]))
+    }
+
+    /// Two processes on one port (one on `[::1]:5173`, another on `*:5173`): the one the
+    /// browser reaches for "localhost", which tries ::1 first, then 127.0.0.1.
+    public static func listeningPorts(lsof output: String) -> [Int: Int32] {
+        func rank(_ address: Substring) -> Int {
+            address.hasPrefix("[::1]") ? 0 : address.hasPrefix("127.") ? 1 : address.hasPrefix("*") || address.hasPrefix("[::]") ? 2 : 3
+        }
+        var ports: [Int: (pid: Int32, rank: Int)] = [:]
         var pid: Int32?
         for line in output.split(separator: "\n") {
             if line.hasPrefix("p") {
                 pid = Int32(line.dropFirst())
             } else if line.hasPrefix("n"), let pid, let port = Int(line.split(separator: ":").last ?? "") {
-                ports[port] = ports[port] ?? pid
+                let address = line.dropFirst()
+                if let known = ports[port], known.rank <= rank(address) { continue }
+                ports[port] = (pid, rank(address))
             }
         }
-        return ports
+        return ports.mapValues(\.pid)
     }
 
     static func cwd(of pid: Int32) -> String? {

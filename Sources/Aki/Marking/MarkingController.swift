@@ -265,7 +265,9 @@ final class MarkingController {
                 let url = MarkContext.browserURL(bundleID: bundleID)
                 return (url, await Self.sessionServing(url, among: terminals, selected: preferred))
             }
+            let asked = CACurrentMediaTime()
             let grabs0 = await ScreenGrab.captureAll(excluding: overlayIDs)
+            let captured = CACurrentMediaTime()
             guard let grabs = grabs0, !grabs.isEmpty else {
                 model.marking = false
                 NSCursor.arrow.set()
@@ -415,31 +417,47 @@ final class MarkingController {
         }
     }
 
-    /// On a localhost page, the session whose folder runs that port: the one you
-    /// picked if it's among them, else one named with the port ("CORES LOGO 3000"),
-    /// else the most recently active.
+    /// On a localhost page, the session whose folder runs that port: one named with the
+    /// port ("CORES LOGO 3000"), else the one that started the server, else the one you
+    /// picked if it's among them, else one that talked about the port, else the most
+    /// recently active. The same for Claude and Codex.
     private static func sessionServing(_ url: String?, among terminals: [AgentTerminal], selected: String?) async -> String? {
         guard let url, let parts = URL(string: url), let port = parts.port,
-            ["localhost", "127.0.0.1", "0.0.0.0"].contains(parts.host() ?? "")
+            ["localhost", "127.0.0.1", "0.0.0.0", "::1"].contains(parts.host() ?? "")
         else { return nil }
+        func latest(_ list: [AgentTerminal]) -> AgentTerminal? {
+            list.max { ($0.updatedAt ?? .distantPast) < ($1.updatedAt ?? .distantPast) }
+        }
         // A session named with the port ("3001 CONTACTS") says it outright: the one,
         // when only one is. Its number alone, not part of a longer one (13001).
         func named(_ list: [AgentTerminal]) -> AgentTerminal? {
-            let hits = list.filter { $0.name.range(of: "(?<![0-9])\(port)(?![0-9])", options: .regularExpression) != nil }
             // Two named with it: the one used last.
-            return hits.max { ($0.updatedAt ?? .distantPast) < ($1.updatedAt ?? .distantPast) }
+            latest(list.filter { $0.name.range(of: "(?<![0-9])\(port)(?![0-9])", options: .regularExpression) != nil })
         }
-        guard let worktree = await Task.detached(operation: { Worktree.forPort(port) }).value else {
+        guard let server = await Task.detached(operation: { Worktree.server(ofPort: port) }).value else {
             // The folder serving it unknown (a container, another machine): the name still tells.
             return named(terminals)?.id
         }
-        let here = terminals.filter { $0.worktree == worktree }
+        let here = terminals.filter { $0.worktree == server.worktree }
         if let hit = named(here) { return hit.id }
-        // The session may run in a folder above the one serving (opened in the project's
-        // root, the server in one of its worktrees): its name still tells.
+        // The agent that ran the dev server (it's working on that page), wherever it was
+        // opened: the project's root while the server runs in one of its worktrees.
+        let pids = Set(terminals.map(\.pid))
+        if let starter = await Task.detached(operation: { AgentSessions.starter(of: server.pid, among: pids) }).value,
+            let hit = latest(terminals.filter { $0.pid == starter }) {
+            return hit.id
+        }
+        // The session may run in a folder above the one serving: its name still tells.
         if let hit = named(terminals) { return hit.id }
         if let selected, here.contains(where: { $0.id == selected }) { return selected }
-        return here.max { ($0.updatedAt ?? .distantPast) < ($1.updatedAt ?? .distantPast) }?.id
+        // Several in that folder: the ones that talked about the port lately ("localhost:5173").
+        if here.count > 1 {
+            let talking = await Task.detached(operation: {
+                here.filter { $0.log.map { AgentSessions.mentions(port: port, log: $0) } ?? false }
+            }).value
+            if let hit = latest(talking) { return hit.id }
+        }
+        return latest(here)?.id
     }
 
     /// esc: drops the mark being written (or clears it), else leaves.
