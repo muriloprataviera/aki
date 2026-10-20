@@ -437,7 +437,7 @@ extension AgentSessions {
             }.map(MarkFolder.created)
             return ([prompts[conversation], PromptHistory.started(pid), PromptHistory.switched(pid, to: conversation)].compactMap { $0 } + made).max()
         }
-        let codexKeepsHistory = FileManager.default.fileExists(atPath: PromptHistory.codex.path)
+        let codexKeepsHistory = PromptHistory.codexKeepsHistory()
         let claudeKeepsHistory = FileManager.default.fileExists(atPath: PromptHistory.claude.path)
 
         var result: [AgentTerminal] = []

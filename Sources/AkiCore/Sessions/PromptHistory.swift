@@ -9,6 +9,25 @@ public enum PromptHistory {
     }
     public static var codex: URL { UsageLimits.codexHome.appending(path: "history.jsonl") }
 
+    /// Codex writes its history unless told not to (`[history] persistence = "none"`).
+    public static func codexKeepsHistory(home: URL = UsageLimits.codexHome) -> Bool {
+        guard FileManager.default.fileExists(atPath: home.appending(path: "history.jsonl").path) else { return false }
+        let config = (try? String(contentsOf: home.appending(path: "config.toml"), encoding: .utf8)) ?? ""
+        return !historyOff(config)
+    }
+
+    public static func historyOff(_ config: String) -> Bool {
+        var section = ""
+        for raw in config.split(separator: "\n") {
+            let line = raw.split(separator: "#", maxSplits: 1).first.map(String.init)?.trimmingCharacters(in: .whitespaces) ?? ""
+            if line.hasPrefix("[") { section = line; continue }
+            let parts = line.split(separator: "=", maxSplits: 1).map { $0.trimmingCharacters(in: .whitespaces) }
+            guard parts.count == 2, parts[1].trimmingCharacters(in: CharacterSet(charactersIn: "\"'")) == "none" else { continue }
+            if (section == "[history]" && parts[0] == "persistence") || (section.isEmpty && parts[0] == "history.persistence") { return true }
+        }
+        return false
+    }
+
     private struct Read { var size: Int; var modified: Date; var from: Date; var last: [String: Date] }
     private static let lock = NSLock()
     nonisolated(unsafe) private static var reads: [String: Read] = [:]
