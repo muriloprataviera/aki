@@ -64,6 +64,19 @@ enum MarkContent: String, CaseIterable, Identifiable {
     }
 }
 
+/// What marking does under the pointer: outline the element there (a click marks
+/// it), or nothing, like the Mac's ⌘⇧4 (drag an area, click a point).
+enum MarkMode: String, CaseIterable, Identifiable {
+    case elements, picture
+    var id: String { rawValue }
+    var title: String {
+        switch self {
+        case .elements: L10n.t("Elements")
+        case .picture: L10n.t("Just a picture")
+        }
+    }
+}
+
 enum SidebarVisibility: String, CaseIterable, Identifiable {
     /// Always open.
     case alwaysShow
@@ -337,6 +350,7 @@ final class Preferences {
     /// Freeze the screen while marking (off: it keeps running, each mark takes its picture).
     var freezeScreen: Bool { didSet { defaults.set(freezeScreen, forKey: Keys.freezeScreen) } }
     var markContent: MarkContent { didSet { defaults.set(markContent.rawValue, forKey: Keys.markContent) } }
+    var markMode: MarkMode { didSet { defaults.set(markMode.rawValue, forKey: Keys.markMode) } }
     /// Get started was shown once (it opens by itself on the first launch only).
     var onboarded: Bool { didSet { defaults.set(onboarded, forKey: Keys.onboarded) } }
     /// The browser answered Aki's page question last time it was checked.
@@ -483,6 +497,7 @@ final class Preferences {
         showProjects = defaults.object(forKey: Keys.showProjects) as? Bool ?? true
         freezeScreen = defaults.object(forKey: Keys.freezeScreen) as? Bool ?? false
         markContent = value(Keys.markContent, MarkContent.automatic)
+        markMode = value(Keys.markMode, MarkMode.elements)
         onboarded = defaults.bool(forKey: Keys.onboarded)
         browserReady = defaults.bool(forKey: Keys.browserReady)
         hintsFolded = defaults.bool(forKey: Keys.hintsFolded)
@@ -534,6 +549,7 @@ final class Preferences {
         static let showProjects = "showProjects"
         static let freezeScreen = "freezeScreen"
         static let markContent = "markContent"
+        static let markMode = "markMode"
         static let onboarded = "onboarded"
         static let browserReady = "browserReady"
         static let hintsFolded = "hintsFolded"

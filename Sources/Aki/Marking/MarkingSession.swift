@@ -331,6 +331,11 @@ final class MarkingSession {
     }
 
     func probe(at point: CGPoint) {
+        // "Just a picture": nothing outlined, and nothing asked of the app below.
+        guard Preferences.shared.markMode == .elements else {
+            if hovered != nil { hovered = nil }
+            return
+        }
         // Picked with the arrow keys: a small nudge of the pointer keeps it.
         if let hold = keyboardHold {
             if hypot(point.x - hold.x, point.y - hold.y) < 14 { return }

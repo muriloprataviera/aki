@@ -108,7 +108,8 @@ struct MarkingView: View {
                                 dragNow = nil
                                 return
                             }
-                            let point = NSEvent.modifierFlags.contains(.command)
+                            // ⌘, or "Just a picture": a click is a point, never an element.
+                            let point = NSEvent.modifierFlags.contains(.command) || Preferences.shared.markMode == .picture
                             // ⇧-click: a normal click on what's below (another sheet, a link), no mark.
                             // (Not while ⇧ is held to gather with the arrows: the pin says it marks.)
                             if moved < 5, NSEvent.modifierFlags.contains(.shift), session.shiftHeld {

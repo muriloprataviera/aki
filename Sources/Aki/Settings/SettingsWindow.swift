@@ -748,6 +748,11 @@ struct SettingsView: View {
     private var annotationsPane: some View {
         Form {
             Section(L10n.t("Marking")) {
+                Picker(L10n.t("Under the pointer"), selection: $preferences.markMode) {
+                    ForEach(MarkMode.allCases) { Text($0.title).tag($0) }
+                }
+                .pickerStyle(.segmented)
+                Caption(L10n.t("Elements: what's under the pointer is outlined, and a click marks it. Just a picture: like ⌘⇧4, drag an area or click a point, with nothing outlined."))
                 Toggle(L10n.t("Freeze the screen while marking"), isOn: $preferences.freezeScreen)
                 Caption(L10n.t("Off: the screen keeps running and each mark takes its own picture."))
                 Picker(L10n.t("Ticked on a new mark"), selection: $preferences.markContent) {
