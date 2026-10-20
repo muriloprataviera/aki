@@ -18,13 +18,14 @@ public struct AkiAPI: Sendable {
     public let store: AnnotationStore
     private let token: String
     private let allowedOrigins: Set<String>
-    private let worktreeForPort: @Sendable (Int) -> String?
+    private let worktreeForPort: @Sendable (Int, String) -> String?
 
     /// `allowedOrigins` are full origins such as `chrome-extension://<id>`.
-    /// `worktreeForPort` tags annotations on localhost pages with the worktree serving them.
+    /// `worktreeForPort` tags annotations on localhost pages with the worktree serving them
+    /// (by port and the page's host: 127.0.0.1 and ::1 can be two servers).
     public init(
         store: AnnotationStore, token: String, allowedOrigins: Set<String> = [],
-        worktreeForPort: @escaping @Sendable (Int) -> String? = Worktree.forPort
+        worktreeForPort: @escaping @Sendable (Int, String) -> String? = { Worktree.forPort($0, host: $1) }
     ) {
         self.store = store
         self.token = token
@@ -105,7 +106,8 @@ public struct AkiAPI: Sendable {
     private func create(_ body: Data) async throws -> HTTPResponse {
         var annotation = Annotation(try object(body))
         if annotation["worktree"] == nil, let url = annotation["url"]?.string,
-            let port = Worktree.localPort(of: url), let worktree = worktreeForPort(port)
+            let port = Worktree.localPort(of: url),
+            let worktree = worktreeForPort(port, URLComponents(string: url)?.host ?? "localhost")
         {
             annotation["worktree"] = .string(worktree)
         }

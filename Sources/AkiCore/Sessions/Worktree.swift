@@ -21,8 +21,8 @@ public enum Worktree {
     }
 
     /// Worktree serving a local TCP port, if any process in a folder listens on it.
-    public static func forPort(_ port: Int) -> String? {
-        server(ofPort: port)?.worktree
+    public static func forPort(_ port: Int, host: String = "localhost") -> String? {
+        server(ofPort: port, host: host)?.worktree
     }
 
     /// The process listening on a local port and its worktree, for a page at `host`.

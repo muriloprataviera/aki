@@ -191,7 +191,7 @@ check(!filter.matches(Annotation(["url": "https://example.com/"])), "external pa
 
 let tagging = AkiAPI(
     store: AnnotationStore(directory: temp.appending(path: "tag")), token: String(repeating: "t", count: 64),
-    worktreeForPort: { $0 == 3000 ? "/repo/front" : nil })
+    worktreeForPort: { port, _ in port == 3000 ? "/repo/front" : nil })
 response = await tagging.handle(
     HTTPRequest(method: "POST", path: "/api/annotations", headers: auth, body: Data(#"{"url":"http://localhost:3000/x"}"#.utf8)))
 check(json(response)["annotation"]?.object?["worktree"]?.string == "/repo/front", "localhost page gets the worktree serving it")
@@ -278,7 +278,7 @@ print("wait")
 try FileManager.default.createDirectory(at: home.url, withIntermediateDirectories: true)
 let waitToken = try home.token()
 let waitAPI = AkiAPI(
-    store: AnnotationStore(directory: home.url), token: waitToken, worktreeForPort: { _ in nil })
+    store: AnnotationStore(directory: home.url), token: waitToken, worktreeForPort: { _, _ in nil })
 let waitServer = HTTPServer(port: 0) { await waitAPI.handle($0) }
 let waitPort = try await waitServer.start()
 let client = try AkiClient(home: home, port: waitPort)
