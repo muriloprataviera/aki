@@ -258,7 +258,10 @@ final class MarkingController {
             // are captured; the sidebar's list is fresh enough to start with.
             let terminals = model.markableTerminals
             let recentPick = model.recentTabPick
-            let preferred = recentPick ?? model.markingDestination
+            // Only one you picked (the tab you just left, or a ring clicked): the default
+            // destination (the first ring) is no pick, and mustn't beat the page's own.
+            let picked = model.selectedTerminal.flatMap { id in terminals.contains { $0.id == id } ? id : nil }
+            let preferred = recentPick ?? picked
             // The page's address (asked of the browser) and its session come in after the
             // overlay is up: marking shows as fast as the Mac's own ⌘⇧4.
             let bundleID = context.bundleID
@@ -302,7 +305,7 @@ final class MarkingController {
             session.destinationForPage = { [weak self, weak session] url in
                 guard let self else { return nil }
                 // The one it goes to now stays, when it's among those serving the page.
-                let current = await MainActor.run { session?.destination }
+                let current = await MainActor.run { session?.destinationChosen == true ? session?.destination : preferred }
                 return await Self.sessionServing(url, among: self.model.markableTerminals, selected: current)
             }
             session.hues = Dictionary(terminals.map { ($0.id, model.hue(of: $0)) }, uniquingKeysWith: { a, _ in a })
