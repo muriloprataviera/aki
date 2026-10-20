@@ -438,6 +438,7 @@ extension AgentSessions {
             return ([prompts[conversation], PromptHistory.started(pid), PromptHistory.switched(pid, to: conversation)].compactMap { $0 } + made).max()
         }
         let codexKeepsHistory = FileManager.default.fileExists(atPath: PromptHistory.codex.path)
+        let claudeKeepsHistory = FileManager.default.fileExists(atPath: PromptHistory.claude.path)
 
         var result: [AgentTerminal] = []
         for session in ClaudeSessions.live() {
@@ -460,7 +461,7 @@ extension AgentSessions {
                 pendingImages: images(mine), undelivered: unsent(mine), orcaHandle: terminalHandle(of: session.pid),
                 log: ClaudeSessions.transcript(sessionId: session.sessionId, cwd: session.cwd, projects: ClaudeSessions.projects),
                 // The app's prompts aren't in Claude Code's history: not known.
-                lastSent: session.desktop ? nil : sent(session.sessionId, id: session.sessionId, pid: session.pid, worktree: worktree)))
+                lastSent: session.desktop || !claudeKeepsHistory ? nil : sent(session.sessionId, id: session.sessionId, pid: session.pid, worktree: worktree)))
         }
         // The Claude app's Code sessions that wrote no registry entry: found by their
         // process (the app's own Claude Code, run as a program), the session's id in its

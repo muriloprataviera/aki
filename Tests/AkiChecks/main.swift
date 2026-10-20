@@ -542,6 +542,9 @@ check(doubled[5173] == 27690 && doubled[1337] == 49823, "two servers on a port: 
 check(doubled[3014] == 3512, "then the one on 127.0.0.1")
 check(Worktree.listeningPorts(lsof: "p1\nn[::1]:5173\np2\nn127.0.0.1:5173", host: "127.0.0.1")[5173] == 2, "a page at 127.0.0.1: never the one on ::1")
 check(Worktree.listeningPorts(lsof: "p1\nn[::1]:5173\np2\nn*:5173", host: "127.0.0.1")[5173] == 2, "nor over one on all addresses")
+let families = "p1\nf10\ntIPv6\nn*:5173\np2\nf11\ntIPv4\nn127.0.0.1:5173"
+check(Worktree.listeningPorts(lsof: families)[5173] == 1, "localhost: an IPv6 wildcard before 127.0.0.1 (the browser tries ::1 first)")
+check(Worktree.listeningPorts(lsof: families, host: "127.0.0.1")[5173] == 2, "127.0.0.1: never an IPv6-only wildcard")
 check(AgentSessions.starter(of: getpid(), among: [1, getppid()]) == getppid(), "the agent that started a server is found up its parents")
 check(AgentSessions.starter(of: getpid(), among: [1]) == nil, "no agent above it: none")
 let talk = FileManager.default.temporaryDirectory.appending(path: "aki-talk-\(getpid()).jsonl")

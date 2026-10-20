@@ -55,30 +55,39 @@ public enum Worktree {
 
     /// TCP port → pid for every listening socket of the current user.
     static func listeningPorts(host: String = "localhost") -> [Int: Int32] {
-        listeningPorts(lsof: run("/usr/sbin/lsof", ["-nP", "-iTCP", "-sTCP:LISTEN", "-Fpn"]), host: host)
+        listeningPorts(lsof: run("/usr/sbin/lsof", ["-nP", "-iTCP", "-sTCP:LISTEN", "-Fptn"]), host: host)
     }
 
     /// Two processes on one port (one on `[::1]:5173`, another on `*:5173`): the one the
     /// browser reaches at `host`. For "localhost" it tries ::1 first, then 127.0.0.1;
     /// "127.0.0.1" never reaches one on ::1 only, nor "[::1]" one on 127.0.0.1.
     public static func listeningPorts(lsof output: String, host: String = "localhost") -> [Int: Int32] {
-        let wildcard: (Substring) -> Bool = { $0.hasPrefix("*") || $0.hasPrefix("[::]") }
-        func rank(_ address: Substring) -> Int {
+        // A wildcard (`*`) reaches only its own family: lsof's `t` line says which, when asked.
+        func rank(_ address: Substring, _ family: Substring?) -> Int {
+            let any = address.hasPrefix("*") || address.hasPrefix("[::]")
+            let v4 = address.hasPrefix("127.") || (any && family != "IPv6")
+            let v6 = address.hasPrefix("[::1]") || (any && family != "IPv4")
             switch host {
-            case "127.0.0.1", "0.0.0.0": address.hasPrefix("127.") ? 0 : wildcard(address) ? 1 : 3
-            case "::1", "[::1]": address.hasPrefix("[::1]") ? 0 : wildcard(address) ? 1 : 3
-            default: address.hasPrefix("[::1]") ? 0 : address.hasPrefix("127.") ? 1 : wildcard(address) ? 2 : 3
+            case "127.0.0.1", "0.0.0.0": return address.hasPrefix("127.") ? 0 : v4 ? 1 : 3
+            case "::1", "[::1]": return address.hasPrefix("[::1]") ? 0 : v6 ? 1 : 3
+            default: return address.hasPrefix("[::1]") ? 0 : any && family == "IPv6" ? 1 : address.hasPrefix("127.") ? 2 : any ? 3 : 4
             }
         }
         var ports: [Int: (pid: Int32, rank: Int)] = [:]
         var pid: Int32?
+        var family: Substring?
         for line in output.split(separator: "\n") {
             if line.hasPrefix("p") {
                 pid = Int32(line.dropFirst())
+                family = nil
+            } else if line.hasPrefix("f") {
+                family = nil
+            } else if line.hasPrefix("t") {
+                family = line.dropFirst()
             } else if line.hasPrefix("n"), let pid, let port = Int(line.split(separator: ":").last ?? "") {
-                let address = line.dropFirst()
-                if let known = ports[port], known.rank <= rank(address) { continue }
-                ports[port] = (pid, rank(address))
+                let rank = rank(line.dropFirst(), family)
+                if let known = ports[port], known.rank <= rank { continue }
+                ports[port] = (pid, rank)
             }
         }
         return ports.mapValues(\.pid)
