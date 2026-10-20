@@ -3,6 +3,26 @@
     <channel>
         <title>Aki</title>
         <item>
+            <title>0.10.1-beta.3</title>
+            <pubDate>Tue, 20 Oct 2026 17:04:16 -0300</pubDate>
+            <sparkle:channel>beta</sparkle:channel>
+            <sparkle:version>20261020200415</sparkle:version>
+            <sparkle:shortVersionString>0.10.1-beta.3</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
+            <description><![CDATA[<h2>Aki 0.10.1 beta</h2>
+<h3>Changed</h3><ul>
+<li>A session you sent nothing to for five hours waits in "+N", even if it keeps running on its own, and comes back as soon as you send it something. Codex sessions too.</li>
+<li>Marking opens faster: the screens are known ahead, so it no longer asks the Mac for every window before showing.</li>
+</ul>
+<h3>Fixed</h3><ul>
+<li>A mark on a localhost page goes to the agent working on it, Codex as much as Claude: the one that started the page's server, then the one you picked, then the one that talked about its address lately, then the one used last.</li>
+<li>Two servers on one port: the page belongs to the one the browser opens.</li>
+</ul>
+]]></description>
+            <enclosure url="https://aki-updates.vercel.app/0.10.1-beta.3/Aki-0.10.1-beta.3.zip" length="4309726" type="application/octet-stream" sparkle:edSignature="cR2YrTf638zo2p0Vg33kxTB0V5c9sgoozW0x8ZkohtS7jcmBT0ZqvkycEs0gCj4aQ/kmKaS8oYDrZ+TTZ4rgCQ=="/>
+        </item>
+        <item>
             <title>0.10.1-beta.2</title>
             <pubDate>Tue, 20 Oct 2026 16:47:41 -0300</pubDate>
             <sparkle:channel>beta</sparkle:channel>
@@ -57,23 +77,6 @@
 </ul>
 ]]></description>
             <enclosure url="https://aki-updates.vercel.app/0.10.0/Aki-0.10.0.zip" length="4280824" type="application/octet-stream" sparkle:edSignature="sSClTzNjhv1cSF8qe9qg/aMrvduEgtOYwhHH/magw3Vil7xwssugaI813bKz65rNr+sIQgz8wNFRR9Qs/3QgBQ=="/>
-        </item>
-        <item>
-            <title>0.10.0-beta.10</title>
-            <pubDate>Sun, 18 Oct 2026 20:17:08 -0300</pubDate>
-            <sparkle:channel>beta</sparkle:channel>
-            <sparkle:version>20261018231707</sparkle:version>
-            <sparkle:shortVersionString>0.10.0-beta.10</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
-            <description><![CDATA[<h2>Aki 0.10.0 beta</h2>
-<h3>New</h3><ul>
-<li>Right-click a limits ring to choose, for that AI alone, what it shows and the line under it: the time left in the 5-hour session, the time until the week renews, or the month on plans with a monthly limit.</li>
-<li>Settings → Usage: each AI's models and projects this week, the days in a row, the busiest day and tokens week by week. The limits card links to it.</li>
-<li>Codex: "More from Codex" in Settings → Usage (off until you turn it on) adds your limit resets saved, all-time numbers, longest task and what you call most, asked of OpenAI with the sign-in Codex keeps on your Mac.</li>
-</ul>
-]]></description>
-            <enclosure url="https://aki-updates.vercel.app/0.10.0-beta.10/Aki-0.10.0-beta.10.zip" length="4281967" type="application/octet-stream" sparkle:edSignature="Hk7ePaK0gMhQJMBBFZ020X7J7vuMKdIkH/QVobPh9Ww0+FLmu4mORzEbRmDjqtkSqKdBEWiqIjW2HnfAPaKRCQ=="/>
         </item>
         <item>
             <title>0.9.0</title>
