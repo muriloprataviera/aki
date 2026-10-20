@@ -4,13 +4,15 @@ What changed in each version of Aki. Versions follow [semantic versioning](https
 
 ## [Unreleased]
 
+## [0.10.1] — 2026-10-20
+
 ### Changed
-- A session you sent nothing to for five hours (no message, no mark; was: untouched for six) waits in "+N", even if it keeps running on its own, is the destination or has old marks waiting, and comes back as soon as you send it something. Codex sessions now do too.
+- A session you sent nothing to for five hours (no message, no mark; was: untouched for six) waits in "+N", even if it keeps running on its own, is the destination or has old marks waiting, and comes back as soon as you send it something (a `/clear` or `/resume` counts). One that finished a long job and is asking you something stays in sight. Codex sessions now do too. Sessions whose messages can't be known (the Claude app's, other agents') keep the old rule.
 - Marking opens faster: the screens are known ahead, so it no longer asks the Mac for every window before showing.
 
 ### Fixed
-- A mark on a localhost page goes to the agent working on it, Codex as much as Claude: the one that started the page's server, then the one you picked, then the one that talked about its address lately, then the one used last. Codex sessions now know when they were last active, so they no longer lose to a Claude in the same folder.
-- Two servers on one port (one on `[::1]`, another on all addresses): the page belongs to the one the browser opens.
+- A mark on a localhost page goes to the agent working on it, Codex as much as Claude: the one you picked, if it's in that project, then the one that started the page's server, then the one that talked about its address lately, then the one used last. Codex sessions now know when they were last active, so they no longer lose to a Claude in the same folder.
+- Two servers on one port (one on `[::1]`, another on `127.0.0.1` or all addresses): the page belongs to the one the browser opens at that address.
 
 ## [0.10.0] — 2026-10-18
 
