@@ -1983,18 +1983,17 @@ struct TerminalCard: View {
 
     /// The actions go on the side of the card nearest its ring: first when the card
     /// hangs below the bar (top edge), last otherwise.
-    /// "↻ 2h40" within a day, "↻ Tue 3 AM" later (short, so the bars have room).
+    /// When it renews, by the clock: "↻ 13:50 · 1h20" today, "↻ qui. 12:00 · 23h30"
+    /// within a day, "↻ qui. 12:00" further off.
     static func renews(_ date: Date) -> String {
-        let left = max(0, Int(date.timeIntervalSinceNow / 60))
-        if left < 24 * 60 {
-            // Within a day: how long ("↻ 2h40").
-            return "↻ " + (left >= 60 ? "\(left / 60)h\(String(format: "%02d", left % 60))" : "\(left) min")
-        }
-        // Further off: the day and the clock time ("↻ seg. 03:00").
         let format = DateFormatter()
         format.locale = L10n.locale
-        format.setLocalizedDateFormatFromTemplate("EEE HH:mm")
-        return "↻ " + format.string(from: date)
+        format.setLocalizedDateFormatFromTemplate(Calendar.current.isDateInToday(date) ? "HH:mm" : "EEE HH:mm")
+        let when = "↻ " + format.string(from: date)
+        let left = max(0, Int(date.timeIntervalSinceNow / 60))
+        guard left < 24 * 60 else { return when }
+        // Within a day, how long too.
+        return when + " · " + (left >= 60 ? "\(left / 60)h\(String(format: "%02d", left % 60))" : "\(left) min")
     }
 
     private var actionsFirst: Bool { direction == .down }

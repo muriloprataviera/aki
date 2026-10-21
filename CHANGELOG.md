@@ -8,6 +8,9 @@ What changed in each version of Aki. Versions follow [semantic versioning](https
 - Settings → Marking → "Under the pointer": "Just a picture" works like the Mac's ⌘⇧4, with nothing outlined: drag an area or click a point. "Elements" (as before) outlines what's under the pointer, and a click marks it.
 - Settings → Appearance → "Show at least" (3 to start): when fewer sessions than that are awake, the ones used last stay in sight instead of waiting in "+N", so the sidebar isn't empty after a night. 0 keeps the old way.
 
+### Changed
+- Limits card: each limit says the day and time it renews ("↻ Thu 12:00 · 23h30"), not only how long is left.
+
 ## [0.10.1] — 2026-10-20
 
 ### Changed
