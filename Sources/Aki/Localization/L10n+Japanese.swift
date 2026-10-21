@@ -517,6 +517,8 @@ extension L10n {
         "Rings": "リング",
         "One ring per terminal with its name, or one per agent.": "ターミナルごとに名前付きのリング、またはエージェントごとに 1 つ。",
         "Show at most": "最大表示数",
+        "Show at least": "最小表示数",
+        "Sessions you haven't sent anything to for five hours wait in +N. The ones used last stay in sight up to this number, so the sidebar isn't empty after a night.": "5 時間何も送っていないセッションは +N に入ります。最後に使ったセッションはこの数まで表示されたままなので、一晩たってもサイドバーが空になりません。",
         "The busiest terminals get a ring; the rest are one hover away in the +N ring.": "活発なターミナルにリングが付き、残りは +N リングにポインタを置くと表示されます。",
         "more terminals": "個のターミナル",
         "Appearance": "外観",

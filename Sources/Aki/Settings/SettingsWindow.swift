@@ -708,6 +708,15 @@ struct SettingsView: View {
                         }
                     }
                     Caption(L10n.t("The busiest terminals get a ring; the rest are one hover away in the +N ring."))
+
+                    Stepper(value: $preferences.minTerminals, in: 0...min(6, preferences.maxTerminals)) {
+                        HStack {
+                            Text(L10n.t("Show at least"))
+                            Spacer()
+                            Text("\(preferences.minTerminals)").foregroundStyle(.secondary).monospacedDigit()
+                        }
+                    }
+                    Caption(L10n.t("Sessions you haven't sent anything to for five hours wait in +N. The ones used last stay in sight up to this number, so the sidebar isn't empty after a night."))
                 }
 
                 Picker(L10n.t("Card"), selection: $preferences.cardDetail) {

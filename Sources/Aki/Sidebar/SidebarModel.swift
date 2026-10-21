@@ -274,22 +274,23 @@ final class SidebarModel {
         var order: [String]
         var selected: String?
         var limit: Int
+        var minimum: Int
         var mode: RingMode
         /// Sessions go to rest by the clock: looked at again every minute.
         var minute: Int
     }
 
-    @ObservationIgnored private var memo: (key: RingsKey?, visible: [AgentTerminal]?, rings: [Ring]?, numbered: [String]?) = (nil, nil, nil, nil)
+    @ObservationIgnored private var memo: (key: RingsKey?, visible: [AgentTerminal]?, rings: [Ring]?, numbered: [String]?, kept: Set<String>?) = (nil, nil, nil, nil, nil)
 
-    private func ringsMemo<T>(_ part: KeyPath<(key: RingsKey?, visible: [AgentTerminal]?, rings: [Ring]?, numbered: [String]?), T?>) -> T? {
+    private func ringsMemo<T>(_ part: KeyPath<(key: RingsKey?, visible: [AgentTerminal]?, rings: [Ring]?, numbered: [String]?, kept: Set<String>?), T?>) -> T? {
         // Read here so SwiftUI still sees what the rings depend on.
         let key = RingsKey(
             terminals: terminals, hidden: preferences.hiddenTerminals, worktrees: preferences.hiddenWorktrees,
             untracked: preferences.untrackedAgents, disconnected: preferences.disconnectedApps,
             claude: preferences.tracksClaude, codex: preferences.tracksCodex, projects: preferences.showProjects,
-            order: preferences.ringOrder, selected: selectedTerminal, limit: preferences.maxTerminals,
+            order: preferences.ringOrder, selected: selectedTerminal, limit: preferences.maxTerminals, minimum: preferences.minTerminals,
             mode: preferences.ringMode, minute: Int(Date().timeIntervalSinceReferenceDate / 60))
-        if memo.key != key { memo = (key, nil, nil, nil) }
+        if memo.key != key { memo = (key, nil, nil, nil, nil) }
         return memo[keyPath: part]
     }
 
@@ -307,7 +308,7 @@ final class SidebarModel {
     var markableTerminals: [AgentTerminal] {
         let order = numbered
         let visible = visibleTerminals.sorted { (order.firstIndex(of: $0.id) ?? .max) < (order.firstIndex(of: $1.id) ?? .max) }
-        return visible + terminals.filter { (preferences.hiddenTerminals.contains($0.id) || resting($0)) && !switchedOff($0) }
+        return visible + terminals.filter { (preferences.hiddenTerminals.contains($0.id) || asleep($0)) && !switchedOff($0) }
     }
 
     /// Nothing sent to it for five hours (no prompt, no mark made for it): it waits in
@@ -329,6 +330,20 @@ final class SidebarModel {
         return t.state != .working
     }
 
+    /// Resting and not one of the last used kept in sight (Settings → "Show at least").
+    func asleep(_ t: AgentTerminal) -> Bool {
+        resting(t) && !keptInSight.contains(t.id)
+    }
+
+    private var keptInSight: Set<String> {
+        if let known = ringsMemo(\.kept) { return known }
+        let open = terminals.filter { !preferences.hiddenTerminals.contains($0.id) && !switchedOff($0) }
+        let sleeping = open.filter { resting($0) }
+        let kept = AgentTerminal.keptInSight(resting: sleeping.map { ($0.id, $0.lastUsed) }, shown: open.count - sleeping.count, minimum: preferences.minTerminals)
+        memo.kept = kept
+        return kept
+    }
+
     /// Conversations of tracked agents that aren't hidden, in sidebar order.
     var visibleTerminals: [AgentTerminal] {
         if let known = ringsMemo(\.visible) { return known }
@@ -338,7 +353,7 @@ final class SidebarModel {
     }
 
     private func workOutVisibleTerminals() -> [AgentTerminal] {
-        let shown = terminals.filter { !preferences.hiddenTerminals.contains($0.id) && !switchedOff($0) && !resting($0) }
+        let shown = terminals.filter { !preferences.hiddenTerminals.contains($0.id) && !switchedOff($0) && !asleep($0) }
         // Your dragged order first; sessions you never moved keep their place after.
         let rank = Dictionary(preferences.ringOrder.enumerated().map { ($1, $0) }, uniquingKeysWith: { a, _ in a })
         let ordered = shown.enumerated().sorted { a, b in
@@ -474,7 +489,7 @@ final class SidebarModel {
         case .terminals:
             // Hidden sessions live in the "+N" ring, with the ones past the limit.
             let hidden = terminals.filter {
-                (preferences.hiddenTerminals.contains($0.id) || (resting($0) && !switchedOff($0))) && preferences.tracks($0.agent)
+                (preferences.hiddenTerminals.contains($0.id) || (asleep($0) && !switchedOff($0))) && preferences.tracks($0.agent)
             }
             let all = visibleTerminals
             let limit = max(2, preferences.maxTerminals)

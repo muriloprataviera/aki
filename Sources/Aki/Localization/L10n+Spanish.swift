@@ -517,6 +517,8 @@ extension L10n {
         "Rings": "Anillos",
         "One ring per terminal with its name, or one per agent.": "Un anillo por terminal con su nombre, o uno por agente.",
         "Show at most": "Mostrar como máximo",
+        "Show at least": "Mostrar como mínimo",
+        "Sessions you haven't sent anything to for five hours wait in +N. The ones used last stay in sight up to this number, so the sidebar isn't empty after a night.": "Las sesiones a las que no enviaste nada en cinco horas esperan en +N. Las últimas usadas siguen a la vista hasta este número, para que la barra no amanezca vacía.",
         "The busiest terminals get a ring; the rest are one hover away in the +N ring.": "Los terminales con más actividad tienen anillo; el resto está en el anillo +N. Con más de 5, los anillos se achican para caber.",
         "more terminals": "terminales más",
         "Appearance": "Apariencia",

@@ -517,6 +517,8 @@ extension L10n {
         "Rings": "圆环",
         "One ring per terminal with its name, or one per agent.": "每个终端一个圆环并显示名称，或每个智能体一个圆环。",
         "Show at most": "最多显示",
+        "Show at least": "最少显示",
+        "Sessions you haven't sent anything to for five hours wait in +N. The ones used last stay in sight up to this number, so the sidebar isn't empty after a night.": "五小时内没有发送过内容的会话会放在 +N 中。最近使用的会话会保持显示，直到达到此数量，这样过了一夜侧边栏也不会是空的。",
         "The busiest terminals get a ring; the rest are one hover away in the +N ring.": "最活跃的终端显示圆环；其余终端悬停 +N 圆环即可查看。",
         "more terminals": "个其他终端",
         "Appearance": "外观",

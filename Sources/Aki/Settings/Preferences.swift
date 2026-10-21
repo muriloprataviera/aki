@@ -417,6 +417,8 @@ final class Preferences {
     var tracksCodex: Bool { didSet { defaults.set(tracksCodex, forKey: Keys.tracksCodex) } }
     /// Most terminal rings the sidebar shows; the rest fold into a "+N" ring.
     var maxTerminals: Int { didSet { defaults.set(maxTerminals, forKey: Keys.maxTerminals) } }
+    /// Fewest rings in sight: sessions resting in "+N" (the last used first) fill up to it.
+    var minTerminals: Int { didSet { defaults.set(minTerminals, forKey: Keys.minTerminals) } }
     var ringMode: RingMode { didSet { defaults.set(ringMode.rawValue, forKey: Keys.ringMode) } }
     var cardDetail: CardDetail { didSet { defaults.set(cardDetail.rawValue, forKey: Keys.cardDetail) } }
     /// Ask OpenAI for your Codex account's numbers with Codex's own sign-in (off until you turn it on).
@@ -520,6 +522,7 @@ final class Preferences {
         codexAccount = defaults.bool(forKey: Keys.codexAccount)
         ringMode = value(Keys.ringMode, RingMode.terminals)
         maxTerminals = defaults.object(forKey: Keys.maxTerminals) as? Int ?? 10
+        minTerminals = defaults.object(forKey: Keys.minTerminals) as? Int ?? 3
         hiddenWorktrees = Set(defaults.stringArray(forKey: Keys.hidden) ?? [])
         hiddenTerminals = Set(defaults.stringArray(forKey: Keys.hiddenTerminals) ?? [])
         usageRing = value(Keys.usageRing, UsageMetric.week)
@@ -575,6 +578,7 @@ final class Preferences {
         static let codexAccount = "codexAccount"
         static let ringMode = "ringMode"
         static let maxTerminals = "maxTerminals"
+        static let minTerminals = "minTerminals"
         static let hidden = "hiddenWorktrees"
         static let hiddenTerminals = "hiddenTerminals"
         static let usageRing = "usageRing"

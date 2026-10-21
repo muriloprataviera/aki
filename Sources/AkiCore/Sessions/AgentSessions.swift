@@ -362,6 +362,16 @@ public struct AgentTerminal: Identifiable, Equatable, Sendable {
     public var log: URL? = nil
     /// When you last sent it something (or it opened, if later). Nil: not known.
     public var lastSent: Date? = nil
+
+    /// When it was last in use: you sent it something, or it wrote.
+    public var lastUsed: Date { max(lastSent ?? .distantPast, updatedAt ?? .distantPast) }
+
+    /// Of the sessions resting in "+N", the last used ones, enough for `minimum` in
+    /// sight with the `shown` still awake: after a night the sidebar isn't empty.
+    public static func keptInSight(resting: [(id: String, used: Date)], shown: Int, minimum: Int) -> Set<String> {
+        let room = max(0, minimum - shown)
+        return Set(resting.sorted { $0.used > $1.used }.prefix(room).map(\.id))
+    }
 }
 
 extension AgentSessions {

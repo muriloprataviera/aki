@@ -576,6 +576,11 @@ check(PromptHistory.switched(999_001, to: "b") == moved, "and keeps that time")
 check(PromptHistory.historyOff("model = \"x\"\n[history]\npersistence = \"none\"\n"), "Codex's history turned off")
 check(PromptHistory.historyOff("history.persistence = 'none'"), "turned off in one line")
 check(!PromptHistory.historyOff("[history]\npersistence = \"save-all\"\n[other]\npersistence = \"none\""), "kept, whatever other sections say")
+let night = (0..<5).map { (id: "s\($0)", used: Date().addingTimeInterval(-Double(8 + $0) * 3600)) }
+check(AgentTerminal.keptInSight(resting: night, shown: 0, minimum: 3) == ["s0", "s1", "s2"], "after a night, the last used stay in sight")
+check(AgentTerminal.keptInSight(resting: night, shown: 2, minimum: 3) == ["s0"], "only enough to reach the minimum")
+check(AgentTerminal.keptInSight(resting: night, shown: 4, minimum: 3).isEmpty, "none once enough are awake")
+check(AgentTerminal.keptInSight(resting: night, shown: 0, minimum: 0).isEmpty, "a minimum of 0 keeps none")
 try? FileManager.default.removeItem(at: claudeHistory)
 try? FileManager.default.removeItem(at: codexHistory)
 
