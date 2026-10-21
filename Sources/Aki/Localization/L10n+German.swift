@@ -517,6 +517,7 @@ extension L10n {
         "Rings": "Ringe",
         "One ring per terminal with its name, or one per agent.": "Ein Ring pro Terminal mit seinem Namen oder einer pro Agent.",
         "Show at most": "Höchstens anzeigen",
+        "Click: point": "Klick: Punkt",
         "Show at least": "Mindestens anzeigen",
         "Sessions you haven't sent anything to for five hours wait in +N. The ones used last stay in sight up to this number, so the sidebar isn't empty after a night.": "Sitzungen, an die du seit fünf Stunden nichts gesendet hast, warten in +N. Die zuletzt genutzten bleiben bis zu dieser Zahl sichtbar, damit die Leiste nach einer Nacht nicht leer ist.",
         "The busiest terminals get a ring; the rest are one hover away in the +N ring.": "Die aktivsten Terminals bekommen einen Ring; die anderen sind im Ring +N.",

@@ -517,6 +517,7 @@ extension L10n {
         "Rings": "Anneaux",
         "One ring per terminal with its name, or one per agent.": "Un anneau par terminal avec son nom, ou un par agent.",
         "Show at most": "Afficher au maximum",
+        "Click: point": "Clic : point",
         "Show at least": "Afficher au minimum",
         "Sessions you haven't sent anything to for five hours wait in +N. The ones used last stay in sight up to this number, so the sidebar isn't empty after a night.": "Les sessions sans rien reçu depuis cinq heures attendent dans +N. Les dernières utilisées restent visibles jusqu’à ce nombre, pour que la barre ne soit pas vide au matin.",
         "The busiest terminals get a ring; the rest are one hover away in the +N ring.": "Les terminaux les plus actifs ont un anneau ; les autres sont dans l’anneau +N, au survol.",

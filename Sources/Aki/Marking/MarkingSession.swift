@@ -473,6 +473,10 @@ final class MarkingSession {
         }
         mark.generation = generation[screen, default: 0]
         switch Preferences.shared.markContent {
+        // "Just a picture": the picture always goes (text read from it rides along).
+        case .automatic where Preferences.shared.markMode == .picture:
+            mark.sendsImage = true
+            mark.imageChosen = true
         case .automatic: mark.sendsImage = Self.looksVisual(mark, text: self.text(of: mark))
         case let choice:
             mark.sendsText = choice == .text || choice == .both

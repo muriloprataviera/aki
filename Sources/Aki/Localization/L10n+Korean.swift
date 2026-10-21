@@ -517,6 +517,7 @@ extension L10n {
         "Rings": "링",
         "One ring per terminal with its name, or one per agent.": "터미널마다 이름과 함께 링 하나, 또는 에이전트마다 하나.",
         "Show at most": "최대 표시 개수",
+        "Click: point": "클릭: 지점",
         "Show at least": "최소 표시 개수",
         "Sessions you haven't sent anything to for five hours wait in +N. The ones used last stay in sight up to this number, so the sidebar isn't empty after a night.": "5시간 동안 아무것도 보내지 않은 세션은 +N에서 기다립니다. 마지막으로 사용한 세션은 이 개수까지 계속 보여서, 밤이 지나도 사이드바가 비지 않습니다.",
         "The busiest terminals get a ring; the rest are one hover away in the +N ring.": "가장 활발한 터미널에 링이 생기고, 나머지는 +N 링에 포인터를 올리면 보입니다.",

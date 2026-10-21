@@ -1253,12 +1253,19 @@ struct MarkingView: View {
     /// The hint line, split into key + what it does ("Click: element", "↑↓ bigger/smaller");
     /// sending has its own button.
     static var hintItems: [(keys: String, label: String)] {
-        allHintItems.filter { $0.keys != "⌘⏎" }
+        guard Preferences.shared.markMode == .picture else { return allHintItems.filter { $0.keys != "⌘⏎" } }
+        // "Just a picture": no element to move or resize, a click is a point. The rest
+        // by place in the line: ⌥ lines of text, ⇧ click, drag, ⌘Z.
+        let all = allHintItems
+        return items(L10n.t("Click: point")) + [4, 6, 7, 8].compactMap { all.indices.contains($0) ? all[$0] : nil }
     }
 
     private static var allHintItems: [(keys: String, label: String)] {
-        L10n.t("Click: element · Arrows: move · ⇧ arrows: add · ⌘↑↓: bigger/smaller · ⌥: lines of text · ⌘ click: point · ⇧ click: normal click · Drag: area (space moves it) · ⌘Z: undo · ⌘⏎: send")
-            .components(separatedBy: " · ").map { part in
+        items(L10n.t("Click: element · Arrows: move · ⇧ arrows: add · ⌘↑↓: bigger/smaller · ⌥: lines of text · ⌘ click: point · ⇧ click: normal click · Drag: area (space moves it) · ⌘Z: undo · ⌘⏎: send"))
+    }
+
+    private static func items(_ line: String) -> [(keys: String, label: String)] {
+        line.components(separatedBy: " · ").map { part in
                 if let colon = part.firstIndex(of: ":") {
                     return (String(part[..<colon]).trimmingCharacters(in: .whitespaces),
                             String(part[part.index(after: colon)...]).trimmingCharacters(in: .whitespaces))

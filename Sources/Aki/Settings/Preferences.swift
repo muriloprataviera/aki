@@ -416,7 +416,12 @@ final class Preferences {
     }
     var tracksCodex: Bool { didSet { defaults.set(tracksCodex, forKey: Keys.tracksCodex) } }
     /// Most terminal rings the sidebar shows; the rest fold into a "+N" ring.
-    var maxTerminals: Int { didSet { defaults.set(maxTerminals, forKey: Keys.maxTerminals) } }
+    var maxTerminals: Int {
+        didSet {
+            defaults.set(maxTerminals, forKey: Keys.maxTerminals)
+            if minTerminals > maxTerminals { minTerminals = maxTerminals }
+        }
+    }
     /// Fewest rings in sight: sessions resting in "+N" (the last used first) fill up to it.
     var minTerminals: Int { didSet { defaults.set(minTerminals, forKey: Keys.minTerminals) } }
     var ringMode: RingMode { didSet { defaults.set(ringMode.rawValue, forKey: Keys.ringMode) } }

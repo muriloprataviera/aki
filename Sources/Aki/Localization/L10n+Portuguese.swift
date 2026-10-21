@@ -389,6 +389,7 @@ extension L10n {
         "Rings": "Anéis",
         "One ring per terminal with its name, or one per agent.": "Um anel por terminal com o nome dele, ou um por agente.",
         "Show at most": "Mostrar no máximo",
+        "Click: point": "Clique: ponto",
         "Show at least": "Mostrar no mínimo",
         "Sessions you haven't sent anything to for five hours wait in +N. The ones used last stay in sight up to this number, so the sidebar isn't empty after a night.": "As sessões sem nada mandado há cinco horas esperam no +N. As usadas por último continuam à vista até este número, para a barrinha não amanhecer vazia.",
         "The busiest terminals get a ring; the rest are one hover away in the +N ring.":
