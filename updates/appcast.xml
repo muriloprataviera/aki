@@ -3,6 +3,22 @@
     <channel>
         <title>Aki</title>
         <item>
+            <title>0.11.0-beta.2</title>
+            <pubDate>Wed, 21 Oct 2026 07:07:33 -0300</pubDate>
+            <sparkle:channel>beta</sparkle:channel>
+            <sparkle:version>20261021100733</sparkle:version>
+            <sparkle:shortVersionString>0.11.0-beta.2</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
+            <description><![CDATA[<h2>Aki 0.11.0 beta</h2>
+<h3>New</h3><ul>
+<li>Settings → Appearance → "Show at least" (3 to start): when fewer sessions than that are awake, the ones used last stay in sight instead of waiting in "+N", so the sidebar isn't empty after a night. 0 keeps the old way.</li>
+<li>Settings → Marking → "Under the pointer": "Just a picture" works like the Mac's ⌘⇧4, with nothing outlined: drag an area or click a point. "Elements" (as before) outlines what's under the pointer, and a click marks it.</li>
+</ul>
+]]></description>
+            <enclosure url="https://aki-updates.vercel.app/0.11.0-beta.2/Aki-0.11.0-beta.2.zip" length="4328430" type="application/octet-stream" sparkle:edSignature="9uWjqQLRucGDr7Rz+81E5/qRFJbIJLXYXKZ7RuB/pY7BQvCPRhTzQZRqk7P0yBEj2zI1d/teFuJnAQtiLH5/Dg=="/>
+        </item>
+        <item>
             <title>0.11.0-beta.1</title>
             <pubDate>Tue, 20 Oct 2026 17:50:57 -0300</pubDate>
             <sparkle:channel>beta</sparkle:channel>
