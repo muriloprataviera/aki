@@ -4,8 +4,10 @@ What changed in each version of Aki. Versions follow [semantic versioning](https
 
 ## [Unreleased]
 
+## [0.11.0] — 2026-10-21
+
 ### Added
-- Settings → Marking → "Under the pointer": "Just a picture" works like the Mac's ⌘⇧4, with nothing outlined: drag an area or click a point. "Elements" (as before) outlines what's under the pointer, and a click marks it.
+- Settings → Marking → "Under the pointer": "Just a picture" works like the Mac's ⌘⇧4, with nothing outlined: drag an area or click a point, and the picture always goes with the mark. "Elements" (as before) outlines what's under the pointer, and a click marks it.
 - Settings → Appearance → "Show at least" (3 to start): when fewer sessions than that are awake, the ones used last stay in sight instead of waiting in "+N", so the sidebar isn't empty after a night. 0 keeps the old way.
 
 ### Changed
