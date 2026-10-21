@@ -3,6 +3,25 @@
     <channel>
         <title>Aki</title>
         <item>
+            <title>0.11.0-beta.3</title>
+            <pubDate>Wed, 21 Oct 2026 12:34:13 -0300</pubDate>
+            <sparkle:channel>beta</sparkle:channel>
+            <sparkle:version>20261021153413</sparkle:version>
+            <sparkle:shortVersionString>0.11.0-beta.3</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
+            <description><![CDATA[<h2>Aki 0.11.0 beta</h2>
+<h3>New</h3><ul>
+<li>Settings → Appearance → "Show at least" (3 to start): when fewer sessions than that are awake, the ones used last stay in sight instead of waiting in "+N", so the sidebar isn't empty after a night. 0 keeps the old way.</li>
+<li>Settings → Marking → "Under the pointer": "Just a picture" works like the Mac's ⌘⇧4, with nothing outlined: drag an area or click a point. "Elements" (as before) outlines what's under the pointer, and a click marks it.</li>
+</ul>
+<h3>Changed</h3><ul>
+<li>Limits card: each limit says the day and time it renews ("↻ Thu 12:00 · 23h30"), not only how long is left.</li>
+</ul>
+]]></description>
+            <enclosure url="https://aki-updates.vercel.app/0.11.0-beta.3/Aki-0.11.0-beta.3.zip" length="4328827" type="application/octet-stream" sparkle:edSignature="vIbl65kiBjv05lhhCt9zoWKuYiiYf3w5F/LAINDMc379xXAtBO4YofSV9EcH/6BRPqHSgveikeKyz4ihNmEUBA=="/>
+        </item>
+        <item>
             <title>0.11.0-beta.2</title>
             <pubDate>Wed, 21 Oct 2026 07:07:33 -0300</pubDate>
             <sparkle:channel>beta</sparkle:channel>
@@ -51,26 +70,6 @@
 </ul>
 ]]></description>
             <enclosure url="https://aki-updates.vercel.app/0.10.1/Aki-0.10.1.zip" length="4317503" type="application/octet-stream" sparkle:edSignature="NWefWoEnIenwY23Bln+PnET/wenqoT/2Hzybho5XHB89u4rRJKN9v8qyjT/OyTaJ8lIYLOcPIEi6P1LSm4ksDw=="/>
-        </item>
-        <item>
-            <title>0.10.1-beta.5</title>
-            <pubDate>Tue, 20 Oct 2026 17:15:25 -0300</pubDate>
-            <sparkle:channel>beta</sparkle:channel>
-            <sparkle:version>20261020201525</sparkle:version>
-            <sparkle:shortVersionString>0.10.1-beta.5</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
-            <description><![CDATA[<h2>Aki 0.10.1 beta</h2>
-<h3>Changed</h3><ul>
-<li>A session you sent nothing to for five hours (no message, no mark) waits in "+N", even if it keeps running on its own, is the destination or has old marks waiting, and comes back as soon as you send it something. Codex sessions too.</li>
-<li>Marking opens faster: the screens are known ahead, so it no longer asks the Mac for every window before showing.</li>
-</ul>
-<h3>Fixed</h3><ul>
-<li>A mark on a localhost page goes to the agent working on it, Codex as much as Claude: the one that started the page's server, then the one you picked, then the one that talked about its address lately, then the one used last.</li>
-<li>Two servers on one port: the page belongs to the one the browser opens.</li>
-</ul>
-]]></description>
-            <enclosure url="https://aki-updates.vercel.app/0.10.1-beta.5/Aki-0.10.1-beta.5.zip" length="4310522" type="application/octet-stream" sparkle:edSignature="9Lyz8jRxXOzDMDpjmH3xTOR67e1grwtv1njjA2DtpjIjHesgF9EaCpjODCxjcIj/wrFnqQTZrOorBduoImEiCA=="/>
         </item>
         <item>
             <title>0.10.0</title>
