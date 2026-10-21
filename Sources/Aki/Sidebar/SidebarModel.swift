@@ -338,8 +338,10 @@ final class SidebarModel {
     private var keptInSight: Set<String> {
         if let known = ringsMemo(\.kept) { return known }
         let open = terminals.filter { !preferences.hiddenTerminals.contains($0.id) && !switchedOff($0) }
+        // Never past "Show at most": those would fold back into "+N".
         let sleeping = open.filter { resting($0) }
-        let kept = AgentTerminal.keptInSight(resting: sleeping.map { ($0.id, $0.lastUsed) }, shown: open.count - sleeping.count, minimum: preferences.minTerminals)
+        let kept = AgentTerminal.keptInSight(resting: sleeping.map { ($0.id, $0.lastUsed) }, shown: open.count - sleeping.count,
+                                              minimum: min(preferences.minTerminals, max(2, preferences.maxTerminals)))
         memo.kept = kept
         return kept
     }
