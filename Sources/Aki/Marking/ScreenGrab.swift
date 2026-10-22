@@ -173,7 +173,7 @@ struct MarkContext {
                 ($0[kCGWindowOwnerPID as String] as? Int32) == pid && ($0[kCGWindowLayer as String] as? Int) == 0
             }?[kCGWindowName as String] as? String
         }
-        if withURL { context.url = browserURL(bundleID: app?.bundleIdentifier) }
+        if withURL { context.url = browserURL(bundleID: app?.bundleIdentifier, windowTitle: context.windowTitle) }
         return context
     }
 
@@ -210,15 +210,21 @@ struct MarkContext {
         switch bundleID {
         case "com.google.Chrome", "com.google.Chrome.canary", "com.brave.Browser", "com.microsoft.edgemac",
             "company.thebrowser.Browser":
+            // Another copy of the browser open (a test one, another profile folder): Apple
+            // Events reach only one of them, maybe not yours. Its front window would be
+            // some other page: only the window with your page's title is believed.
+            let others = NSRunningApplication.runningApplications(withBundleIdentifier: bundleID!).count > 1
             if let windowTitle, !windowTitle.isEmpty {
                 let title = windowTitle.replacingOccurrences(of: "\\", with: "\\\\").replacingOccurrences(of: "\"", with: "\\\"")
                 script = """
                     tell application id "\(bundleID!)"
                       set found to (every window whose title is "\(title)")
                       if (count of found) > 0 then return URL of active tab of item 1 of found
-                      return URL of active tab of front window
+                      \(others ? "return \"\"" : "return URL of active tab of front window")
                     end tell
                     """
+            } else if others {
+                return nil
             } else {
                 script = "tell application id \"\(bundleID!)\" to get URL of active tab of front window"
             }
@@ -231,6 +237,7 @@ struct MarkContext {
         guard let bundleID, Automation.allows(bundleID) else { return nil }
         // On the one thread Aki's AppleScript runs on (two at once can hang), giving up
         // after a second: a send waits for it.
-        return ScriptThread.shared.run("with timeout of 1 second\n\(script)\nend timeout")
+        let url = ScriptThread.shared.run("with timeout of 1 second\n\(script)\nend timeout")
+        return url?.isEmpty == false ? url : nil
     }
 }

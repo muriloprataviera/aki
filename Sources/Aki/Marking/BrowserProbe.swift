@@ -299,7 +299,12 @@ enum BrowserProbe {
         // to back, so the first one whose bounds hold the point is it (titles change
         // all the time and can't be trusted for this).
         var find = ""
-        if let point {
+        // Another copy of the browser open: Apple Events may reach that one, whose window
+        // under the pointer is some other page. Only the window with your page's title.
+        if !mayAsk, NSRunningApplication.runningApplications(withBundleIdentifier: bundle).count > 1 {
+            guard let title, !title.isEmpty else { return nil }
+            find = "set w to missing value\ntry\nset w to first window whose title is \(appleScriptString(title))\nend try\nif w is missing value then return \"\"\n"
+        } else if let point {
             find = """
                 repeat with x in windows
                 set b to bounds of x
