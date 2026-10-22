@@ -264,9 +264,9 @@ final class MarkingController {
             let preferred = recentPick ?? picked
             // The page's address (asked of the browser) and its session come in after the
             // overlay is up: marking shows as fast as the Mac's own ⌘⇧4.
-            let bundleID = context.bundleID, title = context.windowTitle
+            let bundleID = context.bundleID, title = context.windowTitle, pid = context.pid
             let lookup = Task.detached { () -> (url: String?, session: String?) in
-                let url = MarkContext.browserURL(bundleID: bundleID, windowTitle: title)
+                let url = MarkContext.browserURL(bundleID: bundleID, windowTitle: title, pid: pid)
                 return (url, await Self.sessionServing(url, among: terminals, selected: preferred))
             }
             let asked = CACurrentMediaTime()
@@ -509,7 +509,7 @@ final class MarkingController {
                 session.context = context
                 // The page's address after, off the main thread (the browser may take a second).
                 Task { [weak session] in
-                    let url = await Task.detached { MarkContext.browserURL(bundleID: context.bundleID, windowTitle: context.windowTitle) }.value
+                    let url = await Task.detached { MarkContext.browserURL(bundleID: context.bundleID, windowTitle: context.windowTitle, pid: context.pid) }.value
                     if let session, session.context.pid == context.pid { session.context.url = url }
                 }
                 self.previousApp = app

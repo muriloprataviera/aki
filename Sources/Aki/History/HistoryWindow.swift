@@ -32,6 +32,7 @@ final class HistoryWindowController {
         }
         // Shown first, so Aki turns into a regular app (it can't take the keys as a
         // background one), then brought forward with the keys: esc closes it at once.
+        let front = NSWorkspace.shared.frontmostApplication
         panel.orderFrontRegardless()
         AppWindows.refresh()
         NSApp.activate(ignoringOtherApps: true)
@@ -39,7 +40,10 @@ final class HistoryWindowController {
         // The Mac may hand Aki the foreground a moment later (it's a request since macOS
         // 14), or not at all after a hotkey: asked once more.
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) { [weak panel] in
-            guard let panel, panel.isVisible, !panel.isKeyWindow else { return }
+            // Not if you've gone to another app meanwhile.
+            let now = NSWorkspace.shared.frontmostApplication
+            guard let panel, panel.isVisible, !panel.isKeyWindow,
+                now == front || now == NSRunningApplication.current else { return }
             NSApp.activate(ignoringOtherApps: true)
             panel.makeKeyAndOrderFront(nil)
         }

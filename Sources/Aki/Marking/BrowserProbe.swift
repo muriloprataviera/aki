@@ -303,7 +303,20 @@ enum BrowserProbe {
         // under the pointer is some other page. Only the window with your page's title.
         if !mayAsk, NSRunningApplication.runningApplications(withBundleIdentifier: bundle).count > 1 {
             guard let title, !title.isEmpty else { return nil }
-            find = "set w to missing value\ntry\nset w to first window whose title is \(appleScriptString(title))\nend try\nif w is missing value then return \"\"\n"
+            // Under the pointer too, when known: two windows may share a title.
+            let under = point.map { " and \(Int($0.x)) ≥ (item 1 of b) and \(Int($0.x)) < (item 3 of b) and \(Int($0.y)) ≥ (item 2 of b) and \(Int($0.y)) < (item 4 of b)" } ?? ""
+            find = """
+                set w to missing value
+                repeat with x in windows
+                set b to bounds of x
+                if title of x is \(appleScriptString(title))\(under) then
+                set w to x
+                exit repeat
+                end if
+                end repeat
+                if w is missing value then return ""
+
+                """
         } else if let point {
             find = """
                 repeat with x in windows
@@ -385,7 +398,7 @@ enum BrowserProbe {
     }
 
     /// A JavaScript source as an AppleScript string literal.
-    private static func appleScriptString(_ s: String) -> String {
+    static func appleScriptString(_ s: String) -> String {
         "\"" + s.replacingOccurrences(of: "\\", with: "\\\\").replacingOccurrences(of: "\"", with: "\\\"") + "\""
     }
 }

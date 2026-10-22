@@ -173,7 +173,7 @@ struct MarkContext {
                 ($0[kCGWindowOwnerPID as String] as? Int32) == pid && ($0[kCGWindowLayer as String] as? Int) == 0
             }?[kCGWindowName as String] as? String
         }
-        if withURL { context.url = browserURL(bundleID: app?.bundleIdentifier, windowTitle: context.windowTitle) }
+        if withURL { context.url = browserURL(bundleID: app?.bundleIdentifier, windowTitle: context.windowTitle, pid: context.pid) }
         return context
     }
 
@@ -199,13 +199,22 @@ struct MarkContext {
         else { return nil }
         var context = MarkContext(appName: app.localizedName, bundleID: app.bundleIdentifier, pid: pid)
         context.windowTitle = window[kCGWindowName as String] as? String
-        context.url = browserURL(bundleID: app.bundleIdentifier, windowTitle: context.windowTitle)
+        context.url = browserURL(bundleID: app.bundleIdentifier, windowTitle: context.windowTitle, pid: pid)
         return context
+    }
+
+    /// Where a process's window with that title sits (global, top-left origin).
+    static func windowFrame(pid: Int32, title: String) -> CGRect? {
+        let windows = CGWindowListCopyWindowInfo([.optionOnScreenOnly, .excludeDesktopElements], kCGNullWindowID) as? [[String: Any]] ?? []
+        guard let window = windows.first(where: {
+            ($0[kCGWindowOwnerPID as String] as? Int32) == pid && ($0[kCGWindowName as String] as? String) == title
+        }), let bounds = window[kCGWindowBounds as String] as? NSDictionary else { return nil }
+        return CGRect(dictionaryRepresentation: bounds)
     }
 
     /// The front tab's address, asked over Apple Events (macOS asks once to allow it).
     /// With a window's title, that window's tab (not whichever window is in front).
-    static func browserURL(bundleID: String?, windowTitle: String? = nil) -> String? {
+    static func browserURL(bundleID: String?, windowTitle: String? = nil, pid: Int32? = nil) -> String? {
         let script: String
         switch bundleID {
         case "com.google.Chrome", "com.google.Chrome.canary", "com.brave.Browser", "com.microsoft.edgemac",
@@ -214,17 +223,31 @@ struct MarkContext {
             // Events reach only one of them, maybe not yours. Its front window would be
             // some other page: only the window with your page's title is believed.
             let others = NSRunningApplication.runningApplications(withBundleIdentifier: bundleID!).count > 1
-            if let windowTitle, !windowTitle.isEmpty {
+            if others {
+                // Your window: its title and where it sits on screen (two copies may show
+                // pages with one title).
+                guard let windowTitle, !windowTitle.isEmpty, let pid, let frame = windowFrame(pid: pid, title: windowTitle)
+                else { return nil }
+                let near = zip(["item 1 of b", "item 2 of b", "item 3 of b", "item 4 of b"],
+                               [frame.minX, frame.minY, frame.maxX, frame.maxY]).map { "(\($0) - \(Int($1))) < 4 and (\(Int($1)) - \($0)) < 4" }
+                script = """
+                    tell application id "\(bundleID!)"
+                      repeat with x in windows
+                        set b to bounds of x
+                        if title of x is \(BrowserProbe.appleScriptString(windowTitle)) and \(near.joined(separator: " and ")) then return URL of active tab of x
+                      end repeat
+                      return ""
+                    end tell
+                    """
+            } else if let windowTitle, !windowTitle.isEmpty {
                 let title = windowTitle.replacingOccurrences(of: "\\", with: "\\\\").replacingOccurrences(of: "\"", with: "\\\"")
                 script = """
                     tell application id "\(bundleID!)"
                       set found to (every window whose title is "\(title)")
                       if (count of found) > 0 then return URL of active tab of item 1 of found
-                      \(others ? "return \"\"" : "return URL of active tab of front window")
+                      return URL of active tab of front window
                     end tell
                     """
-            } else if others {
-                return nil
             } else {
                 script = "tell application id \"\(bundleID!)\" to get URL of active tab of front window"
             }
