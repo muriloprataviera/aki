@@ -4,6 +4,9 @@ What changed in each version of Aki. Versions follow [semantic versioning](https
 
 ## [Unreleased]
 
+### Fixed
+- History takes the keys as soon as it opens, so esc closes it without clicking it first.
+
 ## [0.11.0] — 2026-10-21
 
 ### Added

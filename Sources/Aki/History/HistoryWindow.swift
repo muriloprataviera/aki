@@ -30,9 +30,19 @@ final class HistoryWindowController {
             let frame = screen.visibleFrame
             panel.setFrameOrigin(NSPoint(x: frame.midX - size.width / 2, y: frame.midY - size.height / 2))
         }
+        // Shown first, so Aki turns into a regular app (it can't take the keys as a
+        // background one), then brought forward with the keys: esc closes it at once.
+        panel.orderFrontRegardless()
+        AppWindows.refresh()
         NSApp.activate(ignoringOtherApps: true)
         panel.makeKeyAndOrderFront(nil)
-        AppWindows.refresh()
+        // The Mac may hand Aki the foreground a moment later (it's a request since macOS
+        // 14), or not at all after a hotkey: asked once more.
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) { [weak panel] in
+            guard let panel, panel.isVisible, !panel.isKeyWindow else { return }
+            NSApp.activate(ignoringOtherApps: true)
+            panel.makeKeyAndOrderFront(nil)
+        }
     }
 
     private var escMonitor: Any?
