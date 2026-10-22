@@ -4,6 +4,8 @@ What changed in each version of Aki. Versions follow [semantic versioning](https
 
 ## [Unreleased]
 
+## [0.11.1] — 2026-10-22
+
 ### Fixed
 - History takes the keys as soon as it opens, so esc closes it without clicking it first.
 - With a second copy of Chrome open (a test one, another profile folder), a mark on a localhost page could read that copy's page and go to the wrong session: now only the window with your page's title counts.
