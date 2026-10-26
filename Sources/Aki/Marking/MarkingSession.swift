@@ -104,6 +104,10 @@ final class MarkingSession {
         mode = mode == .elements ? .picture : .elements
         keyboardHold = nil
         gathered = []
+        // A look still on its way is dropped, and the one here is asked anew.
+        probeCount += 1
+        probing = false
+        lastProbe = CGPoint(x: -10_000, y: -10_000)
         probe(at: point)
     }
 
@@ -379,7 +383,7 @@ final class MarkingSession {
                 found = VisualProbe.element(at: point, found: found, image: grab.image, screenSize: size, origin: origin, text: text)
             }
             await MainActor.run {
-                guard look == self.probeCount else { return }
+                guard look == self.probeCount, self.mode == .elements else { return }
                 // Same element as before (pointer moved inside it): keep the ↑ level.
                 if self.hovered?.frame != found?.frame || self.hovered?.label != found?.label { self.hovered = found }
                 self.probing = false
