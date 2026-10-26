@@ -789,6 +789,12 @@ final class MarkingController {
             case 124 where session.editing == nil:
                 session.move(.right)
                 return true
+            // E: elements outlined under the pointer, or just a picture (how it opens is in Settings).
+            case 14 where session.editing == nil && !event.modifierFlags.contains(.command):
+                let mouse = NSEvent.mouseLocation
+                let top = NSScreen.screens.first?.frame.maxY ?? 0
+                withAnimation(.easeOut(duration: 0.12)) { session.toggleMode(at: CGPoint(x: mouse.x, y: top - mouse.y)) }
+                return true
             case 48:  // tab
                 session.cycleDestination(by: event.modifierFlags.contains(.shift) ? -1 : 1)
                 return true

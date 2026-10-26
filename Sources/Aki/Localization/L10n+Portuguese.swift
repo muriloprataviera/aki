@@ -153,7 +153,7 @@ extension L10n {
         "Elements": "Elementos",
         "Just a picture": "Só print",
         "Under the pointer": "Debaixo do ponteiro",
-        "Elements: what's under the pointer is outlined, and a click marks it. Just a picture: like ⌘⇧4, drag an area or click a point, with nothing outlined.": "Elementos: o que está debaixo do ponteiro fica contornado, e um clique o marca. Só print: como o ⌘⇧4, arraste uma área ou clique num ponto, sem contorno.",
+        "How marking opens. Just a picture: like ⌘⇧4, drag an area or click a point, with nothing outlined. Elements: what's under the pointer is outlined, and a click marks it. E switches while marking.": "Como a marcação abre. Só print: como o ⌘⇧4, arraste uma área ou clique num ponto, sem contorno. Elementos: o que está debaixo do ponteiro fica contornado, e um clique o marca. E troca durante a marcação.",
         "No marks yet": "Nenhuma marca ainda",
         "in the queue": "na fila",
         "Exit": "Sair",

@@ -153,7 +153,7 @@ extension L10n {
         "Elements": "要素",
         "Just a picture": "画像だけ",
         "Under the pointer": "ポインタの下",
-        "Elements: what's under the pointer is outlined, and a click marks it. Just a picture: like ⌘⇧4, drag an area or click a point, with nothing outlined.": "要素: ポインタの下にあるものを枠で囲み、クリックでマークします。画像だけ: ⌘⇧4 のように、範囲をドラッグするか一点をクリックします。枠は出ません。",
+        "How marking opens. Just a picture: like ⌘⇧4, drag an area or click a point, with nothing outlined. Elements: what's under the pointer is outlined, and a click marks it. E switches while marking.": "マークの開き方。画像のみ: ⌘⇧4 のように、範囲をドラッグするか点をクリックします。輪郭は出ません。要素: ポインタの下にあるものに輪郭が付き、クリックでマークします。マーク中は E で切り替えます。",
         "No marks yet": "マークはまだありません",
         "in the queue": "件がキューに",
         "Exit": "終了",

@@ -109,7 +109,7 @@ struct MarkingView: View {
                                 return
                             }
                             // ⌘, or "Just a picture": a click is a point, never an element.
-                            let point = NSEvent.modifierFlags.contains(.command) || Preferences.shared.markMode == .picture
+                            let point = NSEvent.modifierFlags.contains(.command) || session.mode == .picture
                             // ⇧-click: a normal click on what's below (another sheet, a link), no mark.
                             // (Not while ⇧ is held to gather with the arrows: the pin says it marks.)
                             if moved < 5, NSEvent.modifierFlags.contains(.shift), session.shiftHeld {
@@ -1166,7 +1166,7 @@ struct MarkingView: View {
                         .foregroundStyle(AkiPalette.paperFixed)
                 }
                 HStack(spacing: 12) {
-                    ForEach(Array(Self.hintItems.enumerated()), id: \.offset) { _, item in
+                    ForEach(Array(Self.hintItems(session.mode).enumerated()), id: \.offset) { _, item in
                         HStack(spacing: 4) {
                             Text(item.keys).font(.system(size: 11.5, weight: .semibold, design: .rounded))
                                 .foregroundStyle(AkiPalette.paperFixed.opacity(0.85))
@@ -1252,12 +1252,15 @@ struct MarkingView: View {
 
     /// The hint line, split into key + what it does ("Click: element", "↑↓ bigger/smaller");
     /// sending has its own button.
-    static var hintItems: [(keys: String, label: String)] {
-        guard Preferences.shared.markMode == .picture else { return allHintItems.filter { $0.keys != "⌘⏎" } }
+    static func hintItems(_ mode: MarkMode) -> [(keys: String, label: String)] {
+        guard mode == .picture else {
+            return [("E", MarkMode.picture.title)] + allHintItems.filter { $0.keys != "⌘⏎" }
+        }
         // "Just a picture": no element to move or resize, a click is a point. The rest
         // by place in the line: ⌥ lines of text, ⇧ click, drag, ⌘Z.
         let all = allHintItems
-        return items(L10n.t("Click: point")) + [4, 6, 7, 8].compactMap { all.indices.contains($0) ? all[$0] : nil }
+        return items(L10n.t("Click: point")) + [("E", MarkMode.elements.title)]
+            + [4, 6, 7, 8].compactMap { all.indices.contains($0) ? all[$0] : nil }
     }
 
     private static var allHintItems: [(keys: String, label: String)] {

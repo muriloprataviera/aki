@@ -153,7 +153,7 @@ extension L10n {
         "Elements": "요소",
         "Just a picture": "이미지만",
         "Under the pointer": "포인터 아래",
-        "Elements: what's under the pointer is outlined, and a click marks it. Just a picture: like ⌘⇧4, drag an area or click a point, with nothing outlined.": "요소: 포인터 아래에 있는 것을 테두리로 표시하고, 클릭하면 표시합니다. 이미지만: ⌘⇧4처럼 영역을 드래그하거나 한 점을 클릭하며, 테두리는 나오지 않습니다.",
+        "How marking opens. Just a picture: like ⌘⇧4, drag an area or click a point, with nothing outlined. Elements: what's under the pointer is outlined, and a click marks it. E switches while marking.": "마킹이 열리는 방식. 화면만: ⌘⇧4처럼 영역을 드래그하거나 한 지점을 클릭하며, 윤곽선은 없습니다. 요소: 포인터 아래 항목에 윤곽선이 표시되고 클릭하면 마크됩니다. 마킹 중에 E로 전환합니다.",
         "No marks yet": "아직 표시 없음",
         "in the queue": "대기 중",
         "Exit": "나가기",

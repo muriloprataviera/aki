@@ -153,7 +153,7 @@ extension L10n {
         "Elements": "元素",
         "Just a picture": "仅截图",
         "Under the pointer": "指针下方",
-        "Elements: what's under the pointer is outlined, and a click marks it. Just a picture: like ⌘⇧4, drag an area or click a point, with nothing outlined.": "元素：指针下方的内容会被框出，点击即可标记。仅截图：像 ⌘⇧4 一样，拖出一个区域或点击一个点，不会框出任何内容。",
+        "How marking opens. Just a picture: like ⌘⇧4, drag an area or click a point, with nothing outlined. Elements: what's under the pointer is outlined, and a click marks it. E switches while marking.": "标记打开的方式。仅截图：像 ⌘⇧4 一样，拖出一个区域或点按一个点，不显示轮廓。元素：指针下的内容会显示轮廓，点按即可标记。标记时按 E 切换。",
         "No marks yet": "还没有标记",
         "in the queue": "个在队列中",
         "Exit": "退出",

@@ -96,6 +96,16 @@ final class MarkingSession {
     var hoveredLine: (screen: Int, line: ScreenText.Line)?
     /// Last pointer position per screen, to refresh the hover when ⌥ changes.
     var pointer: [Int: CGPoint] = [:]
+    /// How it opens comes from Settings; E switches while marking.
+    var mode = Preferences.shared.markMode
+
+    /// E: elements outlined under the pointer, or just a picture (nothing asked of the app).
+    func toggleMode(at point: CGPoint) {
+        mode = mode == .elements ? .picture : .elements
+        keyboardHold = nil
+        gathered = []
+        probe(at: point)
+    }
 
     func updateLineHover(screen: Int) {
         guard optionHeld, let point = pointer[screen], let line = texts[screen]?.line(at: point) else {
@@ -332,7 +342,7 @@ final class MarkingSession {
 
     func probe(at point: CGPoint) {
         // "Just a picture": nothing outlined, and nothing asked of the app below.
-        guard Preferences.shared.markMode == .elements else {
+        guard mode == .elements else {
             if hovered != nil { hovered = nil }
             return
         }
@@ -474,7 +484,7 @@ final class MarkingSession {
         mark.generation = generation[screen, default: 0]
         switch Preferences.shared.markContent {
         // "Just a picture": the picture always goes (text read from it rides along).
-        case .automatic where Preferences.shared.markMode == .picture:
+        case .automatic where mode == .picture:
             mark.sendsImage = true
             mark.imageChosen = true
         case .automatic: mark.sendsImage = Self.looksVisual(mark, text: self.text(of: mark))

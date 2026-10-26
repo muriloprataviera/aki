@@ -153,7 +153,7 @@ extension L10n {
         "Elements": "Elemente",
         "Just a picture": "Nur Bildschirmfoto",
         "Under the pointer": "Unter dem Zeiger",
-        "Elements: what's under the pointer is outlined, and a click marks it. Just a picture: like ⌘⇧4, drag an area or click a point, with nothing outlined.": "Elemente: Was unter dem Zeiger liegt, wird umrandet, und ein Klick markiert es. Nur Bildschirmfoto: wie ⌘⇧4, einen Bereich ziehen oder einen Punkt klicken, ohne Umrandung.",
+        "How marking opens. Just a picture: like ⌘⇧4, drag an area or click a point, with nothing outlined. Elements: what's under the pointer is outlined, and a click marks it. E switches while marking.": "Wie das Markieren startet. Nur ein Bild: wie ⌘⇧4, einen Bereich ziehen oder auf einen Punkt klicken, ohne Umriss. Elemente: Was unter dem Zeiger liegt, wird umrandet, und ein Klick markiert es. E wechselt beim Markieren.",
         "No marks yet": "Noch keine Markierungen",
         "in the queue": "in der Warteschlange",
         "Exit": "Beenden",

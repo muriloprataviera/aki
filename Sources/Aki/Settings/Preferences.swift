@@ -504,7 +504,7 @@ final class Preferences {
         showProjects = defaults.object(forKey: Keys.showProjects) as? Bool ?? true
         freezeScreen = defaults.object(forKey: Keys.freezeScreen) as? Bool ?? false
         markContent = value(Keys.markContent, MarkContent.automatic)
-        markMode = value(Keys.markMode, MarkMode.elements)
+        markMode = value(Keys.markMode, MarkMode.picture)
         onboarded = defaults.bool(forKey: Keys.onboarded)
         browserReady = defaults.bool(forKey: Keys.browserReady)
         hintsFolded = defaults.bool(forKey: Keys.hintsFolded)

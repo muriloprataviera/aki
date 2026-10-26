@@ -153,7 +153,7 @@ extension L10n {
         "Elements": "Éléments",
         "Just a picture": "Juste une capture",
         "Under the pointer": "Sous le pointeur",
-        "Elements: what's under the pointer is outlined, and a click marks it. Just a picture: like ⌘⇧4, drag an area or click a point, with nothing outlined.": "Éléments : ce qui est sous le pointeur est entouré, et un clic l’annote. Juste une capture : comme ⌘⇧4, faites glisser une zone ou cliquez un point, sans rien entourer.",
+        "How marking opens. Just a picture: like ⌘⇧4, drag an area or click a point, with nothing outlined. Elements: what's under the pointer is outlined, and a click marks it. E switches while marking.": "Comment s’ouvre l’annotation. Juste une image : comme ⌘⇧4, faites glisser une zone ou cliquez sur un point, sans contour. Éléments : ce qui est sous le pointeur est entouré, et un clic l’annote. E bascule pendant l’annotation.",
         "No marks yet": "Aucune marque",
         "in the queue": "dans la file",
         "Exit": "Quitter",
