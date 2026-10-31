@@ -7,6 +7,9 @@ What changed in each version of Aki. Versions follow [semantic versioning](https
 ### Changed
 - Marking opens light, like the Mac's ⌘⇧4: just the crosshair, nothing outlined (drag an area, click a point). Press E to outline the elements under the pointer, and E again to go back. How it opens is in Settings → Marking → "Under the pointer".
 
+### Fixed
+- A session working in a folder inside the one its Orca tab opened in (a repository within the project) is linked to its tab again: it shows the name you gave the tab, and marks are typed into it.
+
 ## [0.11.1] — 2026-10-22
 
 ### Fixed

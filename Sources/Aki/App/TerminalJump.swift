@@ -119,11 +119,19 @@ enum TerminalJump {
         Task.detached(priority: .utility) { _ = orcaTabs(maxAge: 8) }
     }
 
+    /// The tab's folder is the session's, or holds it: an agent may work in a repository
+    /// inside the project the tab was opened in (the tab in "site", the session in
+    /// "site/apps/web", a repository of its own).
+    private static func holds(_ tab: [String: Any], _ terminal: AgentTerminal) -> Bool {
+        guard let path = tab["worktreePath"] as? String else { return false }
+        return terminal.worktree == path || terminal.worktree.hasPrefix(path.hasSuffix("/") ? path : path + "/")
+    }
+
     /// The Orca terminal whose folder and title match the conversation.
     static func orcaTab(for terminal: AgentTerminal) -> String? {
         guard let tabs = orcaTabs() else { return nil }
         if let handle = terminal.orcaHandle {
-            return tabs.first { ($0["handle"] as? String) == handle && ($0["worktreePath"] as? String) == terminal.worktree }?["handle"] as? String
+            return tabs.first { ($0["handle"] as? String) == handle && holds($0, terminal) }?["handle"] as? String
         }
         let wanted = normalized(terminal.name)
         let sameFolder = tabs.filter { ($0["worktreePath"] as? String) == terminal.worktree }
@@ -143,7 +151,7 @@ enum TerminalJump {
         let customTitles = orcaCustomTitles()
         return terminals.map { terminal in
             guard let handle = terminal.orcaHandle,
-                  let tab = tabs.first(where: { ($0["handle"] as? String) == handle && ($0["worktreePath"] as? String) == terminal.worktree })
+                  let tab = tabs.first(where: { ($0["handle"] as? String) == handle && holds($0, terminal) })
             else { return terminal }
             var named = terminal
             // The name you gave the tab in Orca ("ENVIO CNPJ") wins over the title the agent set.
