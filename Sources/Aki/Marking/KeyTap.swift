@@ -69,6 +69,8 @@ final class MoveTap {
             }
             let target = pid_t(event.getIntegerValueField(.eventTargetUnixProcessID))
             guard target != 0, target != getpid() else { return Unmanaged.passUnretained(event) }
+            // Posted by Aki itself (a ⇧-click passed to the app below): it goes through.
+            if pid_t(event.getIntegerValueField(.eventSourceUnixProcessID)) == getpid() { return Unmanaged.passUnretained(event) }
             // Added to the main run loop: this runs on the main thread.
             return MainActor.assumeIsolated { me.passes() } ? Unmanaged.passUnretained(event) : nil
         }

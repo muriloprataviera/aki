@@ -144,6 +144,7 @@ final class MarkingController {
             }
             let panel = MarkingPanel(screen: screen)
             panel.ignoresMouseEvents = true
+            panel.sharingType = .none
             panel.orderFrontRegardless()
             standby[id] = panel
         }
@@ -168,7 +169,15 @@ final class MarkingController {
         panel.contentView = nil
         panel.ignoresMouseEvents = true
         panel.acceptsKeyboard = false
-        if panel.isKeyWindow { panel.resignKey() }
+        // Empty, it's in no one's picture nor window list (screenshots, screen sharing).
+        panel.sharingType = .none
+        if panel.isKeyWindow {
+            // Marked from one of Aki's own windows (a comment took the keyboard): the
+            // keyboard goes back to it, not to an empty overlay.
+            panel.orderOut(nil)
+            if standby.values.contains(where: { $0 === panel }) { panel.orderFrontRegardless() }
+            NSApp.windows.first { $0.isVisible && $0.styleMask.contains(.titled) && $0.canBecomeKey }?.makeKey()
+        }
         panel.level = .screenSaver
         if standby.values.contains(where: { $0 === panel }) {
             if !panel.isVisible { panel.orderFrontRegardless() }
@@ -328,7 +337,8 @@ final class MarkingController {
             }
             let asked = CACurrentMediaTime()
             // The Mac's capture never answering (seen once, right after an update): marking
-            // would stay "starting" for good, every press ignored. Two seconds at most.
+            // would stay "starting" for good, every press ignored. Five seconds at most (the
+            // Mac may be asking to confirm screen recording meanwhile).
             // (A race that doesn't wait for the loser: the capture may never end.)
             let overlays = overlayIDs
             let grabs0: [ScreenGrab]? = await withCheckedContinuation { continuation in
@@ -340,7 +350,7 @@ final class MarkingController {
                 }
                 Task { @MainActor in finish(await ScreenGrab.captureAll(excluding: overlays)) }
                 Task { @MainActor in
-                    try? await Task.sleep(for: .seconds(2))
+                    try? await Task.sleep(for: .seconds(5))
                     finish(nil)
                 }
             }
@@ -456,6 +466,7 @@ final class MarkingController {
                 let rootView = view
                 let frame = MarkingFrame(frame: CGRect(origin: .zero, size: grab.screen.frame.size))
                 panel.contentView = frame
+                panel.sharingType = .readOnly
                 // Clicks from now on are marking's (one right away mustn't reach the app below).
                 panel.ignoresMouseEvents = false
                 panels.append(panel)

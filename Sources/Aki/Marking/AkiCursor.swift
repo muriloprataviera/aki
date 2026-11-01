@@ -80,7 +80,8 @@ enum CursorSeed {
 extension NSCursor {
     /// Swapped with `set` (`AkiCursor.takeOverArrow`): calling `aki_set` runs the original.
     @objc func aki_set() {
-        if AkiCursor.arrowIsPin, !AkiCursor.passThrough, self === NSCursor.arrow {
+        // (The zoomed picture is its own window, with its own pointer.)
+        if AkiCursor.arrowIsPin, !AkiCursor.passThrough, self === NSCursor.arrow, !MainActor.assumeIsolated({ ImageZoom.isOpen }) {
             AkiCursor.pin.aki_set()
         } else {
             aki_set()
