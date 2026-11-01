@@ -296,6 +296,8 @@ final class MarkingController {
         setAside = fromAki ? [] : NSApp.windows.filter { $0.isVisible && $0.styleMask.contains(.titled) }
         setAside.forEach { $0.orderOut(nil) }
         BackgroundCursor.enable()
+        AkiCursor.takeOverArrow()
+        AkiCursor.arrowIsPin = true
         // Aki comes forward only after the picture: the app below losing the focus closes
         // what's open in it (a page's menu, a <select>, a right-click menu), and that
         // must be in the picture. Native menus are known at once; a page's, by comparing.
@@ -323,17 +325,25 @@ final class MarkingController {
             let asked = CACurrentMediaTime()
             // The Mac's capture never answering (seen once, right after an update): marking
             // would stay "starting" for good, every press ignored. Two seconds at most.
+            // (A race that doesn't wait for the loser: the capture may never end.)
             let overlays = overlayIDs
-            let grabs0 = await withTaskGroup(of: [ScreenGrab]?.self) { group in
-                group.addTask { await ScreenGrab.captureAll(excluding: overlays) }
-                group.addTask { try? await Task.sleep(for: .seconds(2)); return nil }
-                let first = await group.next() ?? nil
-                group.cancelAll()
-                return first
+            let grabs0: [ScreenGrab]? = await withCheckedContinuation { continuation in
+                var done = false
+                func finish(_ grabs: [ScreenGrab]?) {
+                    guard !done else { return }
+                    done = true
+                    continuation.resume(returning: grabs)
+                }
+                Task { @MainActor in finish(await ScreenGrab.captureAll(excluding: overlays)) }
+                Task { @MainActor in
+                    try? await Task.sleep(for: .seconds(2))
+                    finish(nil)
+                }
             }
             let captured = CACurrentMediaTime()
             guard let grabs = grabs0, !grabs.isEmpty else {
                 model.marking = false
+                AkiCursor.arrowIsPin = false
                 NSCursor.arrow.set()
                 // Undo what start() set up: windows back, focus back to where you were.
                 cursorTimer?.invalidate()
@@ -702,6 +712,7 @@ final class MarkingController {
         scrollMonitors.removeAll()
         scrollIdle?.cancel()
         scrollIdle = nil
+        AkiCursor.arrowIsPin = false
         if session != nil { NSCursor.arrow.set() }
         // Emptied: a panel only hidden kept its view alive, redrawn for nothing.
         panels.forEach(retire)

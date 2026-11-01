@@ -8,6 +8,21 @@ enum AkiCursor {
     /// arrow everywhere — over buttons and cards too — until ⇧ is let go.
     nonisolated(unsafe) static var passThrough = false
 
+    /// While marking (and ⇧ isn't held): the arrow, asked for by anything in Aki (SwiftUI's
+    /// views as they arrive), comes up as the pin. It blinked for a frame otherwise.
+    nonisolated(unsafe) static var arrowIsPin = false
+
+    /// Once: `NSCursor.set` goes through `arrowIsPin`.
+    static func takeOverArrow() {
+        guard !swapped, let original = class_getInstanceMethod(NSCursor.self, #selector(NSCursor.set)),
+              let replacement = class_getInstanceMethod(NSCursor.self, #selector(NSCursor.aki_set))
+        else { return }
+        swapped = true
+        method_exchangeImplementations(original, replacement)
+    }
+
+    nonisolated(unsafe) private static var swapped = false
+
     /// Sets a cursor unless ⇧ holds the arrow.
     static func set(_ cursor: NSCursor) {
         (passThrough ? NSCursor.arrow : cursor).set()
@@ -60,4 +75,15 @@ enum CursorSeed {
     }()
 
     static func current() -> Int32? { read?() }
+}
+
+extension NSCursor {
+    /// Swapped with `set` (`AkiCursor.takeOverArrow`): calling `aki_set` runs the original.
+    @objc func aki_set() {
+        if AkiCursor.arrowIsPin, !AkiCursor.passThrough, self === NSCursor.arrow {
+            AkiCursor.pin.aki_set()
+        } else {
+            aki_set()
+        }
+    }
 }
