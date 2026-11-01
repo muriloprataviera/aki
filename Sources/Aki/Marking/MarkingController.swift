@@ -111,6 +111,71 @@ final class MarkingController {
 
     init(model: SidebarModel) {
         self.model = model
+        // Ready from the start: the overlay is already on screen when marking opens.
+        DispatchQueue.main.async { [weak self] in self?.prepareStandby() }
+        screensObserver = NotificationCenter.default.addObserver(
+            forName: NSApplication.didChangeScreenParametersNotification, object: nil, queue: .main
+        ) { [weak self] _ in MainActor.assumeIsolated { self?.prepareStandby() } }
+    }
+
+    /// One overlay per screen, kept on screen all the time: empty, the pointer going
+    /// through it. Marking only fills it and lets it take the clicks. A window newly put
+    /// under the pointer makes the Mac show the arrow for a frame or two (the pin
+    /// blinked as marking opened); one already there doesn't.
+    private var standby: [CGDirectDisplayID: MarkingPanel] = [:]
+    private var screensObserver: NSObjectProtocol?
+
+    private func prepareStandby() {
+        // Only the week's limits: no marking, no overlay.
+        guard Preferences.shared.showSessions else { return }
+        var screens: [CGDirectDisplayID: NSScreen] = [:]
+        for screen in NSScreen.screens {
+            if let id = screen.displayNumber { screens[id] = screen }
+        }
+        for (id, panel) in standby where screens[id] == nil && !panels.contains(where: { $0 === panel }) {
+            panel.orderOut(nil)
+            panel.close()
+            standby[id] = nil
+        }
+        for (id, screen) in screens {
+            if let panel = standby[id] {
+                if !panels.contains(where: { $0 === panel }), panel.frame != screen.frame { panel.setFrame(screen.frame, display: false) }
+                continue
+            }
+            let panel = MarkingPanel(screen: screen)
+            panel.ignoresMouseEvents = true
+            panel.orderFrontRegardless()
+            standby[id] = panel
+        }
+    }
+
+    /// The overlay kept for that screen (put up now if it wasn't).
+    private func overlay(for screen: NSScreen) -> MarkingPanel {
+        if let id = screen.displayNumber, let panel = standby[id] {
+            if panel.frame != screen.frame { panel.setFrame(screen.frame, display: false) }
+            if !panel.isVisible { panel.orderFrontRegardless() }
+            return panel
+        }
+        let panel = MarkingPanel(screen: screen)
+        panel.ignoresMouseEvents = true
+        panel.orderFrontRegardless()
+        if let id = screen.displayNumber { standby[id] = panel }
+        return panel
+    }
+
+    /// Marking ended: the overlay empties and lets the pointer through again, still on screen.
+    private func retire(_ panel: MarkingPanel) {
+        panel.contentView = nil
+        panel.ignoresMouseEvents = true
+        panel.acceptsKeyboard = false
+        if panel.isKeyWindow { panel.resignKey() }
+        panel.level = .screenSaver
+        if standby.values.contains(where: { $0 === panel }) {
+            if !panel.isVisible { panel.orderFrontRegardless() }
+        } else {
+            panel.orderOut(nil)
+            panel.close()
+        }
     }
 
     /// Pop-up menus on screen (any app's, global top-left points): menus live at
@@ -348,7 +413,9 @@ final class MarkingController {
                 }
             }
             for (index, grab) in grabs.enumerated() {
-                let panel = MarkingPanel(screen: grab.screen)
+                let panel = overlay(for: grab.screen)
+                // The clicks stay with the app below until the overlay is filled.
+                panel.ignoresMouseEvents = true
                 var view = MarkingView(
                     session: session, screen: index,
                     target: { [weak self] id in self?.target(for: id, on: grab.screen) },
@@ -367,7 +434,6 @@ final class MarkingController {
                 let rootView = view
                 let frame = MarkingFrame(frame: CGRect(origin: .zero, size: grab.screen.frame.size))
                 panel.contentView = frame
-                panel.orderFrontRegardless()
                 panels.append(panel)
                 DispatchQueue.main.async { [weak self, weak panel] in
                     guard let self, let panel, self.panels.contains(where: { $0 === panel }) else { return }
@@ -375,6 +441,8 @@ final class MarkingController {
                     hosting.frame = frame.bounds
                     hosting.autoresizingMask = [.width, .height]
                     frame.addSubview(hosting, positioned: .below, relativeTo: nil)
+                    // Filled: it takes the clicks (unless they're going through already).
+                    if self.session?.scrolling != true { panel.ignoresMouseEvents = false }
                     if index == 0 { MarkingSpeed.built(hosting) }
                     // The overlay draws its own frame (hidden while scrolling): this one goes
                     // once the overlay is on screen.
@@ -550,18 +618,12 @@ final class MarkingController {
                     // ⇧ held: the arrow, whatever a button or a text field set meanwhile.
                     if NSCursor.current !== NSCursor.arrow { NSCursor.arrow.set() }
                 } else {
-                    // The first second, the pin at every tick: the arrow the Mac puts up as
-                    // the overlay appears under the pointer doesn't always count as a change.
-                    if ticks < 125 {
-                        AkiCursor.pin.set()
-                        ours = CursorSeed.current()
-                        return
-                    }
                     // Without the count (a later macOS): every 0.1 s, as before.
                     let seed = CursorSeed.current()
                     guard seed.map({ $0 != ours }) ?? (ticks % 12 == 0) else { return }
-                    // The pin again, unless Aki itself put up a button's hand or the text cursor.
-                    if NSCursor.current === NSCursor.arrow || NSCursor.current === AkiCursor.pin {
+                    // The first second always the pin; after that, unless Aki itself put
+                    // up a button's hand or the text cursor.
+                    if ticks < 125 || NSCursor.current === NSCursor.arrow || NSCursor.current === AkiCursor.pin {
                         AkiCursor.pin.set()
                         ours = CursorSeed.current()
                     } else {
@@ -626,12 +688,8 @@ final class MarkingController {
         scrollIdle?.cancel()
         scrollIdle = nil
         if session != nil { NSCursor.arrow.set() }
-        // Closed for good: a panel only hidden kept its view alive, redrawn for nothing.
-        panels.forEach {
-            $0.orderOut(nil)
-            $0.contentView = nil
-            $0.close()
-        }
+        // Emptied: a panel only hidden kept its view alive, redrawn for nothing.
+        panels.forEach(retire)
         panels.removeAll()
         session = nil
         // The apps hovered stop describing themselves (a second later: the last mark's
@@ -1105,8 +1163,6 @@ final class MarkingPanel: NSPanel {
         hasShadow = false
         hidesOnDeactivate = false
         isReleasedWhenClosed = false
-        // Every click on it, the nearly clear parts too (a live screen shows through).
-        ignoresMouseEvents = false
         setFrame(screen.frame, display: false)
     }
 
@@ -1221,5 +1277,12 @@ enum MarkingSpeed {
         let file = FileManager.default.homeDirectoryForCurrentUser.appending(path: ".aki/marking-speed.log")
         let old = (try? String(contentsOf: file, encoding: .utf8))?.split(separator: "\n").suffix(59).map(String.init) ?? []
         try? (old + [line]).joined(separator: "\n").appending("\n").write(to: file, atomically: true, encoding: .utf8)
+    }
+}
+
+extension NSScreen {
+    /// The display's number (stays the same while it's connected).
+    var displayNumber: CGDirectDisplayID? {
+        deviceDescription[NSDeviceDescriptionKey("NSScreenNumber")] as? CGDirectDisplayID
     }
 }

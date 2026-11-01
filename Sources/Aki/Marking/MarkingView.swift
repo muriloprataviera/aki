@@ -57,11 +57,15 @@ struct MarkingView: View {
 
     var body: some View {
         ZStack(alignment: .topLeading) {
-            Image(decorative: grab.image, scale: grab.scale)
-                .resizable()
-                .frame(width: grab.screen.frame.width, height: grab.screen.frame.height)
-                // Live by default: the screen keeps running underneath (Settings can freeze it).
-                .opacity(session.scrolling || session.live ? 0 : 1)
+            // Live by default: the screen keeps running underneath (Settings can freeze it).
+            // Not even drawn then: a whole screen's picture held marking up for a moment
+            // as it opened (the pointer stuck on the arrow meanwhile).
+            if !session.live {
+                Image(decorative: grab.image, scale: grab.scale)
+                    .resizable()
+                    .frame(width: grab.screen.frame.width, height: grab.screen.frame.height)
+                    .opacity(session.scrolling ? 0 : 1)
+            }
             // Live, as the Mac's ⌘⇧4: the screen as it is (only enough over it for the
             // clicks to land here). Frozen: barely dimmed, as a picture.
             Color.black.opacity(session.flying ? 0 : session.live ? Self.catchClicks : 0.06)
