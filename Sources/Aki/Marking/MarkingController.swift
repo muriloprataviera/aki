@@ -132,25 +132,6 @@ final class MarkingController {
         }
     }
 
-    /// Live marking shows the real screen through the overlay. Something that closed as
-    /// Aki came forward (a page's menu, a hover card) would be gone from it: a second
-    /// look tells. Nothing closed: the screen goes live. Something did: the first picture
-    /// stays, frozen, and what changed is found on it. Small changes (a caret) don't count.
-    private func watchForClosedMenus(_ session: MarkingSession, first: [ScreenGrab]) {
-        let pid = session.context.pid
-        Task { [weak session] in
-            try? await Task.sleep(for: .milliseconds(350))
-            guard let session else { return }
-            // Scrolled already: the page moved on, the first picture no longer matters.
-            if session.scrolling { session.live = true; return }
-            guard let changed = await closedRegions(since: first, pid: pid) else {
-                session.live = true
-                return
-            }
-            if changed.isEmpty { session.live = true } else { session.menus += changed }
-        }
-    }
-
     /// What closed since `first` was taken (global top-left points), nil when the screens
     /// can't be captured again. Small changes (a caret) and what keeps moving don't count.
     private func closedRegions(since first: [ScreenGrab], pid: pid_t?) async -> [CGRect]? {
@@ -290,6 +271,7 @@ final class MarkingController {
                 askForScreenRecording()
                 return
             }
+            let frozen = model.preferences.freezeScreen || menuOpen
             let session = MarkingSession(
                 grabs: grabs, context: context, terminals: terminals,
                 // The agent tab you just left (where the print most likely goes), then the
@@ -319,13 +301,13 @@ final class MarkingController {
             queued = []
             self.session = session
             followTerminals(session)
-            // The picture shows first, even for live marking: the screen through the
-            // overlay goes live only once nothing closed (no menu blinking out and back).
-            session.live = false
+            // As the Mac's ⌘⇧4: the screen stays as it is, live, and only the pointer
+            // changes. Frozen (the picture shown) when asked to, or with a menu open: it
+            // would close under the marks.
+            session.live = !frozen
             session.menus = menus
-            // Aki stays in the background, as the Mac's ⌘⇧4 does: the app below keeps
-            // the focus (its menu open, its selection blue); the keys come by `KeyTap`.
-            if !model.preferences.freezeScreen && !menuOpen { watchForClosedMenus(session, first: grabs) }
+            // Aki stays in the background, as ⌘⇧4 does: the app below keeps the focus
+            // (its menu open, its selection blue); the keys come by `KeyTap`.
             session.markAdded = { [weak session, weak self] mark in
                 guard let session, session.live else { return }
                 let overlays = self?.overlayIDs ?? []
@@ -378,11 +360,11 @@ final class MarkingController {
                     close: { [weak self] in self?.close() },
                     discard: { [weak self] in self?.discard() })
                 view.passClick = { [weak self] point in self?.passClick(at: point) }
-                // The frame in Aki's colour goes up alone and at once, over the screen as
-                // it is (the same picture the overlay freezes): building the whole overlay
-                // takes about half a second, and it comes in underneath on the next turn.
+                // An empty overlay goes up at once (the frame too, when frozen): building
+                // the whole one takes about half a second, and it comes in underneath on
+                // the next turn.
                 let rootView = view
-                let frame = MarkingFrame(frame: CGRect(origin: .zero, size: grab.screen.frame.size))
+                let frame = MarkingFrame(frame: CGRect(origin: .zero, size: grab.screen.frame.size), frozen: frozen)
                 panel.contentView = frame
                 panel.orderFrontRegardless()
                 panels.append(panel)
@@ -1102,6 +1084,8 @@ final class MarkingPanel: NSPanel {
         hasShadow = false
         hidesOnDeactivate = false
         isReleasedWhenClosed = false
+        // Every click on it, the nearly clear parts too (a live screen shows through).
+        ignoresMouseEvents = false
         setFrame(screen.frame, display: false)
     }
 
@@ -1111,17 +1095,19 @@ final class MarkingPanel: NSPanel {
     override var canBecomeMain: Bool { false }
 }
 
-/// The overlay's first look: only the thin frame that says you're marking and the
-/// slight dim (the SwiftUI overlay, built just after, draws the same over it).
+/// The overlay's first look, until the SwiftUI one (built just after) draws the same
+/// over it: nothing to see on a live screen; the thin frame when it's frozen.
 final class MarkingFrame: NSView {
-    override init(frame: NSRect) {
+    init(frame: NSRect, frozen: Bool) {
         super.init(frame: frame)
         wantsLayer = true
-        layer?.borderWidth = 2
-        layer?.borderColor = NSColor(AkiPalette.red).withAlphaComponent(0.9).cgColor
-        // The overlay's own slight dim: also keeps a click meanwhile on the overlay (a
-        // clear pixel would let it through to the app below).
-        layer?.backgroundColor = NSColor.black.withAlphaComponent(0.06).cgColor
+        if frozen {
+            layer?.borderWidth = 2
+            layer?.borderColor = NSColor(AkiPalette.red).withAlphaComponent(0.9).cgColor
+        }
+        // Too faint to see, but a click meanwhile lands on the overlay (a clear pixel
+        // would let it through to the app below).
+        layer?.backgroundColor = NSColor.black.withAlphaComponent(MarkingView.catchClicks).cgColor
     }
 
     /// The overlay is drawn: it has its own frame and dim from now on.
