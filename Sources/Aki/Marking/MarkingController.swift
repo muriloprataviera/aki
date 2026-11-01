@@ -438,8 +438,6 @@ final class MarkingController {
             }
             for (index, grab) in grabs.enumerated() {
                 let panel = overlay(for: grab.screen)
-                // The clicks stay with the app below until the overlay is filled.
-                panel.ignoresMouseEvents = true
                 var view = MarkingView(
                     session: session, screen: index,
                     target: { [weak self] id in self?.target(for: id, on: grab.screen) },
@@ -458,8 +456,10 @@ final class MarkingController {
                 let rootView = view
                 let frame = MarkingFrame(frame: CGRect(origin: .zero, size: grab.screen.frame.size))
                 panel.contentView = frame
+                // Clicks from now on are marking's (one right away mustn't reach the app below).
+                panel.ignoresMouseEvents = false
                 panels.append(panel)
-                DispatchQueue.main.async { [weak self, weak panel] in
+                DispatchQueue.main.async { [weak self, weak panel, weak currentSession = session] in
                     guard let self, let panel, self.panels.contains(where: { $0 === panel }) else { return }
                     let hosting = FirstClickHostingView(rootView: rootView)
                     hosting.frame = frame.bounds
@@ -467,14 +467,14 @@ final class MarkingController {
                     frame.addSubview(hosting, positioned: .below, relativeTo: nil)
                     // SwiftUI's views put up the arrow as they arrive: the pin before it shows.
                     AkiCursor.pin.set()
-                    // Filled: it takes the clicks (unless they're going through already).
-                    if self.session?.scrolling != true { panel.ignoresMouseEvents = false }
                     if index == 0 { MarkingSpeed.built(hosting) }
                     // The overlay draws its own frame (hidden while scrolling): this one goes
                     // once the overlay is on screen.
                     DispatchQueue.main.async {
                         frame.handOver()
-                        if self.session?.shiftHeld != true { AkiCursor.pin.set() }
+                        // Still the same round of marking (esc meanwhile put the arrow back).
+                        guard let session = self.session, session === currentSession, !session.shiftHeld else { return }
+                        AkiCursor.pin.set()
                     }
                 }
             }

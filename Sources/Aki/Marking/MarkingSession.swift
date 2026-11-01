@@ -327,6 +327,8 @@ final class MarkingSession {
                 var picked = options[best]
                 picked.fromBrowser = found.fromBrowser
                 picked.ancestors = Array(options.dropFirst(best + 1))
+                // E pressed meanwhile (just a picture now): nothing outlined.
+                guard mode == .elements else { return }
                 keyboardHold = lastProbe
                 if gather {
                     if !gathered.contains(where: { $0.frame == current.frame }) {
@@ -428,7 +430,7 @@ final class MarkingSession {
         Task.detached(priority: .userInitiated) {
             let found = BrowserProbe.step(step)
             await MainActor.run {
-                guard let found else { return }
+                guard let found, self.mode == .elements else { return }
                 self.keyboardHold = self.lastProbe
                 self.hovered = found
                 self.level = 0
