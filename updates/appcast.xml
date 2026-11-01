@@ -3,6 +3,26 @@
     <channel>
         <title>Aki</title>
         <item>
+            <title>0.12.0-beta.11</title>
+            <pubDate>Sun, 01 Nov 2026 13:01:51 -0300</pubDate>
+            <sparkle:channel>beta</sparkle:channel>
+            <sparkle:version>20261101160150</sparkle:version>
+            <sparkle:shortVersionString>0.12.0-beta.11</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
+            <description><![CDATA[<h2>Aki 0.12.0 beta</h2>
+<h3>Changed</h3><ul>
+<li>Marking opens like the Mac's ⌘⇧4, at once: the pointer and the thin orange frame, and the screen stays live, not dimmed (with "Freeze the screen" on, or a menu open, it's a picture).</li>
+<li>Marking opens light: just the crosshair, nothing outlined (drag an area, click a point). Press E to outline the elements under the pointer, and E again to go back. How it opens is in Settings → Marking → "Under the pointer".</li>
+</ul>
+<h3>Fixed</h3><ul>
+<li>The marking pointer no longer blinks to the arrow or a hand while you mark.</li>
+<li>A session working in a folder inside the one its Orca tab opened in is linked to its tab again: it shows the name you gave the tab, and marks are typed into it.</li>
+</ul>
+]]></description>
+            <enclosure url="https://aki-updates.vercel.app/0.12.0-beta.11/Aki-0.12.0-beta.11.zip" length="4351973" type="application/octet-stream" sparkle:edSignature="WVX1DIUQ+Ds3X0J/07FaDpLODHlLk5vFFus16lVslqyKhyDjgAUfaY+AtUaZMIWbFivk9sAQHCDA5FEvbw8bBg=="/>
+        </item>
+        <item>
             <title>0.12.0-beta.9</title>
             <pubDate>Sun, 01 Nov 2026 12:54:37 -0300</pubDate>
             <sparkle:channel>beta</sparkle:channel>
@@ -41,26 +61,6 @@
 </ul>
 ]]></description>
             <enclosure url="https://aki-updates.vercel.app/0.12.0-beta.8/Aki-0.12.0-beta.8.zip" length="4345181" type="application/octet-stream" sparkle:edSignature="yXTgJzQRuI4YFkHPz/0g8f3dH2oxHOAZhERptUncP79YBcHmmfbPhWS9bnPbxM0ZmRq5mXhc5Bc9lFYo3oYcAQ=="/>
-        </item>
-        <item>
-            <title>0.12.0-beta.7</title>
-            <pubDate>Sun, 01 Nov 2026 12:26:20 -0300</pubDate>
-            <sparkle:channel>beta</sparkle:channel>
-            <sparkle:version>20261101152620</sparkle:version>
-            <sparkle:shortVersionString>0.12.0-beta.7</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
-            <description><![CDATA[<h2>Aki 0.12.0 beta</h2>
-<h3>Changed</h3><ul>
-<li>Marking opens like the Mac's ⌘⇧4, at once: the pointer and the thin orange frame, and the screen stays live, not dimmed (with "Freeze the screen" on, or a menu open, it's a picture).</li>
-<li>Marking opens light: just the crosshair, nothing outlined (drag an area, click a point). Press E to outline the elements under the pointer, and E again to go back. How it opens is in Settings → Marking → "Under the pointer".</li>
-</ul>
-<h3>Fixed</h3><ul>
-<li>The marking pointer no longer blinks to the arrow or a hand while you mark.</li>
-<li>A session working in a folder inside the one its Orca tab opened in is linked to its tab again: it shows the name you gave the tab, and marks are typed into it.</li>
-</ul>
-]]></description>
-            <enclosure url="https://aki-updates.vercel.app/0.12.0-beta.7/Aki-0.12.0-beta.7.zip" length="4344957" type="application/octet-stream" sparkle:edSignature="sKHkiO3PZrDIx7iYqcyZSylqRqZqU8Z5y5F5x1d2Mbtof5POb3lN6W0pJHcamTehCuBChIt8WpwbFWdyDFiRBw=="/>
         </item>
         <item>
             <title>0.11.1</title>
