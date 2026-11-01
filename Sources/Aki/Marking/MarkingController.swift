@@ -360,11 +360,11 @@ final class MarkingController {
                     close: { [weak self] in self?.close() },
                     discard: { [weak self] in self?.discard() })
                 view.passClick = { [weak self] point in self?.passClick(at: point) }
-                // An empty overlay goes up at once (the frame too, when frozen): building
+                // The frame goes up alone and at once: building
                 // the whole one takes about half a second, and it comes in underneath on
                 // the next turn.
                 let rootView = view
-                let frame = MarkingFrame(frame: CGRect(origin: .zero, size: grab.screen.frame.size), frozen: frozen)
+                let frame = MarkingFrame(frame: CGRect(origin: .zero, size: grab.screen.frame.size))
                 panel.contentView = frame
                 panel.orderFrontRegardless()
                 panels.append(panel)
@@ -532,7 +532,11 @@ final class MarkingController {
     private func holdCursor() {
         cursorTimer?.invalidate()
         var ticks = 0
-        cursorTimer = Timer.scheduledTimer(withTimeInterval: 0.05, repeats: true) { [weak self] timer in
+        // The pointer as last set by Aki (the system's count of pointer changes): any
+        // other change, by the app in front or a window appearing, is seen within a
+        // frame and the pin put back before it shows as a blink.
+        var ours: Int32?
+        cursorTimer = Timer.scheduledTimer(withTimeInterval: 0.008, repeats: true) { [weak self] timer in
             MainActor.assumeIsolated {
                 ticks += 1
                 guard let self, self.isActive || self.starting else { timer.invalidate(); return }
@@ -544,12 +548,18 @@ final class MarkingController {
                 } else if self.session?.shiftHeld == true {
                     // ⇧ held: the arrow, whatever a button or a text field set meanwhile.
                     if NSCursor.current !== NSCursor.arrow { NSCursor.arrow.set() }
-                } else if ticks < 24 {
-                    AkiCursor.pin.set()  // the first second: always
-                } else if ticks % 2 == 0, NSCursor.current === NSCursor.arrow || NSCursor.current === AkiCursor.pin {
-                    // After that, every 0.1 s: the pin again unless a button's hand or the
-                    // text cursor is up (what's on screen may have drifted to the arrow).
-                    AkiCursor.pin.set()
+                } else {
+                    // Without the count (a later macOS): every 0.1 s, as before.
+                    let seed = CursorSeed.current()
+                    guard seed.map({ $0 != ours }) ?? (ticks % 12 == 0) else { return }
+                    // The first second always the pin; after that, unless Aki itself put
+                    // up a button's hand or the text cursor.
+                    if ticks < 125 || NSCursor.current === NSCursor.arrow || NSCursor.current === AkiCursor.pin {
+                        AkiCursor.pin.set()
+                        ours = CursorSeed.current()
+                    } else {
+                        ours = seed
+                    }
                 }
             }
         }
@@ -1096,15 +1106,13 @@ final class MarkingPanel: NSPanel {
 }
 
 /// The overlay's first look, until the SwiftUI one (built just after) draws the same
-/// over it: nothing to see on a live screen; the thin frame when it's frozen.
+/// over it: the thin frame that says you're marking.
 final class MarkingFrame: NSView {
-    init(frame: NSRect, frozen: Bool) {
+    override init(frame: NSRect) {
         super.init(frame: frame)
         wantsLayer = true
-        if frozen {
-            layer?.borderWidth = 2
-            layer?.borderColor = NSColor(AkiPalette.red).withAlphaComponent(0.9).cgColor
-        }
+        layer?.borderWidth = 2
+        layer?.borderColor = NSColor(AkiPalette.red).withAlphaComponent(0.9).cgColor
         // Too faint to see, but a click meanwhile lands on the overlay (a clear pixel
         // would let it through to the app below).
         layer?.backgroundColor = NSColor.black.withAlphaComponent(MarkingView.catchClicks).cgColor

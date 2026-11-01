@@ -62,14 +62,14 @@ struct MarkingView: View {
                 .frame(width: grab.screen.frame.width, height: grab.screen.frame.height)
                 // Live by default: the screen keeps running underneath (Settings can freeze it).
                 .opacity(session.scrolling || session.live ? 0 : 1)
-            // Live, as the Mac's ⌘⇧4: nothing over the screen (only enough for the clicks
-            // to land here). Frozen: barely dimmed, and a thin frame in Aki's colour says
-            // what you see is a picture.
+            // Live, as the Mac's ⌘⇧4: the screen as it is (only enough over it for the
+            // clicks to land here). Frozen: barely dimmed, as a picture.
             Color.black.opacity(session.flying ? 0 : session.live ? Self.catchClicks : 0.06)
                 .animation(.easeOut(duration: 0.3), value: session.flying)
+            // A thin frame in Aki's own colours (not the session's) says you're marking.
             Rectangle()
                 .strokeBorder(AkiPalette.auroraDiagonal, lineWidth: 2)
-                .opacity(session.flying || session.scrolling || session.live ? 0 : 0.9)
+                .opacity(session.flying || session.scrolling ? 0 : 0.9)
                 .allowsHitTesting(false)
 
             // Clicks and drags land here, under the marks.

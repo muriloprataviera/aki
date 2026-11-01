@@ -48,3 +48,16 @@ enum AkiCursor {
         return NSCursor(image: image, hotSpot: NSPoint(x: (18 - 16) * scale, y: (65 - 14) * scale))
     }()
 }
+
+/// The window server's count of pointer changes (whoever made them): reading it costs
+/// about 2 µs, so the pin can be watched every frame. Looked up at run time: nil if a
+/// later macOS drops it.
+enum CursorSeed {
+    private typealias Read = @convention(c) () -> Int32
+    private static let read: Read? = {
+        guard let handle = dlopen(nil, RTLD_NOW), let symbol = dlsym(handle, "CGSCurrentCursorSeed") else { return nil }
+        return unsafeBitCast(symbol, to: Read.self)
+    }()
+
+    static func current() -> Int32? { read?() }
+}
