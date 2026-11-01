@@ -1128,8 +1128,11 @@ final class MarkingFrame: NSView {
 
     override func acceptsFirstMouse(for event: NSEvent?) -> Bool { true }
 
-    // Over the frame and its children: the pin, as on the overlay.
+    // Over the frame and its children: the pin, as on the overlay. Appearing under the
+    // pointer, it's asked for its cursor at once: the arrow by default (a blink).
     override func resetCursorRects() { addCursorRect(bounds, cursor: AkiCursor.pin) }
+
+    override func cursorUpdate(with event: NSEvent) { AkiCursor.set(AkiCursor.pin) }
 }
 
 final class FirstClickHostingView<Content: View>: NSHostingView<Content> {
