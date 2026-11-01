@@ -21,6 +21,7 @@ final class MarkingController {
     private var keyMonitor: Any?
     /// The keys while Aki doesn't have the focus (the app below keeps it).
     private var keyTap: KeyTap?
+    private var moveTap: MoveTap?
     /// A comment just started and Aki is taking the keyboard (after the picture):
     /// what's typed meanwhile goes into it.
     private var takingFocus = false
@@ -608,6 +609,8 @@ final class MarkingController {
         keyMonitor = nil
         keyTap?.stop()
         keyTap = nil
+        moveTap?.stop()
+        moveTap = nil
         takingFocus = false
         shiftGathering = false
         seeThrough = false
@@ -700,6 +703,8 @@ final class MarkingController {
             guard let self else { return event }
             return self.handleKey(event) ? nil : event
         }
+        // The app in front stops following the pointer (its hand would blink over the pin).
+        moveTap = MoveTap { [weak self] in self?.session?.shiftHeld == true || NSApp.isActive }
         // The app below has it: the keys are read on their way, and the ones Aki uses stop here.
         keyTap = KeyTap { [weak self] event in
             guard let self, let session = self.session, !NSApp.isActive else { return false }
