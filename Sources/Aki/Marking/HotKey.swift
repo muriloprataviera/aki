@@ -11,6 +11,9 @@ final class HotKey {
     private(set) var registered = false
     private static var nextID: UInt32 = 1
     private static var actions: [UInt32: () -> Void] = [:]
+    /// While a shortcut's action runs: when the keys were pressed (Carbon's clock,
+    /// `GetCurrentEventTime`), so marking can tell how long the press took to reach it.
+    private(set) static var pressedAt: EventTime?
 
     /// ⇧⌘A unless given: `keyCode` is a `kVK_*` code, `modifiers` Carbon flags.
     init(keyCode: UInt32 = UInt32(kVK_ANSI_A), modifiers: UInt32 = UInt32(shiftKey | cmdKey), action: @escaping () -> Void) {
@@ -25,7 +28,12 @@ final class HotKey {
             GetEventParameter(
                 event, EventParamName(kEventParamDirectObject), EventParamType(typeEventHotKeyID), nil,
                 MemoryLayout<EventHotKeyID>.size, nil, &hotKeyID)
-            DispatchQueue.main.async { HotKey.actions[hotKeyID.id]?() }
+            let pressed = GetEventTime(event)
+            DispatchQueue.main.async {
+                HotKey.pressedAt = pressed
+                HotKey.actions[hotKeyID.id]?()
+                HotKey.pressedAt = nil
+            }
             return noErr
         }, 1, &spec, nil, &handlerReference)
 

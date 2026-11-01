@@ -227,10 +227,14 @@ final class MarkingController {
     }
 
     func start() {
+        let keyDelay = HotKey.pressedAt.map { GetCurrentEventTime() - $0 }
         // Aki is restarting on a new version: marks made now would be lost.
-        guard !isActive, !starting, !sendingQueue, !Updates.shared.restarting else { return }
+        guard !isActive, !starting, !sendingQueue, !Updates.shared.restarting else {
+            MarkingSpeed.skipped(isActive ? "open" : starting ? "starting" : sendingQueue ? "sending" : "restarting", key: keyDelay)
+            return
+        }
         // The Mac is asking whether Aki may control the browser: the overlay would cover its Allow.
-        guard !Automation.asking else { NSSound.beep(); return }
+        guard !Automation.asking else { MarkingSpeed.skipped("asking", key: keyDelay); NSSound.beep(); return }
         // Only the week's limits: marking is off, from every way in (menu, sidebar, aki://mark).
         guard Preferences.shared.showSessions else { return }
         starting = true
@@ -379,7 +383,7 @@ final class MarkingController {
                 panel.orderFrontRegardless()
                 panels.append(panel)
             }
-            MarkingSpeed.note(began: began, asked: asked, captured: captured, shown: CACurrentMediaTime(), screens: grabs.count)
+            MarkingSpeed.note(began: began, asked: asked, captured: captured, shown: CACurrentMediaTime(), screens: grabs.count, key: keyDelay, panel: panels.first)
             // The agent may just have changed in Orca: a fresh look, after the overlay is up
             // (it takes about half a second; followTerminals brings the result in).
             Task { await model.refresh() }
@@ -1105,16 +1109,54 @@ final class FirstClickHostingView<Content: View>: NSHostingView<Content> {
 /// How long marking takes to show, step by step, when asked for (`defaults write
 /// ai.useaki.Aki measureMarking -bool true`): the last 30 in ~/.aki/marking-speed.log.
 enum MarkingSpeed {
-    @MainActor static func note(began: CFTimeInterval, asked: CFTimeInterval, captured: CFTimeInterval, shown: CFTimeInterval, screens: Int) {
-        guard UserDefaults.standard.bool(forKey: "measureMarking") else { return }
+    @MainActor static var on: Bool { UserDefaults.standard.bool(forKey: "measureMarking") }
+
+    /// `key`: from the shortcut pressed to Aki starting (nil: not by the shortcut).
+    /// `screen`: from the panels put in front to the Mac saying they're visible.
+    @MainActor static func note(began: CFTimeInterval, asked: CFTimeInterval, captured: CFTimeInterval, shown: CFTimeInterval, screens: Int, key: Double?, panel: NSWindow?) {
+        guard on else { return }
         func ms(_ a: CFTimeInterval, _ b: CFTimeInterval) -> Int { Int(((b - a) * 1000).rounded()) }
+        let keyText = key.map { "key=\(Int(($0 * 1000).rounded()))ms " } ?? "key=- "
+        var drawn: CFTimeInterval?
+        var written = false
+        var observer: NSObjectProtocol?
+        func write(visible: CFTimeInterval?) {
+            guard !written, let drawn else { return }
+            written = true
+            observer.map(NotificationCenter.default.removeObserver)
+            let screen = visible.map { "screen=\(ms(shown, $0))ms" } ?? "screen=?"
+            append("\(keyText)screens=\(screens) before=\(ms(began, asked))ms capture=\(ms(asked, captured))ms panels=\(ms(captured, shown))ms draw=\(ms(shown, drawn))ms \(screen) total=\(ms(began, visible ?? drawn))ms")
+        }
+        // The window server telling the panel is on screen: what you actually see.
+        var visibleAt: CFTimeInterval?
+        if let panel {
+            if panel.occlusionState.contains(.visible) { visibleAt = shown }
+            observer = NotificationCenter.default.addObserver(forName: NSWindow.didChangeOcclusionStateNotification, object: panel, queue: .main) { [weak panel] _ in
+                MainActor.assumeIsolated {
+                    guard visibleAt == nil, panel?.occlusionState.contains(.visible) == true else { return }
+                    visibleAt = CACurrentMediaTime()
+                    write(visible: visibleAt)
+                }
+            }
+        }
         // The first frame drawn: the next turn of the main loop after the panels are in front.
         DispatchQueue.main.async {
-            let drawn = CACurrentMediaTime()
-            let line = "\(ISO8601DateFormatter().string(from: Date())) screens=\(screens) before=\(ms(began, asked))ms capture=\(ms(asked, captured))ms panels=\(ms(captured, shown))ms draw=\(ms(shown, drawn))ms total=\(ms(began, drawn))ms"
-            let file = FileManager.default.homeDirectoryForCurrentUser.appending(path: ".aki/marking-speed.log")
-            let old = (try? String(contentsOf: file, encoding: .utf8))?.split(separator: "\n").suffix(29).map(String.init) ?? []
-            try? (old + [line]).joined(separator: "\n").appending("\n").write(to: file, atomically: true, encoding: .utf8)
+            drawn = CACurrentMediaTime()
+            if let visibleAt { write(visible: visibleAt) }
         }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 5) { write(visible: visibleAt) }
+    }
+
+    /// The shortcut came while marking couldn't start (nothing shows: you'd press again).
+    @MainActor static func skipped(_ reason: String, key: Double?) {
+        guard on else { return }
+        append("skipped=\(reason) key=\(key.map { "\(Int(($0 * 1000).rounded()))ms" } ?? "-")")
+    }
+
+    @MainActor private static func append(_ text: String) {
+        let line = "\(ISO8601DateFormatter().string(from: Date())) \(text)"
+        let file = FileManager.default.homeDirectoryForCurrentUser.appending(path: ".aki/marking-speed.log")
+        let old = (try? String(contentsOf: file, encoding: .utf8))?.split(separator: "\n").suffix(59).map(String.init) ?? []
+        try? (old + [line]).joined(separator: "\n").appending("\n").write(to: file, atomically: true, encoding: .utf8)
     }
 }
