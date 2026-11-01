@@ -4,6 +4,8 @@ What changed in each version of Aki. Versions follow [semantic versioning](https
 
 ## [Unreleased]
 
+## [0.12.0] — 2026-11-01
+
 ### Changed
 - Marking opens like the Mac's ⌘⇧4, at once: the pointer and the thin orange frame, and the screen stays live, not dimmed (with "Freeze the screen" on, or a menu open, it's a picture).
 - Marking opens light: nothing outlined (drag an area, click a point). Press E to outline the elements under the pointer, and E again to go back. To open with elements outlined, as before: Settings → Marking → "Under the pointer".
