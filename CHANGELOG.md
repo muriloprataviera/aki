@@ -9,7 +9,7 @@ What changed in each version of Aki. Versions follow [semantic versioning](https
 - Marking opens light: just the crosshair, nothing outlined (drag an area, click a point). Press E to outline the elements under the pointer, and E again to go back. How it opens is in Settings → Marking → "Under the pointer".
 
 ### Fixed
-- The marking pointer no longer blinks to the arrow or a hand: the app below stops following the pointer while you mark (its links put up their hand at every move), and Aki puts the pin back within a frame.
+- The marking pointer no longer blinks to the arrow or a hand as marking opens, and the screen doesn't hitch as you let go of the shortcut: its own ⇧ is no longer taken for "let the click through".
 - A session working in a folder inside the one its Orca tab opened in (a repository within the project) is linked to its tab again: it shows the name you gave the tab, and marks are typed into it.
 
 ## [0.11.1] — 2026-10-22

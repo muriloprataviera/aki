@@ -298,6 +298,10 @@ final class MarkingController {
         BackgroundCursor.enable()
         AkiCursor.takeOverArrow()
         AkiCursor.arrowIsPin = true
+        // The shortcut's own ⇧ (⇧⌘A), still held as marking opens, isn't "let the click
+        // through": it counts only once let go and pressed again (it put up the arrow
+        // for a moment, then the screen was captured again as it was let go).
+        shiftGathering = NSEvent.modifierFlags.contains(.shift)
         // Aki comes forward only after the picture: the app below losing the focus closes
         // what's open in it (a page's menu, a <select>, a right-click menu), and that
         // must be in the picture. Native menus are known at once; a page's, by comparing.
