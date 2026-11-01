@@ -378,11 +378,28 @@ final class MarkingController {
                     close: { [weak self] in self?.close() },
                     discard: { [weak self] in self?.discard() })
                 view.passClick = { [weak self] point in self?.passClick(at: point) }
-                let hosting = FirstClickHostingView(rootView: view)
-                panel.contentView = hosting
+                // The frame in Aki's colour goes up alone and at once, over the screen as
+                // it is (the same picture the overlay freezes): building the whole overlay
+                // takes about half a second, and it comes in underneath on the next turn.
+                let rootView = view
+                let frame = MarkingFrame(frame: CGRect(origin: .zero, size: grab.screen.frame.size))
+                panel.contentView = frame
                 panel.orderFrontRegardless()
                 panels.append(panel)
+                DispatchQueue.main.async { [weak self, weak panel] in
+                    guard let self, let panel, self.panels.contains(where: { $0 === panel }) else { return }
+                    let hosting = FirstClickHostingView(rootView: rootView)
+                    hosting.frame = frame.bounds
+                    hosting.autoresizingMask = [.width, .height]
+                    frame.addSubview(hosting, positioned: .below, relativeTo: nil)
+                    if index == 0 { MarkingSpeed.built(hosting) }
+                    // The overlay draws its own frame (hidden while scrolling): this one goes
+                    // once the overlay is on screen.
+                    DispatchQueue.main.async { frame.handOver() }
+                }
             }
+            // On screen now, not when this turn of the main loop ends.
+            CATransaction.flush()
             MarkingSpeed.note(began: began, asked: asked, captured: captured, shown: CACurrentMediaTime(), screens: grabs.count, key: keyDelay, panel: panels.first)
             // The agent may just have changed in Orca: a fresh look, after the overlay is up
             // (it takes about half a second; followTerminals brings the result in).
@@ -1094,6 +1111,33 @@ final class MarkingPanel: NSPanel {
     override var canBecomeMain: Bool { false }
 }
 
+/// The overlay's first look: only the thin frame that says you're marking and the
+/// slight dim (the SwiftUI overlay, built just after, draws the same over it).
+final class MarkingFrame: NSView {
+    override init(frame: NSRect) {
+        super.init(frame: frame)
+        wantsLayer = true
+        layer?.borderWidth = 2
+        layer?.borderColor = NSColor(AkiPalette.red).withAlphaComponent(0.9).cgColor
+        // The overlay's own slight dim: also keeps a click meanwhile on the overlay (a
+        // clear pixel would let it through to the app below).
+        layer?.backgroundColor = NSColor.black.withAlphaComponent(0.06).cgColor
+    }
+
+    /// The overlay is drawn: it has its own frame and dim from now on.
+    func handOver() {
+        layer?.borderWidth = 0
+        layer?.backgroundColor = nil
+    }
+
+    required init?(coder: NSCoder) { fatalError() }
+
+    override func acceptsFirstMouse(for event: NSEvent?) -> Bool { true }
+
+    // Over the frame and its children: the pin, as on the overlay.
+    override func resetCursorRects() { addCursorRect(bounds, cursor: AkiCursor.pin) }
+}
+
 final class FirstClickHostingView<Content: View>: NSHostingView<Content> {
     override func acceptsFirstMouse(for event: NSEvent?) -> Bool { true }
 
@@ -1145,6 +1189,17 @@ enum MarkingSpeed {
             if let visibleAt { write(visible: visibleAt) }
         }
         DispatchQueue.main.asyncAfter(deadline: .now() + 5) { write(visible: visibleAt) }
+    }
+
+    /// How long the overlay took to build and lay out the first time (the frame alone
+    /// is on screen meanwhile).
+    @MainActor static func built(_ view: NSView) {
+        guard on else { return }
+        let t0 = CACurrentMediaTime()
+        view.layoutSubtreeIfNeeded()
+        let laid = CACurrentMediaTime()
+        CATransaction.flush()
+        append("built layout=\(Int(((laid - t0) * 1000).rounded()))ms flush=\(Int(((CACurrentMediaTime() - laid) * 1000).rounded()))ms")
     }
 
     /// The shortcut came while marking couldn't start (nothing shows: you'd press again).

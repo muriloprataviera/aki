@@ -9,6 +9,7 @@ What changed in each version of Aki. Versions follow [semantic versioning](https
 
 ### Fixed
 - A session working in a folder inside the one its Orca tab opened in (a repository within the project) is linked to its tab again: it shows the name you gave the tab, and marks are typed into it.
+- The marking frame shows the moment you press the shortcut, with the pointer, instead of about half a second later.
 
 ## [0.11.1] — 2026-10-22
 
