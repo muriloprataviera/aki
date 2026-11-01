@@ -321,7 +321,16 @@ final class MarkingController {
                 return (url, await Self.sessionServing(url, among: terminals, selected: preferred))
             }
             let asked = CACurrentMediaTime()
-            let grabs0 = await ScreenGrab.captureAll(excluding: overlayIDs)
+            // The Mac's capture never answering (seen once, right after an update): marking
+            // would stay "starting" for good, every press ignored. Two seconds at most.
+            let overlays = overlayIDs
+            let grabs0 = await withTaskGroup(of: [ScreenGrab]?.self) { group in
+                group.addTask { await ScreenGrab.captureAll(excluding: overlays) }
+                group.addTask { try? await Task.sleep(for: .seconds(2)); return nil }
+                let first = await group.next() ?? nil
+                group.cancelAll()
+                return first
+            }
             let captured = CACurrentMediaTime()
             guard let grabs = grabs0, !grabs.isEmpty else {
                 model.marking = false
@@ -334,7 +343,8 @@ final class MarkingController {
                 AppWindows.refresh()
                 previousApp?.activate()
                 previousApp = nil
-                askForScreenRecording()
+                // Allowed, but the capture didn't come: press again (nothing to ask for).
+                if CGPreflightScreenCaptureAccess() { NSSound.beep() } else { askForScreenRecording() }
                 return
             }
             let frozen = model.preferences.freezeScreen || menuOpen
@@ -441,12 +451,17 @@ final class MarkingController {
                     hosting.frame = frame.bounds
                     hosting.autoresizingMask = [.width, .height]
                     frame.addSubview(hosting, positioned: .below, relativeTo: nil)
+                    // SwiftUI's views put up the arrow as they arrive: the pin before it shows.
+                    AkiCursor.pin.set()
                     // Filled: it takes the clicks (unless they're going through already).
                     if self.session?.scrolling != true { panel.ignoresMouseEvents = false }
                     if index == 0 { MarkingSpeed.built(hosting) }
                     // The overlay draws its own frame (hidden while scrolling): this one goes
                     // once the overlay is on screen.
-                    DispatchQueue.main.async { frame.handOver() }
+                    DispatchQueue.main.async {
+                        frame.handOver()
+                        if self.session?.shiftHeld != true { AkiCursor.pin.set() }
+                    }
                 }
             }
             // On screen now, not when this turn of the main loop ends.
