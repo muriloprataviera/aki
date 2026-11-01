@@ -550,12 +550,18 @@ final class MarkingController {
                     // ⇧ held: the arrow, whatever a button or a text field set meanwhile.
                     if NSCursor.current !== NSCursor.arrow { NSCursor.arrow.set() }
                 } else {
+                    // The first second, the pin at every tick: the arrow the Mac puts up as
+                    // the overlay appears under the pointer doesn't always count as a change.
+                    if ticks < 125 {
+                        AkiCursor.pin.set()
+                        ours = CursorSeed.current()
+                        return
+                    }
                     // Without the count (a later macOS): every 0.1 s, as before.
                     let seed = CursorSeed.current()
                     guard seed.map({ $0 != ours }) ?? (ticks % 12 == 0) else { return }
-                    // The first second always the pin; after that, unless Aki itself put
-                    // up a button's hand or the text cursor.
-                    if ticks < 125 || NSCursor.current === NSCursor.arrow || NSCursor.current === AkiCursor.pin {
+                    // The pin again, unless Aki itself put up a button's hand or the text cursor.
+                    if NSCursor.current === NSCursor.arrow || NSCursor.current === AkiCursor.pin {
                         AkiCursor.pin.set()
                         ours = CursorSeed.current()
                     } else {
