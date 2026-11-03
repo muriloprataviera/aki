@@ -4,6 +4,9 @@ What changed in each version of Aki. Versions follow [semantic versioning](https
 
 ## [Unreleased]
 
+### Fixed
+- A page's menu that opens on hover (a site's top menu) stays on screen when marking opens: it closed as the overlay came up under the pointer.
+
 ## [0.12.0] — 2026-11-01
 
 ### Changed

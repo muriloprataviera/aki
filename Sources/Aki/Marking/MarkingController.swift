@@ -255,8 +255,9 @@ final class MarkingController {
         return changed
     }
 
-    /// Aki just took the keyboard: what closed in the app below (a page's menu) stays
-    /// on screen, the screens frozen as they were just before (marks can go on it too).
+    /// Aki just took the keyboard, or its overlay just came up under the pointer (a
+    /// page's hover menu closes as the mouse "leaves" it): what closed in the app below
+    /// stays on screen, the screens frozen as they were just before (marks can go on it too).
     private func keepWhatCloses(_ session: MarkingSession, before: [ScreenGrab]) {
         let pid = session.context.pid
         // Scrolled meanwhile (the screens captured anew): `before` is out of date.
@@ -500,6 +501,9 @@ final class MarkingController {
             watchKeys()
             watchScroll()
             followFrontApp()
+            // The overlay under the pointer closes a page's hover menu: the screens taken
+            // just before keep it, frozen, when something closed.
+            if session.live { keepWhatCloses(session, before: grabs) }
             // Without the key tap (no Accessibility): esc and ⌘⏎ at least, system-wide.
             if keyTap == nil {
                 modalKeys = [
