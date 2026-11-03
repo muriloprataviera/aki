@@ -3,6 +3,21 @@
     <channel>
         <title>Aki</title>
         <item>
+            <title>0.12.1-beta.1</title>
+            <pubDate>Tue, 03 Nov 2026 09:49:25 -0300</pubDate>
+            <sparkle:channel>beta</sparkle:channel>
+            <sparkle:version>20261103124925</sparkle:version>
+            <sparkle:shortVersionString>0.12.1-beta.1</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
+            <description><![CDATA[<h2>Aki 0.12.1-beta.1</h2>
+<h3>Fixed</h3><ul>
+<li>A page's menu that opens on hover (a site's top menu) stays on screen when marking opens, so you can mark it.</li>
+</ul>
+]]></description>
+            <enclosure url="https://aki-updates.vercel.app/0.12.1-beta.1/Aki-0.12.1-beta.1.zip" length="4352458" type="application/octet-stream" sparkle:edSignature="Z7p0speormIo/5ckFX0mdj+gGgq5zPbccByIty13sx6MNA44M2oLsQekz24K8lMdTcjVBPGIQ1tAsepavqUuDg=="/>
+        </item>
+        <item>
             <title>0.12.0</title>
             <pubDate>Sun, 01 Nov 2026 13:28:22 -0300</pubDate>
             <sparkle:version>20261101162822</sparkle:version>
