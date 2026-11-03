@@ -258,7 +258,9 @@ final class MarkingController {
     /// Aki just took the keyboard, or its overlay just came up under the pointer (a
     /// page's hover menu closes as the mouse "leaves" it): what closed in the app below
     /// stays on screen, the screens frozen as they were just before (marks can go on it too).
-    private func keepWhatCloses(_ session: MarkingSession, before: [ScreenGrab]) {
+    /// With `near` (global top-left points), only what closed under the pointer counts:
+    /// a hover menu sits there, while a notice or a terminal's new line elsewhere doesn't.
+    private func keepWhatCloses(_ session: MarkingSession, before: [ScreenGrab], near: CGPoint? = nil) {
         let pid = session.context.pid
         // Scrolled meanwhile (the screens captured anew): `before` is out of date.
         let generation = session.generation
@@ -266,7 +268,8 @@ final class MarkingController {
             try? await Task.sleep(for: .milliseconds(300))
             guard let self, let session, self.session === session, session.live, !session.scrolling,
                   session.generation == generation,
-                  let closed = await self.closedRegions(since: before, pid: pid), !closed.isEmpty,
+                  let closed = await self.closedRegions(since: before, pid: pid),
+                  !closed.isEmpty, near.map({ point in closed.contains { $0.insetBy(dx: -24, dy: -24).contains(point) } }) ?? true,
                   self.session === session, session.live, !session.scrolling, session.generation == generation
             else { return }
             session.freeze(before, closed: closed)
@@ -503,7 +506,10 @@ final class MarkingController {
             followFrontApp()
             // The overlay under the pointer closes a page's hover menu: the screens taken
             // just before keep it, frozen, when something closed.
-            if session.live { keepWhatCloses(session, before: grabs) }
+            if session.live {
+                let mouse = NSEvent.mouseLocation, primary = NSScreen.screens.first?.frame.height ?? 0
+                keepWhatCloses(session, before: grabs, near: CGPoint(x: mouse.x, y: primary - mouse.y))
+            }
             // Without the key tap (no Accessibility): esc and ⌘⏎ at least, system-wide.
             if keyTap == nil {
                 modalKeys = [
