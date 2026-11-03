@@ -269,7 +269,7 @@ final class MarkingController {
             guard let self, let session, self.session === session, session.live, !session.scrolling,
                   session.generation == generation,
                   let closed = await self.closedRegions(since: before, pid: pid),
-                  !closed.isEmpty, near.map({ point in closed.contains { $0.insetBy(dx: -24, dy: -24).contains(point) } }) ?? true,
+                  Self.counts(closed, near: near),
                   self.session === session, session.live, !session.scrolling, session.generation == generation
             else { return }
             session.freeze(before, closed: closed)
@@ -280,6 +280,13 @@ final class MarkingController {
                 }
             }
         }
+    }
+
+    /// Something closed, and (with `near`) under the pointer.
+    private static func counts(_ closed: [CGRect], near: CGPoint?) -> Bool {
+        guard let near else { return !closed.isEmpty }
+        for region in closed where region.insetBy(dx: -24, dy: -24).contains(near) { return true }
+        return false
     }
 
     func toggle() {
