@@ -97,10 +97,10 @@ enum TerminalJump {
         var titles: [String: String] = [:]
         func take(_ list: [[String: Any]]) {
             for tab in list {
-                guard let id = tab["id"] as? String,
-                      let custom = (tab["customTitle"] as? String)?.trimmingCharacters(in: .whitespacesAndNewlines),
-                      !custom.isEmpty else { continue }
-                titles[id] = custom
+                guard let id = tab["id"] as? String else { continue }
+                // No name (any more): a newer part takes back the one the old document had.
+                let custom = (tab["customTitle"] as? String)?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+                titles[id] = custom.isEmpty ? nil : custom
             }
         }
         // The whole document first (older), then the parts over it (newer).
