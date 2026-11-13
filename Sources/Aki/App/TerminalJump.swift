@@ -88,29 +88,53 @@ enum TerminalJump {
         guard sqlite3_open_v2(file.path, &db, SQLITE_OPEN_READONLY, nil) == SQLITE_OK else { sqlite3_close(db); return [:] }
         defer { sqlite3_close(db) }
         sqlite3_busy_timeout(db, 200)
-        var statement: OpaquePointer?
-        guard sqlite3_prepare_v2(db, "SELECT updated_at, payload FROM profile_state_documents WHERE domain = 'workspaceSession'", -1, &statement, nil) == SQLITE_OK
-        else { return [:] }
-        defer { sqlite3_finalize(statement) }
-        guard sqlite3_step(statement) == SQLITE_ROW else { return [:] }
-        let stamp = sqlite3_column_int64(statement, 0)
+        // Orca (Nov/2026) saves the session in parts, a row per worktree's tabs; the
+        // whole document stopped being written (tabs opened since aren't in it).
+        let partsStamp = int64(db, "SELECT updated_at FROM profile_state_document_parts_meta WHERE domain = 'workspaceSession'") ?? 0
+        let wholeStamp = int64(db, "SELECT updated_at FROM profile_state_documents WHERE domain = 'workspaceSession'") ?? 0
+        let stamp = partsStamp &* 1_000_003 &+ wholeStamp
         if let cached = cacheLock.withLock({ cachedCustom[file.path] }), cached.stamp == stamp { return cached.titles }
-        guard let bytes = sqlite3_column_blob(statement, 1) else { return [:] }
-        let data = Data(bytes: bytes, count: Int(sqlite3_column_bytes(statement, 1)))
         var titles: [String: String] = [:]
-        if let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
-           let byWorktree = json["tabsByWorktree"] as? [String: Any] {
-            for case let list as [[String: Any]] in byWorktree.values {
-                for tab in list {
-                    guard let id = tab["id"] as? String,
-                          let custom = (tab["customTitle"] as? String)?.trimmingCharacters(in: .whitespacesAndNewlines),
-                          !custom.isEmpty else { continue }
-                    titles[id] = custom
-                }
+        func take(_ list: [[String: Any]]) {
+            for tab in list {
+                guard let id = tab["id"] as? String,
+                      let custom = (tab["customTitle"] as? String)?.trimmingCharacters(in: .whitespacesAndNewlines),
+                      !custom.isEmpty else { continue }
+                titles[id] = custom
             }
+        }
+        // The whole document first (older), then the parts over it (newer).
+        for data in blobs(db, "SELECT payload FROM profile_state_documents WHERE domain = 'workspaceSession'") {
+            if let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+               let byWorktree = json["tabsByWorktree"] as? [String: Any] {
+                for case let list as [[String: Any]] in byWorktree.values { take(list) }
+            }
+        }
+        for data in blobs(db, "SELECT payload FROM profile_state_document_parts WHERE domain = 'workspaceSession' AND part_key LIKE '[\"tabsByWorktree\",%'") {
+            if let list = (try? JSONSerialization.jsonObject(with: data)) as? [[String: Any]] { take(list) }
         }
         cacheLock.withLock { cachedCustom[file.path] = (stamp, titles) }
         return titles
+    }
+
+    private static func int64(_ db: OpaquePointer?, _ sql: String) -> Int64? {
+        var statement: OpaquePointer?
+        guard sqlite3_prepare_v2(db, sql, -1, &statement, nil) == SQLITE_OK else { return nil }
+        defer { sqlite3_finalize(statement) }
+        return sqlite3_step(statement) == SQLITE_ROW ? sqlite3_column_int64(statement, 0) : nil
+    }
+
+    /// Every row's first column, as bytes (a blob or text).
+    private static func blobs(_ db: OpaquePointer?, _ sql: String) -> [Data] {
+        var statement: OpaquePointer?
+        guard sqlite3_prepare_v2(db, sql, -1, &statement, nil) == SQLITE_OK else { return [] }
+        defer { sqlite3_finalize(statement) }
+        var rows: [Data] = []
+        while sqlite3_step(statement) == SQLITE_ROW {
+            guard let bytes = sqlite3_column_blob(statement, 0) else { continue }
+            rows.append(Data(bytes: bytes, count: Int(sqlite3_column_bytes(statement, 0))))
+        }
+        return rows
     }
 
     /// Fetches Orca's tabs in the background (when the pointer reaches the rings).
