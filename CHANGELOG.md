@@ -4,6 +4,8 @@ What changed in each version of Aki. Versions follow [semantic versioning](https
 
 ## [Unreleased]
 
+## [0.12.1] — 2026-11-14
+
 ### Fixed
 - A page's menu that opens on hover (a site's top menu) stays on screen when marking opens: it closed as the overlay came up under the pointer.
 - Sessions in an Orca tab opened recently show the name you gave the tab again (in the sidebar, in History and on marks), not the title the agent set: Orca changed how it saves its tabs.
