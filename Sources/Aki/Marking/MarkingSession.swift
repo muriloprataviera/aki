@@ -53,8 +53,6 @@ final class MarkingSession {
     var scrolling = false
     /// The screen keeps running under the overlay (each mark takes its own picture).
     var live = true
-    /// Marks moved to the frozen picture by `freeze` (their own live one, if still coming, is dropped).
-    var refrozen: Set<UUID> = []
     /// The app being marked: the one in front (it follows ⌘Tab while marking).
     var context: MarkContext
     /// Conversations you can send to, in sidebar order.
@@ -418,21 +416,11 @@ final class MarkingSession {
     /// Something closed as Aki took the keyboard (a page's menu): the screens as they
     /// were just before stay, frozen, and what closed is found on that picture. The
     /// marks stay drawn (same picture they were made on).
-    func freeze(_ pictures: [ScreenGrab], closed: [CGRect], keeping earlier: Set<UUID> = []) {
+    func freeze(_ pictures: [ScreenGrab], closed: [CGRect]) {
         guard pictures.count == grabs.count else { return }
         grabs = pictures
         menus += closed
         live = false
-        // Marks made on this live screen since the picture was taken: the picture you now
-        // see (the menu in it). Not those made before it, from an earlier round (esc) or
-        // from before a scroll: theirs stay.
-        for i in marks.indices where marks[i].screen < pictures.count && !earlier.contains(marks[i].id)
-            && marks[i].generation == generation[marks[i].screen, default: 0] {
-            marks[i].grab = pictures[marks[i].screen]
-            refrozen.insert(marks[i].id)
-            // Its text was read off the live picture: read again from the frozen one.
-            if !marks[i].isPoint { marks[i].text = nil }
-        }
     }
 
     /// Arrow keys on a web page: container, first child, sibling before / after.

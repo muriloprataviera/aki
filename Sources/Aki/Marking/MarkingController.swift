@@ -274,10 +274,12 @@ final class MarkingController {
                   Self.counts(closed, near: near),
                   self.session === session, session.live, !session.scrolling, session.generation == generation,
                   // ⌘Tab meanwhile: the other app's window changed it, not a menu closing.
-                  session.context.pid == pid
+                  session.context.pid == pid,
+                  // Marked meanwhile, on what was showing: the screen stays as you marked it.
+                  session.marks.allSatisfy({ earlier.contains($0.id) })
             else { return }
-            session.freeze(before, closed: closed, keeping: earlier)
-            // Sending waits for it (`capturing`): marks' text is read from this picture now.
+            session.freeze(before, closed: closed)
+            // Sending waits for it (`capturing`).
             for (index, grab) in before.enumerated() {
                 session.capturing += 1
                 Task { [weak session] in
@@ -434,15 +436,10 @@ final class MarkingController {
                 Task {
                     defer { session.capturing -= 1 }
                     guard let grabs = await ScreenGrab.captureAll(excluding: overlays), mark.screen < grabs.count else { return }
-                    // Frozen meanwhile (a menu had closed) and the mark moved to that
-                    // picture: it keeps it.
-                    guard !session.refrozen.contains(mark.id) else { session.copyPicture(of: mark.id); return }
                     let grab = grabs[mark.screen]
                     // Its own picture, taken: to the clipboard before the text is read.
                     session.copyPicture(of: mark.id, from: grab)
                     let text = mark.isPoint ? nil : await ScreenText.read(grab)
-                    // Moved to the frozen picture while the text was read: that one stays.
-                    guard !session.refrozen.contains(mark.id) else { return }
                     session.refreshPicture(of: mark.id, grab: grab, text: text)
                 }
             }
