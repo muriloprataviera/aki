@@ -435,6 +435,8 @@ final class MarkingController {
                     // Its own picture, taken: to the clipboard before the text is read.
                     session.copyPicture(of: mark.id, from: grab)
                     let text = mark.isPoint ? nil : await ScreenText.read(grab)
+                    // Frozen while the text was read: the frozen picture stays the mark's.
+                    guard session.live else { return }
                     session.refreshPicture(of: mark.id, grab: grab, text: text)
                 }
             }
@@ -519,7 +521,10 @@ final class MarkingController {
             // just before keep it, frozen, when something closed.
             // Not when the pointer is on Aki's own window (the sidebar, closing as its
             // button opened marking): that's what changed under it.
-            let onAki = NSApp.windows.contains { $0.isVisible && !($0 is MarkingPanel) && $0.frame.contains(NSEvent.mouseLocation) }
+            // (Its transparent part lets the mouse through: a page under it still counts.)
+            let onAki = NSApp.windows.contains {
+                $0.isVisible && !$0.ignoresMouseEvents && !($0 is MarkingPanel) && $0.frame.contains(NSEvent.mouseLocation)
+            }
             if session.live, !onAki {
                 let mouse = NSEvent.mouseLocation, primary = NSScreen.screens.first?.frame.height ?? 0
                 keepWhatCloses(session, before: grabs, near: CGPoint(x: mouse.x, y: primary - mouse.y))

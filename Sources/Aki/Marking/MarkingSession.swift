@@ -426,6 +426,8 @@ final class MarkingSession {
         for i in marks.indices where marks[i].screen < pictures.count
             && marks[i].generation == generation[marks[i].screen, default: 0] {
             marks[i].grab = pictures[marks[i].screen]
+            // Its text was read off the live picture: read again from the frozen one.
+            if !marks[i].isPoint { marks[i].text = nil }
         }
     }
 
