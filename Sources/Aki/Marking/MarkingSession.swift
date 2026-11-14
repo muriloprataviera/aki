@@ -421,8 +421,12 @@ final class MarkingSession {
         grabs = pictures
         menus += closed
         live = false
-        // Marks made on the live screen meanwhile: the picture you now see (the menu in it).
-        for i in marks.indices where marks[i].screen < pictures.count { marks[i].grab = pictures[marks[i].screen] }
+        // Marks made on this live screen meanwhile: the picture you now see (the menu in
+        // it). Not those from an earlier round (esc) or from before a scroll: theirs stay.
+        for i in marks.indices where marks[i].screen < pictures.count
+            && marks[i].generation == generation[marks[i].screen, default: 0] {
+            marks[i].grab = pictures[marks[i].screen]
+        }
     }
 
     /// Arrow keys on a web page: container, first child, sibling before / after.
