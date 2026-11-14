@@ -275,10 +275,13 @@ final class MarkingController {
                   session.context.pid == pid
             else { return }
             session.freeze(before, closed: closed)
+            // Sending waits for it (`capturing`): marks' text is read from this picture now.
             for (index, grab) in before.enumerated() {
+                session.capturing += 1
                 Task { [weak session] in
                     let text = await ScreenText.read(grab)
                     session?.texts[index] = text
+                    session?.capturing -= 1
                 }
             }
         }
