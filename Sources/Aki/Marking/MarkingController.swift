@@ -434,14 +434,15 @@ final class MarkingController {
                 Task {
                     defer { session.capturing -= 1 }
                     guard let grabs = await ScreenGrab.captureAll(excluding: overlays), mark.screen < grabs.count else { return }
-                    // Frozen meanwhile (a menu had closed): the mark keeps that picture.
-                    guard session.live else { session.copyPicture(of: mark.id); return }
+                    // Frozen meanwhile (a menu had closed) and the mark moved to that
+                    // picture: it keeps it.
+                    guard !session.refrozen.contains(mark.id) else { session.copyPicture(of: mark.id); return }
                     let grab = grabs[mark.screen]
                     // Its own picture, taken: to the clipboard before the text is read.
                     session.copyPicture(of: mark.id, from: grab)
                     let text = mark.isPoint ? nil : await ScreenText.read(grab)
-                    // Frozen while the text was read: the frozen picture stays the mark's.
-                    guard session.live else { return }
+                    // Moved to the frozen picture while the text was read: that one stays.
+                    guard !session.refrozen.contains(mark.id) else { return }
                     session.refreshPicture(of: mark.id, grab: grab, text: text)
                 }
             }

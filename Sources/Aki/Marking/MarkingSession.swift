@@ -53,6 +53,8 @@ final class MarkingSession {
     var scrolling = false
     /// The screen keeps running under the overlay (each mark takes its own picture).
     var live = true
+    /// Marks moved to the frozen picture by `freeze` (their own live one, if still coming, is dropped).
+    var refrozen: Set<UUID> = []
     /// The app being marked: the one in front (it follows ⌘Tab while marking).
     var context: MarkContext
     /// Conversations you can send to, in sidebar order.
@@ -427,6 +429,7 @@ final class MarkingSession {
         for i in marks.indices where marks[i].screen < pictures.count && !earlier.contains(marks[i].id)
             && marks[i].generation == generation[marks[i].screen, default: 0] {
             marks[i].grab = pictures[marks[i].screen]
+            refrozen.insert(marks[i].id)
             // Its text was read off the live picture: read again from the frozen one.
             if !marks[i].isPoint { marks[i].text = nil }
         }
