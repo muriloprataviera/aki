@@ -3,6 +3,21 @@
     <channel>
         <title>Aki</title>
         <item>
+            <title>0.12.1</title>
+            <pubDate>Sat, 14 Nov 2026 09:06:21 -0300</pubDate>
+            <sparkle:version>20261114120621</sparkle:version>
+            <sparkle:shortVersionString>0.12.1</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
+            <description><![CDATA[<h2>Aki 0.12.1</h2>
+<h3>Fixed</h3><ul>
+<li>A page's menu that opens on hover (a site's top menu) stays on screen when marking opens, so you can mark it.</li>
+<li>Sessions in an Orca tab opened recently show the name you gave the tab again (sidebar, History and marks), not the title the agent set.</li>
+</ul>
+]]></description>
+            <enclosure url="https://aki-updates.vercel.app/0.12.1/Aki-0.12.1.zip" length="4355929" type="application/octet-stream" sparkle:edSignature="juG6sC3N07mHN+O0nTSSL4vkgAwJv3WQlup/NM/vivOPetcXugOuL4Xi/lamL0EhGXK0un2wETVZnDt/yDh1DQ=="/>
+        </item>
+        <item>
             <title>0.12.1-beta.2</title>
             <pubDate>Fri, 13 Nov 2026 19:22:55 -0300</pubDate>
             <sparkle:channel>beta</sparkle:channel>
@@ -17,21 +32,6 @@
 </ul>
 ]]></description>
             <enclosure url="https://aki-updates.vercel.app/0.12.1-beta.2/Aki-0.12.1-beta.2.zip" length="4353450" type="application/octet-stream" sparkle:edSignature="vSh5VwbvbeIyYeh+ZEiALwuEJ7Zc3GSRWdndU6sd0i4t7tv+gFtbjvLYzY6nnuxKV9n3SdXd9ELrXvWB0gQ6Ag=="/>
-        </item>
-        <item>
-            <title>0.12.1-beta.1</title>
-            <pubDate>Tue, 03 Nov 2026 09:49:25 -0300</pubDate>
-            <sparkle:channel>beta</sparkle:channel>
-            <sparkle:version>20261103124925</sparkle:version>
-            <sparkle:shortVersionString>0.12.1-beta.1</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
-            <description><![CDATA[<h2>Aki 0.12.1-beta.1</h2>
-<h3>Fixed</h3><ul>
-<li>A page's menu that opens on hover (a site's top menu) stays on screen when marking opens, so you can mark it.</li>
-</ul>
-]]></description>
-            <enclosure url="https://aki-updates.vercel.app/0.12.1-beta.1/Aki-0.12.1-beta.1.zip" length="4352458" type="application/octet-stream" sparkle:edSignature="Z7p0speormIo/5ckFX0mdj+gGgq5zPbccByIty13sx6MNA44M2oLsQekz24K8lMdTcjVBPGIQ1tAsepavqUuDg=="/>
         </item>
         <item>
             <title>0.12.0</title>
@@ -54,26 +54,6 @@
             <enclosure url="https://aki-updates.vercel.app/0.12.0/Aki-0.12.0.zip" length="4352998" type="application/octet-stream" sparkle:edSignature="OCq3wJQnwJdb4v/IkcchDraDuhQtPfLpEkIrp/1WEgvBANLpWD9K51h6t1FraOlm+RqEzROduadIal6B2ktMCQ=="/>
         </item>
         <item>
-            <title>0.12.0-beta.12</title>
-            <pubDate>Sun, 01 Nov 2026 13:06:41 -0300</pubDate>
-            <sparkle:channel>beta</sparkle:channel>
-            <sparkle:version>20261101160641</sparkle:version>
-            <sparkle:shortVersionString>0.12.0-beta.12</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
-            <description><![CDATA[<h2>Aki 0.12.0 beta</h2>
-<h3>Changed</h3><ul>
-<li>Marking opens like the Mac's ⌘⇧4, at once: the pointer and the thin orange frame, and the screen stays live, not dimmed (with "Freeze the screen" on, or a menu open, it's a picture).</li>
-<li>Marking opens light: just the crosshair, nothing outlined (drag an area, click a point). Press E to outline the elements under the pointer, and E again to go back. How it opens is in Settings → Marking → "Under the pointer".</li>
-</ul>
-<h3>Fixed</h3><ul>
-<li>The marking pointer no longer blinks to the arrow or a hand as marking opens, and the screen doesn't hitch as you let go of the shortcut.</li>
-<li>A session working in a folder inside the one its Orca tab opened in is linked to its tab again: it shows the name you gave the tab, and marks are typed into it.</li>
-</ul>
-]]></description>
-            <enclosure url="https://aki-updates.vercel.app/0.12.0-beta.12/Aki-0.12.0-beta.12.zip" length="4351787" type="application/octet-stream" sparkle:edSignature="+xPMyNyj2ib8ocmfBKO3SIeeABe0610CZvnDq3e31kBA5S3Dv4tEIYBsIoUgGTaOBSuZ0EiHph4ak6iBREGYBQ=="/>
-        </item>
-        <item>
             <title>0.11.1</title>
             <pubDate>Thu, 22 Oct 2026 17:05:47 -0300</pubDate>
             <sparkle:version>20261022200546</sparkle:version>
@@ -87,24 +67,6 @@
 </ul>
 ]]></description>
             <enclosure url="https://aki-updates.vercel.app/0.11.1/Aki-0.11.1.zip" length="4335463" type="application/octet-stream" sparkle:edSignature="91bhCCvL9HPeur+GDjs/mZc60UOllGjpa62FtT1x/VmYOHcrt5g6plUD/q7G7vBLYikanollhwaZP2dFrsWuAg=="/>
-        </item>
-        <item>
-            <title>0.11.0</title>
-            <pubDate>Wed, 21 Oct 2026 12:44:24 -0300</pubDate>
-            <sparkle:version>20261021154423</sparkle:version>
-            <sparkle:shortVersionString>0.11.0</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
-            <description><![CDATA[<h2>Aki 0.11.0</h2>
-<h3>New</h3><ul>
-<li>"Just a picture" (Settings → Marking → "Under the pointer"): works like the Mac's ⌘⇧4, with nothing outlined. Drag an area or click a point, and the picture always goes with the mark. "Elements" keeps the old way.</li>
-<li>"Show at least" (Settings → Appearance, 3 to start): when fewer sessions than that are awake, the ones you used last stay in sight instead of waiting in "+N", so the sidebar isn't empty after a night.</li>
-</ul>
-<h3>Changed</h3><ul>
-<li>Limits card: each limit says the day and time it renews ("↻ Thu 12:00 · 23h30"), not only how long is left.</li>
-</ul>
-]]></description>
-            <enclosure url="https://aki-updates.vercel.app/0.11.0/Aki-0.11.0.zip" length="4331172" type="application/octet-stream" sparkle:edSignature="ZLUqpGCnUbD/yKbVHHaQ40xxeVknSEkGzmGHSUh1swyqHXLnZEavkeZfIINcMYYXtGcePhEnPxmeicFfLlONAQ=="/>
         </item>
     </channel>
 </rss>
