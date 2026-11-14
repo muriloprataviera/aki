@@ -270,7 +270,9 @@ final class MarkingController {
                   session.generation == generation,
                   let closed = await self.closedRegions(since: before, pid: pid),
                   Self.counts(closed, near: near),
-                  self.session === session, session.live, !session.scrolling, session.generation == generation
+                  self.session === session, session.live, !session.scrolling, session.generation == generation,
+                  // ⌘Tab meanwhile: the other app's window changed it, not a menu closing.
+                  session.context.pid == pid
             else { return }
             session.freeze(before, closed: closed)
             for (index, grab) in before.enumerated() {
@@ -426,7 +428,9 @@ final class MarkingController {
                 session.capturing += 1
                 Task {
                     defer { session.capturing -= 1 }
-                    guard let grabs = await ScreenGrab.captureAll(excluding: overlays), mark.screen < grabs.count else { return }
+                    guard let grabs = await ScreenGrab.captureAll(excluding: overlays), mark.screen < grabs.count,
+                          // Frozen meanwhile (a menu had closed): the mark keeps that picture.
+                          session.live else { return }
                     let grab = grabs[mark.screen]
                     // Its own picture, taken: to the clipboard before the text is read.
                     session.copyPicture(of: mark.id, from: grab)
@@ -513,7 +517,10 @@ final class MarkingController {
             followFrontApp()
             // The overlay under the pointer closes a page's hover menu: the screens taken
             // just before keep it, frozen, when something closed.
-            if session.live {
+            // Not when the pointer is on Aki's own window (the sidebar, closing as its
+            // button opened marking): that's what changed under it.
+            let onAki = NSApp.windows.contains { $0.isVisible && !($0 is MarkingPanel) && $0.frame.contains(NSEvent.mouseLocation) }
+            if session.live, !onAki {
                 let mouse = NSEvent.mouseLocation, primary = NSScreen.screens.first?.frame.height ?? 0
                 keepWhatCloses(session, before: grabs, near: CGPoint(x: mouse.x, y: primary - mouse.y))
             }
