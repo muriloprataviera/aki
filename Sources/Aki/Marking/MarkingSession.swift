@@ -416,14 +416,15 @@ final class MarkingSession {
     /// Something closed as Aki took the keyboard (a page's menu): the screens as they
     /// were just before stay, frozen, and what closed is found on that picture. The
     /// marks stay drawn (same picture they were made on).
-    func freeze(_ pictures: [ScreenGrab], closed: [CGRect]) {
+    func freeze(_ pictures: [ScreenGrab], closed: [CGRect], keeping earlier: Set<UUID> = []) {
         guard pictures.count == grabs.count else { return }
         grabs = pictures
         menus += closed
         live = false
-        // Marks made on this live screen meanwhile: the picture you now see (the menu in
-        // it). Not those from an earlier round (esc) or from before a scroll: theirs stay.
-        for i in marks.indices where marks[i].screen < pictures.count
+        // Marks made on this live screen since the picture was taken: the picture you now
+        // see (the menu in it). Not those made before it, from an earlier round (esc) or
+        // from before a scroll: theirs stay.
+        for i in marks.indices where marks[i].screen < pictures.count && !earlier.contains(marks[i].id)
             && marks[i].generation == generation[marks[i].screen, default: 0] {
             marks[i].grab = pictures[marks[i].screen]
             // Its text was read off the live picture: read again from the frozen one.

@@ -264,6 +264,8 @@ final class MarkingController {
         let pid = session.context.pid
         // Scrolled meanwhile (the screens captured anew): `before` is out of date.
         let generation = session.generation
+        // Marks already made have their own pictures, taken before anything closed.
+        let earlier = Set(session.marks.map(\.id))
         Task { [weak self, weak session] in
             try? await Task.sleep(for: .milliseconds(300))
             guard let self, let session, self.session === session, session.live, !session.scrolling,
@@ -274,7 +276,7 @@ final class MarkingController {
                   // ⌘Tab meanwhile: the other app's window changed it, not a menu closing.
                   session.context.pid == pid
             else { return }
-            session.freeze(before, closed: closed)
+            session.freeze(before, closed: closed, keeping: earlier)
             // Sending waits for it (`capturing`): marks' text is read from this picture now.
             for (index, grab) in before.enumerated() {
                 session.capturing += 1
@@ -431,9 +433,9 @@ final class MarkingController {
                 session.capturing += 1
                 Task {
                     defer { session.capturing -= 1 }
-                    guard let grabs = await ScreenGrab.captureAll(excluding: overlays), mark.screen < grabs.count,
-                          // Frozen meanwhile (a menu had closed): the mark keeps that picture.
-                          session.live else { return }
+                    guard let grabs = await ScreenGrab.captureAll(excluding: overlays), mark.screen < grabs.count else { return }
+                    // Frozen meanwhile (a menu had closed): the mark keeps that picture.
+                    guard session.live else { session.copyPicture(of: mark.id); return }
                     let grab = grabs[mark.screen]
                     // Its own picture, taken: to the clipboard before the text is read.
                     session.copyPicture(of: mark.id, from: grab)
