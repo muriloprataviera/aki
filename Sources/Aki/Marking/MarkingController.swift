@@ -276,7 +276,9 @@ final class MarkingController {
                   // ⌘Tab meanwhile: the other app's window changed it, not a menu closing.
                   session.context.pid == pid,
                   // Marked meanwhile, on what was showing: the screen stays as you marked it.
-                  session.marks.allSatisfy({ earlier.contains($0.id) })
+                  session.marks.allSatisfy({ earlier.contains($0.id) }),
+                  // Dragging an area over it: the screen stays until you let go.
+                  !session.dragging
             else { return }
             session.freeze(before, closed: closed)
             // Sending waits for it (`capturing`).
