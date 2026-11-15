@@ -271,9 +271,16 @@ final class MarkingController {
         Task { [weak self, weak session] in
             let closed = await self?.closed(near: near, since: before, session: session, generation: generation,
                                             pid: pid, earlier: earlier)
-            guard let session else { return }
-            if let self, let closed, Self.watching(self, session, generation: generation, pid: pid, earlier: earlier) {
-                self.settle(session, on: before, closed: closed)
+            guard let self, let session else { return }
+            if let closed, Self.watching(self, session, before: before, generation: generation, pid: pid, earlier: earlier) {
+                // Already frozen on this picture (marked on it while held): what closed is
+                // known now too.
+                if session.live { self.settle(session, on: before, closed: closed) } else { session.freeze(before, closed: closed) }
+            }
+            // An area still being dragged on the picture: it stays until you let go (the
+            // mark then takes it).
+            while session.dragging, session.holding?.first?.image === before.first?.image, self.session === session {
+                try? await Task.sleep(for: .milliseconds(100))
             }
             // Nothing closed (or marking moved on): the live screen, the same as the picture.
             if session.holding?.first?.image === before.first?.image { session.holding = nil }
@@ -302,7 +309,7 @@ final class MarkingController {
                         pid: pid_t?, earlier: Set<UUID>) async -> [CGRect]? {
         for wait in [300, 400, 600] {
             try? await Task.sleep(for: .milliseconds(wait))
-            guard let session, Self.watching(self, session, generation: generation, pid: pid, earlier: earlier),
+            guard let session, Self.watching(self, session, before: before, generation: generation, pid: pid, earlier: earlier),
                   let closed = await closedRegions(since: before, pid: pid)
             else { return nil }
             if Self.counts(closed, near: near) { return closed }
@@ -310,16 +317,17 @@ final class MarkingController {
         return nil
     }
 
-    /// Still the same live marking, nothing done on it yet.
-    private static func watching(_ controller: MarkingController, _ session: MarkingSession, generation: [Int: Int],
-                                 pid: pid_t?, earlier: Set<UUID>) -> Bool {
-        guard controller.session === session, session.live, !session.scrolling, session.generation == generation,
+    /// Still the same round of marking, on the screens `before` shows: live, or frozen on
+    /// that very picture (a mark made on it while it was held).
+    private static func watching(_ controller: MarkingController, _ session: MarkingSession, before: [ScreenGrab],
+                                 generation: [Int: Int], pid: pid_t?, earlier: Set<UUID>) -> Bool {
+        guard controller.session === session, !session.scrolling, session.generation == generation,
               // ⌘Tab meanwhile: the other app's window changed it, not a menu closing.
-              session.context.pid == pid,
-              // Dragging an area over it: the screen stays until you let go.
-              !session.dragging
+              session.context.pid == pid
         else { return false }
-        // Marked meanwhile, on what was showing: the screen stays as you marked it.
+        if !session.live { return session.grabs.first?.image === before.first?.image }
+        // Marked meanwhile on the live screen (nothing held): the screen stays as you marked it.
+        guard session.holding == nil else { return true }
         for mark in session.marks where !earlier.contains(mark.id) { return false }
         return true
     }
@@ -690,6 +698,8 @@ final class MarkingController {
                 else { return }
                 let context = MarkContext.current(withURL: false)
                 session.context = context
+                // The picture held still is the other app's: the live screen now.
+                session.holding = nil
                 // The page's address after, off the main thread (the browser may take a second).
                 Task { [weak session] in
                     let url = await Task.detached { MarkContext.browserURL(bundleID: context.bundleID, windowTitle: context.windowTitle, pid: context.pid) }.value
