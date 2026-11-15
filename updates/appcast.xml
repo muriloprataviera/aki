@@ -3,6 +3,20 @@
     <channel>
         <title>Aki</title>
         <item>
+            <title>0.12.2-beta.3</title>
+            <pubDate>Sun, 15 Nov 2026 18:35:24 -0300</pubDate>
+            <sparkle:channel>beta</sparkle:channel>
+            <sparkle:version>20261115213523</sparkle:version>
+            <sparkle:shortVersionString>0.12.2-beta.3</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
+            <description><![CDATA[<h2>Aki 0.12.2-beta.3</h2><h3>Fixes</h3><ul>
+<li>A page's hover menu stays on screen when marking opens, as with the Mac's ⌘⇧4: the screen holds still at once, instead of the menu vanishing and coming back.</li>
+</ul>
+]]></description>
+            <enclosure url="https://aki-updates.vercel.app/0.12.2-beta.3/Aki-0.12.2-beta.3.zip" length="4357325" type="application/octet-stream" sparkle:edSignature="fIvsC5MkjeYFCZrwCI/UWt9f3CqY9V9YTFl79uEF4+Cqqi+8ZKeurb+Nx1fqQUS6tuE5DZSQRMdhe9vw0/DZBQ=="/>
+        </item>
+        <item>
             <title>0.12.2-beta.2</title>
             <pubDate>Sun, 15 Nov 2026 18:26:26 -0300</pubDate>
             <sparkle:channel>beta</sparkle:channel>
@@ -44,22 +58,6 @@
 </ul>
 ]]></description>
             <enclosure url="https://aki-updates.vercel.app/0.12.1/Aki-0.12.1.zip" length="4355929" type="application/octet-stream" sparkle:edSignature="juG6sC3N07mHN+O0nTSSL4vkgAwJv3WQlup/NM/vivOPetcXugOuL4Xi/lamL0EhGXK0un2wETVZnDt/yDh1DQ=="/>
-        </item>
-        <item>
-            <title>0.12.1-beta.2</title>
-            <pubDate>Fri, 13 Nov 2026 19:22:55 -0300</pubDate>
-            <sparkle:channel>beta</sparkle:channel>
-            <sparkle:version>20261113222255</sparkle:version>
-            <sparkle:shortVersionString>0.12.1-beta.2</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
-            <description><![CDATA[<h2>Aki 0.12.1-beta.2</h2>
-<h3>Fixed</h3><ul>
-<li>Sessions in an Orca tab opened recently show the name you gave the tab again (sidebar, History and marks), not the title the agent set.</li>
-<li>A page's menu that opens on hover stays on screen when marking opens, so you can mark it.</li>
-</ul>
-]]></description>
-            <enclosure url="https://aki-updates.vercel.app/0.12.1-beta.2/Aki-0.12.1-beta.2.zip" length="4353450" type="application/octet-stream" sparkle:edSignature="vSh5VwbvbeIyYeh+ZEiALwuEJ7Zc3GSRWdndU6sd0i4t7tv+gFtbjvLYzY6nnuxKV9n3SdXd9ELrXvWB0gQ6Ag=="/>
         </item>
         <item>
             <title>0.12.0</title>
