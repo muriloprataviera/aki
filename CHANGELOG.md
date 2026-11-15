@@ -5,7 +5,7 @@ What changed in each version of Aki. Versions follow [semantic versioning](https
 ## [Unreleased]
 
 ### Fixed
-- Hover menus that wait a moment before closing, or open their panel a little below the pointer, now stay on screen when marking opens.
+- A page's hover menu stays on screen when marking opens, as with the Mac's ⌘⇧4: the screen holds still at once, instead of the menu vanishing and coming back (also menus that wait before closing, or open a little below the pointer).
 
 ## [0.12.1] — 2026-11-14
 
