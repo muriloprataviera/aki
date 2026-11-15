@@ -264,8 +264,6 @@ final class MarkingController {
         let pid = session.context.pid
         // Scrolled meanwhile (the screens captured anew): `before` is out of date.
         let generation = session.generation
-        // Marks already made have their own pictures, taken before anything closed.
-        let earlier = Set(session.marks.map(\.id))
         // Held still meanwhile, as ⌘⇧4 does: the menu doesn't vanish and come back.
         session.holding = before
         // A capture that doesn't answer mustn't keep it up: the live screen after a while
@@ -278,10 +276,9 @@ final class MarkingController {
             if let session, session.holding?.first?.image === before.first?.image { session.holding = nil }
         }
         Task { [weak self, weak session] in
-            let closed = await self?.closed(near: near, since: before, session: session, generation: generation,
-                                            pid: pid, earlier: earlier)
+            let closed = await self?.closed(near: near, since: before, session: session, generation: generation, pid: pid)
             guard let self, let session else { return }
-            if let closed, Self.watching(self, session, before: before, generation: generation, pid: pid, earlier: earlier) {
+            if let closed, Self.watching(self, session, before: before, generation: generation, pid: pid) {
                 // Already frozen on this picture (marked on it while held): what closed is
                 // known now too.
                 if session.live { self.settle(session, on: before, closed: closed) } else { session.freeze(before, closed: closed) }
@@ -315,10 +312,10 @@ final class MarkingController {
     /// What closed (near the pointer, with `near`), looked at a few times: a menu may wait
     /// a moment before closing, or fade out (still moving at the first look).
     private func closed(near: CGPoint?, since before: [ScreenGrab], session: MarkingSession?, generation: [Int: Int],
-                        pid: pid_t?, earlier: Set<UUID>) async -> [CGRect]? {
+                        pid: pid_t?) async -> [CGRect]? {
         for wait in [300, 400, 600] {
             try? await Task.sleep(for: .milliseconds(wait))
-            guard let session, Self.watching(self, session, before: before, generation: generation, pid: pid, earlier: earlier),
+            guard let session, Self.watching(self, session, before: before, generation: generation, pid: pid),
                   let closed = await closedRegions(since: before, pid: pid)
             else { return nil }
             if Self.counts(closed, near: near) { return closed }
@@ -329,16 +326,15 @@ final class MarkingController {
     /// Still the same round of marking, on the screens `before` shows: live, or frozen on
     /// that very picture (a mark made on it while it was held).
     private static func watching(_ controller: MarkingController, _ session: MarkingSession, before: [ScreenGrab],
-                                 generation: [Int: Int], pid: pid_t?, earlier: Set<UUID>) -> Bool {
+                                 generation: [Int: Int], pid: pid_t?) -> Bool {
         guard controller.session === session, !session.scrolling, session.generation == generation,
               // ⌘Tab meanwhile: the other app's window changed it, not a menu closing.
               session.context.pid == pid
         else { return false }
         if !session.live { return session.grabs.first?.image === before.first?.image }
-        // Marked meanwhile on the live screen (nothing held): the screen stays as you marked it.
-        guard session.holding == nil else { return true }
-        for mark in session.marks where !earlier.contains(mark.id) { return false }
-        return true
+        // Live: while its picture is held still (dropped on ⌘Tab, a new capture, or when
+        // the check takes too long: the live screen stays then).
+        return session.holding?.first?.image === before.first?.image
     }
 
     /// Something closed, and (with `near`) under the pointer.
