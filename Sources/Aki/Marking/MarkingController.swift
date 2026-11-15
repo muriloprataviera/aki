@@ -266,32 +266,41 @@ final class MarkingController {
         let generation = session.generation
         // Marks already made have their own pictures, taken before anything closed.
         let earlier = Set(session.marks.map(\.id))
+        // Held still meanwhile, as ⌘⇧4 does: the menu doesn't vanish and come back.
+        session.holding = before
         Task { [weak self, weak session] in
-            // Looked at a few times: a menu may wait a moment before closing, or fade out
-            // (still moving at the first look).
-            var found: [CGRect]?
-            for wait in [300, 400, 600] {
-                try? await Task.sleep(for: .milliseconds(wait))
-                guard let self, let session,
-                      Self.watching(self, session, generation: generation, pid: pid, earlier: earlier),
-                      let closed = await self.closedRegions(since: before, pid: pid)
-                else { return }
-                if Self.counts(closed, near: near) { found = closed; break }
-            }
-            guard let self, let session, let closed = found,
-                  Self.watching(self, session, generation: generation, pid: pid, earlier: earlier)
-            else { return }
-            session.freeze(before, closed: closed)
-            // Sending waits for it (`capturing`).
-            for (index, grab) in before.enumerated() {
-                session.capturing += 1
-                Task { [weak session] in
-                    let text = await ScreenText.read(grab)
-                    session?.texts[index] = text
-                    session?.capturing -= 1
+            let closed = await self?.closed(near: near, since: before, session: session, generation: generation,
+                                            pid: pid, earlier: earlier)
+            guard let session else { return }
+            if let self, let closed, Self.watching(self, session, generation: generation, pid: pid, earlier: earlier) {
+                session.freeze(before, closed: closed)
+                // Sending waits for it (`capturing`).
+                for (index, grab) in before.enumerated() {
+                    session.capturing += 1
+                    Task { [weak session] in
+                        let text = await ScreenText.read(grab)
+                        session?.texts[index] = text
+                        session?.capturing -= 1
+                    }
                 }
             }
+            // Nothing closed (or marking moved on): the live screen, the same as the picture.
+            if session.holding?.first?.image === before.first?.image { session.holding = nil }
         }
+    }
+
+    /// What closed (near the pointer, with `near`), looked at a few times: a menu may wait
+    /// a moment before closing, or fade out (still moving at the first look).
+    private func closed(near: CGPoint?, since before: [ScreenGrab], session: MarkingSession?, generation: [Int: Int],
+                        pid: pid_t?, earlier: Set<UUID>) async -> [CGRect]? {
+        for wait in [300, 400, 600] {
+            try? await Task.sleep(for: .milliseconds(wait))
+            guard let session, Self.watching(self, session, generation: generation, pid: pid, earlier: earlier),
+                  let closed = await closedRegions(since: before, pid: pid)
+            else { return nil }
+            if Self.counts(closed, near: near) { return closed }
+        }
+        return nil
     }
 
     /// Still the same live marking, nothing done on it yet.

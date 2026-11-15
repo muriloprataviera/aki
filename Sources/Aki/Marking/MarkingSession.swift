@@ -53,6 +53,10 @@ final class MarkingSession {
     var scrolling = false
     /// The screen keeps running under the overlay (each mark takes its own picture).
     var live = true
+    /// Shown over a live screen while Aki checks whether something closed as it came up
+    /// (a page's hover menu), as the Mac's ⌘⇧4 holds the screen still: the screens just
+    /// before. It stays if something closed, and goes otherwise (the same picture).
+    var holding: [ScreenGrab]?
     /// The app being marked: the one in front (it follows ⌘Tab while marking).
     var context: MarkContext
     /// Conversations you can send to, in sidebar order.

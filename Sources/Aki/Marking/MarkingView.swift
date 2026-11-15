@@ -53,6 +53,11 @@ struct MarkingView: View {
     static let catchClicks = 0.01
 
     private var grab: ScreenGrab { session.grabs[screen] }
+    /// The picture held while Aki checks what closed, or the frozen one.
+    private var shownPicture: ScreenGrab {
+        if let holding = session.holding, screen < holding.count { return holding[screen] }
+        return grab
+    }
     private var isMain: Bool { screen == 0 }
 
     var body: some View {
@@ -60,10 +65,11 @@ struct MarkingView: View {
             // Live by default: the screen keeps running underneath (Settings can freeze it).
             // Not even drawn then: a whole screen's picture held marking up for a moment
             // as it opened (the pointer stuck on the arrow meanwhile).
-            if !session.live {
-                Image(decorative: grab.image, scale: grab.scale)
+            if !session.live || session.holding != nil {
+                let picture = shownPicture
+                Image(decorative: picture.image, scale: picture.scale)
                     .resizable()
-                    .frame(width: grab.screen.frame.width, height: grab.screen.frame.height)
+                    .frame(width: picture.screen.frame.width, height: picture.screen.frame.height)
                     .opacity(session.scrolling ? 0 : 1)
             }
             // Live, as the Mac's ⌘⇧4: the screen as it is (only enough over it for the
