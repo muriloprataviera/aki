@@ -3,6 +3,20 @@
     <channel>
         <title>Aki</title>
         <item>
+            <title>0.12.2-beta.1</title>
+            <pubDate>Sun, 15 Nov 2026 18:13:25 -0300</pubDate>
+            <sparkle:channel>beta</sparkle:channel>
+            <sparkle:version>20261115211324</sparkle:version>
+            <sparkle:shortVersionString>0.12.2-beta.1</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
+            <description><![CDATA[<h2>Aki 0.12.2-beta.1</h2><h3>Fixes</h3><ul>
+<li>Hover menus that wait a moment before closing, or fade out, now stay on screen when marking opens.</li>
+</ul>
+]]></description>
+            <enclosure url="https://aki-updates.vercel.app/0.12.2-beta.1/Aki-0.12.2-beta.1.zip" length="4355834" type="application/octet-stream" sparkle:edSignature="DLLxvxBXBygSZAHnrKhMWCkXEfNYtiQtH27cUAQFOyIuVaZTrum3WdCTnNJB4EBXWKwcmW927tYtEm0muEyVDw=="/>
+        </item>
+        <item>
             <title>0.12.1</title>
             <pubDate>Sat, 14 Nov 2026 09:06:21 -0300</pubDate>
             <sparkle:version>20261114120621</sparkle:version>
