@@ -4,6 +4,9 @@ What changed in each version of Aki. Versions follow [semantic versioning](https
 
 ## [Unreleased]
 
+### Fixed
+- Hover menus that wait a moment before closing, or fade out, now stay on screen when marking opens.
+
 ## [0.12.1] — 2026-11-14
 
 ### Fixed
