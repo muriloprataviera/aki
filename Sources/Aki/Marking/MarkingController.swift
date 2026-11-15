@@ -273,19 +273,26 @@ final class MarkingController {
                                             pid: pid, earlier: earlier)
             guard let session else { return }
             if let self, let closed, Self.watching(self, session, generation: generation, pid: pid, earlier: earlier) {
-                session.freeze(before, closed: closed)
-                // Sending waits for it (`capturing`).
-                for (index, grab) in before.enumerated() {
-                    session.capturing += 1
-                    Task { [weak session] in
-                        let text = await ScreenText.read(grab)
-                        session?.texts[index] = text
-                        session?.capturing -= 1
-                    }
-                }
+                self.settle(session, on: before, closed: closed)
             }
             // Nothing closed (or marking moved on): the live screen, the same as the picture.
             if session.holding?.first?.image === before.first?.image { session.holding = nil }
+        }
+    }
+
+    /// The screens stay as `pictures` (frozen), their text read again.
+    private func settle(_ session: MarkingSession, on pictures: [ScreenGrab], closed: [CGRect]) {
+        session.holding = nil
+        guard pictures.count == session.grabs.count else { return }
+        session.freeze(pictures, closed: closed)
+        // Sending waits for it (`capturing`).
+        for (index, grab) in pictures.enumerated() {
+            session.capturing += 1
+            Task { [weak session] in
+                let text = await ScreenText.read(grab)
+                session?.texts[index] = text
+                session?.capturing -= 1
+            }
         }
     }
 
@@ -455,13 +462,19 @@ final class MarkingController {
             // Aki stays in the background, as ⌘⇧4 does: the app below keeps the focus
             // (its menu open, its selection blue); the keys come by `KeyTap`.
             session.markAdded = { [weak session, weak self] mark in
-                guard let session, session.live else { return }
+                guard let session else { return }
+                // Marked on the picture held still (a menu that may have closed below):
+                // the screen stays as you marked it, and the mark gets that picture.
+                let held = session.holding
+                if let held { self?.settle(session, on: held, closed: []) }
+                guard held != nil || session.live else { return }
                 let overlays = self?.overlayIDs ?? []
                 // The overlay is transparent: the capture leaves Aki's windows out.
                 session.capturing += 1
                 Task {
                     defer { session.capturing -= 1 }
-                    guard let grabs = await ScreenGrab.captureAll(excluding: overlays), mark.screen < grabs.count else { return }
+                    let grabs = if let held { held } else { await ScreenGrab.captureAll(excluding: overlays) }
+                    guard let grabs, mark.screen < grabs.count else { return }
                     let grab = grabs[mark.screen]
                     // Its own picture, taken: to the clipboard before the text is read.
                     session.copyPicture(of: mark.id, from: grab)
