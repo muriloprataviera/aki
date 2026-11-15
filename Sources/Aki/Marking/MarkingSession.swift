@@ -406,6 +406,8 @@ final class MarkingSession {
         }
         grabs[screen] = grab
         generation[screen, default: 0] += 1
+        // The picture held still is out of date too.
+        holding = nil
         texts[screen] = nil
         // A new picture: the menus that had closed belong to the old one.
         let primary = NSScreen.screens.first?.frame.height ?? 0

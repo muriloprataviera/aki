@@ -268,6 +268,15 @@ final class MarkingController {
         let earlier = Set(session.marks.map(\.id))
         // Held still meanwhile, as ⌘⇧4 does: the menu doesn't vanish and come back.
         session.holding = before
+        // A capture that doesn't answer mustn't keep it up: the live screen after a while
+        // (a drag on it lasts until you let go).
+        Task { [weak session] in
+            try? await Task.sleep(for: .seconds(3))
+            while let session, session.dragging, session.holding?.first?.image === before.first?.image {
+                try? await Task.sleep(for: .milliseconds(100))
+            }
+            if let session, session.holding?.first?.image === before.first?.image { session.holding = nil }
+        }
         Task { [weak self, weak session] in
             let closed = await self?.closed(near: near, since: before, session: session, generation: generation,
                                             pid: pid, earlier: earlier)
