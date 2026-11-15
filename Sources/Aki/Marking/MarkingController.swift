@@ -267,18 +267,19 @@ final class MarkingController {
         // Marks already made have their own pictures, taken before anything closed.
         let earlier = Set(session.marks.map(\.id))
         Task { [weak self, weak session] in
-            try? await Task.sleep(for: .milliseconds(300))
-            guard let self, let session, self.session === session, session.live, !session.scrolling,
-                  session.generation == generation,
-                  let closed = await self.closedRegions(since: before, pid: pid),
-                  Self.counts(closed, near: near),
-                  self.session === session, session.live, !session.scrolling, session.generation == generation,
-                  // ⌘Tab meanwhile: the other app's window changed it, not a menu closing.
-                  session.context.pid == pid,
-                  // Marked meanwhile, on what was showing: the screen stays as you marked it.
-                  session.marks.allSatisfy({ earlier.contains($0.id) }),
-                  // Dragging an area over it: the screen stays until you let go.
-                  !session.dragging
+            // Looked at a few times: a menu may wait a moment before closing, or fade out
+            // (still moving at the first look).
+            var found: [CGRect]?
+            for wait in [300, 400, 600] {
+                try? await Task.sleep(for: .milliseconds(wait))
+                guard let self, let session,
+                      Self.watching(self, session, generation: generation, pid: pid, earlier: earlier),
+                      let closed = await self.closedRegions(since: before, pid: pid)
+                else { return }
+                if Self.counts(closed, near: near) { found = closed; break }
+            }
+            guard let self, let session, let closed = found,
+                  Self.watching(self, session, generation: generation, pid: pid, earlier: earlier)
             else { return }
             session.freeze(before, closed: closed)
             // Sending waits for it (`capturing`).
@@ -291,6 +292,20 @@ final class MarkingController {
                 }
             }
         }
+    }
+
+    /// Still the same live marking, nothing done on it yet.
+    private static func watching(_ controller: MarkingController, _ session: MarkingSession, generation: [Int: Int],
+                                 pid: pid_t?, earlier: Set<UUID>) -> Bool {
+        guard controller.session === session, session.live, !session.scrolling, session.generation == generation,
+              // ⌘Tab meanwhile: the other app's window changed it, not a menu closing.
+              session.context.pid == pid,
+              // Dragging an area over it: the screen stays until you let go.
+              !session.dragging
+        else { return false }
+        // Marked meanwhile, on what was showing: the screen stays as you marked it.
+        for mark in session.marks where !earlier.contains(mark.id) { return false }
+        return true
     }
 
     /// Something closed, and (with `near`) under the pointer.
