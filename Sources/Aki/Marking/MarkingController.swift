@@ -258,8 +258,8 @@ final class MarkingController {
     /// Aki just took the keyboard, or its overlay just came up under the pointer (a
     /// page's hover menu closes as the mouse "leaves" it): what closed in the app below
     /// stays on screen, the screens frozen as they were just before (marks can go on it too).
-    /// With `near` (global top-left points), only what closed under the pointer counts:
-    /// a hover menu sits there, while a notice or a terminal's new line elsewhere doesn't.
+    /// With `near` (global top-left points), only what closed near the pointer counts (a
+    /// menu's panel can open a few lines below its title): a hover menu sits there, while a notice or a terminal's new line elsewhere doesn't.
     private func keepWhatCloses(_ session: MarkingSession, before: [ScreenGrab], near: CGPoint? = nil) {
         let pid = session.context.pid
         // Scrolled meanwhile (the screens captured anew): `before` is out of date.
@@ -311,7 +311,7 @@ final class MarkingController {
     /// Something closed, and (with `near`) under the pointer.
     private static func counts(_ closed: [CGRect], near: CGPoint?) -> Bool {
         guard let near else { return !closed.isEmpty }
-        for region in closed where region.insetBy(dx: -24, dy: -24).contains(near) { return true }
+        for region in closed where region.insetBy(dx: -80, dy: -80).contains(near) { return true }
         return false
     }
 
