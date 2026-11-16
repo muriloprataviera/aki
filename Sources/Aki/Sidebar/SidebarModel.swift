@@ -753,6 +753,12 @@ final class SidebarModel {
     /// Each AI account's limits (Claude from its status line, Codex from its logs).
     var usage: [UsageLimits] = []
     @ObservationIgnored private var codexRead: (limits: UsageLimits?, at: Date) = (nil, .distantPast)
+    /// Codex's limits as it reported them right after a reset: newer than its logs until
+    /// its next message says so there too.
+    @ObservationIgnored private var codexFresh: UsageLimits?
+    /// A limit reset being used, and what came of it (shown under the resets).
+    var resetting = false
+    var resetNote: String?
     @ObservationIgnored private var claudeAppRead: UsageLimits?
     /// Tokens and their API-price cost per AI ("claude", "codex"), from the local logs.
     var spend: [String: TokenSpend] = [:]
@@ -873,7 +879,8 @@ final class SidebarModel {
         func seen(_ agent: AgentSession.Agent) -> UsageLimits? {
             open.contains { $0.agent == agent } ? UsageLimits(agent: agent, fiveHour: nil, week: nil, updated: .distantPast) : nil
         }
-        let limits = [claude ?? seen(.claude), codexRead.limits ?? seen(.codex)].compactMap { $0?.current() }
+        let codex = [codexRead.limits, codexFresh].compactMap { $0 }.max { $0.updated < $1.updated }
+        let limits = [claude ?? seen(.claude), codex ?? seen(.codex)].compactMap { $0?.current() }
         if limits != self.usage { self.usage = limits }
         // Tokens: the logs' new lines every 30 s, in the background (the first pass reads the week).
         if preferences.showUsage || usagePaneOpen, !ledgerBusy, Date().timeIntervalSince(ledgerRead) > 30 {
@@ -984,10 +991,48 @@ final class SidebarModel {
     }
 
     /// Runs a click on a target. Returns false when there was nothing to do.
+    /// Uses one of Codex's limit resets, once you've said yes (it can't be undone).
+    func useCodexReset() {
+        guard !resetting else { return }
+        let alert = NSAlert()
+        alert.messageText = L10n.t("Use a Codex limit reset?")
+        let saved = codexAccount?.resetsSaved
+        alert.informativeText = (saved.map { L10n.t("This uses 1 of your {n} resets: your Codex limits go back to 0%. It can't be undone.")
+            .replacingOccurrences(of: "{n}", with: "\($0)") } ?? L10n.t("Your Codex limits go back to 0%. It can't be undone."))
+        alert.addButton(withTitle: L10n.t("Use reset"))
+        alert.addButton(withTitle: L10n.t("Cancel"))
+        NSApp.activate(ignoringOtherApps: true)
+        guard alert.runModal() == .alertFirstButtonReturn else { return }
+        resetting = true
+        resetNote = nil
+        Task {
+            let outcome = await CodexResets.useOne()
+            resetting = false
+            switch outcome {
+            case .reset(let limits):
+                if let limits { codexFresh = limits }
+                resetNote = L10n.t("Usage reset.")
+                // The resets left, asked again.
+                codexAccountRead = .distantPast
+            case .notNeeded: resetNote = L10n.t("OpenAI says your usage doesn't need a reset now.")
+            case .noneLeft: resetNote = L10n.t("No resets left.")
+            case .failed: resetNote = L10n.t("Codex didn't answer. Try again in a moment.")
+            }
+            await refresh()
+        }
+    }
+
+    /// Claude's resets are used on claude.ai (signed in there): its usage page.
+    func openClaudeResets() {
+        if let url = URL(string: "https://claude.ai/settings/usage") { NSWorkspace.shared.open(url) }
+    }
+
     func perform(_ target: String) -> Bool {
         let parts = target.split(separator: "|", maxSplits: 1).map(String.init)
         guard parts.count == 2 else { return false }
         switch parts[0] {
+        case "reset":
+            if parts[1] == "codex" { useCodexReset() } else { openClaudeResets() }
         case "row":
             guard let session = sessions.first(where: { $0.worktree == parts[1] }),
                 !preferences.hiddenWorktrees.contains(session.worktree) else { return true }

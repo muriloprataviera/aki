@@ -562,5 +562,17 @@ extension L10n {
         "Hide this terminal": "隐藏此终端",
         "Show this terminal": "显示此终端",
         "Click a ring to keep its card open.": "点按圆环可让卡片保持打开。",
+        "Limit resets": "额度重置",
+        "Use one…": "使用一次…",
+        "Reset in Claude": "在 Claude 中重置",
+        "Resetting…": "正在重置…",
+        "Use a Codex limit reset?": "使用一次 Codex 额度重置？",
+        "This uses 1 of your {n} resets: your Codex limits go back to 0%. It can't be undone.": "这将使用你 {n} 次重置中的 1 次：Codex 额度回到 0%。无法撤销。",
+        "Your Codex limits go back to 0%. It can't be undone.": "Codex 额度回到 0%。无法撤销。",
+        "Use reset": "使用重置",
+        "Usage reset.": "用量已重置。",
+        "OpenAI says your usage doesn't need a reset now.": "OpenAI 表示你的用量现在不需要重置。",
+        "No resets left.": "没有剩余的重置。",
+        "Codex didn't answer. Try again in a moment.": "Codex 没有响应。请稍后再试。",
     ]
 }

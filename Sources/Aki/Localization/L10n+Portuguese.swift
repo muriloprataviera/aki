@@ -430,5 +430,17 @@ extension L10n {
         "hidden": "ocultos", "Hidden terminals": "Ocultos", "Show hidden": "Mostrar ocultos", "Hide hidden": "Esconder ocultos",
         "Hide this terminal": "Ocultar este terminal", "Show this terminal": "Mostrar este terminal",
         "Click a ring to keep its card open.": "Clique num anel para deixar o cartão dele aberto.",
+        "Limit resets": "Renovações",
+        "Use one…": "Usar uma…",
+        "Reset in Claude": "Renovar no Claude",
+        "Resetting…": "Renovando…",
+        "Use a Codex limit reset?": "Usar uma renovação do Codex?",
+        "This uses 1 of your {n} resets: your Codex limits go back to 0%. It can't be undone.": "Isto usa 1 das suas {n} renovações: os limites do Codex voltam a 0%. Não dá para desfazer.",
+        "Your Codex limits go back to 0%. It can't be undone.": "Os limites do Codex voltam a 0%. Não dá para desfazer.",
+        "Use reset": "Usar renovação",
+        "Usage reset.": "Uso renovado.",
+        "OpenAI says your usage doesn't need a reset now.": "A OpenAI diz que seu uso não precisa de renovação agora.",
+        "No resets left.": "Não há renovações.",
+        "Codex didn't answer. Try again in a moment.": "O Codex não respondeu. Tente de novo daqui a pouco.",
     ]
 }

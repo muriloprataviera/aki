@@ -562,5 +562,17 @@ extension L10n {
         "Hide this terminal": "このターミナルを隠す",
         "Show this terminal": "このターミナルを表示",
         "Click a ring to keep its card open.": "リングをクリックすると、カードを開いたままにします。",
+        "Limit resets": "制限リセット",
+        "Use one…": "1つ使う…",
+        "Reset in Claude": "Claudeでリセット",
+        "Resetting…": "リセット中…",
+        "Use a Codex limit reset?": "Codexの制限リセットを使いますか？",
+        "This uses 1 of your {n} resets: your Codex limits go back to 0%. It can't be undone.": "{n}回分のリセットのうち1回を使います。Codexの制限が0%に戻ります。元に戻せません。",
+        "Your Codex limits go back to 0%. It can't be undone.": "Codexの制限が0%に戻ります。元に戻せません。",
+        "Use reset": "リセットを使う",
+        "Usage reset.": "使用量をリセットしました。",
+        "OpenAI says your usage doesn't need a reset now.": "OpenAIによると、今はリセットの必要がありません。",
+        "No resets left.": "リセットは残っていません。",
+        "Codex didn't answer. Try again in a moment.": "Codexが応答しませんでした。少ししてからもう一度お試しください。",
     ]
 }

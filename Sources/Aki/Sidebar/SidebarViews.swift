@@ -1062,6 +1062,7 @@ struct UsageCard: View {
         if let month = limits.month {
             LimitBlock(title: L10n.t("Month"), limit: month, length: 30 * 24 * 3600, secondary: secondary)
         }
+        ResetsRow(model: model, agent: limits.agent, secondary: secondary)
         if let week = limits.week, let today = DayShare(week: week) {
             VStack(alignment: .leading, spacing: 3) {
                 HStack {
@@ -1292,6 +1293,41 @@ struct CodexAccountSection: View {
                 .font(CardType.body).foregroundStyle(secondary).fixedSize(horizontal: false, vertical: true)
         } else {
             Text(L10n.t("Asking OpenAI…")).font(CardType.body).foregroundStyle(secondary)
+        }
+    }
+}
+
+/// The limit resets: Codex's used from here (after a yes), Claude's on claude.ai.
+struct ResetsRow: View {
+    let model: SidebarModel
+    let agent: AgentSession.Agent
+    let secondary: Color
+
+    var body: some View {
+        let saved = agent == .codex && model.preferences.codexAccount ? model.codexAccount?.resetsSaved : nil
+        if agent == .claude || saved != nil {
+            VStack(alignment: .leading, spacing: 3) {
+                HStack(spacing: 6) {
+                    Text(L10n.t("Limit resets")).font(CardType.bodyStrong).foregroundStyle(AkiPalette.textPrimary)
+                    if let saved { Text("\(saved)").font(CardType.body).foregroundStyle(secondary).monospacedDigit() }
+                    Spacer(minLength: 4)
+                    if agent == .claude || (saved ?? 0) > 0 {
+                        let key = "reset|" + agent.rawValue
+                        HStack(spacing: 3) {
+                            Text(model.resetting && agent == .codex ? L10n.t("Resetting…")
+                                 : L10n.t(agent == .codex ? "Use one…" : "Reset in Claude"))
+                            if agent == .claude { Image(systemName: "arrow.up.right") }
+                        }
+                        .font(CardType.bodyStrong).foregroundStyle(AkiPalette.textPrimary)
+                        .padding(.horizontal, 8).padding(.vertical, 3)
+                        .background(Capsule().fill(AkiPalette.fg.opacity(model.hoveredTarget == key ? 0.24 : 0.14)))
+                        .clickTarget(key)
+                    }
+                }
+                if agent == .codex, let note = model.resetNote {
+                    Text(note).font(CardType.body).foregroundStyle(secondary).fixedSize(horizontal: false, vertical: true)
+                }
+            }
         }
     }
 }

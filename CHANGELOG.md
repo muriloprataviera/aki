@@ -4,6 +4,9 @@ What changed in each version of Aki. Versions follow [semantic versioning](https
 
 ## [Unreleased]
 
+### Added
+- Limit resets in the Claude and Codex cards: use one of Codex's from Aki (it asks first), or go straight to Claude's usage page to use one there.
+
 ### Fixed
 - Claude's usage ring follows the session that talked to Claude last: after you reset your limit it showed the old share (idle sessions kept repeating it).
 - The list of more terminals fits its card: with many sessions its top was cut off.

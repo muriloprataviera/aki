@@ -562,5 +562,17 @@ extension L10n {
         "Hide this terminal": "이 터미널 숨기기",
         "Show this terminal": "이 터미널 보기",
         "Click a ring to keep its card open.": "링을 클릭하면 카드가 열린 채로 유지됩니다.",
+        "Limit resets": "한도 재설정",
+        "Use one…": "하나 사용…",
+        "Reset in Claude": "Claude에서 재설정",
+        "Resetting…": "재설정 중…",
+        "Use a Codex limit reset?": "Codex 한도 재설정을 사용할까요?",
+        "This uses 1 of your {n} resets: your Codex limits go back to 0%. It can't be undone.": "재설정 {n}개 중 1개를 사용합니다. Codex 한도가 0%로 돌아갑니다. 되돌릴 수 없습니다.",
+        "Your Codex limits go back to 0%. It can't be undone.": "Codex 한도가 0%로 돌아갑니다. 되돌릴 수 없습니다.",
+        "Use reset": "재설정 사용",
+        "Usage reset.": "사용량이 재설정되었습니다.",
+        "OpenAI says your usage doesn't need a reset now.": "OpenAI에 따르면 지금은 재설정이 필요하지 않습니다.",
+        "No resets left.": "남은 재설정이 없습니다.",
+        "Codex didn't answer. Try again in a moment.": "Codex가 응답하지 않았습니다. 잠시 후 다시 시도하세요.",
     ]
 }
