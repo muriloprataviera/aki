@@ -345,6 +345,12 @@ let claudeStatuses: [String: ClaudeStatus] = [
 ]
 check(ClaudeStatus.latestLimits(in: claudeStatuses)?.week?.percent == 0, "Claude's week: from the session that heard from Claude last")
 
+// When Claude last answered: the last reply's time, not a later rename's.
+let transcript = FileManager.default.temporaryDirectory.appending(path: "aki-check-\(UUID().uuidString).jsonl")
+try? Data((#"{"type":"assistant","timestamp":"2026-11-16T10:00:00.000Z"}"# + "\n" + #"{"type":"custom-title","customTitle":"x"}"# + "\n").utf8).write(to: transcript)
+check(ClaudeStatus.lastReply(in: transcript.path) == ISO8601DateFormatter().date(from: "2026-11-16T10:00:00Z"), "last reply read off the transcript, not its date")
+try? FileManager.default.removeItem(at: transcript)
+
 // Codex's limits, from one of its log lines: the week goes by the window's length.
 let codexLine = #"{"type":"event_msg","payload":{"type":"token_count","rate_limits":{"primary":{"used_percent":17.0,"window_minutes":10080,"resets_at":4102444800},"secondary":{"used_percent":42.4,"window_minutes":300,"resets_at":4102444800}}}}"#
 let codexLimits = UsageLimits.parseCodex(line: Data(codexLine.utf8), updated: Date())
