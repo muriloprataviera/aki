@@ -3,6 +3,20 @@
     <channel>
         <title>Aki</title>
         <item>
+            <title>0.12.2</title>
+            <pubDate>Mon, 16 Nov 2026 18:39:38 -0300</pubDate>
+            <sparkle:version>20261116213937</sparkle:version>
+            <sparkle:shortVersionString>0.12.2</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
+            <description><![CDATA[<h2>Aki 0.12.2</h2><h3>Fixes</h3><ul>
+<li>A page's hover menu stays on screen when marking opens, as with the Mac's ⌘⇧4: the screen holds still at once, instead of the menu vanishing and coming back.</li>
+<li>Claude's usage ring shows the newest share of the limit: a session left idle kept showing an older, lower number.</li>
+</ul>
+]]></description>
+            <enclosure url="https://aki-updates.vercel.app/0.12.2/Aki-0.12.2.zip" length="4361673" type="application/octet-stream" sparkle:edSignature="Xte5/Y05V1DkpH4CipnLH93dUrgIOtc+FMRRr12Z93SK4tcj/eAm1otNR7gT0X8ayW/macki9KG1SUfFus/wAQ=="/>
+        </item>
+        <item>
             <title>0.12.2-beta.5</title>
             <pubDate>Mon, 16 Nov 2026 18:29:04 -0300</pubDate>
             <sparkle:channel>beta</sparkle:channel>
@@ -16,34 +30,6 @@
 </ul>
 ]]></description>
             <enclosure url="https://aki-updates.vercel.app/0.12.2-beta.5/Aki-0.12.2-beta.5.zip" length="4361729" type="application/octet-stream" sparkle:edSignature="BwfQDSuGIAldMKZOBm1i/O/0NU2OtH/bu8FJXlJuuCH6CTc24cCxk6OIBXhihANzRclwW0gRB7JQoC11q8/tDA=="/>
-        </item>
-        <item>
-            <title>0.12.2-beta.4</title>
-            <pubDate>Sun, 15 Nov 2026 18:57:07 -0300</pubDate>
-            <sparkle:channel>beta</sparkle:channel>
-            <sparkle:version>20261115215707</sparkle:version>
-            <sparkle:shortVersionString>0.12.2-beta.4</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
-            <description><![CDATA[<h2>Aki 0.12.2-beta.4</h2><h3>Fixes</h3><ul>
-<li>A page's hover menu stays on screen when marking opens, as with the Mac's ⌘⇧4: the screen holds still at once, instead of the menu vanishing and coming back.</li>
-</ul>
-]]></description>
-            <enclosure url="https://aki-updates.vercel.app/0.12.2-beta.4/Aki-0.12.2-beta.4.zip" length="4359848" type="application/octet-stream" sparkle:edSignature="QHvh7d3MnBKshvRWo69kQerj/uceDdYi98aeA9YgviPPOOEPJFgmtehXYp778biJeJ/PXYZzUG4HV/nnXhCxCA=="/>
-        </item>
-        <item>
-            <title>0.12.2-beta.3</title>
-            <pubDate>Sun, 15 Nov 2026 18:35:24 -0300</pubDate>
-            <sparkle:channel>beta</sparkle:channel>
-            <sparkle:version>20261115213523</sparkle:version>
-            <sparkle:shortVersionString>0.12.2-beta.3</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
-            <description><![CDATA[<h2>Aki 0.12.2-beta.3</h2><h3>Fixes</h3><ul>
-<li>A page's hover menu stays on screen when marking opens, as with the Mac's ⌘⇧4: the screen holds still at once, instead of the menu vanishing and coming back.</li>
-</ul>
-]]></description>
-            <enclosure url="https://aki-updates.vercel.app/0.12.2-beta.3/Aki-0.12.2-beta.3.zip" length="4357325" type="application/octet-stream" sparkle:edSignature="fIvsC5MkjeYFCZrwCI/UWt9f3CqY9V9YTFl79uEF4+Cqqi+8ZKeurb+Nx1fqQUS6tuE5DZSQRMdhe9vw0/DZBQ=="/>
         </item>
         <item>
             <title>0.12.1</title>
@@ -79,21 +65,6 @@
 </ul>
 ]]></description>
             <enclosure url="https://aki-updates.vercel.app/0.12.0/Aki-0.12.0.zip" length="4352998" type="application/octet-stream" sparkle:edSignature="OCq3wJQnwJdb4v/IkcchDraDuhQtPfLpEkIrp/1WEgvBANLpWD9K51h6t1FraOlm+RqEzROduadIal6B2ktMCQ=="/>
-        </item>
-        <item>
-            <title>0.11.1</title>
-            <pubDate>Thu, 22 Oct 2026 17:05:47 -0300</pubDate>
-            <sparkle:version>20261022200546</sparkle:version>
-            <sparkle:shortVersionString>0.11.1</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
-            <description><![CDATA[<h2>Aki 0.11.1</h2>
-<h3>Fixed</h3><ul>
-<li>History takes the keys as soon as it opens, so esc closes it without clicking it first.</li>
-<li>A mark on a localhost page goes to the right session again when a second copy of Chrome is open (a test one, another profile folder): Aki now reads only your window, by its title and place on screen.</li>
-</ul>
-]]></description>
-            <enclosure url="https://aki-updates.vercel.app/0.11.1/Aki-0.11.1.zip" length="4335463" type="application/octet-stream" sparkle:edSignature="91bhCCvL9HPeur+GDjs/mZc60UOllGjpa62FtT1x/VmYOHcrt5g6plUD/q7G7vBLYikanollhwaZP2dFrsWuAg=="/>
         </item>
     </channel>
 </rss>
