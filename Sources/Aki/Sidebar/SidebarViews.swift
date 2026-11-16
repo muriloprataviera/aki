@@ -1677,10 +1677,13 @@ struct MoreCard: View {
                 // so the "Show" on them doesn't look like it's missing on the rest.
                 let byYou = hidden ? [] : terminals.filter { model.preferences.hiddenTerminals.contains($0.id) }
                 let quiet = terminals.filter { t in !byYou.contains { $0.id == t.id } }
-                // As many as the screen has room for (the card can't scroll: its rows are
-                // clicked by position); the rest are in the History's Sessions.
+                // As many as the card and the screen have room for (the card can't scroll:
+                // its rows are clicked by position); the rest are in the History's Sessions.
+                // A row takes up to ~52 (a third line for a page's address); the title,
+                // lines and links around them ~130 (~40 more with the note on hidden ones).
                 let screen = NSScreen.screens.first { SidebarController.id(of: $0) == model.preferences.sidebarScreen } ?? NSScreen.screens.first
-                let room = max(4, Int(((screen?.visibleFrame.height ?? 800) - 220) / 48))
+                let card = SidebarLayout.cardMaxHeight - 2 * SidebarLayout.cardPadding - (hidden ? 170 : 130)
+                let room = max(3, min(Int(card / 52), Int(((screen?.visibleFrame.height ?? 800) - 220) / 48)))
                 let shownQuiet = Array(quiet.prefix(room))
                 let shownByYou = Array(byYou.prefix(max(0, room - shownQuiet.count)))
                 let left = terminals.count - shownQuiet.count - shownByYou.count
