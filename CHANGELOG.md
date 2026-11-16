@@ -4,6 +4,9 @@ What changed in each version of Aki. Versions follow [semantic versioning](https
 
 ## [Unreleased]
 
+### Fixed
+- Claude's usage ring follows the session that talked to Claude last: after you reset your limit it showed the old share (idle sessions kept repeating it).
+
 ## [0.12.2] — 2026-11-16
 
 ### Fixed

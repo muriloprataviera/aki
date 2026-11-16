@@ -336,14 +336,14 @@ check(tabNameWithoutStatus("⠂ MENU") == "MENU", "spinner taken off a name")
 check(tabNameWithoutStatus("🐛 Login") == "🐛 Login", "an emoji in a name stays")
 check(tabNameWithoutStatus("[API] auth") == "[API] auth", "brackets in a name stay")
 
-// Claude's limits across sessions: an idle one keeps rewriting an older share.
+// Claude's limits across sessions: an idle one keeps rewriting an older share (lower
+// before, higher after a reset); the one that heard from Claude last is right.
 let window = Date(timeIntervalSince1970: 4102444800)
 let claudeStatuses: [String: ClaudeStatus] = [
-    "fresh": ClaudeStatus(week: .init(percent: 99, resets: window), updated: Date(timeIntervalSince1970: 100)),
-    "idle": ClaudeStatus(week: .init(percent: 98, resets: window), updated: Date(timeIntervalSince1970: 200)),
-    "lastWeek": ClaudeStatus(week: .init(percent: 100, resets: window.addingTimeInterval(-7 * 86400)), updated: Date(timeIntervalSince1970: 300)),
+    "fresh": ClaudeStatus(week: .init(percent: 0, resets: window), updated: Date(timeIntervalSince1970: 100), heard: Date(timeIntervalSince1970: 90)),
+    "idle": ClaudeStatus(week: .init(percent: 99, resets: window), updated: Date(timeIntervalSince1970: 200), heard: Date(timeIntervalSince1970: 10)),
 ]
-check(ClaudeStatus.latestLimits(in: claudeStatuses)?.week?.percent == 99, "Claude's week: the highest share of the newest window")
+check(ClaudeStatus.latestLimits(in: claudeStatuses)?.week?.percent == 0, "Claude's week: from the session that heard from Claude last")
 
 // Codex's limits, from one of its log lines: the week goes by the window's length.
 let codexLine = #"{"type":"event_msg","payload":{"type":"token_count","rate_limits":{"primary":{"used_percent":17.0,"window_minutes":10080,"resets_at":4102444800},"secondary":{"used_percent":42.4,"window_minutes":300,"resets_at":4102444800}}}}"#

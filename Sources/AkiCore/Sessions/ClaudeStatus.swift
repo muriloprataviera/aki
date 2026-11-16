@@ -9,6 +9,9 @@ public struct ClaudeStatus: Sendable, Equatable {
     public var fiveHour: Limit?
     public var week: Limit?
     public var updated: Date
+    /// When the session last heard from Claude (its transcript's last line): its limits
+    /// are as of then. The status file itself is rewritten by idle sessions too.
+    public var heard: Date?
 
     public struct Limit: Sendable, Equatable {
         public var percent: Int
@@ -20,7 +23,9 @@ public struct ClaudeStatus: Sendable, Equatable {
         }
     }
 
-    public init(model: String? = nil, contextPercent: Int? = nil, fiveHour: Limit? = nil, week: Limit? = nil, updated: Date) {
+    public init(model: String? = nil, contextPercent: Int? = nil, fiveHour: Limit? = nil, week: Limit? = nil, updated: Date,
+                heard: Date? = nil) {
+        self.heard = heard
         self.model = model
         self.contextPercent = contextPercent
         self.fiveHour = fiveHour
@@ -44,29 +49,24 @@ public struct ClaudeStatus: Sendable, Equatable {
                 guard let l = limits?[key] as? [String: Any], let p = (l["used_percentage"] as? NSNumber)?.intValue else { return nil }
                 return Limit(percent: p, resets: (l["resets_at"] as? NSNumber).map { Date(timeIntervalSince1970: $0.doubleValue) })
             }
+            let fiveHour = limit("five_hour"), week = limit("seven_day")
+            // Only for those with limits (a stat each).
+            let heard = fiveHour == nil && week == nil ? nil : (json["transcript_path"] as? String).flatMap {
+                try? URL(fileURLWithPath: $0).resourceValues(forKeys: [.contentModificationDateKey]).contentModificationDate
+            }
             result[file.deletingPathExtension().lastPathComponent] = ClaudeStatus(
                 model: (json["model"] as? [String: Any])?["display_name"] as? String,
                 contextPercent: ((json["context_window"] as? [String: Any])?["used_percentage"] as? NSNumber)?.intValue,
-                fiveHour: limit("five_hour"), week: limit("seven_day"), updated: updated)
+                fiveHour: fiveHour, week: week, updated: updated, heard: heard)
         }
         return result
     }
 
-    /// The account's limits (they're account-wide). Each session reports what it saw on
-    /// its own last request, and an idle one keeps rewriting that: the newest window, and
-    /// in it the highest share (usage only grows until the window resets).
+    /// The account's limits (they're account-wide), from the session that heard from
+    /// Claude last: each reports what it saw on its own last request, and an idle one
+    /// keeps rewriting that (a share that has grown since, or been reset).
     public static func latestLimits(in all: [String: ClaudeStatus]) -> ClaudeStatus? {
-        let reporting = all.values.filter { $0.fiveHour != nil || $0.week != nil }
-        guard var result = reporting.max(by: { $0.updated < $1.updated }) else { return nil }
-        result.fiveHour = newest(reporting.compactMap(\.fiveHour))
-        result.week = newest(reporting.compactMap(\.week))
-        return result
-    }
-
-    static func newest(_ limits: [Limit]) -> Limit? {
-        guard let last = limits.compactMap(\.resets).max() else { return limits.max { $0.percent < $1.percent } }
-        // The same window, give or take a minute (the time is rounded differently).
-        return limits.filter { ($0.resets.map { last.timeIntervalSince($0) } ?? .infinity) <= 60 }
-            .max { $0.percent < $1.percent }
+        all.values.filter { $0.fiveHour != nil || $0.week != nil }
+            .max { ($0.heard ?? $0.updated, $0.updated) < ($1.heard ?? $1.updated, $1.updated) }
     }
 }
