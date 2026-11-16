@@ -5,6 +5,7 @@ What changed in each version of Aki. Versions follow [semantic versioning](https
 ## [Unreleased]
 
 ### Fixed
+- Claude's usage ring shows the newest share of the limit: a session left idle kept showing an older, lower number.
 - A page's hover menu stays on screen when marking opens, as with the Mac's ⌘⇧4: the screen holds still at once, instead of the menu vanishing and coming back (also menus that wait before closing, or open a little below the pointer).
 
 ## [0.12.1] — 2026-11-14
