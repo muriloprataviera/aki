@@ -3,6 +3,21 @@
     <channel>
         <title>Aki</title>
         <item>
+            <title>0.12.2-beta.5</title>
+            <pubDate>Mon, 16 Nov 2026 18:29:04 -0300</pubDate>
+            <sparkle:channel>beta</sparkle:channel>
+            <sparkle:version>20261116212903</sparkle:version>
+            <sparkle:shortVersionString>0.12.2-beta.5</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
+            <description><![CDATA[<h2>Aki 0.12.2-beta.5</h2><h3>Fixes</h3><ul>
+<li>A page's hover menu stays on screen when marking opens, as with the Mac's ⌘⇧4: the screen holds still at once.</li>
+<li>Claude's usage ring shows the newest share of the limit: a session left idle kept showing an older, lower number.</li>
+</ul>
+]]></description>
+            <enclosure url="https://aki-updates.vercel.app/0.12.2-beta.5/Aki-0.12.2-beta.5.zip" length="4361729" type="application/octet-stream" sparkle:edSignature="BwfQDSuGIAldMKZOBm1i/O/0NU2OtH/bu8FJXlJuuCH6CTc24cCxk6OIBXhihANzRclwW0gRB7JQoC11q8/tDA=="/>
+        </item>
+        <item>
             <title>0.12.2-beta.4</title>
             <pubDate>Sun, 15 Nov 2026 18:57:07 -0300</pubDate>
             <sparkle:channel>beta</sparkle:channel>
@@ -29,20 +44,6 @@
 </ul>
 ]]></description>
             <enclosure url="https://aki-updates.vercel.app/0.12.2-beta.3/Aki-0.12.2-beta.3.zip" length="4357325" type="application/octet-stream" sparkle:edSignature="fIvsC5MkjeYFCZrwCI/UWt9f3CqY9V9YTFl79uEF4+Cqqi+8ZKeurb+Nx1fqQUS6tuE5DZSQRMdhe9vw0/DZBQ=="/>
-        </item>
-        <item>
-            <title>0.12.2-beta.2</title>
-            <pubDate>Sun, 15 Nov 2026 18:26:26 -0300</pubDate>
-            <sparkle:channel>beta</sparkle:channel>
-            <sparkle:version>20261115212625</sparkle:version>
-            <sparkle:shortVersionString>0.12.2-beta.2</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
-            <description><![CDATA[<h2>Aki 0.12.2-beta.2</h2><h3>Fixes</h3><ul>
-<li>Hover menus that wait a moment before closing, or open their panel a little below the pointer, now stay on screen when marking opens.</li>
-</ul>
-]]></description>
-            <enclosure url="https://aki-updates.vercel.app/0.12.2-beta.2/Aki-0.12.2-beta.2.zip" length="4355866" type="application/octet-stream" sparkle:edSignature="yuUaQX9bhKOuI2d2lUjJ2DfY0ea72MIXaHpibtYJAG52wvzmq0tWluAyr9g7awNJemgQTTedaK9NSY6BQhQ9Bw=="/>
         </item>
         <item>
             <title>0.12.1</title>
