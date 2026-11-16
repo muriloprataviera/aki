@@ -64,11 +64,9 @@ public struct ClaudeStatus: Sendable, Equatable {
     }
 
     static func newest(_ limits: [Limit]) -> Limit? {
-        limits.max { a, b in
-            let ra = a.resets ?? .distantPast, rb = b.resets ?? .distantPast
-            // The same window, give or take a minute (the time is rounded differently).
-            if abs(ra.timeIntervalSince(rb)) > 60 { return ra < rb }
-            return a.percent < b.percent
-        }
+        guard let last = limits.compactMap(\.resets).max() else { return limits.max { $0.percent < $1.percent } }
+        // The same window, give or take a minute (the time is rounded differently).
+        return limits.filter { ($0.resets.map { last.timeIntervalSince($0) } ?? .infinity) <= 60 }
+            .max { $0.percent < $1.percent }
     }
 }
