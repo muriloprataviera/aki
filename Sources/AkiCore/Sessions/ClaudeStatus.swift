@@ -71,19 +71,26 @@ public struct ClaudeStatus: Sendable, Equatable {
         if let handle = try? FileHandle(forReadingFrom: url) {
             defer { try? handle.close() }
             let size = (try? handle.seekToEnd()) ?? 0
-            try? handle.seek(toOffset: size > 512 * 1024 ? size - 512 * 1024 : 0)
-            let tail = (try? handle.readToEnd()) ?? Data()
-            for line in tail.split(separator: UInt8(ascii: "\n")).reversed() {
-                guard line.count < 2_000_000, line.range(of: Data(#""type":"assistant""#.utf8)) != nil,
-                      let json = try? JSONSerialization.jsonObject(with: line) as? [String: Any],
-                      json["type"] as? String == "assistant", let stamp = json["timestamp"] as? String
-                else { continue }
-                reply = timestamp(stamp)
-                break
+            // Further back each time (a long tool result can follow the last reply), as far
+            // as 64 MB; the start of a cut line is left out (not a whole line).
+            for window: UInt64 in [512 * 1024, 4 * 1024 * 1024, 64 * 1024 * 1024] {
+                let start = size > window ? size - window : 0
+                try? handle.seek(toOffset: start)
+                var tail = (try? handle.readToEnd()) ?? Data()
+                if start > 0, let first = tail.firstIndex(of: UInt8(ascii: "\n")) { tail = tail[tail.index(after: first)...] }
+                for line in tail.split(separator: UInt8(ascii: "\n")).reversed() {
+                    guard line.range(of: Data(#""type":"assistant""#.utf8)) != nil,
+                          let json = try? JSONSerialization.jsonObject(with: line) as? [String: Any],
+                          json["type"] as? String == "assistant", let stamp = json["timestamp"] as? String
+                    else { continue }
+                    reply = timestamp(stamp)
+                    break
+                }
+                if reply != nil || start == 0 { break }
             }
         }
-        // None in its last half megabyte: the file's date is the best guess left.
-        reply = reply ?? modified
+        // No reply found at all: its numbers count as the oldest (never newer than a real reply).
+        reply = reply ?? .distantPast
         repliesLock.withLock { replies[path] = (modified, reply) }
         return reply
     }

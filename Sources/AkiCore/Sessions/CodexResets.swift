@@ -24,13 +24,45 @@ public enum CodexResets {
             "/Applications/Codex.app/Contents/Resources/codex-cli/bin/codex", "/Applications/Codex.app/Contents/Resources/codex",
             "/Applications/ChatGPT.app/Contents/Resources/codex-cli/bin/codex",
         ]
-        return candidates.first { FileManager.default.isExecutableFile(atPath: $0) }.map(URL.init(fileURLWithPath:))
+        if let found = candidates.first(where: { FileManager.default.isExecutableFile(atPath: $0) }) { return URL(fileURLWithPath: found) }
+        return fromShell()
     }
+
+    /// Where your Terminal finds `codex` (nvm, asdf, another prefix): asked of a login
+    /// shell, once, with a time limit.
+    private static func fromShell() -> URL? {
+        if let known = shellLock.withLock({ shellFound }) { return known }
+        let process = Process()
+        process.executableURL = URL(fileURLWithPath: "/bin/zsh")
+        process.arguments = ["-ilc", "command -v codex"]
+        let output = Pipe()
+        process.standardOutput = output
+        process.standardError = FileHandle.nullDevice
+        process.standardInput = FileHandle.nullDevice
+        guard (try? process.run()) != nil else { return nil }
+        let deadline = DispatchWorkItem { if process.isRunning { process.terminate() } }
+        DispatchQueue.global().asyncAfter(deadline: .now() + 5, execute: deadline)
+        let data = output.fileHandleForReading.readDataToEndOfFile()
+        process.waitUntilExit()
+        deadline.cancel()
+        // The last line that is a path (a shell's greeting may come first).
+        let path = String(decoding: data, as: UTF8.self).split(separator: "\n").map(String.init).last { $0.hasPrefix("/") }
+        guard let path, FileManager.default.isExecutableFile(atPath: path) else { return nil }
+        let url = URL(fileURLWithPath: path)
+        shellLock.withLock { shellFound = url }
+        return url
+    }
+
+    nonisolated(unsafe) private static var shellFound: URL?
+    private static let shellLock = NSLock()
 
     /// Uses the available reset that expires first.
     public static func useOne() async -> Outcome {
-        guard let executable else { return .failed }
-        return await Task.detached { run(executable) }.value
+        // Off the main thread: finding it may ask a login shell.
+        await Task.detached {
+            guard let executable else { return .failed }
+            return run(executable)
+        }.value
     }
 
     private static func run(_ executable: URL) -> Outcome {
@@ -39,7 +71,7 @@ public enum CodexResets {
         process.arguments = ["app-server"]
         // Homebrew's `codex` is a Node script: `node` must be on the path.
         var environment = ProcessInfo.processInfo.environment
-        environment["PATH"] = "/opt/homebrew/bin:/usr/local/bin:" + (environment["PATH"] ?? "/usr/bin:/bin")
+        environment["PATH"] = executable.deletingLastPathComponent().path + ":/opt/homebrew/bin:/usr/local/bin:" + (environment["PATH"] ?? "/usr/bin:/bin")
         process.environment = environment
         let input = Pipe(), output = Pipe()
         process.standardInput = input
