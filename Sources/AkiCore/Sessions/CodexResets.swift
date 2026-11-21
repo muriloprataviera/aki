@@ -40,17 +40,38 @@ public enum CodexResets {
         process.standardError = FileHandle.nullDevice
         process.standardInput = FileHandle.nullDevice
         guard (try? process.run()) != nil else { return nil }
-        let deadline = DispatchWorkItem { if process.isRunning { process.terminate() } }
-        DispatchQueue.global().asyncAfter(deadline: .now() + 5, execute: deadline)
-        let data = output.fileHandleForReading.readDataToEndOfFile()
-        process.waitUntilExit()
-        deadline.cancel()
+        // Read as it comes; at 5 s the shell is killed (an interactive zsh ignores a plain
+        // stop) and nothing more is waited for, whatever keeps the pipe open.
+        let collected = Collected()
+        let finished = DispatchSemaphore(value: 0)
+        output.fileHandleForReading.readabilityHandler = { handle in
+            let chunk = handle.availableData
+            if chunk.isEmpty {
+                handle.readabilityHandler = nil
+                finished.signal()
+            } else {
+                collected.append(chunk)
+            }
+        }
+        if finished.wait(timeout: .now() + 5) == .timedOut {
+            output.fileHandleForReading.readabilityHandler = nil
+            kill(process.processIdentifier, SIGKILL)
+            return nil
+        }
+        let data = collected.data
         // The last line that is a path (a shell's greeting may come first).
         let path = String(decoding: data, as: UTF8.self).split(separator: "\n").map(String.init).last { $0.hasPrefix("/") }
         guard let path, FileManager.default.isExecutableFile(atPath: path) else { return nil }
         let url = URL(fileURLWithPath: path)
         shellLock.withLock { shellFound = url }
         return url
+    }
+
+    private final class Collected: @unchecked Sendable {
+        private let lock = NSLock()
+        private var bytes = Data()
+        func append(_ chunk: Data) { lock.withLock { bytes.append(chunk) } }
+        var data: Data { lock.withLock { bytes } }
     }
 
     nonisolated(unsafe) private static var shellFound: URL?
