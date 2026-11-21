@@ -209,7 +209,7 @@ final class MarkingController {
 
     /// What closed since `first` was taken (global top-left points), nil when the screens
     /// can't be captured again. Small changes (a caret) and what keeps moving don't count.
-    private func closedRegions(since first: [ScreenGrab], pid: pid_t?) async -> [CGRect]? {
+    private func closedRegions(since first: [ScreenGrab], pid: pid_t?, screens: Set<Int>) async -> [CGRect]? {
         // The front window's title bar and toolbar change look when Aki comes forward:
         // never a menu that closed.
         let windows = CGWindowListCopyWindowInfo([.optionOnScreenOnly, .excludeDesktopElements], kCGNullWindowID) as? [[String: Any]] ?? []
@@ -221,7 +221,8 @@ final class MarkingController {
         guard let now = await ScreenGrab.captureAll(excluding: overlayIDs), now.count == first.count else { return nil }
         let primary = NSScreen.screens.first?.frame.height ?? 0
         var changed: [CGRect] = []
-        for (a, b) in zip(first, now) {
+        // Only the screens being watched: another display's changes are its own.
+        for (index, (a, b)) in zip(first, now).enumerated() where screens.contains(index) {
             let f = a.screen.frame
             for rect in ScreenGrab.changedRegions(a.image, b.image) {
                 let global = CGRect(x: f.minX + rect.minX * f.width, y: primary - f.maxY + rect.minY * f.height,
@@ -260,46 +261,52 @@ final class MarkingController {
     /// stays on screen, the screens frozen as they were just before (marks can go on it too).
     /// With `near` (global top-left points), only what closed near the pointer counts (a
     /// menu's panel can open a few lines below its title): a hover menu sits there, while a notice or a terminal's new line elsewhere doesn't.
-    private func keepWhatCloses(_ session: MarkingSession, before: [ScreenGrab], near: CGPoint? = nil) {
+    private func keepWhatCloses(_ session: MarkingSession, before: [ScreenGrab], near: CGPoint? = nil, screens: Set<Int>) {
+        let screens = screens.filter { $0 < before.count && session.isLive($0) }
+        guard !screens.isEmpty else { return }
         let pid = session.context.pid
         // Scrolled meanwhile (the screens captured anew): `before` is out of date.
         let generation = session.generation
         // Held still meanwhile, as ⌘⇧4 does: the menu doesn't vanish and come back.
-        session.holding = before
+        let id = UUID()
+        session.holdID = id
+        session.holding = Dictionary(uniqueKeysWithValues: screens.map { ($0, before[$0]) })
         // A capture that doesn't answer mustn't keep it up: the live screen after a while
         // (a drag on it lasts until you let go).
         Task { [weak session] in
             try? await Task.sleep(for: .seconds(3))
-            while let session, session.dragging, session.holding?.first?.image === before.first?.image {
+            while let session, session.dragging, session.holdID == id {
                 try? await Task.sleep(for: .milliseconds(100))
             }
-            if let session, session.holding?.first?.image === before.first?.image { session.holding = nil }
+            session?.dropHold(id)
         }
         Task { [weak self, weak session] in
-            let closed = await self?.closed(near: near, since: before, session: session, generation: generation, pid: pid)
+            let closed = await self?.closed(near: near, since: before, screens: screens, session: session, generation: generation, pid: pid, hold: id)
             guard let self, let session else { return }
-            if let closed, Self.watching(self, session, before: before, generation: generation, pid: pid) {
+            if let closed, Self.watching(self, session, before: before, screens: screens, generation: generation, pid: pid, hold: id) {
                 // Already frozen on this picture (marked on it while held): what closed is
                 // known now too.
-                if session.live { self.settle(session, on: before, closed: closed) } else { session.freeze(before, closed: closed) }
+                if session.holdID == id { self.settle(session, on: before, closed: closed, screens: screens) }
+                else { session.freeze(before, closed: closed, screens: screens) }
             }
             // An area still being dragged on the picture: it stays until you let go (the
             // mark then takes it).
-            while session.dragging, session.holding?.first?.image === before.first?.image, self.session === session {
+            while session.dragging, session.holdID == id, self.session === session {
                 try? await Task.sleep(for: .milliseconds(100))
             }
             // Nothing closed (or marking moved on): the live screen, the same as the picture.
-            if session.holding?.first?.image === before.first?.image { session.holding = nil }
+            session.dropHold(id)
         }
     }
 
-    /// The screens stay as `pictures` (frozen), their text read again.
-    private func settle(_ session: MarkingSession, on pictures: [ScreenGrab], closed: [CGRect]) {
-        session.holding = nil
+    /// `screens` stay as in `pictures` (frozen), their text read again.
+    private func settle(_ session: MarkingSession, on pictures: [ScreenGrab], closed: [CGRect], screens: Set<Int>) {
+        session.dropHold()
         guard pictures.count == session.grabs.count else { return }
-        session.freeze(pictures, closed: closed)
+        session.freeze(pictures, closed: closed, screens: screens)
         // Sending waits for it (`capturing`).
-        for (index, grab) in pictures.enumerated() {
+        for index in screens where index < pictures.count {
+            let grab = pictures[index]
             session.capturing += 1
             Task { [weak session] in
                 let text = await ScreenText.read(grab)
@@ -309,32 +316,35 @@ final class MarkingController {
         }
     }
 
-    /// What closed (near the pointer, with `near`), looked at a few times: a menu may wait
-    /// a moment before closing, or fade out (still moving at the first look).
-    private func closed(near: CGPoint?, since before: [ScreenGrab], session: MarkingSession?, generation: [Int: Int],
-                        pid: pid_t?) async -> [CGRect]? {
+    /// What closed on `screens` (near the pointer, with `near`), looked at a few times: a
+    /// menu may wait a moment before closing, or fade out (still moving at the first look).
+    private func closed(near: CGPoint?, since before: [ScreenGrab], screens: Set<Int>, session: MarkingSession?,
+                        generation: [Int: Int], pid: pid_t?, hold: UUID) async -> [CGRect]? {
         for wait in [300, 400, 600] {
             try? await Task.sleep(for: .milliseconds(wait))
-            guard let session, Self.watching(self, session, before: before, generation: generation, pid: pid),
-                  let closed = await closedRegions(since: before, pid: pid)
+            guard let session, Self.watching(self, session, before: before, screens: screens, generation: generation, pid: pid, hold: hold),
+                  let closed = await closedRegions(since: before, pid: pid, screens: screens)
             else { return nil }
             if Self.counts(closed, near: near) { return closed }
         }
         return nil
     }
 
-    /// Still the same round of marking, on the screens `before` shows: live, or frozen on
-    /// that very picture (a mark made on it while it was held).
+    /// Still the same round of marking, on the screens `before` shows: held still, or
+    /// frozen on that very picture (a mark made on it while it was held).
     private static func watching(_ controller: MarkingController, _ session: MarkingSession, before: [ScreenGrab],
-                                 generation: [Int: Int], pid: pid_t?) -> Bool {
+                                 screens: Set<Int>, generation: [Int: Int], pid: pid_t?, hold: UUID) -> Bool {
         guard controller.session === session, !session.scrolling, session.generation == generation,
               // ⌘Tab meanwhile: the other app's window changed it, not a menu closing.
               session.context.pid == pid
         else { return false }
-        if !session.live { return session.grabs.first?.image === before.first?.image }
-        // Live: while its picture is held still (dropped on ⌘Tab, a new capture, or when
-        // the check takes too long: the live screen stays then).
-        return session.holding?.first?.image === before.first?.image
+        // Held still (dropped on ⌘Tab, a new capture, or when the check takes too long:
+        // the live screen stays then).
+        if session.holdID == hold { return true }
+        for screen in screens {
+            guard !session.isLive(screen), screen < session.grabs.count, session.grabs[screen].image === before[screen].image else { return false }
+        }
+        return true
     }
 
     /// Something closed, and (with `near`) under the pointer.
@@ -470,7 +480,7 @@ final class MarkingController {
             // As the Mac's ⌘⇧4: the screen stays as it is, live, and only the pointer
             // changes. Frozen (the picture shown) when asked to, or with a menu open: it
             // would close under the marks.
-            session.live = !frozen
+            session.frozen = frozen ? Set(grabs.indices) : []
             session.menus = menus
             // Aki stays in the background, as ⌘⇧4 does: the app below keeps the focus
             // (its menu open, its selection blue); the keys come by `KeyTap`.
@@ -478,17 +488,21 @@ final class MarkingController {
                 guard let session else { return }
                 // Marked on the picture held still (a menu that may have closed below):
                 // the screen stays as you marked it, and the mark gets that picture.
-                let held = session.holding
-                if let held { self?.settle(session, on: held, closed: []) }
-                guard held != nil || session.live else { return }
+                let held = session.holding[mark.screen]
+                if held != nil {
+                    var pictures = session.grabs
+                    for (index, picture) in session.holding where index < pictures.count { pictures[index] = picture }
+                    self?.settle(session, on: pictures, closed: [], screens: Set(session.holding.keys))
+                }
+                guard held != nil || session.isLive(mark.screen) else { return }
                 let overlays = self?.overlayIDs ?? []
                 // The overlay is transparent: the capture leaves Aki's windows out.
                 session.capturing += 1
                 Task {
                     defer { session.capturing -= 1 }
-                    let grabs = if let held { held } else { await ScreenGrab.captureAll(excluding: overlays) }
-                    guard let grabs, mark.screen < grabs.count else { return }
-                    let grab = grabs[mark.screen]
+                    var grab = held
+                    if grab == nil, let grabs = await ScreenGrab.captureAll(excluding: overlays), mark.screen < grabs.count { grab = grabs[mark.screen] }
+                    guard let grab else { return }
                     // Its own picture, taken: to the clipboard before the text is read.
                     session.copyPicture(of: mark.id, from: grab)
                     let text = mark.isPoint ? nil : await ScreenText.read(grab)
@@ -508,14 +522,14 @@ final class MarkingController {
                     // A page's menu closes as its app loses the focus, and on a live screen
                     // it would be gone from under the mark: the screens as they are now,
                     // to keep if something closes.
-                    let before = session?.live == true && !NSApp.isActive
+                    let before = session?.isLive(index) == true && !NSApp.isActive
                         ? await ScreenGrab.captureAll(excluding: self.overlayIDs) : nil
                     guard self.session != nil, index < self.panels.count else { return }
                     self.panels.forEach { $0.acceptsKeyboard = true }
                     self.panels[index].makeKeyAndOrderFront(nil)
                     NSApp.activate(ignoringOtherApps: true)
                     self.panels[index].makeKey()
-                    if let before, let session { self.keepWhatCloses(session, before: before) }
+                    if let before, let session { self.keepWhatCloses(session, before: before, screens: [index]) }
                 }
             }
             for (index, grab) in grabs.enumerated() {
@@ -580,9 +594,11 @@ final class MarkingController {
             let onAki = NSApp.windows.contains {
                 $0.isVisible && !$0.ignoresMouseEvents && !($0 is MarkingPanel) && $0.frame.contains(NSEvent.mouseLocation)
             }
-            if session.live, !onAki {
-                let mouse = NSEvent.mouseLocation, primary = NSScreen.screens.first?.frame.height ?? 0
-                keepWhatCloses(session, before: grabs, near: CGPoint(x: mouse.x, y: primary - mouse.y))
+            // Only the screen you're on, as ⌘⇧4: the other displays keep running.
+            let mouse = NSEvent.mouseLocation
+            if let here = grabs.firstIndex(where: { $0.screen.frame.contains(mouse) }), session.isLive(here), !onAki {
+                let primary = NSScreen.screens.first?.frame.height ?? 0
+                keepWhatCloses(session, before: grabs, near: CGPoint(x: mouse.x, y: primary - mouse.y), screens: [here])
             }
             // Without the key tap (no Accessibility): esc and ⌘⏎ at least, system-wide.
             if keyTap == nil {
@@ -706,7 +722,7 @@ final class MarkingController {
                 let context = MarkContext.current(withURL: false)
                 session.context = context
                 // The picture held still is the other app's: the live screen now.
-                session.holding = nil
+                session.dropHold()
                 // The page's address after, off the main thread (the browser may take a second).
                 Task { [weak session] in
                     let url = await Task.detached { MarkContext.browserURL(bundleID: context.bundleID, windowTitle: context.windowTitle, pid: context.pid) }.value
@@ -715,7 +731,7 @@ final class MarkingController {
                 self.previousApp = app
                 session.hovered = nil
                 // A frozen screen shows the app you just switched to (live ones already do).
-                if !session.live { session.scrolling = true; self.scrollStopped() }
+                if !session.frozen.isEmpty { session.scrolling = true; self.scrollStopped() }
                 // The overlay stays over everything, with the pin (back up from under ⌘Tab).
                 self.panels.forEach { $0.level = .screenSaver; $0.orderFrontRegardless() }
                 AkiCursor.pin.set()

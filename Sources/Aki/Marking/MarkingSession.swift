@@ -51,12 +51,25 @@ final class MarkingSession {
     var generation: [Int: Int] = [:]
     /// The page below is scrolling: the frozen picture steps aside.
     var scrolling = false
-    /// The screen keeps running under the overlay (each mark takes its own picture).
-    var live = true
+    /// Screens frozen (their picture shown): a menu closed there, or Settings freezes them
+    /// all. The others keep running under the overlay (each mark takes its own picture),
+    /// as the Mac's ⌘⇧4 stops only the screen you're on.
+    var frozen: Set<Int> = []
     /// Shown over a live screen while Aki checks whether something closed as it came up
-    /// (a page's hover menu), as the Mac's ⌘⇧4 holds the screen still: the screens just
-    /// before. It stays if something closed, and goes otherwise (the same picture).
-    var holding: [ScreenGrab]?
+    /// (a page's hover menu), as ⌘⇧4 holds that screen still: the picture from just
+    /// before, by screen. It stays if something closed, and goes otherwise (the same picture).
+    var holding: [Int: ScreenGrab] = [:]
+    /// The round of checking that put `holding` up.
+    var holdID: UUID?
+
+    func isLive(_ screen: Int) -> Bool { !frozen.contains(screen) }
+
+    /// The held pictures go (the live screens below look the same).
+    func dropHold(_ id: UUID? = nil) {
+        guard id == nil || holdID == id else { return }
+        holding = [:]
+        holdID = nil
+    }
     /// The app being marked: the one in front (it follows ⌘Tab while marking).
     var context: MarkContext
     /// Conversations you can send to, in sidebar order.
@@ -407,7 +420,7 @@ final class MarkingSession {
         grabs[screen] = grab
         generation[screen, default: 0] += 1
         // The picture held still is out of date too.
-        holding = nil
+        if holding[screen] != nil { dropHold() }
         texts[screen] = nil
         // A new picture: the menus that had closed belong to the old one.
         let primary = NSScreen.screens.first?.frame.height ?? 0
@@ -422,11 +435,11 @@ final class MarkingSession {
     /// Something closed as Aki took the keyboard (a page's menu): the screens as they
     /// were just before stay, frozen, and what closed is found on that picture. The
     /// marks stay drawn (same picture they were made on).
-    func freeze(_ pictures: [ScreenGrab], closed: [CGRect]) {
+    func freeze(_ pictures: [ScreenGrab], closed: [CGRect], screens: Set<Int>) {
         guard pictures.count == grabs.count else { return }
-        grabs = pictures
+        for screen in screens where screen < grabs.count { grabs[screen] = pictures[screen] }
         menus += closed
-        live = false
+        frozen.formUnion(screens.filter { $0 < grabs.count })
     }
 
     /// Arrow keys on a web page: container, first child, sibling before / after.
@@ -509,7 +522,7 @@ final class MarkingSession {
         markAdded(mark)
         // Its crop to the clipboard too (⌘V anywhere): now on a frozen picture; on a live
         // screen once its own picture is taken (`copyPicture`, from the controller).
-        if !live { copyPicture(of: mark.id) }
+        if !isLive(mark.screen) { copyPicture(of: mark.id) }
         editing = mark.id
         justMade = true
         draft = ""
