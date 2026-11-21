@@ -640,6 +640,8 @@ final class MarkingController {
             // The folder serving it unknown (a container, another machine): the name still tells.
             return named(terminals)?.id
         }
+        // Served from a Claude session's own scratchpad: that session, outright.
+        if let id = Worktree.claudeSession(ofScratchpad: server.worktree), terminals.contains(where: { $0.id == id }) { return id }
         let here = terminals.filter { $0.worktree == server.worktree }
         if let hit = named(here) { return hit.id }
         // The one you picked, when it's in that folder: yours over any guess.

@@ -336,6 +336,11 @@ check(tabNameWithoutStatus("⠂ MENU") == "MENU", "spinner taken off a name")
 check(tabNameWithoutStatus("🐛 Login") == "🐛 Login", "an emoji in a name stays")
 check(tabNameWithoutStatus("[API] auth") == "[API] auth", "brackets in a name stay")
 
+// A page served from a Claude session's scratchpad belongs to that session.
+check(Worktree.claudeSession(ofScratchpad: "/private/tmp/claude-501/-Users-me-proj/829ab528-5da1-4dfb-a05e-1a673221b764/scratchpad/piloto/site")
+      == "829ab528-5da1-4dfb-a05e-1a673221b764", "scratchpad folder → its Claude session")
+check(Worktree.claudeSession(ofScratchpad: "/Users/me/proj/site") == nil, "an ordinary folder isn't a session's")
+
 // Claude's limits across sessions: an idle one keeps rewriting an older share (lower
 // before, higher after a reset); the one that heard from Claude last is right.
 let window = Date(timeIntervalSince1970: 4102444800)

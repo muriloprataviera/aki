@@ -31,6 +31,16 @@ public enum Worktree {
         return (pid, root(of: cwd))
     }
 
+    /// The Claude Code session a folder belongs to, when it's in that session's own
+    /// scratchpad (`/private/tmp/claude-501/<project>/<session id>/scratchpad/…`): a page
+    /// served from there is that session's, whatever the tab is called.
+    public static func claudeSession(ofScratchpad path: String) -> String? {
+        let parts = path.split(separator: "/").map(String.init)
+        guard let pad = parts.firstIndex(of: "scratchpad"), pad >= 3, parts[pad - 3].hasPrefix("claude-") else { return nil }
+        let id = parts[pad - 1]
+        return UUID(uuidString: id) != nil ? id.lowercased() : nil
+    }
+
     /// Ports served from inside `worktree`.
     public static func ports(servedFrom worktree: String) -> Set<Int> {
         var ports = Set<Int>()
