@@ -3,6 +3,25 @@
     <channel>
         <title>Aki</title>
         <item>
+            <title>0.13.0-beta.2</title>
+            <pubDate>Sat, 21 Nov 2026 17:10:49 -0300</pubDate>
+            <sparkle:channel>beta</sparkle:channel>
+            <sparkle:version>20261121201048</sparkle:version>
+            <sparkle:shortVersionString>0.13.0-beta.2</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
+            <description><![CDATA[<h2>Aki 0.13.0-beta.2</h2><h3>New</h3><ul>
+<li>Limit resets in the Claude and Codex cards: use one of Codex's right from Aki (it asks first), or go straight to Claude's usage page to use one there.</li>
+</ul><h3>Fixes</h3><ul>
+<li>With more than one display, only the screen you're on holds still while a hover menu is kept, as with the Mac's ⌘⇧4: the others keep running.</li>
+<li>A localhost page served from a Claude session's own scratchpad folder goes to that session, whatever its tab is called.</li>
+<li>Claude's usage ring follows the session that talked to Claude last: after you reset your limit it kept showing the old share.</li>
+<li>The list of more terminals fits its card: with many sessions its top was cut off.</li>
+</ul>
+]]></description>
+            <enclosure url="https://aki-updates.vercel.app/0.13.0-beta.2/Aki-0.13.0-beta.2.zip" length="4408637" type="application/octet-stream" sparkle:edSignature="PfUmvaGrsag47xXO3N6n0ewXB88SIgorqlDUTAPIE6a25jnjzhJ+AOHzlRdemZ5jgHzMQxyAdWKZUXmufp2rDA=="/>
+        </item>
+        <item>
             <title>0.13.0-beta.1</title>
             <pubDate>Mon, 16 Nov 2026 19:24:57 -0300</pubDate>
             <sparkle:channel>beta</sparkle:channel>
