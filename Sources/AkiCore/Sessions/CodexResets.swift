@@ -128,17 +128,15 @@ public enum CodexResets {
         guard send(["id": 1, "method": "initialize", "params": ["clientInfo": ["name": "aki", "version": Aki.version]]]),
               answer(1)?["result"] != nil,
               send(["method": "initialized"]), send(["id": 2, "method": "account/rateLimits/read"]),
-              var read = answer(2)?["result"] as? [String: Any]
+              let read = answer(2)?["result"] as? [String: Any]
         else { return .failed }
-        // Resets counted but not listed (OpenAI's details came late): asked once more; still
-        // none listed, it's "try again", never "none left".
-        if soonest(in: read) == nil, available(in: read) > 0 {
-            guard send(["id": 5, "method": "account/rateLimits/read"]), let again = answer(5)?["result"] as? [String: Any] else { return .failed }
-            read = again
-        }
-        guard let credit = soonest(in: read) else { return available(in: read) > 0 ? .failed : .noneLeft }
-        guard send(["id": 3, "method": "account/rateLimitResetCredit/consume",
-                    "params": ["creditId": credit, "idempotencyKey": "aki-" + UUID().uuidString]]),
+        // Resets counted but not listed (OpenAI's details came late): Codex's contract lets
+        // the reset go without naming one, and OpenAI picks the next available.
+        let credit = soonest(in: read)
+        guard credit != nil || available(in: read) > 0 else { return .noneLeft }
+        var params: [String: Any] = ["idempotencyKey": "aki-" + UUID().uuidString]
+        if let credit { params["creditId"] = credit }
+        guard send(["id": 3, "method": "account/rateLimitResetCredit/consume", "params": params]),
               let consumed = answer(3)?["result"] as? [String: Any]
         else { return .failed }
         switch consumed["outcome"] as? String {
