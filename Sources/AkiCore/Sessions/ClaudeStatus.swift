@@ -109,6 +109,8 @@ public struct ClaudeStatus: Sendable, Equatable {
     /// keeps rewriting that (a share that has grown since, or been reset).
     public static func latestLimits(in all: [String: ClaudeStatus]) -> ClaudeStatus? {
         all.values.filter { $0.fiveHour != nil || $0.week != nil }
-            .max { ($0.heard ?? $0.updated, $0.updated) < ($1.heard ?? $1.updated, $1.updated) }
+            // One with no transcript to read counts as the oldest (its status file is rewritten
+            // when idle, so its date says nothing); among those, the last written.
+            .max { ($0.heard ?? .distantPast, $0.updated) < ($1.heard ?? .distantPast, $1.updated) }
     }
 }

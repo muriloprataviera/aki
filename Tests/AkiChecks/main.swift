@@ -349,6 +349,8 @@ let claudeStatuses: [String: ClaudeStatus] = [
     "idle": ClaudeStatus(week: .init(percent: 99, resets: window), updated: Date(timeIntervalSince1970: 200), heard: Date(timeIntervalSince1970: 10)),
 ]
 check(ClaudeStatus.latestLimits(in: claudeStatuses)?.week?.percent == 0, "Claude's week: from the session that heard from Claude last")
+let noTranscript = claudeStatuses.merging(["gone": ClaudeStatus(week: .init(percent: 10, resets: window), updated: Date(timeIntervalSince1970: 500))]) { a, _ in a }
+check(ClaudeStatus.latestLimits(in: noTranscript)?.week?.percent == 0, "Claude's week: one with no transcript doesn't win by its file's date")
 
 // When Claude last answered: the last reply's time, not a later rename's.
 let transcript = FileManager.default.temporaryDirectory.appending(path: "aki-check-\(UUID().uuidString).jsonl")
