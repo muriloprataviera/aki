@@ -105,14 +105,11 @@ public enum CodexResets {
         // Codex gone meanwhile: writing to it fails instead of stopping Aki (SIGPIPE).
         _ = fcntl(input.fileHandleForWriting.fileDescriptor, F_SETNOSIGPIPE, 1)
         guard (try? process.run()) != nil else { return .failed }
-        // Never left waiting: Codex stops after 30 s whatever happens.
-        let deadline = DispatchWorkItem { if process.isRunning { kill(process.processIdentifier, SIGKILL) } }
-        DispatchQueue.global().asyncAfter(deadline: .now() + 30, execute: deadline)
-        defer {
-            deadline.cancel()
-            if process.isRunning { process.terminate() }
-        }
-        var reader = Lines(handle: output.fileHandleForReading)
+        // Never left waiting: reading gives up at 30 s whatever holds the pipe open, and
+        // Codex goes at the end with what it started (npm's `codex` runs the real one as
+        // its child).
+        defer { stop(process.processIdentifier) }
+        var reader = Lines(fd: output.fileHandleForReading.fileDescriptor, until: Date().addingTimeInterval(30))
         func send(_ message: [String: Any]) -> Bool {
             guard var data = try? JSONSerialization.data(withJSONObject: message) else { return false }
             data.append(0x0A)
@@ -175,11 +172,19 @@ public enum CodexResets {
     }
 
     /// Lines off a pipe, as they come.
-    private struct Lines {
-        let handle: FileHandle
-        var buffer = Data()
+    /// A process and the ones it started, and theirs, killed.
+    private static func stop(_ pid: pid_t) {
+        var children = [pid_t](repeating: 0, count: 64)
+        let count = proc_listchildpids(pid, &children, Int32(children.count * MemoryLayout<pid_t>.size))
+        for child in children.prefix(max(0, Int(count))) where child > 0 { stop(child) }
+        kill(pid, SIGKILL)
+    }
 
-        init(handle: FileHandle) { self.handle = handle }
+    /// Lines off a pipe, as they come, until a time limit (nil after it, or once closed).
+    private struct Lines {
+        let fd: Int32
+        let until: Date
+        var buffer = Data()
 
         mutating func next() -> Data? {
             while true {
@@ -188,9 +193,14 @@ public enum CodexResets {
                     buffer.removeSubrange(buffer.startIndex...end)
                     return Data(line)
                 }
-                let chunk = handle.availableData
-                if chunk.isEmpty { return nil }  // closed (or stopped at the deadline)
-                buffer.append(chunk)
+                let left = Int32(until.timeIntervalSinceNow * 1000)
+                guard left > 0 else { return nil }
+                var ready = pollfd(fd: fd, events: Int16(POLLIN), revents: 0)
+                guard poll(&ready, 1, left) > 0 else { return nil }
+                var bytes = [UInt8](repeating: 0, count: 64 * 1024)
+                let read = Darwin.read(fd, &bytes, bytes.count)
+                guard read > 0 else { return nil }
+                buffer.append(contentsOf: bytes[0..<read])
             }
         }
     }
