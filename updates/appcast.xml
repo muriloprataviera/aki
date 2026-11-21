@@ -3,6 +3,24 @@
     <channel>
         <title>Aki</title>
         <item>
+            <title>0.13.0</title>
+            <pubDate>Sat, 21 Nov 2026 20:47:57 -0300</pubDate>
+            <sparkle:version>20261121234757</sparkle:version>
+            <sparkle:shortVersionString>0.13.0</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
+            <description><![CDATA[<h2>Aki 0.13.0</h2><h3>New</h3><ul>
+<li>Limit resets in the Claude and Codex cards: use one of Codex's right from Aki (it asks first), or go straight to Claude's usage page to use one there.</li>
+</ul><h3>Fixes</h3><ul>
+<li>With more than one display, only the screen you're on holds still while a hover menu is kept, as with the Mac's ⌘⇧4: the others keep running.</li>
+<li>A localhost page served from a Claude session's own scratchpad folder goes to that session, whatever its tab is called.</li>
+<li>Claude's usage ring follows the session that talked to Claude last: after you reset your limit it kept showing the old share.</li>
+<li>The list of more terminals fits its card: with many sessions its top was cut off.</li>
+</ul>
+]]></description>
+            <enclosure url="https://aki-updates.vercel.app/0.13.0/Aki-0.13.0.zip" length="4414386" type="application/octet-stream" sparkle:edSignature="VM+ZyJl55H23xGKDs6mQouZWSGb1B2o2LgzzmBa+UZNCfTi2h8l4n4k/McEvZyyS/NxxTEq1R86Ucu3nxUe8DA=="/>
+        </item>
+        <item>
             <title>0.13.0-beta.2</title>
             <pubDate>Sat, 21 Nov 2026 17:10:49 -0300</pubDate>
             <sparkle:channel>beta</sparkle:channel>
@@ -22,23 +40,6 @@
             <enclosure url="https://aki-updates.vercel.app/0.13.0-beta.2/Aki-0.13.0-beta.2.zip" length="4408637" type="application/octet-stream" sparkle:edSignature="PfUmvaGrsag47xXO3N6n0ewXB88SIgorqlDUTAPIE6a25jnjzhJ+AOHzlRdemZ5jgHzMQxyAdWKZUXmufp2rDA=="/>
         </item>
         <item>
-            <title>0.13.0-beta.1</title>
-            <pubDate>Mon, 16 Nov 2026 19:24:57 -0300</pubDate>
-            <sparkle:channel>beta</sparkle:channel>
-            <sparkle:version>20261116222456</sparkle:version>
-            <sparkle:shortVersionString>0.13.0-beta.1</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
-            <description><![CDATA[<h2>Aki 0.13.0-beta.1</h2><h3>New</h3><ul>
-<li>Limit resets in the Claude and Codex cards: use one of Codex's right from Aki (it asks first), or go straight to Claude's usage page to use one there.</li>
-</ul><h3>Fixes</h3><ul>
-<li>Claude's usage ring follows the session that talked to Claude last: after you reset your limit it kept showing the old share.</li>
-<li>The list of more terminals fits its card: with many sessions its top was cut off.</li>
-</ul>
-]]></description>
-            <enclosure url="https://aki-updates.vercel.app/0.13.0-beta.1/Aki-0.13.0-beta.1.zip" length="4394190" type="application/octet-stream" sparkle:edSignature="rgWwUgNIEXD2K0uiMfbue63wgvaqjtcxDixxgwneQS/Qmq6cs3uSJ5ubbNWGUCOqJf7EGiGwG079tSWUa3yAAw=="/>
-        </item>
-        <item>
             <title>0.12.2</title>
             <pubDate>Mon, 16 Nov 2026 18:39:38 -0300</pubDate>
             <sparkle:version>20261116213937</sparkle:version>
@@ -51,21 +52,6 @@
 </ul>
 ]]></description>
             <enclosure url="https://aki-updates.vercel.app/0.12.2/Aki-0.12.2.zip" length="4361673" type="application/octet-stream" sparkle:edSignature="Xte5/Y05V1DkpH4CipnLH93dUrgIOtc+FMRRr12Z93SK4tcj/eAm1otNR7gT0X8ayW/macki9KG1SUfFus/wAQ=="/>
-        </item>
-        <item>
-            <title>0.12.2-beta.5</title>
-            <pubDate>Mon, 16 Nov 2026 18:29:04 -0300</pubDate>
-            <sparkle:channel>beta</sparkle:channel>
-            <sparkle:version>20261116212903</sparkle:version>
-            <sparkle:shortVersionString>0.12.2-beta.5</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
-            <description><![CDATA[<h2>Aki 0.12.2-beta.5</h2><h3>Fixes</h3><ul>
-<li>A page's hover menu stays on screen when marking opens, as with the Mac's ⌘⇧4: the screen holds still at once.</li>
-<li>Claude's usage ring shows the newest share of the limit: a session left idle kept showing an older, lower number.</li>
-</ul>
-]]></description>
-            <enclosure url="https://aki-updates.vercel.app/0.12.2-beta.5/Aki-0.12.2-beta.5.zip" length="4361729" type="application/octet-stream" sparkle:edSignature="BwfQDSuGIAldMKZOBm1i/O/0NU2OtH/bu8FJXlJuuCH6CTc24cCxk6OIBXhihANzRclwW0gRB7JQoC11q8/tDA=="/>
         </item>
         <item>
             <title>0.12.1</title>
@@ -81,26 +67,6 @@
 </ul>
 ]]></description>
             <enclosure url="https://aki-updates.vercel.app/0.12.1/Aki-0.12.1.zip" length="4355929" type="application/octet-stream" sparkle:edSignature="juG6sC3N07mHN+O0nTSSL4vkgAwJv3WQlup/NM/vivOPetcXugOuL4Xi/lamL0EhGXK0un2wETVZnDt/yDh1DQ=="/>
-        </item>
-        <item>
-            <title>0.12.0</title>
-            <pubDate>Sun, 01 Nov 2026 13:28:22 -0300</pubDate>
-            <sparkle:version>20261101162822</sparkle:version>
-            <sparkle:shortVersionString>0.12.0</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
-            <description><![CDATA[<h2>Aki 0.12.0</h2>
-<h3>Changed</h3><ul>
-<li>Marking opens like the Mac's ⌘⇧4, at once: the pin and a thin orange frame, and the screen stays live, not dimmed. With "Freeze the screen" on, or a menu open, it's a picture.</li>
-<li>Marking opens light: nothing outlined. Drag an area or click a point. Press <b>E</b> to outline the elements under the pointer, and E again to go back. To always open with elements outlined, as before: Settings → Marking → "Under the pointer".</li>
-</ul>
-<h3>Fixed</h3><ul>
-<li>The pointer no longer blinks to the arrow or a hand as marking opens, and the screen doesn't hitch as you let go of the shortcut.</li>
-<li>A session working in a folder inside the one its Orca tab opened in is linked to its tab again: it shows the name you gave the tab, and marks are typed into it.</li>
-<li>Marking can't get stuck "opening" when the Mac's screen capture doesn't answer.</li>
-</ul>
-]]></description>
-            <enclosure url="https://aki-updates.vercel.app/0.12.0/Aki-0.12.0.zip" length="4352998" type="application/octet-stream" sparkle:edSignature="OCq3wJQnwJdb4v/IkcchDraDuhQtPfLpEkIrp/1WEgvBANLpWD9K51h6t1FraOlm+RqEzROduadIal6B2ktMCQ=="/>
         </item>
     </channel>
 </rss>
