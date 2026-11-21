@@ -4,6 +4,8 @@ What changed in each version of Aki. Versions follow [semantic versioning](https
 
 ## [Unreleased]
 
+## [0.13.0] — 2026-11-21
+
 ### Added
 - Limit resets in the Claude and Codex cards: use one of Codex's from Aki (it asks first), or go straight to Claude's usage page to use one there.
 
