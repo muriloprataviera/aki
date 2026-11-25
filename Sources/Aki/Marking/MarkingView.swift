@@ -791,8 +791,31 @@ struct MarkingView: View {
 
     /// "+ New": a session opened just for these marks (Claude or Codex in a new Orca
     /// tab, or a new conversation in their apps), in the project you pick.
-    private func openNewMenu() {
-        NewSessionMenu.show { kind, folder in pickNew(kind, folder) }
+    /// A SwiftUI menu, as the destination one: an NSMenu popped up by hand opened
+    /// under the marking overlay (a higher window level) and the click did nothing.
+    @ViewBuilder private var newMenuItems: some View {
+        ForEach(NewSession.available, id: \.self) { kind in
+            if kind.needsFolder {
+                Menu(kind.title) {
+                    let offered = NewSession.folders(for: kind)
+                    ForEach(offered, id: \.self) { folder in
+                        Button(NewSession.shortName(folder)) { pickNew(kind, folder) }
+                    }
+                    if offered.isEmpty { Text(L10n.t("No projects found")) }
+                    // Any folder, for an app (Orca opens tabs only in its own projects).
+                    if kind == .claudeApp {
+                        Divider()
+                        Button(L10n.t("Choose a folder…")) {
+                            DispatchQueue.main.async {
+                                if let folder = NewSessionMenu.chooseFolder() { pickNew(kind, folder) }
+                            }
+                        }
+                    }
+                }
+            } else {
+                Button(kind.title) { pickNew(kind, nil) }
+            }
+        }
     }
 
     private func pickNew(_ kind: NewSession.Kind, _ folder: String?) {
@@ -805,21 +828,28 @@ struct MarkingView: View {
     }
 
     private var newSessionTile: some View {
-        Button { openNewMenu() } label: {
-            VStack(spacing: 3) {
-                Image(systemName: "plus")
-                    .font(.system(size: 15, weight: .heavy))
-                    .foregroundStyle(.black)
-                    .frame(width: 32, height: 32)
-                    .background(Circle().fill(Color.white.opacity(0.92)))
-                    .frame(width: 42, height: 42)
-                Text(L10n.t("New"))
-                    .font(.system(size: 10, weight: .semibold))
-                    .foregroundStyle(.white.opacity(0.9))
-            }
-            .frame(width: 44)
+        // The tile is drawn here; an invisible menu over it takes the click (a menu's own
+        // label on the Mac keeps only its text and icon, not the white circle).
+        VStack(spacing: 3) {
+            Image(systemName: "plus")
+                .font(.system(size: 15, weight: .heavy))
+                .foregroundStyle(.black)
+                .frame(width: 32, height: 32)
+                .background(Circle().fill(Color.white.opacity(0.92)))
+                .frame(width: 42, height: 42)
+            Text(L10n.t("New"))
+                .font(.system(size: 10, weight: .semibold))
+                .foregroundStyle(.white.opacity(0.9))
         }
-        .buttonStyle(.plain)
+        .frame(width: 44)
+        .overlay {
+            Menu { newMenuItems } label: { Text(" ") }
+                .menuStyle(.borderlessButton)
+                .menuIndicator(.hidden)
+                .frame(width: 44, height: 60)
+                .contentShape(Rectangle())
+                .opacity(0.02)
+        }
         .focusable(false)
         .modifier(PickHover())
         .help(L10n.t("Open a new session with these marks"))
@@ -953,7 +983,7 @@ struct MarkingView: View {
             ScrollView(.vertical, showsIndicators: true) {
                 VStack(alignment: .leading, spacing: 2) {
                     if !NewSession.available.isEmpty {
-                        Button { openNewMenu() } label: {
+                        Menu { newMenuItems } label: {
                             HStack(spacing: 8) {
                                 Image(systemName: "plus.circle.fill").font(.system(size: 14))
                                 Text(L10n.t("New session…")).font(.system(size: 11.5, weight: .semibold))
@@ -963,7 +993,8 @@ struct MarkingView: View {
                             .padding(.horizontal, 8).padding(.vertical, 6)
                             .contentShape(Rectangle())
                         }
-                        .buttonStyle(.plain)
+                        .menuStyle(.borderlessButton)
+                        .menuIndicator(.hidden)
                         .modifier(PickHover())
                         .help(L10n.t("Open a new session with these marks"))
                     }
@@ -1008,7 +1039,7 @@ struct MarkingView: View {
             }
             if !NewSession.available.isEmpty {
                 Divider()
-                Button { DispatchQueue.main.async { openNewMenu() } } label: {
+                Menu { newMenuItems } label: {
                     Label(L10n.t("New session…"), systemImage: "plus.circle")
                 }
             }
@@ -2056,58 +2087,15 @@ struct DestinationField: View {
     }
 }
 
-/// The "+ New" menu: each kind of session, then the project it opens in.
+/// "+ New"'s "Choose a folder…": over the marking overlay, which sits above normal windows.
 @MainActor
 enum NewSessionMenu {
-    private final class Item: NSMenuItem {
-        var run: () -> Void = {}
-        @objc func fire() { run() }
-    }
-
-    static func show(_ chosen: @escaping (NewSession.Kind, String?) -> Void) {
-        let menu = NSMenu()
-        menu.autoenablesItems = false
-        func item(_ title: String, _ run: @escaping () -> Void) -> NSMenuItem {
-            let item = Item(title: title, action: #selector(Item.fire), keyEquivalent: "")
-            item.target = item
-            item.run = run
-            return item
-        }
-        let header = NSMenuItem(title: L10n.t("Open a new session with these marks"), action: nil, keyEquivalent: "")
-        header.isEnabled = false
-        menu.addItem(header)
-        for kind in NewSession.available {
-            if kind.needsFolder {
-                let parent = NSMenuItem(title: kind.title, action: nil, keyEquivalent: "")
-                let folders = NSMenu()
-                folders.autoenablesItems = false
-                let offered = NewSession.folders(for: kind)
-                for folder in offered {
-                    folders.addItem(item(NewSession.shortName(folder)) { chosen(kind, folder) })
-                }
-                if offered.isEmpty {
-                    let none = NSMenuItem(title: L10n.t("No projects found"), action: nil, keyEquivalent: "")
-                    none.isEnabled = false
-                    folders.addItem(none)
-                }
-                // Any folder, for an app (Orca opens tabs only in its own projects).
-                if kind == .claudeApp {
-                folders.addItem(.separator())
-                folders.addItem(item(L10n.t("Choose a folder…")) {
-                    let panel = NSOpenPanel()
-                    panel.canChooseDirectories = true
-                    panel.canChooseFiles = false
-                    panel.allowsMultipleSelection = false
-                    panel.level = .screenSaver
-                    if panel.runModal() == .OK, let url = panel.url { chosen(kind, url.path) }
-                })
-                }
-                parent.submenu = folders
-                menu.addItem(parent)
-            } else {
-                menu.addItem(item(kind.title) { chosen(kind, nil) })
-            }
-        }
-        menu.popUp(positioning: nil, at: NSEvent.mouseLocation, in: nil)
+    static func chooseFolder() -> String? {
+        let panel = NSOpenPanel()
+        panel.canChooseDirectories = true
+        panel.canChooseFiles = false
+        panel.allowsMultipleSelection = false
+        panel.level = .screenSaver
+        return panel.runModal() == .OK ? panel.url?.path : nil
     }
 }
