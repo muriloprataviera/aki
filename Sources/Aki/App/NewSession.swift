@@ -63,8 +63,15 @@ struct NewSession: Equatable {
         }
     }
 
-    /// Orca's projects, last used first (read in the background when marking starts).
+    /// Orca's projects, last used first (read in the background when marking starts),
+    /// then the open sessions' folders. Orca opens tabs only in its own projects.
     @MainActor static var projects: [String] = []
+    @MainActor static var orcaProjects: [String] = []
+
+    /// The folders offered for a kind: Orca's own for its tabs, any for an app.
+    @MainActor static func folders(for kind: Kind) -> [String] {
+        kind == .claudeOrca || kind == .codexOrca ? orcaProjects : projects
+    }
 
     /// Which of `claude` and `codex` a terminal has (nil: not looked yet).
     @MainActor static var commands: Set<String>?
@@ -101,7 +108,8 @@ struct NewSession: Equatable {
                 }
             }.value
             var seen = Set<String>()
-            projects = (orca.sorted { $0.used > $1.used }.map(\.path) + folders)
+            orcaProjects = orca.sorted { $0.used > $1.used }.map(\.path).filter { FileManager.default.fileExists(atPath: $0) }
+            projects = (orcaProjects + folders)
                 .filter { FileManager.default.fileExists(atPath: $0) && seen.insert($0).inserted }
         }
     }

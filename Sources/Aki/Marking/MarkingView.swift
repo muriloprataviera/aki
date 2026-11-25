@@ -2055,15 +2055,17 @@ enum NewSessionMenu {
                 let parent = NSMenuItem(title: kind.title, action: nil, keyEquivalent: "")
                 let folders = NSMenu()
                 folders.autoenablesItems = false
-                for folder in NewSession.projects {
+                let offered = NewSession.folders(for: kind)
+                for folder in offered {
                     folders.addItem(item(NewSession.shortName(folder)) { chosen(kind, folder) })
                 }
-                if NewSession.projects.isEmpty {
+                if offered.isEmpty {
                     let none = NSMenuItem(title: L10n.t("No projects found"), action: nil, keyEquivalent: "")
                     none.isEnabled = false
                     folders.addItem(none)
                 }
-                // Any folder, Orca's or not.
+                // Any folder, for an app (Orca opens tabs only in its own projects).
+                if kind == .claudeApp {
                 folders.addItem(.separator())
                 folders.addItem(item(L10n.t("Choose a folder…")) {
                     let panel = NSOpenPanel()
@@ -2073,6 +2075,7 @@ enum NewSessionMenu {
                     panel.level = .screenSaver
                     if panel.runModal() == .OK, let url = panel.url { chosen(kind, url.path) }
                 })
+                }
                 parent.submenu = folders
                 menu.addItem(parent)
             } else {
