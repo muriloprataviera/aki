@@ -49,7 +49,8 @@ struct NewSession: Equatable {
 
     /// The kinds this Mac can open: Orca's with Orca (and not switched off), the apps when installed.
     @MainActor static var available: [Kind] {
-        Kind.allCases.filter { kind in
+        // Only agents Aki follows (one switched off in Settings would never show up).
+        Kind.allCases.filter { kind in Preferences.shared.tracks(kind.agent) }.filter { kind in
             switch kind {
             case .claudeOrca, .codexOrca:
                 FileManager.default.isExecutableFile(atPath: TerminalJump.orcaCLI)
@@ -118,8 +119,9 @@ struct NewSession: Equatable {
     @MainActor private static var chain: Task<String?, Never>?
 
     /// Opens it with `marks` (saved for it) as the first message: sent (Orca), or done once
-    /// pasted in an app (which can't close them). Returns where later marks go now (the
-    /// session it became), nil when it didn't open.
+    /// sent in an app (which can't close them). Returns where later marks go now (the
+    /// session it became), nil when it didn't open. A new Codex gets them once it's up,
+    /// by the usual delivery (the caller's, `deliver`), as its own marks.
     /// `sessions`: the open sessions, looked at again, to find the new Codex one.
     @MainActor func open(with marks: [Annotation], store: AnnotationStore,
                          sessions: @escaping @MainActor () async -> [AgentTerminal]) async -> String? {
@@ -135,7 +137,7 @@ struct NewSession: Equatable {
     @MainActor private func run(with marks: [Annotation], store: AnnotationStore,
                                 sessions: @MainActor () async -> [AgentTerminal]) async -> String? {
         guard !marks.isEmpty else { return nil }
-        let opened: Bool
+        let result: TerminalJump.Delivery
         let now = { ISO8601DateFormatter().string(from: Date()) }
         switch kind {
         case .claudeOrca, .codexOrca:
@@ -145,51 +147,60 @@ struct NewSession: Equatable {
             if commands == nil { commands = await Self.lookUpCommands() }
             guard commands?.contains(kind.agent.rawValue) == true else { return nil }
             let root = Worktree.root(of: folder)
+            if kind == .claudeOrca {
+                // Claude takes the id it will have: the marks are its own from the start.
+                let command = "claude --session-id \(id) \(Self.quoted(Self.prompt(for: marks, name: terminal.name)))"
+                guard await TerminalJump.createOrcaTerminal(in: folder, title: nil, command: "cd \(Self.quoted(folder)) && \(command)")
+                else { return nil }
+                for mark in marks { _ = try? await store.update(mark.id, with: ["delivered_at": .string(now())]) }
+                return id
+            }
+            // Codex's session is known only by its process ("codex:<pid>"): it opens empty,
+            // and once it shows up (up to thirty seconds) the marks become its own, then go
+            // to it as to any session (so `aki list` there finds them). Found by the tab
+            // Orca made (its process carries the tab's handle); without one, only when it's
+            // the single new Codex in the folder (never a guess).
             let before = Set(await sessions().filter { $0.agent == .codex && $0.worktree == root }.map(\.id))
-            let prompt = Self.prompt(for: marks, name: terminal.name)
-            let quotedPrompt = Self.quoted(prompt)
-            let command = kind == .claudeOrca
-                ? "claude --session-id \(id) \(quotedPrompt)"
-                : "codex \(quotedPrompt)"
-            let tab = await TerminalJump.openOrcaTerminal(in: folder, title: nil, command: "cd \(Self.quoted(folder)) && \(command)")
+            let tab = await TerminalJump.openOrcaTerminal(in: folder, title: nil, command: "cd \(Self.quoted(folder)) && codex")
             guard tab.opened else { return nil }
-            for mark in marks { _ = try? await store.update(mark.id, with: ["delivered_at": .string(now())]) }
-            // Codex's session is known by its process ("codex:<pid>"): once it shows up
-            // (up to thirty seconds), the marks become its own, so it lists and closes them.
-            // Found by the tab Orca made (its process carries the tab's handle); without
-            // one, only when it's the single new Codex in the folder (never a guess).
-            guard kind == .codexOrca else { return id }
             for _ in 0..<20 {
                 try? await Task.sleep(for: .seconds(1.5))
                 let fresh = await sessions().filter { $0.agent == .codex && $0.worktree == root && !before.contains($0.id) }
                 let mine = tab.handle.map { handle in fresh.filter { $0.orcaHandle == handle } } ?? fresh
                 guard mine.count == 1, let new = mine.first else { continue }
                 var fields = new.identityFields
-                fields.merge(["session_id": .string(new.id), "worktree": .string(new.worktree)]) { _, new in new }
+                fields.merge(["session_id": .string(new.id), "worktree": .string(new.worktree),
+                              "delivered_at": .null]) { _, new in new }
                 for mark in marks { _ = try? await store.update(mark.id, with: fields) }
+                // Its screen up before the message is typed.
+                try? await Task.sleep(for: .seconds(2))
                 return new.id
             }
-            return id
+            return nil
         case .claudeApp:
             guard let folder, var link = URLComponents(string: "claude://code/new") else { return nil }
             link.queryItems = [URLQueryItem(name: "folder", value: folder)]
-            opened = await openInApp(link.url, bundleID: Self.claudeApp, marks: marks)
+            result = await openInApp(link.url, bundleID: Self.claudeApp, marks: marks)
         case .codexApp:
-            opened = await openInApp(URL(string: "codex://threads/new"), bundleID: Self.codexApp, marks: marks)
+            result = await openInApp(URL(string: "codex://threads/new"), bundleID: Self.codexApp, marks: marks)
         }
-        guard opened else { return nil }
-        // An app can't close them with `aki done`: once sent there, they're done (as for
-        // any app conversation).
+        guard result != .failed else { return nil }
+        // Sent: done (an app can't close them with `aki done`, as for any app conversation).
+        // Only pasted (pictures still uploading): sent, not done; History's arrow sends it
+        // from the box, under the app.
+        let app = DesktopApps.prefix + (kind == .claudeApp ? Self.claudeApp : Self.codexApp)
         for mark in marks {
-            _ = try? await store.update(mark.id, with: ["delivered_at": .string(now()), "status": .string("completed")])
+            var fields: [String: JSONValue] = ["session_id": .string(app), "delivered_at": .string(now())]
+            if result == .sent { fields["status"] = .string("completed") }
+            _ = try? await store.update(mark.id, with: fields)
         }
-        return DesktopApps.prefix + (kind == .claudeApp ? Self.claudeApp : Self.codexApp)
+        return app
     }
 
     /// The app's new conversation by its own link, then the marks pasted and sent there.
-    @MainActor private func openInApp(_ url: URL?, bundleID: String, marks: [Annotation]) async -> Bool {
-        guard let url else { return false }
-        return await AppDelivery.deliver(to: bundleID, link: url, marks: marks) == .sent
+    @MainActor private func openInApp(_ url: URL?, bundleID: String, marks: [Annotation]) async -> TerminalJump.Delivery {
+        guard let url else { return .failed }
+        return await AppDelivery.deliver(to: bundleID, link: url, marks: marks)
     }
 
     /// The same message a session gets when its marks go over: what they are, how to

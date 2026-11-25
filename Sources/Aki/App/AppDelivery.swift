@@ -33,12 +33,24 @@ enum AppDelivery {
             concealing[bundleID] = nil
             delivering.insert(bundleID)
             if let link {
+                // The page shown before: the new one has to replace it before anything is
+                // pasted (never into the conversation that was open).
+                let running = NSRunningApplication.runningApplications(withBundleIdentifier: bundleID).first
+                let before = running.flatMap { DesktopApps.pageTitle($0.processIdentifier) }
                 guard NSWorkspace.shared.open(link) else { delivering.remove(bundleID); return TerminalJump.Delivery.failed }
-                // Opened by the link if it was closed: up to ten seconds for it to run;
-                // then the new conversation's page up, its message box ready.
+                // Opened by the link if it was closed: up to ten seconds for it to run.
                 for _ in 0..<100 where NSRunningApplication.runningApplications(withBundleIdentifier: bundleID).isEmpty {
                     try? await Task.sleep(for: .milliseconds(100))
                 }
+                if let running, before != nil {
+                    // Up to four seconds for the new page. Unchanged: it was a new one
+                    // already (a blank conversation has the same title as the next).
+                    for _ in 0..<40 {
+                        try? await Task.sleep(for: .milliseconds(100))
+                        if DesktopApps.pageTitle(running.processIdentifier) != before { break }
+                    }
+                }
+                // Its message box ready.
                 try? await Task.sleep(for: .seconds(1.5))
             }
             let result = await run(to: bundleID, session: session, conversation: conversation, marks: marks, again: again)
