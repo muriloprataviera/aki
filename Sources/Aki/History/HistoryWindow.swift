@@ -119,6 +119,8 @@ private struct HistoryView: View {
     @State private var tab: HistoryTab = .marks
     /// Marks ticked for one action on all of them (move, done, delete).
     @State private var picked: Set<String> = []
+    /// The last mark ticked or unticked by hand: shift-click spans from it.
+    @State private var pickAnchor: String?
 
     var body: some View {
         // A ZStack, not a Group: its onAppear runs once, not again on every tab switch.
@@ -292,10 +294,23 @@ private struct HistoryView: View {
         if latest.map(\.fields) != annotations.map(\.fields) { annotations = latest }
     }
 
+    /// A click ticks or unticks one; with shift, every mark shown between the last
+    /// one clicked and this one takes this one's new state, as in Finder or Mail.
     private func pickToggle(_ id: String) {
+        let shown = filtered.map(\.id)
         withAnimation(.easeOut(duration: 0.12)) {
-            if picked.contains(id) { picked.remove(id) } else { picked.insert(id) }
+            let on = !picked.contains(id)
+            if NSEvent.modifierFlags.contains(.shift), let anchor = pickAnchor,
+               let from = shown.firstIndex(of: anchor), let to = shown.firstIndex(of: id) {
+                let span = shown[min(from, to)...max(from, to)]
+                if on { picked.formUnion(span) } else { picked.subtract(span) }
+            } else if on {
+                picked.insert(id)
+            } else {
+                picked.remove(id)
+            }
         }
+        pickAnchor = id
     }
 
     /// The ticked marks, as listed (marks gone meanwhile left out).
@@ -667,6 +682,10 @@ private struct HistoryRow: View {
         .overlay(RoundedRectangle(cornerRadius: 8).strokeBorder(Color.white.opacity(hovered ? 0.14 : picked ? 0.1 : 0), lineWidth: 1))
         // The whole row answers the pointer, gaps included.
         .contentShape(Rectangle())
+        // While some are ticked, or with shift or ⌘, a click anywhere on the row ticks it.
+        .onTapGesture {
+            if picking || !NSEvent.modifierFlags.intersection([.shift, .command]).isEmpty { pick() }
+        }
         .onHover { inside in withAnimation(.easeOut(duration: 0.1)) { hovered = inside } }
     }
 
