@@ -581,24 +581,33 @@ private struct HistoryRow: View {
 
     var body: some View {
         HStack(alignment: .center, spacing: 8) {
-            // Its session's number; a tick box in its place on hover or while picking.
+            // A tick box, always there (it used to hide behind the session's number until
+            // hovered, and nobody found it), then the session's number.
             Button(action: pick) {
-                if picked || picking || hovered {
-                    Image(systemName: picked ? "checkmark.circle.fill" : "circle")
-                        .font(.system(size: 14, weight: .semibold))
-                        .foregroundStyle(picked ? AkiPalette.hue(number: number) : .white.opacity(0.55))
-                        .frame(width: 15, height: 15)
-                } else {
-                    Text(number.map(String.init) ?? "·")
-                        .font(.system(size: 8.5, weight: .heavy, design: .rounded))
-                        .foregroundStyle(.black)
-                        .frame(width: 15, height: 15)
-                        .background(Circle().fill(AkiPalette.hue(number: number)))
-                        .opacity(done ? 0.5 : 1)
+                ZStack {
+                    RoundedRectangle(cornerRadius: 4)
+                        .fill(picked ? Color.accentColor : Color.white.opacity(hovered ? 0.1 : 0.04))
+                    RoundedRectangle(cornerRadius: 4)
+                        .strokeBorder(picked ? Color.clear : Color.white.opacity(hovered ? 0.9 : 0.7), lineWidth: 1.5)
+                    if picked {
+                        Image(systemName: "checkmark")
+                            .font(.system(size: 9.5, weight: .heavy))
+                            .foregroundStyle(.white)
+                    }
                 }
+                .frame(width: 15, height: 15)
+                .padding(4)
+                .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
+            .padding(-4)
             .help(L10n.t("Select"))
+            Text(number.map(String.init) ?? "·")
+                .font(.system(size: 8.5, weight: .heavy, design: .rounded))
+                .foregroundStyle(.black)
+                .frame(width: 15, height: 15)
+                .background(Circle().fill(AkiPalette.hue(number: number)))
+                .opacity(done ? 0.5 : 1)
             if let image = AnnotationImage.file(for: annotation).flatMap({ NSImage(contentsOf: $0) }) {
                 Button { ImageZoom.show(image) } label: {
                     Image(nsImage: image).resizable().aspectRatio(contentMode: .fill)
