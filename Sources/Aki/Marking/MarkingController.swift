@@ -453,6 +453,8 @@ final class MarkingController {
                 // The agent tab you just left (where the print most likely goes), then the
                 // one chosen last; a page on localhost, below, by its port.
                 destination: recentPick ?? model.markingDestination)
+            // For "+ New": Orca's projects, read while you mark.
+            NewSession.refreshProjects(also: terminals.map(\.worktree))
             Task { [weak session] in
                 let found = await lookup.value
                 // Still on the same app (⌘Tab while marking brings its own context).
@@ -885,7 +887,7 @@ final class MarkingController {
                 session.marks += keep.filter { kept in !session.marks.contains { $0.id == kept.id } }
                 session.renumber()
                 NSSound.beep()
-                if !sentTo.isEmpty { didSend(sentTo) }
+                if !sentTo.isEmpty { delivered(sentTo, in: session) }
                 return
             }
             session.flying = true
@@ -900,7 +902,24 @@ final class MarkingController {
                 model.selectedTerminal = destination
             }
             await model.refresh()
-            didSend(sentTo)
+            delivered(sentTo, in: session)
+        }
+    }
+
+    /// Marks saved for these sessions: the open ones get them as always; one chosen
+    /// with "+ New" opens now, with them as its first message.
+    private func delivered(_ sentTo: [String], in session: MarkingSession) {
+        let existing = sentTo.filter { session.opening[$0] == nil }
+        if !existing.isEmpty { didSend(existing) }
+        for new in sentTo.compactMap({ session.opening[$0] }) {
+            Task {
+                let marks = await model.store.list(.init(status: "pending")).annotations
+                    .filter { $0["session_id"]?.string == new.id && $0["delivered_at"]?.string == nil }
+                // Not opened (Orca or the app didn't answer): the marks wait in History,
+                // to move to another session.
+                if await !new.open(with: marks, store: model.store) { NSSound.beep() }
+                await model.refresh()
+            }
         }
     }
 

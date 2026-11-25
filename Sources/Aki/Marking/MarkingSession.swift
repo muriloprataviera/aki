@@ -225,6 +225,8 @@ final class MarkingSession {
     /// Refresh the available sessions without moving marks to a different agent.
     /// A closed destination stays on its mark until the user chooses a new one.
     func updateTerminals(_ open: [AgentTerminal]) {
+        // Sessions chosen with "+ New" stay (they open when the marks go).
+        let open = open + opening.values.map(\.terminal).filter { new in !open.contains { $0.id == new.id } }
         if terminals != open { terminals = open }
         if destination == nil, marks.isEmpty { destination = open.first?.id }
     }
@@ -750,6 +752,19 @@ final class MarkingSession {
         destinationChosen = true
         destination = id
         for i in marks.indices { marks[i].destination = id }
+    }
+
+    /// Sessions to open with "+ New", by destination id: they open when their marks go.
+    var opening: [String: NewSession] = [:]
+
+    /// A new session as the destination: the same kind and folder chosen again is the same one.
+    func chooseNew(_ kind: NewSession.Kind, folder: String?) {
+        let new = opening.values.first { $0.kind == kind && $0.folder == folder } ?? NewSession(kind: kind, folder: folder)
+        if opening[new.id] == nil {
+            opening[new.id] = new
+            terminals.append(new.terminal)
+        }
+        setDestination(new.id)
     }
 
     func setDestination(_ id: String) {

@@ -761,6 +761,7 @@ struct MarkingView: View {
                     .modifier(PickHover())
                     .help(L10n.t("Other sessions"))
                 }
+                if !NewSession.available.isEmpty { newSessionTile }
             }
             .padding(.vertical, 4)
             if let terminal = session.terminal(session.destination) {
@@ -785,6 +786,38 @@ struct MarkingView: View {
                 }
             }
         }
+    }
+
+    /// "+ New": a session opened just for these marks (Claude or Codex in a new Orca
+    /// tab, or a new conversation in their apps), in the project you pick.
+    private var newSessionTile: some View {
+        Button {
+            NewSessionMenu.show { kind, folder in
+                withAnimation(.spring(response: 0.25, dampingFraction: 0.8)) {
+                    session.chooseNew(kind, folder: folder)
+                    session.listOpen = false
+                }
+                focusField()
+            }
+        } label: {
+            VStack(spacing: 3) {
+                Image(systemName: "plus")
+                    .font(.system(size: 13, weight: .bold))
+                    .foregroundStyle(.white)
+                    .frame(width: 32, height: 32)
+                    .background(Circle().fill(Color.white.opacity(0.1)))
+                    .overlay(Circle().strokeBorder(Color.white.opacity(0.35), style: StrokeStyle(lineWidth: 1, dash: [3, 2])))
+                    .frame(width: 42, height: 42)
+                Text(L10n.t("New"))
+                    .font(.system(size: 10, weight: .semibold))
+                    .foregroundStyle(.white.opacity(0.75))
+            }
+            .frame(width: 44)
+        }
+        .buttonStyle(.plain)
+        .focusable(false)
+        .modifier(PickHover())
+        .help(L10n.t("Open a new session with these marks"))
     }
 
     private func pickerTile(_ terminal: AgentTerminal) -> some View {
@@ -1994,5 +2027,48 @@ struct DestinationField: View {
             AkiCursor.set(inside ? NSCursor.pointingHand : AkiCursor.pin)
         }
         .help(terminal.map { "\($0.agent.displayName) · \($0.name)" } ?? "")
+    }
+}
+
+/// The "+ New" menu: each kind of session, then the project it opens in.
+@MainActor
+enum NewSessionMenu {
+    private final class Item: NSMenuItem {
+        var run: () -> Void = {}
+        @objc func fire() { run() }
+    }
+
+    static func show(_ chosen: @escaping (NewSession.Kind, String?) -> Void) {
+        let menu = NSMenu()
+        menu.autoenablesItems = false
+        func item(_ title: String, _ run: @escaping () -> Void) -> NSMenuItem {
+            let item = Item(title: title, action: #selector(Item.fire), keyEquivalent: "")
+            item.target = item
+            item.run = run
+            return item
+        }
+        let header = NSMenuItem(title: L10n.t("Open a new session with these marks"), action: nil, keyEquivalent: "")
+        header.isEnabled = false
+        menu.addItem(header)
+        for kind in NewSession.available {
+            if kind.needsFolder {
+                let parent = NSMenuItem(title: kind.title, action: nil, keyEquivalent: "")
+                let folders = NSMenu()
+                folders.autoenablesItems = false
+                for folder in NewSession.projects {
+                    folders.addItem(item(NewSession.shortName(folder)) { chosen(kind, folder) })
+                }
+                if NewSession.projects.isEmpty {
+                    let none = NSMenuItem(title: L10n.t("No projects found"), action: nil, keyEquivalent: "")
+                    none.isEnabled = false
+                    folders.addItem(none)
+                }
+                parent.submenu = folders
+                menu.addItem(parent)
+            } else {
+                menu.addItem(item(kind.title) { chosen(kind, nil) })
+            }
+        }
+        menu.popUp(positioning: nil, at: NSEvent.mouseLocation, in: nil)
     }
 }

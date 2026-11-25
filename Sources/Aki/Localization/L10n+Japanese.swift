@@ -380,6 +380,7 @@ extension L10n {
         "Copy": "コピー",
         "Paste": "ペースト",
         "mark selected": "件のマークを選択", "marks selected": "件のマークを選択", "Select none": "選択を解除", "Select all shown": "表示中をすべて選択", "Send to…": "送信先…", "Send the selected marks to one terminal": "選択したマークを1つのターミナルに送る", "Clear the selection": "選択をクリア", "Select": "選択",
+        "Claude in Orca": "Orca で Claude", "Codex in Orca": "Orca で Codex", "New": "新規", "Open a new session with these marks": "これらのマークで新しいセッションを開く", "No projects found": "プロジェクトが見つかりません",
         "Select All": "すべてを選択",
         "Move to another terminal": "別のターミナルに移動", "Send to another terminal": "別のターミナルに送る",
         "History": "履歴",

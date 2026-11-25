@@ -622,3 +622,12 @@ extension AgentSessions {
         return text.range(of: "(localhost|127\\.0\\.0\\.1|0\\.0\\.0\\.0|\\[::1\\]):\(port)(?![0-9])", options: .regularExpression) != nil
     }
 }
+
+extension AgentTerminal {
+    /// A session about to be opened from the marking card ("+ New"): no process yet,
+    /// only where it will run and which agent.
+    public static func opening(id: String, agent: AgentSession.Agent, name: String, worktree: String) -> AgentTerminal {
+        AgentTerminal(id: id, agent: agent, pid: 0, name: name, named: true, worktree: worktree, branch: nil,
+                      state: .idle, lastMessage: nil, pending: 0, pendingComments: [], updatedAt: nil)
+    }
+}
