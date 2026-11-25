@@ -171,7 +171,9 @@ public enum DesktopApps {
             if attribute(node, kAXRoleAttribute) as? String == "AXWebArea" {
                 var title = ((attribute(node, kAXTitleAttribute) as? String) ?? "").trimmingCharacters(in: .whitespaces)
                 if title.hasSuffix(" - Claude") { title = String(title.dropLast(" - Claude".count)) }
-                return ["", "claude", "chatgpt", "codex", "new chat", "nova conversa"].contains(title.lowercased()) ? nil : title
+                // A blank page (a new conversation, session or thread) has no title of its own.
+                return ["", "claude", "claude code", "chatgpt", "codex", "new chat", "nova conversa", "new session",
+                        "nova sessão", "new thread", "novo thread", "new conversation"].contains(title.lowercased()) ? nil : title
             }
             if let children = attribute(node, kAXChildrenAttribute) as? [AXUIElement] { queue.append(contentsOf: children) }
         }

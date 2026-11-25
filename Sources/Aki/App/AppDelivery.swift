@@ -42,6 +42,7 @@ enum AppDelivery {
                 for _ in 0..<100 where NSRunningApplication.runningApplications(withBundleIdentifier: bundleID).isEmpty {
                     try? await Task.sleep(for: .milliseconds(100))
                 }
+                // A blank conversation in front (no title of its own): the new one is the same.
                 if let running, before != nil {
                     // Up to eight seconds for the new page; it never came: nothing pasted
                     // (never into the conversation that was open).
