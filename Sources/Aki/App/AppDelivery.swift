@@ -17,8 +17,10 @@ enum AppDelivery {
     /// of the app's conversations (its id and name), opened first by the app's own link.
     /// `again`: sent before but not confirmed: when Aki's message is still in the box,
     /// only sent from there (not pasted twice); when it isn't, pasted anew.
+    /// `link`: opens a new conversation first (the app's own link), in this same turn,
+    /// so no other delivery changes the page between that and the paste.
     static func deliver(to bundleID: String, session: String? = nil, conversation: (id: String, name: String)? = nil,
-                        marks: [Annotation], again: Bool = false) async -> TerminalJump.Delivery {
+                        link: URL? = nil, marks: [Annotation], again: Bool = false) async -> TerminalJump.Delivery {
         let previous = queue
         let task = Task { @MainActor in
             // Right after another one, the app is still redrawing its conversation (its
@@ -30,6 +32,15 @@ enum AppDelivery {
             concealing[bundleID]?.cancel()
             concealing[bundleID] = nil
             delivering.insert(bundleID)
+            if let link {
+                guard NSWorkspace.shared.open(link) else { delivering.remove(bundleID); return TerminalJump.Delivery.failed }
+                // Opened by the link if it was closed: up to ten seconds for it to run;
+                // then the new conversation's page up, its message box ready.
+                for _ in 0..<100 where NSRunningApplication.runningApplications(withBundleIdentifier: bundleID).isEmpty {
+                    try? await Task.sleep(for: .milliseconds(100))
+                }
+                try? await Task.sleep(for: .seconds(1.5))
+            }
             let result = await run(to: bundleID, session: session, conversation: conversation, marks: marks, again: again)
             delivering.remove(bundleID)
             lastFinished = Date()

@@ -2063,6 +2063,16 @@ enum NewSessionMenu {
                     none.isEnabled = false
                     folders.addItem(none)
                 }
+                // Any folder, Orca's or not.
+                folders.addItem(.separator())
+                folders.addItem(item(L10n.t("Choose a folder…")) {
+                    let panel = NSOpenPanel()
+                    panel.canChooseDirectories = true
+                    panel.canChooseFiles = false
+                    panel.allowsMultipleSelection = false
+                    panel.level = .screenSaver
+                    if panel.runModal() == .OK, let url = panel.url { chosen(kind, url.path) }
+                })
                 parent.submenu = folders
                 menu.addItem(parent)
             } else {

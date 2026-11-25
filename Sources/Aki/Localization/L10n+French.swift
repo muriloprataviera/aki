@@ -380,7 +380,7 @@ extension L10n {
         "Copy": "Copier",
         "Paste": "Coller",
         "mark selected": "marque sélectionnée", "marks selected": "marques sélectionnées", "Select none": "Tout désélectionner", "Select all shown": "Sélectionner celles affichées", "Send to…": "Envoyer à…", "Send the selected marks to one terminal": "Envoyer les marques sélectionnées à un terminal", "Clear the selection": "Effacer la sélection", "Select": "Sélectionner",
-        "Claude in Orca": "Claude dans Orca", "Codex in Orca": "Codex dans Orca", "New": "Nouvelle", "Open a new session with these marks": "Ouvrir une nouvelle session avec ces marques", "No projects found": "Aucun projet trouvé",
+        "Claude in Orca": "Claude dans Orca", "Codex in Orca": "Codex dans Orca", "New": "Nouvelle", "Open a new session with these marks": "Ouvrir une nouvelle session avec ces marques", "Choose a folder…": "Choisir un dossier…", "No projects found": "Aucun projet trouvé",
         "Select All": "Tout sélectionner",
         "Move to another terminal": "Changer de terminal", "Send to another terminal": "Envoyer vers un autre terminal",
         "History": "Historique",

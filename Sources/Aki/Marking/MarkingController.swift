@@ -44,6 +44,9 @@ final class MarkingController {
     /// Marks saved but not sent, kept between rounds (the sidebar counts them, the History lists them).
     /// The "+ New" sessions the queue's marks go to (they open when those marks go).
     private var queuedOpening: [String: NewSession] = [:]
+    /// "+ New" sessions opened (or opening), by their stand-in id: what they became.
+    /// Marks for one that's already open go to it, never open a second one.
+    private var openedNew: [String: Task<String?, Never>] = [:]
     private var queued: [Mark] = [] {
         didSet {
             model.queuedMarks = queued.count
@@ -907,6 +910,7 @@ final class MarkingController {
             close()
             if !keep.isEmpty {
                 queued = keep
+                queuedOpening.merge(session.opening.filter { id, _ in keep.contains { $0.destination == id } }) { _, new in new }
             }
             if let destination = session.marks.last?.destination {
                 model.selectedTerminal = destination
@@ -925,14 +929,29 @@ final class MarkingController {
             Task {
                 let marks = await model.store.list(.init(status: "pending")).annotations
                     .filter { $0["session_id"]?.string == new.id && $0["delivered_at"]?.string == nil }
+                // Already opened by an earlier send: these go to the session it became.
+                if let earlier = openedNew[new.id] {
+                    guard let real = await earlier.value else { NSSound.beep(); return }
+                    if real != new.id, let target = model.allTerminals.first(where: { $0.id == real }) {
+                        for mark in marks { await model.moveMark(mark.id, to: target, settle: false) }
+                    }
+                    await model.refresh()
+                    didSend([real])
+                    return
+                }
                 // Not opened (Orca or the app didn't answer): the marks wait in History,
                 // to move to another session.
-                let opened = await new.open(with: marks, store: model.store) { [weak self] in
-                    guard let self else { return [] }
-                    await self.model.refresh()
-                    return self.model.allTerminals
+                let opening = Task { [weak self] () -> String? in
+                    guard let self else { return nil }
+                    return await new.open(with: marks, store: self.model.store) { [weak self] in
+                        guard let self else { return [] }
+                        await self.model.refresh()
+                        return self.model.allTerminals
+                    }
                 }
-                guard let opened else { NSSound.beep(); return }
+                openedNew[new.id] = opening
+                let opened = await opening.value
+                guard let opened else { openedNew[new.id] = nil; NSSound.beep(); return }
                 // Opened once: marks still queued for it go to the session it became.
                 queuedOpening[new.id] = nil
                 queued = queued.map { mark in

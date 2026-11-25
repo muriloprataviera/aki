@@ -380,7 +380,7 @@ extension L10n {
         "Copy": "拷贝",
         "Paste": "粘贴",
         "mark selected": "个标记已选", "marks selected": "个标记已选", "Select none": "全部取消", "Select all shown": "选择显示的全部", "Send to…": "发送到…", "Send the selected marks to one terminal": "把选中的标记发送到一个终端", "Clear the selection": "清除选择", "Select": "选择",
-        "Claude in Orca": "在 Orca 中用 Claude", "Codex in Orca": "在 Orca 中用 Codex", "New": "新建", "Open a new session with these marks": "用这些标记打开新会话", "No projects found": "未找到项目",
+        "Claude in Orca": "在 Orca 中用 Claude", "Codex in Orca": "在 Orca 中用 Codex", "New": "新建", "Open a new session with these marks": "用这些标记打开新会话", "Choose a folder…": "选择文件夹…", "No projects found": "未找到项目",
         "Select All": "全选",
         "Move to another terminal": "移到另一个终端", "Send to another terminal": "发送到另一个终端",
         "History": "历史记录",

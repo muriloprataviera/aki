@@ -188,14 +188,8 @@ struct NewSession: Equatable {
 
     /// The app's new conversation by its own link, then the marks pasted and sent there.
     @MainActor private func openInApp(_ url: URL?, bundleID: String, marks: [Annotation]) async -> Bool {
-        guard let url, NSWorkspace.shared.open(url) else { return false }
-        // Opened by the link if it was closed: up to ten seconds for it to run.
-        for _ in 0..<100 where NSRunningApplication.runningApplications(withBundleIdentifier: bundleID).isEmpty {
-            try? await Task.sleep(for: .milliseconds(100))
-        }
-        // The new conversation's page up, its message box ready.
-        try? await Task.sleep(for: .seconds(1.5))
-        return await AppDelivery.deliver(to: bundleID, marks: marks) == .sent
+        guard let url else { return false }
+        return await AppDelivery.deliver(to: bundleID, link: url, marks: marks) == .sent
     }
 
     /// The same message a session gets when its marks go over: what they are, how to
