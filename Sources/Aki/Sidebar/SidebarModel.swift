@@ -1383,7 +1383,7 @@ final class SidebarModel {
 
     /// A mark that already went (or is done) goes again to another session as a new
     /// one: the original stays in History, under the session it was sent to.
-    func copyMark(_ id: String, to target: AgentTerminal) async {
+    func copyMark(_ id: String, to target: AgentTerminal, settle: Bool = true) async {
         guard let original = await store.get(id) else { return }
         var fields = original.fields
         for key in ["id", "created_at", "updated_at", "size_bytes", "delivered_at", "read_at", "image_path",
@@ -1402,12 +1402,29 @@ final class SidebarModel {
                 _ = try? await store.update(copy.id, with: ["image_path": .string(file.path)])
             }
         }
+        guard settle else { return }
+        await refresh()
+        deliverLater(to: [target.id])
+    }
+
+    /// Several marks at once (History's selection) to one session: each moves, or goes
+    /// again as a copy when it already went or is done; the session gets them in one send.
+    func moveOrCopy(_ ids: [String], to target: AgentTerminal) async {
+        let all = await store.list(.init()).annotations
+        for id in ids {
+            guard let mark = all.first(where: { $0.id == id }) else { continue }
+            if mark.status == "completed" || mark["delivered_at"]?.string != nil {
+                await copyMark(id, to: target, settle: false)
+            } else {
+                await moveMark(id, to: target, settle: false)
+            }
+        }
         await refresh()
         deliverLater(to: [target.id])
     }
 
     /// One mark to another session; it's sent there like a fresh one.
-    func moveMark(_ id: String, to target: AgentTerminal) async {
+    func moveMark(_ id: String, to target: AgentTerminal, settle: Bool = true) async {
         if let source = await store.list(.init(status: "pending")).annotations.first(where: { $0.id == id })?["session_id"]?.string {
             noteMoved(source)
         }
@@ -1415,6 +1432,7 @@ final class SidebarModel {
         fields.merge(["session_id": .string(target.id), "worktree": .string(target.worktree),
                       "delivered_at": .null, "read_at": .null]) { _, new in new }
         _ = try? await store.update(id, with: fields)
+        guard settle else { return }
         await refresh()
         deliverLater(to: [target.id])
     }

@@ -117,6 +117,8 @@ private struct HistoryView: View {
     @State private var query = ""
     /// Marks, or the last week's conversations.
     @State private var tab: HistoryTab = .marks
+    /// Marks ticked for one action on all of them (move, done, delete).
+    @State private var picked: Set<String> = []
 
     var body: some View {
         // A ZStack, not a Group: its onAppear runs once, not again on every tab switch.
@@ -241,7 +243,9 @@ private struct HistoryView: View {
                                                // Only where Aki can type (not Terminal or iTerm), and every
                                                // mark still open there, this one included.
                                                resend: terminal(of: a).flatMap { t in model.canDeliver(t) ? { model.deliver(t, all: true) } : nil },
-                                               sendState: terminal(of: a).flatMap { model.delivery[$0.id] })
+                                               sendState: terminal(of: a).flatMap { model.delivery[$0.id] },
+                                               picked: picked.contains(a.id), picking: !picked.isEmpty,
+                                               pick: { pickToggle(a.id) })
                                 }
                             } header: {
                                 Text(dayTitle(day).uppercased()).font(.system(size: 9, weight: .bold)).tracking(0.6)
@@ -256,6 +260,9 @@ private struct HistoryView: View {
                     .padding(.trailing, 12)
                 }
             }
+            if !picked.isEmpty {
+                pickBar
+            } else {
             HStack {
                 Text(model.preferences.keepDays > 0
                      ? "\(L10n.t("Done marks are deleted after")) \(model.preferences.keepDays) \(L10n.t("days"))"
@@ -264,6 +271,7 @@ private struct HistoryView: View {
                 Spacer()
                 Text("\(L10n.t("Sent")): \(Bytes.text(Int64(totals.sent))) · \(L10n.t("on this Mac now")): \(Bytes.text(totals.onDisk))")
                     .font(.system(size: 9.5, weight: .medium)).foregroundStyle(.white.opacity(0.55)).monospacedDigit()
+            }
             }
         }
         .padding(.horizontal, 12).padding(.bottom, 12).padding(.top, 5)
@@ -282,6 +290,80 @@ private struct HistoryView: View {
             .sorted { ($0["created_at"]?.string ?? "") > ($1["created_at"]?.string ?? "") }
         let latest = Array(all.prefix(400))
         if latest.map(\.fields) != annotations.map(\.fields) { annotations = latest }
+    }
+
+    private func pickToggle(_ id: String) {
+        withAnimation(.easeOut(duration: 0.12)) {
+            if picked.contains(id) { picked.remove(id) } else { picked.insert(id) }
+        }
+    }
+
+    /// The ticked marks, as listed (marks gone meanwhile left out).
+    private var pickedMarks: [Annotation] { annotations.filter { picked.contains($0.id) } }
+
+    /// What to do with every ticked mark at once, in place of the footer.
+    private var pickBar: some View {
+        let marks = pickedMarks
+        let shown = filtered.map(\.id)
+        let allShown = !shown.isEmpty && Set(shown).isSubset(of: picked)
+        return HStack(spacing: 8) {
+            Text("\(marks.count) \(L10n.t(marks.count == 1 ? "mark selected" : "marks selected"))")
+                .font(.system(size: 11, weight: .bold)).foregroundStyle(.white).monospacedDigit()
+            Button(L10n.t(allShown ? "Select none" : "Select all shown")) {
+                withAnimation(.easeOut(duration: 0.12)) {
+                    if allShown { picked.subtract(shown) } else { picked.formUnion(shown) }
+                }
+            }
+            .buttonStyle(SettingsButtonStyle(compact: true))
+            Spacer(minLength: 4)
+            Menu {
+                let open = model.allTerminals.map { ($0, model.number(of: $0.id)) }
+                ForEach(open.filter { $0.1 != nil }, id: \.0.id) { t, n in
+                    Button { movePicked(to: t) } label: {
+                        SessionMenuLabel(terminal: t, title: "\(n ?? 0)  \(t.agent.displayName) · \(t.name)")
+                    }
+                }
+                let rest = open.filter { $0.1 == nil }
+                if !rest.isEmpty {
+                    Divider()
+                    ForEach(rest, id: \.0.id) { t, _ in
+                        Button { movePicked(to: t) } label: {
+                            SessionMenuLabel(terminal: t, title: "\(t.agent.displayName) · \(t.name) — \(URL(filePath: t.worktree).lastPathComponent)")
+                        }
+                    }
+                }
+            } label: {
+                Label(L10n.t("Send to…"), systemImage: "arrow.left.arrow.right").font(.system(size: 11, weight: .semibold))
+            }
+            .menuStyle(.borderlessButton)
+            .fixedSize()
+            .help(L10n.t("Send the selected marks to one terminal"))
+            if marks.contains(where: { $0.status != "completed" }) {
+                Button { let ids = marks.map(\.id); picked = []
+                    act { for id in ids { _ = try? await model.store.update(id, with: ["status": .string("completed")]) } }
+                } label: { Label(L10n.t("Mark as done"), systemImage: "checkmark") }
+                .buttonStyle(SettingsButtonStyle(compact: true))
+            }
+            Button { let ids = marks.map(\.id); picked = []
+                act { for id in ids { _ = try? await model.store.delete(id) } }
+            } label: { Label(L10n.t("Delete"), systemImage: "trash") }
+            .buttonStyle(SettingsButtonStyle(compact: true))
+            Button { withAnimation(.easeOut(duration: 0.12)) { picked = [] } } label: {
+                Image(systemName: "xmark").font(.system(size: 9, weight: .bold))
+            }
+            .buttonStyle(SettingsButtonStyle(compact: true))
+            .help(L10n.t("Clear the selection"))
+        }
+        .padding(.horizontal, 10).padding(.vertical, 6)
+        .background(RoundedRectangle(cornerRadius: 9).fill(Color.white.opacity(0.08)))
+        .overlay(RoundedRectangle(cornerRadius: 9).strokeBorder(Color.white.opacity(0.14), lineWidth: 1))
+        .transition(.opacity)
+    }
+
+    private func movePicked(to target: AgentTerminal) {
+        let ids = pickedMarks.map(\.id)
+        picked = []
+        act { await model.moveOrCopy(ids, to: target) }
     }
 
     private func act(_ work: @escaping () async -> Void) {
@@ -489,18 +571,34 @@ private struct HistoryRow: View {
     let resend: (() -> Void)?
     /// How the last send to its session went (shown whether hovered or not).
     var sendState: SidebarModel.DeliveryState? = nil
+    /// Ticked for an action on several at once; `picking`: some mark is.
+    var picked = false
+    var picking = false
+    var pick: () -> Void = {}
     @State private var hovered = false
 
     private var done: Bool { annotation.status == "completed" }
 
     var body: some View {
         HStack(alignment: .center, spacing: 8) {
-            Text(number.map(String.init) ?? "·")
-                .font(.system(size: 8.5, weight: .heavy, design: .rounded))
-                .foregroundStyle(.black)
-                .frame(width: 15, height: 15)
-                .background(Circle().fill(AkiPalette.hue(number: number)))
-                .opacity(done ? 0.5 : 1)
+            // Its session's number; a tick box in its place on hover or while picking.
+            Button(action: pick) {
+                if picked || picking || hovered {
+                    Image(systemName: picked ? "checkmark.circle.fill" : "circle")
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundStyle(picked ? AkiPalette.hue(number: number) : .white.opacity(0.55))
+                        .frame(width: 15, height: 15)
+                } else {
+                    Text(number.map(String.init) ?? "·")
+                        .font(.system(size: 8.5, weight: .heavy, design: .rounded))
+                        .foregroundStyle(.black)
+                        .frame(width: 15, height: 15)
+                        .background(Circle().fill(AkiPalette.hue(number: number)))
+                        .opacity(done ? 0.5 : 1)
+                }
+            }
+            .buttonStyle(.plain)
+            .help(L10n.t("Select"))
             if let image = AnnotationImage.file(for: annotation).flatMap({ NSImage(contentsOf: $0) }) {
                 Button { ImageZoom.show(image) } label: {
                     Image(nsImage: image).resizable().aspectRatio(contentMode: .fill)
@@ -556,8 +654,8 @@ private struct HistoryRow: View {
                     .transition(.opacity)
             }
         }
-        .background(RoundedRectangle(cornerRadius: 8).fill(Color.white.opacity(hovered ? 0.11 : 0)))
-        .overlay(RoundedRectangle(cornerRadius: 8).strokeBorder(Color.white.opacity(hovered ? 0.14 : 0), lineWidth: 1))
+        .background(RoundedRectangle(cornerRadius: 8).fill(Color.white.opacity(hovered ? 0.11 : picked ? 0.07 : 0)))
+        .overlay(RoundedRectangle(cornerRadius: 8).strokeBorder(Color.white.opacity(hovered ? 0.14 : picked ? 0.1 : 0), lineWidth: 1))
         // The whole row answers the pointer, gaps included.
         .contentShape(Rectangle())
         .onHover { inside in withAnimation(.easeOut(duration: 0.1)) { hovered = inside } }

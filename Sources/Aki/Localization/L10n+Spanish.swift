@@ -379,6 +379,7 @@ extension L10n {
         "Cut": "Cortar",
         "Copy": "Copiar",
         "Paste": "Pegar",
+        "mark selected": "marca seleccionada", "marks selected": "marcas seleccionadas", "Select none": "Desmarcar todas", "Select all shown": "Seleccionar las de la lista", "Send to…": "Enviar a…", "Send the selected marks to one terminal": "Enviar las marcas seleccionadas a una terminal", "Clear the selection": "Borrar la selección", "Select": "Seleccionar",
         "Select All": "Seleccionar todo",
         "Move to another terminal": "Mover a otro terminal", "Send to another terminal": "Enviar a otra terminal",
         "History": "Historial",

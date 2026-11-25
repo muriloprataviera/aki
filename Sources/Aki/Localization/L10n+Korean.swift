@@ -379,6 +379,7 @@ extension L10n {
         "Cut": "오려두기",
         "Copy": "복사하기",
         "Paste": "붙여넣기",
+        "mark selected": "개 마크 선택됨", "marks selected": "개 마크 선택됨", "Select none": "모두 선택 해제", "Select all shown": "표시된 항목 모두 선택", "Send to…": "보내기…", "Send the selected marks to one terminal": "선택한 마크를 하나의 터미널로 보내기", "Clear the selection": "선택 지우기", "Select": "선택",
         "Select All": "전체 선택",
         "Move to another terminal": "다른 터미널로 이동", "Send to another terminal": "다른 터미널로 보내기",
         "History": "기록",
