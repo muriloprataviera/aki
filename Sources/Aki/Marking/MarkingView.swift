@@ -702,7 +702,8 @@ struct MarkingView: View {
     /// The first four sessions in sidebar order (the chosen one always among them):
     /// picking one never moves its ring. The rest wait behind "+N", in a list beside the card.
     private var pickerShown: [AgentTerminal] {
-        var shown = Array(session.terminals.prefix(4))
+        // Three when "+ New" is there too: six tiles ran past the card's edge.
+        var shown = Array(session.terminals.prefix(NewSession.available.isEmpty ? 4 : 3))
         if let chosen = session.terminal(session.destination), !shown.contains(chosen), !shown.isEmpty {
             shown[shown.count - 1] = chosen
         }
@@ -790,27 +791,31 @@ struct MarkingView: View {
 
     /// "+ New": a session opened just for these marks (Claude or Codex in a new Orca
     /// tab, or a new conversation in their apps), in the project you pick.
+    private func openNewMenu() {
+        NewSessionMenu.show { kind, folder in pickNew(kind, folder) }
+    }
+
+    private func pickNew(_ kind: NewSession.Kind, _ folder: String?) {
+        withAnimation(.spring(response: 0.25, dampingFraction: 0.8)) {
+            session.chooseNew(kind, folder: folder)
+            session.listOpen = false
+        }
+        moreQuery = ""
+        focusField()
+    }
+
     private var newSessionTile: some View {
-        Button {
-            NewSessionMenu.show { kind, folder in
-                withAnimation(.spring(response: 0.25, dampingFraction: 0.8)) {
-                    session.chooseNew(kind, folder: folder)
-                    session.listOpen = false
-                }
-                focusField()
-            }
-        } label: {
+        Button { openNewMenu() } label: {
             VStack(spacing: 3) {
                 Image(systemName: "plus")
-                    .font(.system(size: 13, weight: .bold))
-                    .foregroundStyle(.white)
+                    .font(.system(size: 15, weight: .heavy))
+                    .foregroundStyle(.black)
                     .frame(width: 32, height: 32)
-                    .background(Circle().fill(Color.white.opacity(0.1)))
-                    .overlay(Circle().strokeBorder(Color.white.opacity(0.35), style: StrokeStyle(lineWidth: 1, dash: [3, 2])))
+                    .background(Circle().fill(Color.white.opacity(0.92)))
                     .frame(width: 42, height: 42)
                 Text(L10n.t("New"))
                     .font(.system(size: 10, weight: .semibold))
-                    .foregroundStyle(.white.opacity(0.75))
+                    .foregroundStyle(.white.opacity(0.9))
             }
             .frame(width: 44)
         }
@@ -947,6 +952,21 @@ struct MarkingView: View {
             .padding(.horizontal, 6).padding(.bottom, 4)
             ScrollView(.vertical, showsIndicators: true) {
                 VStack(alignment: .leading, spacing: 2) {
+                    if !NewSession.available.isEmpty {
+                        Button { openNewMenu() } label: {
+                            HStack(spacing: 8) {
+                                Image(systemName: "plus.circle.fill").font(.system(size: 14))
+                                Text(L10n.t("New session…")).font(.system(size: 11.5, weight: .semibold))
+                                Spacer(minLength: 0)
+                            }
+                            .foregroundStyle(.white)
+                            .padding(.horizontal, 8).padding(.vertical, 6)
+                            .contentShape(Rectangle())
+                        }
+                        .buttonStyle(.plain)
+                        .modifier(PickHover())
+                        .help(L10n.t("Open a new session with these marks"))
+                    }
                     ForEach(moreList) { terminal in
                         MoreRow(terminal: terminal, hue: Color(session.hue(for: terminal.id)),
                                 number: session.number(of: terminal.id), help: pickerHelp(terminal)) {
@@ -984,6 +1004,12 @@ struct MarkingView: View {
                     withAnimation(.spring(response: 0.25, dampingFraction: 0.8)) { session.setDestination(terminal.id) }
                 } label: {
                     SessionMenuLabel(terminal: terminal, title: "\(session.number(of: terminal.id).map { "\($0)  " } ?? "")\(terminal.agent.displayName) · \(terminal.name)")
+                }
+            }
+            if !NewSession.available.isEmpty {
+                Divider()
+                Button { DispatchQueue.main.async { openNewMenu() } } label: {
+                    Label(L10n.t("New session…"), systemImage: "plus.circle")
                 }
             }
         } label: {
