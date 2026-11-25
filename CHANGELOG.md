@@ -4,6 +4,10 @@ What changed in each version of Aki. Versions follow [semantic versioning](https
 
 ## [Unreleased]
 
+### Added
+- "+ New" on the marking card: open Claude or Codex in a new Orca tab, or a new conversation in their apps, in the project you pick, with your marks as its first message. No need to open a terminal first.
+- History picks several marks at once (the tick in place of the number): send them all to one terminal, mark them done or delete them together.
+
 ## [0.13.0] — 2026-11-21
 
 ### Added
