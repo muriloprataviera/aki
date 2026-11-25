@@ -934,6 +934,11 @@ final class MarkingController {
                 // Already opened by an earlier send: these go to the session it became.
                 if let earlier = openedNew[new.id] {
                     guard let real = await earlier.value else { NSSound.beep(); return }
+                    // A new Codex not found: these wait in History, to move by hand.
+                    if real == new.id, new.kind == .codexOrca { NSSound.beep(); return }
+                    // Looked at again now: the first send's marks are its own already.
+                    let marks = await model.store.list(.init(status: "pending")).annotations
+                        .filter { $0["session_id"]?.string == new.id && $0["delivered_at"]?.string == nil }
                     if real != new.id {
                         // The session it became, looked for anew (an app's isn't listed until now).
                         await model.refresh()
@@ -961,7 +966,9 @@ final class MarkingController {
                 openedNew[new.id] = opening
                 let opened = await opening.value
                 guard let opened else { openedNew[new.id] = nil; NSSound.beep(); return }
-                // Opened once: marks still queued for it go to the session it became.
+                // Opened once: marks still queued for it go to the session it became
+                // (a new Codex not found yet keeps its stand-in).
+                guard !(opened == new.id && new.kind == .codexOrca) else { return }
                 queuedOpening[new.id] = nil
                 queued = queued.map { mark in
                     var mark = mark

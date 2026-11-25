@@ -32,31 +32,9 @@ enum AppDelivery {
             concealing[bundleID]?.cancel()
             concealing[bundleID] = nil
             delivering.insert(bundleID)
-            if let link {
-                // The page shown before: the new one has to replace it before anything is
-                // pasted (never into the conversation that was open).
-                let running = NSRunningApplication.runningApplications(withBundleIdentifier: bundleID).first
-                let before = running.flatMap { DesktopApps.pageTitle($0.processIdentifier) }
-                guard NSWorkspace.shared.open(link) else { delivering.remove(bundleID); return TerminalJump.Delivery.failed }
-                // Opened by the link if it was closed: up to ten seconds for it to run.
-                for _ in 0..<100 where NSRunningApplication.runningApplications(withBundleIdentifier: bundleID).isEmpty {
-                    try? await Task.sleep(for: .milliseconds(100))
-                }
-                // A blank conversation in front (no title of its own): the new one is the same.
-                if let running, before != nil {
-                    // Up to eight seconds for the new page; it never came: nothing pasted
-                    // (never into the conversation that was open).
-                    var changed = false
-                    for _ in 0..<80 {
-                        try? await Task.sleep(for: .milliseconds(100))
-                        if DesktopApps.pageTitle(running.processIdentifier) != before { changed = true; break }
-                    }
-                    guard changed else { delivering.remove(bundleID); return TerminalJump.Delivery.failed }
-                }
-                // Its message box ready.
-                try? await Task.sleep(for: .seconds(1.5))
-            }
-            let result = await run(to: bundleID, session: session, conversation: conversation, marks: marks, again: again)
+            let result = await openNew(link, in: bundleID)
+                ? await run(to: bundleID, session: session, conversation: conversation, marks: marks, again: again)
+                : .failed
             delivering.remove(bundleID)
             lastFinished = Date()
             concealLater(bundleID)
@@ -64,6 +42,39 @@ enum AppDelivery {
         }
         queue = task
         return await task.value
+    }
+
+    /// A new conversation by the app's own link (none: nothing to do). False when it
+    /// didn't open: the page shown before has to give way to the new one before anything
+    /// is pasted (never into the conversation that was open).
+    private static func openNew(_ link: URL?, in bundleID: String) async -> Bool {
+        guard let link else { return true }
+        let running = NSRunningApplication.runningApplications(withBundleIdentifier: bundleID).first
+        // Its page described, so its title can be read (an app that stopped describing
+        // it would say none, like a blank conversation).
+        if let running {
+            exposeContents(running.processIdentifier)
+            try? await Task.sleep(for: .milliseconds(300))
+        }
+        let before = running.flatMap { DesktopApps.pageTitle($0.processIdentifier) }
+        guard NSWorkspace.shared.open(link) else { return false }
+        // Opened by the link if it was closed: up to ten seconds for it to run.
+        for _ in 0..<100 where NSRunningApplication.runningApplications(withBundleIdentifier: bundleID).isEmpty {
+            try? await Task.sleep(for: .milliseconds(100))
+        }
+        // A blank conversation in front (no title of its own): the new one is the same.
+        if let running, before != nil {
+            // Up to eight seconds for the new page; it never came: nothing pasted.
+            var changed = false
+            for _ in 0..<80 {
+                try? await Task.sleep(for: .milliseconds(100))
+                if DesktopApps.pageTitle(running.processIdentifier) != before { changed = true; break }
+            }
+            guard changed else { return false }
+        }
+        // Its message box ready.
+        try? await Task.sleep(for: .seconds(1.5))
+        return true
     }
 
     private static func run(to bundleID: String, session: String?, conversation: (id: String, name: String)?,
