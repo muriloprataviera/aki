@@ -42,6 +42,8 @@ final class MarkingController {
     private var scrollIdle: DispatchWorkItem?
     private var starting = false
     /// Marks saved but not sent, kept between rounds (the sidebar counts them, the History lists them).
+    /// The "+ New" sessions the queue's marks go to (they open when those marks go).
+    private var queuedOpening: [String: NewSession] = [:]
     private var queued: [Mark] = [] {
         didSet {
             model.queuedMarks = queued.count
@@ -69,7 +71,7 @@ final class MarkingController {
 
     func sendQueued(only id: UUID? = nil) {
         guard session == nil, !starting, !sendingQueue else { return }
-        let terminals = model.markableTerminals
+        let terminals = model.markableTerminals + queuedOpening.values.map(\.terminal)
         // Those whose session is still there go; one whose session closed stays queued,
         // marked in red to choose another (it used to hold all the others back).
         let batch = queued.filter { mark in (id == nil || mark.id == id) && terminals.contains { $0.id == mark.destination } }
@@ -78,6 +80,7 @@ final class MarkingController {
             return
         }
         let sender = MarkingSession(grabs: [], context: MarkContext.current(), terminals: terminals, destination: nil)
+        sender.opening = queuedOpening
         sender.projects = Dictionary(terminals.map { ($0.id, model.projectKey(of: $0)) }, uniquingKeysWith: { a, _ in a })
         sendingQueue = true
         Task {
@@ -88,7 +91,7 @@ final class MarkingController {
             if !failed.isEmpty { NSSound.beep() }
             if let destination = batch.last?.destination, !sentTo.isEmpty { model.selectedTerminal = destination }
             await model.refresh()
-            if !sentTo.isEmpty { didSend(sentTo) }
+            if !sentTo.isEmpty { delivered(sentTo, in: sender) }
         }
     }
 
@@ -475,7 +478,11 @@ final class MarkingController {
             session.hues = Dictionary(terminals.map { ($0.id, model.hue(of: $0)) }, uniquingKeysWith: { a, _ in a })
             session.projects = Dictionary(terminals.map { ($0.id, model.projectKey(of: $0)) }, uniquingKeysWith: { a, _ in a })
             // Marks saved in an earlier round (esc keeps them): back in the queue.
-            if !queued.isEmpty { session.resume(queued) }
+            if !queued.isEmpty {
+                session.opening = queuedOpening
+                session.updateTerminals(terminals)
+                session.resume(queued)
+            }
             queued = []
             self.session = session
             followTerminals(session)
@@ -794,7 +801,10 @@ final class MarkingController {
     func close() {
         // Mid-send (saving, marks in flight): it closes by itself when done.
         if let session, session.sending { return }
-        if let session, !session.flying { queued = session.carried() }
+        if let session, !session.flying {
+            queued = session.carried()
+            queuedOpening = session.opening.filter { id, _ in queued.contains { $0.destination == id } }
+        }
         model.queuedMarks = queued.count
         teardown()
     }
@@ -917,7 +927,12 @@ final class MarkingController {
                     .filter { $0["session_id"]?.string == new.id && $0["delivered_at"]?.string == nil }
                 // Not opened (Orca or the app didn't answer): the marks wait in History,
                 // to move to another session.
-                if await !new.open(with: marks, store: model.store) { NSSound.beep() }
+                let opened = await new.open(with: marks, store: model.store) { [weak self] in
+                    guard let self else { return [] }
+                    await self.model.refresh()
+                    return self.model.allTerminals
+                }
+                if !opened { NSSound.beep() }
                 await model.refresh()
             }
         }

@@ -54,6 +54,8 @@ struct NewSession: Equatable {
             case .claudeOrca, .codexOrca:
                 FileManager.default.isExecutableFile(atPath: TerminalJump.orcaCLI)
                     && !Preferences.shared.disconnectedApps.contains("com.stablyai.orca")
+                    // Its command in the terminal (while not known yet, offered: checked again on opening).
+                    && commands.map { $0.contains(kind.agent.rawValue) } ?? true
             case .claudeApp: NSWorkspace.shared.urlForApplication(withBundleIdentifier: claudeApp) != nil
             case .codexApp: NSWorkspace.shared.urlForApplication(withBundleIdentifier: codexApp) != nil
             }
@@ -63,9 +65,28 @@ struct NewSession: Equatable {
     /// Orca's projects, last used first (read in the background when marking starts).
     @MainActor static var projects: [String] = []
 
+    /// Which of `claude` and `codex` a terminal has (nil: not looked yet).
+    @MainActor static var commands: Set<String>?
+
+    /// Looked up as the terminal will (interactive login shell, .zshrc too); ten seconds
+    /// at most (a .zshrc that asks something would never end).
+    @MainActor static func lookUpCommands() async -> Set<String> {
+        let found = await Task.detached { () -> Set<String> in
+            guard let data = Command.output("/bin/zsh", ["-ilc", "for c in claude codex; do command -v $c >/dev/null && print -r -- AKICMD=$c; done"],
+                                            timeout: 10, anyEnd: true),
+                  let text = String(data: data, encoding: .utf8) else { return [] }
+            return Set(text.split(separator: "\n").compactMap { line in
+                line.hasPrefix("AKICMD=") ? String(line.dropFirst(7)) : nil
+            })
+        }.value
+        commands = found
+        return found
+    }
+
     /// Reads Orca's projects again, plus the folders of the open sessions (for a Mac
     /// without Orca, or one Orca doesn't have).
     @MainActor static func refreshProjects(also folders: [String]) {
+        if commands == nil { Task { _ = await lookUpCommands() } }
         Task {
             let orca: [(path: String, used: Double)] = await Task.detached {
                 guard FileManager.default.isExecutableFile(atPath: TerminalJump.orcaCLI),
@@ -92,20 +113,60 @@ struct NewSession: Equatable {
 
     // MARK: Opening
 
+    /// One opening at a time: an app's new conversation is opened and filled before the
+    /// next one opens (it would take the first one's place before the paste).
+    @MainActor private static var chain: Task<Bool, Never>?
+
     /// Opens it with `marks` (saved for it) as the first message. True when it opened
-    /// and the marks went; they're then marked as sent.
-    @MainActor func open(with marks: [Annotation], store: AnnotationStore) async -> Bool {
+    /// and the marks went: sent (Orca), or done once pasted in an app (which can't close them).
+    /// `sessions`: the open sessions, looked at again, to find the new Codex one.
+    @MainActor func open(with marks: [Annotation], store: AnnotationStore,
+                         sessions: @escaping @MainActor () async -> [AgentTerminal]) async -> Bool {
+        let previous = Self.chain
+        let task = Task { @MainActor in
+            _ = await previous?.value
+            return await run(with: marks, store: store, sessions: sessions)
+        }
+        Self.chain = task
+        return await task.value
+    }
+
+    @MainActor private func run(with marks: [Annotation], store: AnnotationStore,
+                                sessions: @MainActor () async -> [AgentTerminal]) async -> Bool {
         guard !marks.isEmpty else { return false }
         let opened: Bool
+        let now = { ISO8601DateFormatter().string(from: Date()) }
         switch kind {
         case .claudeOrca, .codexOrca:
             guard let folder else { return false }
+            // Without the command the tab would only say "command not found": the marks stay unsent.
+            var commands = Self.commands
+            if commands == nil { commands = await Self.lookUpCommands() }
+            guard commands?.contains(kind.agent.rawValue) == true else { return false }
+            let root = Worktree.root(of: folder)
+            let before = Set(await sessions().filter { $0.agent == .codex && $0.worktree == root }.map(\.id))
             let prompt = Self.prompt(for: marks, name: terminal.name)
             let quotedPrompt = Self.quoted(prompt)
             let command = kind == .claudeOrca
                 ? "claude --session-id \(id) \(quotedPrompt)"
                 : "codex \(quotedPrompt)"
             opened = await TerminalJump.createOrcaTerminal(in: folder, title: nil, command: "cd \(Self.quoted(folder)) && \(command)")
+            guard opened else { return false }
+            for mark in marks { _ = try? await store.update(mark.id, with: ["delivered_at": .string(now())]) }
+            // Codex's session is known by its process ("codex:<pid>"): once it shows up
+            // (up to thirty seconds), the marks become its own, so it lists and closes them.
+            if kind == .codexOrca {
+                for _ in 0..<20 {
+                    try? await Task.sleep(for: .seconds(1.5))
+                    guard let new = await sessions().first(where: { $0.agent == .codex && $0.worktree == root && !before.contains($0.id) })
+                    else { continue }
+                    var fields = new.identityFields
+                    fields.merge(["session_id": .string(new.id), "worktree": .string(new.worktree)]) { _, new in new }
+                    for mark in marks { _ = try? await store.update(mark.id, with: fields) }
+                    break
+                }
+            }
+            return true
         case .claudeApp:
             guard let folder, var link = URLComponents(string: "claude://code/new") else { return false }
             link.queryItems = [URLQueryItem(name: "folder", value: folder)]
@@ -114,8 +175,11 @@ struct NewSession: Equatable {
             opened = await openInApp(URL(string: "codex://threads/new"), bundleID: Self.codexApp, marks: marks)
         }
         guard opened else { return false }
-        let now = ISO8601DateFormatter().string(from: Date())
-        for mark in marks { _ = try? await store.update(mark.id, with: ["delivered_at": .string(now)]) }
+        // An app can't close them with `aki done`: once sent there, they're done (as for
+        // any app conversation).
+        for mark in marks {
+            _ = try? await store.update(mark.id, with: ["delivered_at": .string(now()), "status": .string("completed")])
+        }
         return true
     }
 
