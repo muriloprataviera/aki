@@ -615,7 +615,9 @@ final class MarkingController {
             // Without the key tap (no Accessibility): esc and ⌘⏎ at least, system-wide.
             if keyTap == nil {
                 modalKeys = [
-                    HotKey(keyCode: UInt32(kVK_Escape), modifiers: 0) { [weak self] in self?.escape() },
+                    HotKey(keyCode: UInt32(kVK_Escape), modifiers: 0) { [weak self] in
+                        if NSApp.modalWindow == nil { self?.escape() } else { NSApp.abortModal() }
+                    },
                     HotKey(keyCode: UInt32(kVK_Return), modifiers: UInt32(cmdKey)) { [weak self] in self?.send() },
                 ]
             }
@@ -932,7 +934,14 @@ final class MarkingController {
                 // Already opened by an earlier send: these go to the session it became.
                 if let earlier = openedNew[new.id] {
                     guard let real = await earlier.value else { NSSound.beep(); return }
-                    if real != new.id, let target = model.allTerminals.first(where: { $0.id == real }) {
+                    if real != new.id {
+                        // The session it became, looked for anew (an app's isn't listed until now).
+                        await model.refresh()
+                        guard let target = model.allTerminals.first(where: { $0.id == real }) else {
+                            // Not there: the marks wait in History, to move by hand.
+                            NSSound.beep()
+                            return
+                        }
                         for mark in marks { await model.moveMark(mark.id, to: target, settle: false) }
                     }
                     await model.refresh()
@@ -1017,7 +1026,8 @@ final class MarkingController {
 
     /// One key while marking; true when Aki used it.
     private func handleKey(_ event: NSEvent) -> Bool {
-            guard let session = self.session else { return false }
+            // A window of its own open over the marking (choosing a folder): its keys.
+            guard let session = self.session, NSApp.modalWindow == nil else { return false }
             if event.type == .flagsChanged {
                 // ⌥ switches between UI elements and lines of text, right away.
                 let held = event.modifierFlags.contains(.option)
