@@ -961,8 +961,6 @@ final class MarkingController {
                 openedNew[new.id] = opening
                 let opened = await opening.value
                 guard let opened else { openedNew[new.id] = nil; NSSound.beep(); return }
-                // A new Codex: its marks go now, as to any session.
-                if new.kind == .codexOrca { model.deliverLater(to: [opened], now: true) }
                 // Opened once: marks still queued for it go to the session it became.
                 queuedOpening[new.id] = nil
                 queued = queued.map { mark in

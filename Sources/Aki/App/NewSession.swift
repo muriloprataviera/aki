@@ -120,8 +120,7 @@ struct NewSession: Equatable {
 
     /// Opens it with `marks` (saved for it) as the first message: sent (Orca), or done once
     /// sent in an app (which can't close them). Returns where later marks go now (the
-    /// session it became), nil when it didn't open. A new Codex gets them once it's up,
-    /// by the usual delivery (the caller's, `deliver`), as its own marks.
+    /// session it became), nil when it didn't open.
     /// `sessions`: the open sessions, looked at again, to find the new Codex one.
     @MainActor func open(with marks: [Annotation], store: AnnotationStore,
                          sessions: @escaping @MainActor () async -> [AgentTerminal]) async -> String? {
@@ -155,28 +154,28 @@ struct NewSession: Equatable {
                 for mark in marks { _ = try? await store.update(mark.id, with: ["delivered_at": .string(now())]) }
                 return id
             }
-            // Codex's session is known only by its process ("codex:<pid>"): it opens empty,
-            // and once it shows up (up to thirty seconds) the marks become its own, then go
-            // to it as to any session (so `aki list` there finds them). Found by the tab
-            // Orca made (its process carries the tab's handle); without one, only when it's
-            // the single new Codex in the folder (never a guess).
+            // Codex starts with the message (after its own questions, like trusting the
+            // folder); the marks named by code, read from any session. Its session is known
+            // only by its process ("codex:<pid>"): once it shows up (up to thirty seconds)
+            // the marks become its own. Found by the tab Orca made (its process carries the
+            // tab's handle); without one, only when it's the single new Codex in the folder.
             let before = Set(await sessions().filter { $0.agent == .codex && $0.worktree == root }.map(\.id))
-            let tab = await TerminalJump.openOrcaTerminal(in: folder, title: nil, command: "cd \(Self.quoted(folder)) && codex")
+            let command = "codex \(Self.quoted(Self.prompt(for: marks, name: terminal.name)))"
+            let tab = await TerminalJump.openOrcaTerminal(in: folder, title: nil, command: "cd \(Self.quoted(folder)) && \(command)")
             guard tab.opened else { return nil }
+            for mark in marks { _ = try? await store.update(mark.id, with: ["delivered_at": .string(now())]) }
             for _ in 0..<20 {
                 try? await Task.sleep(for: .seconds(1.5))
                 let fresh = await sessions().filter { $0.agent == .codex && $0.worktree == root && !before.contains($0.id) }
                 let mine = tab.handle.map { handle in fresh.filter { $0.orcaHandle == handle } } ?? fresh
                 guard mine.count == 1, let new = mine.first else { continue }
                 var fields = new.identityFields
-                fields.merge(["session_id": .string(new.id), "worktree": .string(new.worktree),
-                              "delivered_at": .null]) { _, new in new }
+                fields.merge(["session_id": .string(new.id), "worktree": .string(new.worktree)]) { _, new in new }
                 for mark in marks { _ = try? await store.update(mark.id, with: fields) }
-                // Its screen up before the message is typed.
-                try? await Task.sleep(for: .seconds(2))
                 return new.id
             }
-            return nil
+            // Not found: it has the marks all the same (by code); they stay under the new one.
+            return id
         case .claudeApp:
             guard let folder, var link = URLComponents(string: "claude://code/new") else { return nil }
             link.queryItems = [URLQueryItem(name: "folder", value: folder)]
@@ -184,11 +183,16 @@ struct NewSession: Equatable {
         case .codexApp:
             result = await openInApp(URL(string: "codex://threads/new"), bundleID: Self.codexApp, marks: marks)
         }
-        guard result != .failed else { return nil }
+        // Not opened (or the new page never came): under the app, to send from History
+        // to whatever is open there.
+        let app = DesktopApps.prefix + (kind == .claudeApp ? Self.claudeApp : Self.codexApp)
+        guard result != .failed else {
+            for mark in marks { _ = try? await store.update(mark.id, with: ["session_id": .string(app)]) }
+            return nil
+        }
         // Sent: done (an app can't close them with `aki done`, as for any app conversation).
         // Only pasted (pictures still uploading): sent, not done; History's arrow sends it
         // from the box, under the app.
-        let app = DesktopApps.prefix + (kind == .claudeApp ? Self.claudeApp : Self.codexApp)
         for mark in marks {
             var fields: [String: JSONValue] = ["session_id": .string(app), "delivered_at": .string(now())]
             if result == .sent { fields["status"] = .string("completed") }
@@ -222,7 +226,7 @@ struct NewSession: Equatable {
             $0["comment"]?.string.flatMap { $0.isEmpty ? nil : $0 } ?? "(no text)"
         }
         terminal.pendingPlaces = places
-        return TerminalJump.deliveryPrompt(for: terminal)
+        return TerminalJump.deliveryPrompt(for: terminal, byCode: true)
     }
 
     /// For the shell: in single quotes, its own quotes closed and reopened.

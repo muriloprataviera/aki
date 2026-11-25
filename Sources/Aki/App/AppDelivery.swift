@@ -43,12 +43,14 @@ enum AppDelivery {
                     try? await Task.sleep(for: .milliseconds(100))
                 }
                 if let running, before != nil {
-                    // Up to four seconds for the new page. Unchanged: it was a new one
-                    // already (a blank conversation has the same title as the next).
-                    for _ in 0..<40 {
+                    // Up to eight seconds for the new page; it never came: nothing pasted
+                    // (never into the conversation that was open).
+                    var changed = false
+                    for _ in 0..<80 {
                         try? await Task.sleep(for: .milliseconds(100))
-                        if DesktopApps.pageTitle(running.processIdentifier) != before { break }
+                        if DesktopApps.pageTitle(running.processIdentifier) != before { changed = true; break }
                     }
+                    guard changed else { delivering.remove(bundleID); return TerminalJump.Delivery.failed }
                 }
                 // Its message box ready.
                 try? await Task.sleep(for: .seconds(1.5))

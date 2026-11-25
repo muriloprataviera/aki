@@ -231,7 +231,9 @@ enum TerminalJump {
     /// about (the agent starts knowing, and so do you, watching the terminal), how to read
     /// them, to open a picture only when it matters, and to close them all in one go.
     /// One line (a line break would send it early), short `aki` when that command is there.
-    static func deliveryPrompt(for terminal: AgentTerminal) -> String {
+    /// `byCode`: always by the marks' codes (they're read by code from any session, even
+    /// one Aki doesn't know yet), however many.
+    static func deliveryPrompt(for terminal: AgentTerminal, byCode: Bool = false) -> String {
         let aki = AkiCommand.invocation
         let count = max(terminal.undelivered, terminal.pending, 1)
         // In the commands, the id's whole random part (8, unique in practice); on screen
@@ -257,7 +259,7 @@ enum TerminalJump {
         // into any terminal. Many marks: the session's list instead.
         // Codes only for Aki's own marks; one from elsewhere (the extension, the API):
         // the session's list, never a code that could name another mark.
-        guard !codes.isEmpty, codes.count <= 8, terminal.pendingIDs.allSatisfy({ $0.hasPrefix("aki_") }) else {
+        guard !codes.isEmpty, codes.count <= 8 || byCode, terminal.pendingIDs.allSatisfy({ $0.hasPrefix("aki_") }) else {
             return head + " Leia com `\(aki) list` (abra a foto só se o pedido for visual), resolva e feche com `\(aki) done <códigos>`."
                 + " Se não forem para esta sessão, avise antes de mexer."
         }
