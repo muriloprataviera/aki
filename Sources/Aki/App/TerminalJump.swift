@@ -38,16 +38,28 @@ enum TerminalJump {
     /// A new Orca tab in `folder` running `command`, brought forward. False without Orca
     /// or when Orca doesn't know that folder.
     @MainActor static func createOrcaTerminal(in folder: String, title: String?, command: String) async -> Bool {
+        await openOrcaTerminal(in: folder, title: title, command: command).opened
+    }
+
+    /// The same, with the new tab's handle when Orca tells it (its processes carry it).
+    @MainActor static func openOrcaTerminal(in folder: String, title: String?, command: String) async -> (opened: Bool, handle: String?) {
         guard FileManager.default.isExecutableFile(atPath: orcaCLI),
-              !Preferences.shared.disconnectedApps.contains("com.stablyai.orca") else { return false }
+              !Preferences.shared.disconnectedApps.contains("com.stablyai.orca") else { return (false, nil) }
         var arguments = ["terminal", "create", "--worktree", "path:" + Worktree.root(of: folder), "--command", command, "--focus", "--json"]
         if let title, !title.isEmpty { arguments += ["--title", title] }
         let created = await Task.detached { run(orcaCLI, arguments) }.value
         guard let created, let json = try? JSONSerialization.jsonObject(with: created) as? [String: Any],
               json["error"] == nil
-        else { return false }
+        else { return (false, nil) }
         activateApp(bundleID: "com.stablyai.orca", fallbackPID: 0)
-        return true
+        func handle(in value: Any?) -> String? {
+            if let object = value as? [String: Any] {
+                if let found = object["handle"] as? String { return found }
+                for key in ["result", "terminal"] { if let found = handle(in: object[key]) { return found } }
+            }
+            return nil
+        }
+        return (true, handle(in: json))
     }
 
     private static let cacheLock = NSLock()

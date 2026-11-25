@@ -115,13 +115,14 @@ struct NewSession: Equatable {
 
     /// One opening at a time: an app's new conversation is opened and filled before the
     /// next one opens (it would take the first one's place before the paste).
-    @MainActor private static var chain: Task<Bool, Never>?
+    @MainActor private static var chain: Task<String?, Never>?
 
-    /// Opens it with `marks` (saved for it) as the first message. True when it opened
-    /// and the marks went: sent (Orca), or done once pasted in an app (which can't close them).
+    /// Opens it with `marks` (saved for it) as the first message: sent (Orca), or done once
+    /// pasted in an app (which can't close them). Returns where later marks go now (the
+    /// session it became), nil when it didn't open.
     /// `sessions`: the open sessions, looked at again, to find the new Codex one.
     @MainActor func open(with marks: [Annotation], store: AnnotationStore,
-                         sessions: @escaping @MainActor () async -> [AgentTerminal]) async -> Bool {
+                         sessions: @escaping @MainActor () async -> [AgentTerminal]) async -> String? {
         let previous = Self.chain
         let task = Task { @MainActor in
             _ = await previous?.value
@@ -132,17 +133,17 @@ struct NewSession: Equatable {
     }
 
     @MainActor private func run(with marks: [Annotation], store: AnnotationStore,
-                                sessions: @MainActor () async -> [AgentTerminal]) async -> Bool {
-        guard !marks.isEmpty else { return false }
+                                sessions: @MainActor () async -> [AgentTerminal]) async -> String? {
+        guard !marks.isEmpty else { return nil }
         let opened: Bool
         let now = { ISO8601DateFormatter().string(from: Date()) }
         switch kind {
         case .claudeOrca, .codexOrca:
-            guard let folder else { return false }
+            guard let folder else { return nil }
             // Without the command the tab would only say "command not found": the marks stay unsent.
             var commands = Self.commands
             if commands == nil { commands = await Self.lookUpCommands() }
-            guard commands?.contains(kind.agent.rawValue) == true else { return false }
+            guard commands?.contains(kind.agent.rawValue) == true else { return nil }
             let root = Worktree.root(of: folder)
             let before = Set(await sessions().filter { $0.agent == .codex && $0.worktree == root }.map(\.id))
             let prompt = Self.prompt(for: marks, name: terminal.name)
@@ -150,37 +151,39 @@ struct NewSession: Equatable {
             let command = kind == .claudeOrca
                 ? "claude --session-id \(id) \(quotedPrompt)"
                 : "codex \(quotedPrompt)"
-            opened = await TerminalJump.createOrcaTerminal(in: folder, title: nil, command: "cd \(Self.quoted(folder)) && \(command)")
-            guard opened else { return false }
+            let tab = await TerminalJump.openOrcaTerminal(in: folder, title: nil, command: "cd \(Self.quoted(folder)) && \(command)")
+            guard tab.opened else { return nil }
             for mark in marks { _ = try? await store.update(mark.id, with: ["delivered_at": .string(now())]) }
             // Codex's session is known by its process ("codex:<pid>"): once it shows up
             // (up to thirty seconds), the marks become its own, so it lists and closes them.
-            if kind == .codexOrca {
-                for _ in 0..<20 {
-                    try? await Task.sleep(for: .seconds(1.5))
-                    guard let new = await sessions().first(where: { $0.agent == .codex && $0.worktree == root && !before.contains($0.id) })
-                    else { continue }
-                    var fields = new.identityFields
-                    fields.merge(["session_id": .string(new.id), "worktree": .string(new.worktree)]) { _, new in new }
-                    for mark in marks { _ = try? await store.update(mark.id, with: fields) }
-                    break
-                }
+            // Found by the tab Orca made (its process carries the tab's handle); without
+            // one, only when it's the single new Codex in the folder (never a guess).
+            guard kind == .codexOrca else { return id }
+            for _ in 0..<20 {
+                try? await Task.sleep(for: .seconds(1.5))
+                let fresh = await sessions().filter { $0.agent == .codex && $0.worktree == root && !before.contains($0.id) }
+                let mine = tab.handle.map { handle in fresh.filter { $0.orcaHandle == handle } } ?? fresh
+                guard mine.count == 1, let new = mine.first else { continue }
+                var fields = new.identityFields
+                fields.merge(["session_id": .string(new.id), "worktree": .string(new.worktree)]) { _, new in new }
+                for mark in marks { _ = try? await store.update(mark.id, with: fields) }
+                return new.id
             }
-            return true
+            return id
         case .claudeApp:
-            guard let folder, var link = URLComponents(string: "claude://code/new") else { return false }
+            guard let folder, var link = URLComponents(string: "claude://code/new") else { return nil }
             link.queryItems = [URLQueryItem(name: "folder", value: folder)]
             opened = await openInApp(link.url, bundleID: Self.claudeApp, marks: marks)
         case .codexApp:
             opened = await openInApp(URL(string: "codex://threads/new"), bundleID: Self.codexApp, marks: marks)
         }
-        guard opened else { return false }
+        guard opened else { return nil }
         // An app can't close them with `aki done`: once sent there, they're done (as for
         // any app conversation).
         for mark in marks {
             _ = try? await store.update(mark.id, with: ["delivered_at": .string(now()), "status": .string("completed")])
         }
-        return true
+        return DesktopApps.prefix + (kind == .claudeApp ? Self.claudeApp : Self.codexApp)
     }
 
     /// The app's new conversation by its own link, then the marks pasted and sent there.

@@ -932,7 +932,14 @@ final class MarkingController {
                     await self.model.refresh()
                     return self.model.allTerminals
                 }
-                if !opened { NSSound.beep() }
+                guard let opened else { NSSound.beep(); return }
+                // Opened once: marks still queued for it go to the session it became.
+                queuedOpening[new.id] = nil
+                queued = queued.map { mark in
+                    var mark = mark
+                    if mark.destination == new.id { mark.destination = opened }
+                    return mark
+                }
                 await model.refresh()
             }
         }
