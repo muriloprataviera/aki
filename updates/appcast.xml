@@ -3,6 +3,21 @@
     <channel>
         <title>Aki</title>
         <item>
+            <title>0.14.0-beta.7</title>
+            <pubDate>Wed, 25 Nov 2026 21:30:49 -0300</pubDate>
+            <sparkle:channel>beta</sparkle:channel>
+            <sparkle:version>20261126003049</sparkle:version>
+            <sparkle:shortVersionString>0.14.0-beta.7</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
+            <description><![CDATA[<h2>Aki 0.14.0-beta.7</h2><h3>New</h3><ul>
+<li>"+ New" on the marking card: open Claude or Codex in a new Orca tab, or a new conversation in their apps, in the project you pick, with your marks as its first message. No need to open a terminal first.</li>
+<li>History picks several marks at once with the tick box at the start of each row (shift-click ticks every mark in between): send them all to one terminal, mark them done or delete them together.</li>
+</ul>
+]]></description>
+            <enclosure url="https://aki-updates.vercel.app/0.14.0-beta.7/Aki-0.14.0-beta.7.zip" length="4545751" type="application/octet-stream" sparkle:edSignature="irNRO7OXFT7ssYUT2LKwJ2nRcLMzymj/lTP4RSTzZ83TnyLl/VcvmIo6vEapYr+jpd71D5/wA/zHLigc07GLDA=="/>
+        </item>
+        <item>
             <title>0.14.0-beta.6</title>
             <pubDate>Wed, 25 Nov 2026 21:26:15 -0300</pubDate>
             <sparkle:channel>beta</sparkle:channel>
@@ -31,21 +46,6 @@
 </ul>
 ]]></description>
             <enclosure url="https://aki-updates.vercel.app/0.14.0-beta.5/Aki-0.14.0-beta.5.zip" length="4528381" type="application/octet-stream" sparkle:edSignature="hXs1fI9kPNdPtp3IRoimQVgZWBFtTx/EJLwmjLzrGrLEVQ5WTrICOYK+Z+y5JJvUoxW83u2W96HYOVBHrZJsDw=="/>
-        </item>
-        <item>
-            <title>0.14.0-beta.4</title>
-            <pubDate>Wed, 25 Nov 2026 20:50:19 -0300</pubDate>
-            <sparkle:channel>beta</sparkle:channel>
-            <sparkle:version>20261125235018</sparkle:version>
-            <sparkle:shortVersionString>0.14.0-beta.4</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
-            <description><![CDATA[<h2>Aki 0.14.0-beta.4</h2><h3>New</h3><ul>
-<li>"+ New" on the marking card: open Claude or Codex in a new Orca tab, or a new conversation in their apps, in the project you pick, with your marks as its first message. No need to open a terminal first.</li>
-<li>History picks several marks at once with the tick box at the start of each row (shift-click ticks every mark in between): send them all to one terminal, mark them done or delete them together.</li>
-</ul>
-]]></description>
-            <enclosure url="https://aki-updates.vercel.app/0.14.0-beta.4/Aki-0.14.0-beta.4.zip" length="4519878" type="application/octet-stream" sparkle:edSignature="Ks2oqFyx5wwERD7KbIYDS9+JKY1BLt5fj99ATI1o7uXLGlz5SnVldLZZzqCEZRv1SZblWGh+fRglSvzo/dFJDg=="/>
         </item>
         <item>
             <title>0.13.0</title>
