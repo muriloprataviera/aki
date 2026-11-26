@@ -3,6 +3,20 @@
     <channel>
         <title>Aki</title>
         <item>
+            <title>0.14.1-beta.1</title>
+            <pubDate>Thu, 26 Nov 2026 10:48:07 -0300</pubDate>
+            <sparkle:channel>beta</sparkle:channel>
+            <sparkle:version>20261126134807</sparkle:version>
+            <sparkle:shortVersionString>0.14.1-beta.1</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
+            <description><![CDATA[<h2>Aki 0.14.1-beta.1</h2><ul>
+<li>Measuring how fast marking gets going.</li>
+</ul>
+]]></description>
+            <enclosure url="https://aki-updates.vercel.app/0.14.1-beta.1/Aki-0.14.1-beta.1.zip" length="4547032" type="application/octet-stream" sparkle:edSignature="Ia0zobXR+7o95rILcsXGf1CwxhEyyi6OPtSqMSfuQQV4UmyDu+LMcMlhlAASpY1AInPYd4NlaJvMw5XVWb44AQ=="/>
+        </item>
+        <item>
             <title>0.14.0</title>
             <pubDate>Wed, 25 Nov 2026 21:36:09 -0300</pubDate>
             <sparkle:version>20261126003609</sparkle:version>
