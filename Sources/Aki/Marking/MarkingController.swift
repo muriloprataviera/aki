@@ -593,6 +593,9 @@ final class MarkingController {
             // The agent may just have changed in Orca: a fresh look, after the overlay is up
             // (it takes about half a second; followTerminals brings the result in).
             Task { await model.refresh() }
+            // The outline under a pointer that hasn't moved, at once: hover only reports a move.
+            let pointer = NSEvent.mouseLocation
+            session.probe(at: CGPoint(x: pointer.x, y: (NSScreen.screens.first?.frame.height ?? 0) - pointer.y))
             AkiCursor.pin.set()
             holdCursor()
             watchKeys()

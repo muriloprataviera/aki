@@ -4,6 +4,9 @@ What changed in each version of Aki. Versions follow [semantic versioning](https
 
 ## [Unreleased]
 
+### Fixed
+- ⇧⌘A outlines what is under the pointer right away: it waited for the mouse to move.
+
 ## [0.14.0] — 2026-11-25
 
 ### Added
