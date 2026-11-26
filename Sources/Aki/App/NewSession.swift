@@ -96,7 +96,7 @@ struct NewSession: Equatable {
     @MainActor static func refreshProjects(also folders: [String]) {
         if commands == nil { Task { _ = await lookUpCommands() } }
         Task {
-            let orca: [(path: String, used: Double)] = await Task.detached {
+            let orca: [(path: String, used: Double, branch: String?)] = await Task.detached {
                 guard FileManager.default.isExecutableFile(atPath: TerminalJump.orcaCLI),
                       let data = Command.output(TerminalJump.orcaCLI, ["worktree", "list", "--json"], timeout: 5),
                       let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
@@ -104,14 +104,28 @@ struct NewSession: Equatable {
                 else { return [] }
                 return list.compactMap { w in
                     guard let path = w["path"] as? String, w["isArchived"] as? Bool != true else { return nil }
-                    return (path, (w["lastActivityAt"] as? NSNumber)?.doubleValue ?? 0)
+                    let branch = (w["branch"] as? String)?.replacingOccurrences(of: "refs/heads/", with: "")
+                    return (path, (w["lastActivityAt"] as? NSNumber)?.doubleValue ?? 0, branch)
                 }
             }.value
             var seen = Set<String>()
+            branches = Dictionary(orca.compactMap { w in w.branch.map { (w.path, $0) } }, uniquingKeysWith: { a, _ in a })
             orcaProjects = orca.sorted { $0.used > $1.used }.map(\.path).filter { FileManager.default.fileExists(atPath: $0) }
             projects = (orcaProjects + folders)
                 .filter { FileManager.default.fileExists(atPath: $0) && seen.insert($0).inserted }
         }
+    }
+
+    /// Each Orca project's branch, said under its name in "+ New"'s list.
+    @MainActor static var branches: [String: String] = [:]
+
+    /// "06_BACKOFFICE" over "beuni-tecnologia · feat/x": the folder in full, then where it
+    /// sits and its branch (one line of "parent/folder" got cut off in the list).
+    @MainActor static func listName(_ path: String) -> (title: String, detail: String) {
+        let url = URL(filePath: path)
+        let parent = url.deletingLastPathComponent().lastPathComponent
+        let branch = branches[path].flatMap { ["main", "master", "develop"].contains($0) ? nil : $0 }
+        return (url.lastPathComponent, [parent, branch].compactMap { $0 }.joined(separator: " · "))
     }
 
     /// "02_AKI/app": the folder with the one above it ("app" alone says little).

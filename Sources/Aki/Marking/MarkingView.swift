@@ -926,7 +926,7 @@ struct MarkingView: View {
                     ? (kind, [nil]) : nil
             }
             let folders = NewSession.folders(for: kind).filter {
-                query.isEmpty || NewSession.shortName($0).range(of: query, options: [.caseInsensitive, .diacriticInsensitive]) != nil
+                query.isEmpty || (NewSession.shortName($0) + " " + (NewSession.branches[$0] ?? "")).range(of: query, options: [.caseInsensitive, .diacriticInsensitive]) != nil
             }
             return folders.isEmpty && !query.isEmpty && kind != .claudeApp ? nil : (kind, folders.map { Optional($0) })
         }
@@ -941,7 +941,8 @@ struct MarkingView: View {
                         .foregroundStyle(.white.opacity(0.45))
                         .padding(.horizontal, 8).padding(.top, 8).padding(.bottom, 2)
                     ForEach(folders.compactMap { $0 }, id: \.self) { folder in
-                        NewRow(title: NewSession.shortName(folder), icon: "folder") { pickNew(kind, folder) }
+                        let name = NewSession.listName(folder)
+                        NewRow(title: name.title, detail: name.detail, icon: "folder") { pickNew(kind, folder) }
                     }
                     if folders.isEmpty {
                         Text(L10n.t("No projects found")).font(.system(size: 11)).foregroundStyle(.white.opacity(0.45))
@@ -2027,6 +2028,7 @@ struct PickHover: ViewModifier {
 /// One choice in "+ New"'s list: a project, or the app's new conversation.
 private struct NewRow: View {
     let title: String
+    var detail: String = ""
     let icon: String
     let pick: () -> Void
     @State private var hovered = false
@@ -2035,9 +2037,18 @@ private struct NewRow: View {
         Button(action: pick) {
             HStack(spacing: 8) {
                 Image(systemName: icon).font(.system(size: 11, weight: .semibold)).frame(width: 16)
-                Text(title).font(.system(size: 12, weight: .semibold)).lineLimit(1)
+                VStack(alignment: .leading, spacing: 1) {
+                    Text(title).font(.system(size: 12, weight: .semibold))
+                        .lineLimit(1).truncationMode(.middle)
+                    if !detail.isEmpty {
+                        Text(detail).font(.system(size: 10, weight: .medium))
+                            .foregroundStyle(.white.opacity(0.5))
+                            .lineLimit(1).truncationMode(.middle)
+                    }
+                }
                 Spacer(minLength: 0)
             }
+            .help(detail.isEmpty ? title : "\(title) · \(detail)")
             .foregroundStyle(.white)
             .padding(.horizontal, 8).padding(.vertical, 6)
             .background(RoundedRectangle(cornerRadius: 7).fill(Color.white.opacity(hovered ? 0.1 : 0)))
