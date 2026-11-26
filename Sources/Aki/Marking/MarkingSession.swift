@@ -612,6 +612,8 @@ final class MarkingSession {
 
     /// The "+N" list of other sessions is open (esc closes it before anything else).
     var listOpen = false
+    /// The list beside the card shows "+ New"'s choices instead of the other sessions.
+    var newOpen = false
 
     /// ⏎ with nothing being written: mark what's outlined, as a click would.
     func markTarget() {

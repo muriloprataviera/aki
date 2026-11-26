@@ -501,7 +501,7 @@ struct MarkingView: View {
             case .left: .topLeading
             }
         }()) {
-            if session.listOpen && !pickerRest.isEmpty {
+            if session.listOpen && (session.newOpen || !pickerRest.isEmpty) {
                 let side = listSide(card: CGRect(x: x, y: y, width: width, height: cardHeight))
                 morePanel
                     .alignmentGuide(.bottom) { d in side == .below ? d[.top] - 10 : d[.bottom] }
@@ -741,7 +741,10 @@ struct MarkingView: View {
                 ForEach(pickerShown) { terminal in pickerTile(terminal) }
                 if !pickerRest.isEmpty {
                     Button {
-                        withAnimation(.easeOut(duration: 0.15)) { session.listOpen.toggle() }
+                        withAnimation(.easeOut(duration: 0.15)) {
+                            session.listOpen = session.newOpen || !session.listOpen
+                            session.newOpen = false
+                        }
                     } label: {
                         VStack(spacing: 3) {
                             Text("+\(pickerRest.count)")
@@ -791,65 +794,45 @@ struct MarkingView: View {
 
     /// "+ New": a session opened just for these marks (Claude or Codex in a new Orca
     /// tab, or a new conversation in their apps), in the project you pick.
-    /// A SwiftUI menu, as the destination one: an NSMenu popped up by hand opened
-    /// under the marking overlay (a higher window level) and the click did nothing.
-    @ViewBuilder private var newMenuItems: some View {
-        ForEach(NewSession.available, id: \.self) { kind in
-            if kind.needsFolder {
-                Menu(kind.title) {
-                    let offered = NewSession.folders(for: kind)
-                    ForEach(offered, id: \.self) { folder in
-                        Button(NewSession.shortName(folder)) { pickNew(kind, folder) }
-                    }
-                    if offered.isEmpty { Text(L10n.t("No projects found")) }
-                    // Any folder, for an app (Orca opens tabs only in its own projects).
-                    if kind == .claudeApp {
-                        Divider()
-                        Button(L10n.t("Choose a folder…")) {
-                            DispatchQueue.main.async {
-                                if let folder = NewSessionMenu.chooseFolder() { pickNew(kind, folder) }
-                            }
-                        }
-                    }
-                }
-            } else {
-                Button(kind.title) { pickNew(kind, nil) }
-            }
+    /// Opens "+ New"'s choices in the list beside the card: plain views in the overlay
+    /// (menus opened under the marking screen, or not at all, and the click did nothing).
+    private func openNew() {
+        withAnimation(.easeOut(duration: 0.15)) {
+            let open = !(session.listOpen && session.newOpen)
+            session.newOpen = open
+            session.listOpen = open
         }
+        moreQuery = ""
     }
 
     private func pickNew(_ kind: NewSession.Kind, _ folder: String?) {
         withAnimation(.spring(response: 0.25, dampingFraction: 0.8)) {
             session.chooseNew(kind, folder: folder)
             session.listOpen = false
+            session.newOpen = false
         }
         moreQuery = ""
         focusField()
     }
 
     private var newSessionTile: some View {
-        // The tile is drawn here; an invisible menu over it takes the click (a menu's own
-        // label on the Mac keeps only its text and icon, not the white circle).
-        VStack(spacing: 3) {
-            Image(systemName: "plus")
-                .font(.system(size: 15, weight: .heavy))
-                .foregroundStyle(.black)
-                .frame(width: 32, height: 32)
-                .background(Circle().fill(Color.white.opacity(0.92)))
-                .frame(width: 42, height: 42)
-            Text(L10n.t("New"))
-                .font(.system(size: 10, weight: .semibold))
-                .foregroundStyle(.white.opacity(0.9))
+        let open = session.listOpen && session.newOpen
+        return Button { openNew() } label: {
+            VStack(spacing: 3) {
+                Image(systemName: open ? "xmark" : "plus")
+                    .font(.system(size: 14, weight: .heavy))
+                    .foregroundStyle(.black)
+                    .frame(width: 32, height: 32)
+                    .background(Circle().fill(Color.white.opacity(0.92)))
+                    .frame(width: 42, height: 42)
+                Text(L10n.t("New"))
+                    .font(.system(size: 10, weight: .semibold))
+                    .foregroundStyle(.white.opacity(0.9))
+            }
+            .frame(width: 44)
+            .contentShape(Rectangle())
         }
-        .frame(width: 44)
-        .overlay {
-            Menu { newMenuItems } label: { Text(" ") }
-                .menuStyle(.borderlessButton)
-                .menuIndicator(.hidden)
-                .frame(width: 44, height: 60)
-                .contentShape(Rectangle())
-                .opacity(0.02)
-        }
+        .buttonStyle(.plain)
         .focusable(false)
         .modifier(PickHover())
         .help(L10n.t("Open a new session with these marks"))
@@ -934,6 +917,56 @@ struct MarkingView: View {
     }
 
     /// The sessions behind "+N": a list beside the card, one row each.
+    /// Each kind of new session and the projects it offers, narrowed by the words typed.
+    private var newChoices: [(NewSession.Kind, [String?])] {
+        let query = moreQuery.trimmingCharacters(in: .whitespaces)
+        return NewSession.available.compactMap { kind in
+            guard kind.needsFolder else {
+                return query.isEmpty || kind.title.range(of: query, options: [.caseInsensitive, .diacriticInsensitive]) != nil
+                    ? (kind, [nil]) : nil
+            }
+            let folders = NewSession.folders(for: kind).filter {
+                query.isEmpty || NewSession.shortName($0).range(of: query, options: [.caseInsensitive, .diacriticInsensitive]) != nil
+            }
+            return folders.isEmpty && !query.isEmpty && kind != .claudeApp ? nil : (kind, folders.map { Optional($0) })
+        }
+    }
+
+    private var newList: some View {
+        VStack(alignment: .leading, spacing: 2) {
+            ForEach(newChoices, id: \.0) { kind, folders in
+                if kind.needsFolder {
+                    Text(kind.title.uppercased())
+                        .font(.system(size: 9, weight: .bold)).tracking(0.5)
+                        .foregroundStyle(.white.opacity(0.45))
+                        .padding(.horizontal, 8).padding(.top, 8).padding(.bottom, 2)
+                    ForEach(folders.compactMap { $0 }, id: \.self) { folder in
+                        NewRow(title: NewSession.shortName(folder), icon: "folder") { pickNew(kind, folder) }
+                    }
+                    if folders.isEmpty {
+                        Text(L10n.t("No projects found")).font(.system(size: 11)).foregroundStyle(.white.opacity(0.45))
+                            .padding(.horizontal, 8).padding(.vertical, 4)
+                    }
+                    // Any folder, for an app (Orca opens tabs only in its own projects).
+                    if kind == .claudeApp {
+                        NewRow(title: L10n.t("Choose a folder…"), icon: "folder.badge.plus") {
+                            DispatchQueue.main.async {
+                                if let folder = NewSessionMenu.chooseFolder() { pickNew(kind, folder) }
+                            }
+                        }
+                    }
+                } else {
+                    Text(kind.title.uppercased())
+                        .font(.system(size: 9, weight: .bold)).tracking(0.5)
+                        .foregroundStyle(.white.opacity(0.45))
+                        .padding(.horizontal, 8).padding(.top, 8).padding(.bottom, 2)
+                    NewRow(title: L10n.t("New conversation"), icon: "plus.bubble") { pickNew(kind, nil) }
+                }
+            }
+        }
+        .padding(.horizontal, 4).padding(.bottom, 6)
+    }
+
     private var morePanel: some View {
         VStack(alignment: .leading, spacing: 0) {
             // Its top is a handle (the grabber bar says so; the hand too): drag it anywhere.
@@ -943,7 +976,7 @@ struct MarkingView: View {
                 HStack(spacing: 5) {
                     Image(systemName: "arrow.up.and.down.and.arrow.left.and.right")
                         .font(.system(size: 9, weight: .bold))
-                    Text(L10n.t("Other sessions"))
+                    Text(L10n.t(session.newOpen ? "New session…" : "Other sessions"))
                     Spacer(minLength: 0)
                 }
             }
@@ -972,18 +1005,23 @@ struct MarkingView: View {
             // Type to find one: the name or the project, any case, accents or not; ⏎ takes the first.
             HStack(spacing: 6) {
                 Image(systemName: "magnifyingglass").font(.system(size: 10, weight: .semibold)).foregroundStyle(.white.opacity(0.5))
-                TextField(L10n.t("Find a session"), text: $moreQuery)
+                TextField(L10n.t(session.newOpen ? "Find a project" : "Find a session"), text: $moreQuery)
                     .textFieldStyle(.plain).font(.system(size: 11.5)).foregroundStyle(.white)
                     .focused($moreSearchFocused)
-                    .onSubmit { if let first = moreList.first { pickFromList(first) } }
+                    .onSubmit {
+                        if session.newOpen {
+                            if let (kind, folder) = newChoices.flatMap({ k in k.1.map { (k.0, $0) } }).first { pickNew(kind, folder) }
+                        } else if let first = moreList.first { pickFromList(first) }
+                    }
             }
             .padding(.horizontal, 8).frame(height: 26)
             .background(RoundedRectangle(cornerRadius: 7).fill(Color.white.opacity(0.08)))
             .padding(.horizontal, 6).padding(.bottom, 4)
             ScrollView(.vertical, showsIndicators: true) {
+                if session.newOpen { newList } else {
                 VStack(alignment: .leading, spacing: 2) {
                     if !NewSession.available.isEmpty {
-                        Menu { newMenuItems } label: {
+                        Button { openNew() } label: {
                             HStack(spacing: 8) {
                                 Image(systemName: "plus.circle.fill").font(.system(size: 14))
                                 Text(L10n.t("New session…")).font(.system(size: 11.5, weight: .semibold))
@@ -993,8 +1031,7 @@ struct MarkingView: View {
                             .padding(.horizontal, 8).padding(.vertical, 6)
                             .contentShape(Rectangle())
                         }
-                        .menuStyle(.borderlessButton)
-                        .menuIndicator(.hidden)
+                        .buttonStyle(.plain)
                         .modifier(PickHover())
                         .help(L10n.t("Open a new session with these marks"))
                     }
@@ -1010,9 +1047,10 @@ struct MarkingView: View {
                     }
                 }
                 .padding(.horizontal, 4).padding(.bottom, 6)
+                }
             }
             .frame(maxHeight: 360)
-            .fixedSize(horizontal: false, vertical: moreList.count <= 8)
+            .fixedSize(horizontal: false, vertical: session.newOpen ? false : moreList.count <= 8)
             // Where it is on screen: the wheel over it scrolls it, not the page below.
             .onGeometryChange(for: CGRect.self) { $0.frame(in: .global) } action: { session.scrollAreas["more\(screen)"] = $0 }
             .onDisappear { session.scrollAreas["more\(screen)"] = nil }
@@ -1039,7 +1077,7 @@ struct MarkingView: View {
             }
             if !NewSession.available.isEmpty {
                 Divider()
-                Menu { newMenuItems } label: {
+                Button { DispatchQueue.main.async { openNew() } } label: {
                     Label(L10n.t("New session…"), systemImage: "plus.circle")
                 }
             }
@@ -1986,6 +2024,33 @@ struct PickHover: ViewModifier {
 }
 
 /// One session in the "+N" list: its AI in its colour, number, name and project.
+/// One choice in "+ New"'s list: a project, or the app's new conversation.
+private struct NewRow: View {
+    let title: String
+    let icon: String
+    let pick: () -> Void
+    @State private var hovered = false
+
+    var body: some View {
+        Button(action: pick) {
+            HStack(spacing: 8) {
+                Image(systemName: icon).font(.system(size: 11, weight: .semibold)).frame(width: 16)
+                Text(title).font(.system(size: 12, weight: .semibold)).lineLimit(1)
+                Spacer(minLength: 0)
+            }
+            .foregroundStyle(.white)
+            .padding(.horizontal, 8).padding(.vertical, 6)
+            .background(RoundedRectangle(cornerRadius: 7).fill(Color.white.opacity(hovered ? 0.1 : 0)))
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .onHover { inside in
+            hovered = inside
+            AkiCursor.set(inside ? NSCursor.pointingHand : AkiCursor.pin)
+        }
+    }
+}
+
 private struct MoreRow: View {
     let terminal: AgentTerminal
     let hue: Color
