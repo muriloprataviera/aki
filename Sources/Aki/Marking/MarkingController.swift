@@ -1488,6 +1488,18 @@ enum MarkingSpeed {
         append("built layout=\(Int(((laid - t0) * 1000).rounded()))ms flush=\(Int(((CACurrentMediaTime() - laid) * 1000).rounded()))ms")
     }
 
+    /// The outline's lookups: the first few after opening, and any slow one later.
+    @MainActor static func probed(_ session: MarkingSession, asked: CFTimeInterval, started: CFTimeInterval,
+                                  app: CFTimeInterval, done: CFTimeInterval, visual: Bool, role: String?) {
+        guard on else { return }
+        session.probesTimed += 1
+        func ms(_ a: CFTimeInterval, _ b: CFTimeInterval) -> Int { Int(((b - a) * 1000).rounded()) }
+        let n = session.probesTimed
+        guard n <= 3 || done - asked > 0.15 else { return }
+        append("probe#\(n) since-open=\(ms(session.openedAt, asked))ms wait=\(ms(asked, started))ms app=\(ms(started, app))ms"
+               + (visual ? " visual=\(ms(app, done))ms" : "") + " shown=\(ms(asked, CACurrentMediaTime()))ms role=\(role ?? "-") bundle=\(session.context.bundleID ?? "-")")
+    }
+
     /// The shortcut came while marking couldn't start (nothing shows: you'd press again).
     @MainActor static func skipped(_ reason: String, key: Double?) {
         guard on else { return }

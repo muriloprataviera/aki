@@ -206,6 +206,10 @@ final class MarkingSession {
         renumber()
     }
 
+    /// When it opened, and the lookups timed so far (only while measuring).
+    let openedAt = CACurrentMediaTime()
+    var probesTimed = 0
+
     init(grabs: [ScreenGrab], context: MarkContext, terminals: [AgentTerminal], destination: String?) {
         self.grabs = grabs
         self.context = context
@@ -398,12 +402,19 @@ final class MarkingSession {
         let origin = grab.map { CGPoint(x: $0.screen.frame.minX, y: primary - $0.screen.frame.maxY) } ?? .zero
         let text = screen.flatMap { texts[$0] }
         let inMenu = menus.contains { $0.contains(point) }
+        let asked = CACurrentMediaTime()
         Task.detached(priority: .userInitiated) {
+            let t0 = CACurrentMediaTime()
             var found = inMenu ? nil : ElementProbe.element(at: point, preferring: front)
+            let t1 = CACurrentMediaTime()
+            var visual = false
             if let grab, VisualProbe.tooVague(found, screen: CGRect(origin: .zero, size: size)) {
+                visual = true
                 found = VisualProbe.element(at: point, found: found, image: grab.image, screenSize: size, origin: origin, text: text)
             }
+            let t2 = CACurrentMediaTime()
             await MainActor.run {
+                MarkingSpeed.probed(self, asked: asked, started: t0, app: t1, done: t2, visual: visual, role: found?.role)
                 guard look == self.probeCount, self.mode == .elements else { return }
                 // Same element as before (pointer moved inside it): keep the ↑ level.
                 if self.hovered?.frame != found?.frame || self.hovered?.label != found?.label { self.hovered = found }
