@@ -867,13 +867,13 @@ final class MarkingSession {
         return (Array(Set(sentTo)), failed)
     }
 
-    /// An area with a little room around it; a point with its surroundings.
+    /// An area exactly as drawn (room around it showed the lines next to it); a point with its surroundings.
     func cropRect(for mark: Mark, in grab: ScreenGrab) -> CGRect {
         let bounds = CGRect(origin: .zero, size: grab.screen.frame.size)
         if mark.isPoint {
             return CGRect(x: mark.rect.midX - 220, y: mark.rect.midY - 150, width: 440, height: 300).intersection(bounds)
         }
-        return mark.rect.insetBy(dx: -12, dy: -12).intersection(bounds)
+        return mark.rect.intersection(bounds)
     }
 
     /// Small and light: at most 1200 px on the long side, JPEG at 70%
