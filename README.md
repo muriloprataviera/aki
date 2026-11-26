@@ -76,12 +76,13 @@ The other question while several agents run is *how am I doing this week?* The s
 | 🖥️ **Any app** | Elsewhere it uses macOS Accessibility: buttons, rows, tabs, the browser's own bar, floating panels. Areas and points work everywhere. |
 | 📝 **Text first, pictures when they help** | Each mark carries the text it covers; a small crop goes along only when what you marked is visual. You can switch either on or off. |
 | 🧭 **The right terminal, by itself** | A page on `localhost:3000` belongs to a worktree; Aki finds the session running it. Otherwise it goes to the session you picked. |
+| ➕ **Start a session from the mark** | No terminal open yet? **+ New** on the marking card opens Claude or Codex in a new Orca tab, or a new conversation in the Claude or Codex app, in the project you pick — with your marks as its first message. |
 | ⏱️ **Your agent wakes up** | Seconds after you stop, Aki types the request into the session's tab — and never glues it to something you were typing there. |
 | 🟠 **One ring per session** | A sidebar on the screen edge shows every Claude Code / Codex session, grouped by project, with its state, context used, your 5-hour and weekly limits, and what's waiting. |
 | 📊 **Your week at a glance** | A ring each for Claude and Codex with the share of the weekly limit used and today's tokens and cost at API prices. Hover for the 5-hour window, when each renews, the pace, today's share of the week, the last 7 days and the projects that used most. Want only that? Choose **Only my week** — no permissions needed. `aki usage` prints it in the terminal. |
 | 🧹 **Screenshots piling up** | Every screenshot taken to show an agent is still on your Mac. Settings → Storage counts the ones on the Desktop, in Downloads and in your screenshot folder, and moves those older than 7, 30 or 90 days to the Trash in one click — nothing is deleted for good. |
 | 📬 **Sent, then done** | A countdown on the session's ring until the request goes in; a ✓ when the agent has resolved every mark. |
-| 🕘 **History** | <kbd>⇧⌘H</kbd> lists every mark with its size; move marks between sessions; done marks clean themselves up. |
+| 🕘 **History** | <kbd>⇧⌘H</kbd> lists every mark with its size. Tick several (shift-click ticks a whole run) to send them to one session, mark them done or delete them at once; done marks clean themselves up. |
 | ⚙️ **Yours to set** | Light or dark, Aki's red or your Mac's accent, four sizes, shortcuts you choose, nine languages (English, Português, Español, Français, Deutsch, 日本語, 中文, 한국어, Italiano). |
 | 🔄 **Updates by itself** | Signed updates with an optional beta channel. |
 
@@ -224,7 +225,9 @@ How it's built: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) · how to help: [CO
 
 **Does it send screenshots to my agent?** Only when you mark something visual, and you can switch it off per mark. Text is the default: cheaper and more precise.
 
-**Which terminal do I need?** Any, to read marks. Aki types the request into the session by itself in Orca; elsewhere the agent picks marks up with `aki wait` or when you ask.
+**Which terminal do I need?** Any, to read marks. Aki types the request into the session by itself in Orca and in the Claude and Codex apps; elsewhere the agent picks marks up with `aki wait` or when you ask.
+
+**Do I need a session open first?** No. **+ New** opens one for the marks, in Orca or in the Claude or Codex app.
 
 **Intel Macs?** Not yet.
 
