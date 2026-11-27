@@ -105,7 +105,7 @@ final class ClickHold {
     private var source: CFRunLoopSource?
     /// Where the button went down (global, top-left origin), and whether it's up again.
     fileprivate var down: CGPoint?
-    fileprivate var up = false
+    fileprivate var up: CGPoint?
 
     init?() {
         let mask = CGEventMask(1 << CGEventType.leftMouseDown.rawValue)
@@ -127,8 +127,8 @@ final class ClickHold {
                 case .leftMouseDown:
                     if me.down == nil { me.down = event.location }
                     return true
-                case .leftMouseUp where me.down != nil:
-                    me.up = true
+                case .leftMouseUp where me.down != nil && me.up == nil:
+                    me.up = event.location
                     return true
                 default:
                     return me.down != nil
@@ -153,11 +153,12 @@ final class ClickHold {
     func release() {
         stop()
         guard let down else { return }
-        let now = CGEvent(source: nil)?.location ?? down
+        // Let go already: where it was let go (the pointer may have moved on since).
+        let now = up ?? CGEvent(source: nil)?.location ?? down
         let source = CGEventSource(stateID: .privateState)
         var steps: [(CGEventType, CGPoint)] = [(.leftMouseDown, down)]
         if hypot(now.x - down.x, now.y - down.y) > 1 { steps.append((.leftMouseDragged, now)) }
-        if up { steps.append((.leftMouseUp, now)) }
+        if up != nil { steps.append((.leftMouseUp, now)) }
         for (type, point) in steps {
             let event = CGEvent(mouseEventSource: source, mouseType: type, mouseCursorPosition: point, mouseButton: .left)
             event?.flags = []
