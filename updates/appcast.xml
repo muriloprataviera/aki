@@ -3,6 +3,21 @@
     <channel>
         <title>Aki</title>
         <item>
+            <title>0.14.2-beta.2</title>
+            <pubDate>Fri, 27 Nov 2026 10:21:32 -0300</pubDate>
+            <sparkle:channel>beta</sparkle:channel>
+            <sparkle:version>20261127132126</sparkle:version>
+            <sparkle:shortVersionString>0.14.2-beta.2</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
+            <description><![CDATA[<h2>Aki 0.14.2-beta.2</h2><h3>Fixed</h3><ul>
+<li><b>Sharper outline on web pages:</b> what's outlined is what the pointer is in, a card or a grid's cell, not the button a few pixels beside it. And when the pointer stops right after moving, the outline catches up with where it is.</li>
+<li><b>Type in the app below while marking:</b> ⇧-click into an address bar or a search box and what you type goes there. Click on the marking again to go back to it.</li>
+</ul>
+]]></description>
+            <enclosure url="https://aki-updates.vercel.app/0.14.2-beta.2/Aki-0.14.2-beta.2.zip" length="4565963" type="application/octet-stream" sparkle:edSignature="ZyCFmFpERSgw3pi9QBeZ1qJdaj0GwmL7Ibv2POd95hm4l+DV/krnYnRH0k2oIa+CQhM0kdA7+ih0IWlHRsKVBw=="/>
+        </item>
+        <item>
             <title>0.14.2-beta.1</title>
             <pubDate>Fri, 27 Nov 2026 10:04:13 -0300</pubDate>
             <sparkle:channel>beta</sparkle:channel>
