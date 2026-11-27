@@ -103,9 +103,8 @@ final class MoveTap {
 final class ClickHold {
     private var tap: CFMachPort?
     private var source: CFRunLoopSource?
-    /// Where the button went down (global, top-left origin), and whether it's up again.
-    fileprivate var down: CGPoint?
-    fileprivate var up: CGPoint?
+    /// The presses, drags and let-gos begun meanwhile, in order (global, top-left origin).
+    fileprivate var caught: [(type: CGEventType, at: CGPoint)] = []
 
     init?() {
         let mask = CGEventMask(1 << CGEventType.leftMouseDown.rawValue)
@@ -123,16 +122,11 @@ final class ClickHold {
             // Only a click begun now is held: the end of the one that opened marking
             // (a ring in the sidebar, a menu) goes where it was going.
             let held: Bool = MainActor.assumeIsolated {
-                switch type {
-                case .leftMouseDown:
-                    if me.down == nil { me.down = event.location }
-                    return true
-                case .leftMouseUp where me.down != nil && me.up == nil:
-                    me.up = event.location
-                    return true
-                default:
-                    return me.down != nil
-                }
+                guard type == .leftMouseDown || !me.caught.isEmpty else { return false }
+                // Of a drag, only where it is now matters.
+                if type == .leftMouseDragged, me.caught.last?.type == .leftMouseDragged { me.caught.removeLast() }
+                me.caught.append((type, event.location))
+                return true
             }
             return held ? nil : Unmanaged.passUnretained(event)
         }
@@ -147,22 +141,28 @@ final class ClickHold {
         CGEvent.tapEnable(tap: tap, enable: true)
     }
 
-    /// The marking screen is up: clicks reach it again, and the one caught meanwhile is
-    /// given to it — pressed where it began, moved to where the pointer is now, and let
-    /// go if it already was (a drag still going on carries on by itself).
+    /// The marking screen is up: clicks reach it again, and the ones caught meanwhile are
+    /// given to it in order, each where it happened. A drag still going on is moved to
+    /// where the pointer is now and carries on by itself; otherwise the pointer is put
+    /// back where it is now (the replay moved it).
     func release() {
         stop()
-        guard let down else { return }
-        // Let go already: where it was let go (the pointer may have moved on since).
-        let now = up ?? CGEvent(source: nil)?.location ?? down
+        guard !caught.isEmpty else { return }
+        let now = CGEvent(source: nil)?.location
+        var steps = caught
+        if let now {
+            if steps.last?.type == .leftMouseUp {
+                steps.append((.mouseMoved, now))
+            } else if let last = steps.last?.at, hypot(now.x - last.x, now.y - last.y) > 1 {
+                steps.append((.leftMouseDragged, now))
+            }
+        }
         let source = CGEventSource(stateID: .privateState)
-        var steps: [(CGEventType, CGPoint)] = [(.leftMouseDown, down)]
-        if hypot(now.x - down.x, now.y - down.y) > 1 { steps.append((.leftMouseDragged, now)) }
-        if up != nil { steps.append((.leftMouseUp, now)) }
         for (type, point) in steps {
-            let event = CGEvent(mouseEventSource: source, mouseType: type, mouseCursorPosition: point, mouseButton: .left)
+            let button: CGMouseButton = .left
+            let event = CGEvent(mouseEventSource: source, mouseType: type, mouseCursorPosition: point, mouseButton: button)
             event?.flags = []
-            if type != .leftMouseDragged { event?.setIntegerValueField(.mouseEventClickState, value: 1) }
+            if type == .leftMouseDown || type == .leftMouseUp { event?.setIntegerValueField(.mouseEventClickState, value: 1) }
             event?.post(tap: .cghidEventTap)
         }
     }
