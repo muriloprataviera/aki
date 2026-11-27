@@ -3,6 +3,20 @@
     <channel>
         <title>Aki</title>
         <item>
+            <title>0.14.2-beta.1</title>
+            <pubDate>Fri, 27 Nov 2026 10:04:13 -0300</pubDate>
+            <sparkle:channel>beta</sparkle:channel>
+            <sparkle:version>20261127130412</sparkle:version>
+            <sparkle:shortVersionString>0.14.2-beta.1</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
+            <description><![CDATA[<h2>Aki 0.14.2-beta.1</h2><h3>Fixed</h3><ul>
+<li><b>Type in the app below while marking:</b> ⇧-click into an address bar or a search box and what you type goes there (the keys stayed with Aki). Click on the marking again to go back to it.</li>
+</ul>
+]]></description>
+            <enclosure url="https://aki-updates.vercel.app/0.14.2-beta.1/Aki-0.14.2-beta.1.zip" length="4565749" type="application/octet-stream" sparkle:edSignature="56VO7Pj5/li+GPn4r0NpbtGMs23rhw9Qtsl5V9Oj4YAeHs1WPhx53mAK/iKPiL14yQrLSmssRcEkiXfu9uTTDw=="/>
+        </item>
+        <item>
             <title>0.14.1</title>
             <pubDate>Fri, 27 Nov 2026 09:54:08 -0300</pubDate>
             <sparkle:version>20261127125408</sparkle:version>
