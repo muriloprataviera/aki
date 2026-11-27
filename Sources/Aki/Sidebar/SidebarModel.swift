@@ -765,7 +765,12 @@ final class SidebarModel {
     @ObservationIgnored private var claudeAppRead: UsageLimits?
     /// Tokens and their API-price cost per AI ("claude", "codex"), from the local logs.
     var spend: [String: TokenSpend] = [:]
-    @ObservationIgnored private let ledger = TokenLedger()
+    // Reads only the logs macOS says changed, not thousands of files each pass.
+    @ObservationIgnored private let ledger: TokenLedger = {
+        let ledger = TokenLedger()
+        ledger.watchLogs()
+        return ledger
+    }()
     @ObservationIgnored private var ledgerRead = Date.distantPast
     @ObservationIgnored private var ledgerBusy = false
     @ObservationIgnored private var ledgerKey = ""

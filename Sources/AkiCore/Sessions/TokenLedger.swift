@@ -88,6 +88,14 @@ public final class TokenLedger: @unchecked Sendable {
     public func update(now: Date = Date()) -> Bool {
         lock.lock()
         defer { lock.unlock() }
+        // Watching (the app's ledger): only the logs macOS says changed, with a full walk at
+        // the start, when its events can't be trusted, and every half hour all the same.
+        var only: Set<String>?
+        if let watch {
+            if now.timeIntervalSince(lastFullPass) > 1800 { watch.distrust() }
+            only = watch.take()
+            if only == nil { lastFullPass = now }
+        }
         if !loaded {
             loaded = true
             if let data = try? Data(contentsOf: file), let saved = try? JSONDecoder().decode(State.self, from: data) {
@@ -106,8 +114,23 @@ public final class TokenLedger: @unchecked Sendable {
         // a week, a session that ended meanwhile still has requests not counted.
         let changedSince = min(since, state.counted.map { Date(timeIntervalSince1970: TimeInterval($0)) } ?? since)
         for (root, agent) in [(claudeRoot, "claude"), (codexRoot, "codex"), (archived, "codex")] {
-            // One walk of the folder for both kinds (Codex's holds thousands of files).
-            let found = Self.logs(in: root, since: changedSince, exts: agent == "codex" ? ["jsonl", "zst"] : ["jsonl"])
+            // One walk of the folder for both kinds (Codex's holds thousands of files), or
+            // just the files that changed.
+            let exts: Set<String> = agent == "codex" ? ["jsonl", "zst"] : ["jsonl"]
+            let found: [URL]
+            if let only {
+                // macOS names the real path (/private/var for /var): back to the folder's
+                // spelling, the one the walk used for each log's cursor.
+                // (realpath: URL's own resolving takes /private back off.)
+                let prefix = root.path + "/"
+                let real = (realpath(root.path, nil).map { p in defer { free(p) }; return String(cString: p) } ?? root.path) + "/"
+                found = only.compactMap { $0.hasPrefix(prefix) ? $0 : $0.hasPrefix(real) ? prefix + $0.dropFirst(real.count) : nil }
+                    .filter { exts.contains(URL(filePath: $0).pathExtension) }
+                    .sorted().map { URL(filePath: $0) }
+                    .filter { FileManager.default.fileExists(atPath: $0.path) }
+            } else {
+                found = Self.logs(in: root, since: changedSince, exts: exts)
+            }
             for url in found where url.pathExtension == "jsonl" {
                 seen.insert(url.path)
                 if read(url, agent: agent) { changed = true }
@@ -124,7 +147,8 @@ public final class TokenLedger: @unchecked Sendable {
         }
         // Logs no longer written to and requests past the week go.
         let oldCursors = state.cursors.count
-        state.cursors = state.cursors.filter { seen.contains($0.key) }
+        // (Only a full walk knows which logs are no longer written to.)
+        if only == nil { state.cursors = state.cursors.filter { seen.contains($0.key) } }
         let cutoff = Int(since.timeIntervalSince1970)
         let oldEvents = state.events.count
         // Before going, a request adds to its day.
@@ -147,6 +171,16 @@ public final class TokenLedger: @unchecked Sendable {
 
     private var dirty = false
     private var lastSaved = Date.distantPast
+    private var watch: FileWatch?
+    private var lastFullPass = Date.distantPast
+
+    /// From now on each pass reads only the logs macOS says changed (see `FileWatch`).
+    public func watchLogs() {
+        let archived = codexRoot.deletingLastPathComponent().appending(path: "archived_sessions")
+        let folders = [claudeRoot, codexRoot, archived].filter { FileManager.default.fileExists(atPath: $0.path) }
+        let made = FileWatch(folders: folders)
+        lock.withLock { if watch == nil { watch = made } }
+    }
 
     /// Writes what's unsaved now (Aki quitting).
     public func flush() {

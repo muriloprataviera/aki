@@ -427,6 +427,27 @@ try? claudeTurn("r5", later.addingTimeInterval(3 * 86400), 5).write(to: ended, a
 try? FileManager.default.setAttributes([.modificationDate: later.addingTimeInterval(3 * 86400)], ofItemAtPath: ended.path)
 ledger.update(now: later.addingTimeInterval(12 * 86400))
 check(ledger.daily(agent: "claude").values.reduce(0, +) == 1116, "a session that ended while Aki was closed counted")
+// Watching: after the first full walk, a pass reads only what macOS says changed.
+let watchedRoot = ledgerRoot.appending(path: "watched")
+let watchedLogs = watchedRoot.appending(path: "claude/project")
+try? FileManager.default.createDirectory(at: watchedLogs, withIntermediateDirectories: true)
+let watchedLog = watchedLogs.appending(path: "live.jsonl")
+try? claudeTurn("w1", Date().addingTimeInterval(-60), 7).write(to: watchedLog, atomically: true, encoding: .utf8)
+let watched = TokenLedger(home: AkiHome(url: watchedRoot.appending(path: "home")), claudeRoot: watchedRoot.appending(path: "claude"),
+                          codexRoot: watchedRoot.appending(path: "codex/sessions"))
+watched.watchLogs()
+watched.update()
+check(watched.daily(agent: "claude").values.reduce(0, +) == 7, "watched: the first pass walks the folders")
+try? await Task.sleep(for: .seconds(1))
+if let handle = try? FileHandle(forWritingTo: watchedLog) {
+    handle.seekToEndOfFile()
+    handle.write(Data(claudeTurn("w2", Date(), 30).utf8))
+    try? handle.close()
+}
+try? await Task.sleep(for: .seconds(4))
+watched.update()
+check(watched.daily(agent: "claude").values.reduce(0, +) == 37, "watched: a line appended is read from macOS's word")
+check(!watched.update(), "watched: nothing written, nothing read")
 try? FileManager.default.removeItem(at: ledgerRoot)
 
 // The real logs' first reading, timed, with its peak memory: AKI_BACKFILL_BENCH=1 (never in CI).
