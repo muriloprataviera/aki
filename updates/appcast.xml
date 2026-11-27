@@ -3,6 +3,22 @@
     <channel>
         <title>Aki</title>
         <item>
+            <title>0.14.1-beta.4</title>
+            <pubDate>Thu, 26 Nov 2026 23:04:35 -0300</pubDate>
+            <sparkle:channel>beta</sparkle:channel>
+            <sparkle:version>20261127020435</sparkle:version>
+            <sparkle:shortVersionString>0.14.1-beta.4</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
+            <description><![CDATA[<h2>Aki 0.14.1-beta.4</h2><h3>Fixed</h3><ul>
+<li>Aki uses much less of the Mac while idle: it no longer adds up your token use again when nothing changed, rereads only the session files that changed, and rests while the screen sleeps or is locked.</li>
+<li>The picture of an area you draw is just that area: it took in a bit around it, often the lines above and below.</li>
+<li>⇧⌘A outlines what is under the pointer right away: it waited for the mouse to move.</li>
+</ul>
+]]></description>
+            <enclosure url="https://aki-updates.vercel.app/0.14.1-beta.4/Aki-0.14.1-beta.4.zip" length="4557708" type="application/octet-stream" sparkle:edSignature="+sJNpNGNtaDh/kyUIq3qfmhx9PEqg9Yo627AsBvUvtOeRdjnfnplcwYHs1BHaYZ863kTPy7pW4zchc4E/P88Cw=="/>
+        </item>
+        <item>
             <title>0.14.1-beta.3</title>
             <pubDate>Thu, 26 Nov 2026 14:54:00 -0300</pubDate>
             <sparkle:channel>beta</sparkle:channel>
@@ -30,20 +46,6 @@
 </ul>
 ]]></description>
             <enclosure url="https://aki-updates.vercel.app/0.14.1-beta.2/Aki-0.14.1-beta.2.zip" length="4547496" type="application/octet-stream" sparkle:edSignature="XfaliqK+HyXPrC+bszEB8DU/2oLC5DQ1rfeSCPA9WoyYPaVNA5fuF4hy7p+IMoT/5G9xNKMlG7FMy2Noi79WCA=="/>
-        </item>
-        <item>
-            <title>0.14.1-beta.1</title>
-            <pubDate>Thu, 26 Nov 2026 10:48:07 -0300</pubDate>
-            <sparkle:channel>beta</sparkle:channel>
-            <sparkle:version>20261126134807</sparkle:version>
-            <sparkle:shortVersionString>0.14.1-beta.1</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
-            <description><![CDATA[<h2>Aki 0.14.1-beta.1</h2><ul>
-<li>Measuring how fast marking gets going.</li>
-</ul>
-]]></description>
-            <enclosure url="https://aki-updates.vercel.app/0.14.1-beta.1/Aki-0.14.1-beta.1.zip" length="4547032" type="application/octet-stream" sparkle:edSignature="Ia0zobXR+7o95rILcsXGf1CwxhEyyi6OPtSqMSfuQQV4UmyDu+LMcMlhlAASpY1AInPYd4NlaJvMw5XVWb44AQ=="/>
         </item>
         <item>
             <title>0.14.0</title>
