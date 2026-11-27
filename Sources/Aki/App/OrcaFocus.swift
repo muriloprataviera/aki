@@ -23,14 +23,14 @@ enum OrcaFocus {
            AXUIElementSetAttributeValue(app, "AXManualAccessibility" as CFString, kCFBooleanTrue) == .success {
             described = orca.processIdentifier
         }
-        guard let input = element(app, "AXFocusedUIElement"),
-              (string(input, "AXDescription") ?? "") == "Terminal input",
+        guard let input = element(app, "AXFocusedUIElement") else { return nil }
+        // The same terminal still has the keyboard: its tab is the one found before (this
+        // runs every 0.4 s: one question instead of the climb and the tab strip's walk).
+        // Looked at again every few seconds, for a tab renamed meanwhile.
+        if let last, CFEqual(last.input, input), Date().timeIntervalSince(last.at) < 5 { return last.title }
+        guard (string(input, "AXDescription") ?? "") == "Terminal input",
               let pane = ancestor(of: input, withClass: "pane")
         else { return nil }
-        // The same terminal still has the keyboard: its tab is the one found before (the
-        // tab strip's walk is the costly part, and this runs every 0.4 s). Looked at again
-        // every few seconds, for a tab renamed meanwhile.
-        if let last, CFEqual(last.input, input), Date().timeIntervalSince(last.at) < 5 { return last.title }
         let title = tabTitle(over: pane)
         last = (input, title, Date())
         return title
