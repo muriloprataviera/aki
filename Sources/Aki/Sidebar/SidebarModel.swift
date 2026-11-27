@@ -627,14 +627,17 @@ final class SidebarModel {
         refreshTask?.cancel()
         refreshTask = Task { [weak self] in
             while !Task.isCancelled {
+                // Screen asleep or locked: nobody sees the sidebar, nothing to look at.
+                if Away.now { try? await Task.sleep(for: .seconds(2)); continue }
                 await self?.refresh()
-                try? await Task.sleep(for: .seconds(3))
+                try? await Task.sleep(for: .seconds(Away.idle ? 10 : 3))
             }
         }
         statusTask?.cancel()
         statusTask = Task { [weak self] in
             while !Task.isCancelled {
-                try? await Task.sleep(for: .milliseconds(400))
+                try? await Task.sleep(for: .milliseconds(Away.idle ? 2000 : 400))
+                if Away.now { continue }
                 await self?.refreshStates()
                 self?.followOrcaFocus()
             }
