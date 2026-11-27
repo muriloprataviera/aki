@@ -3,6 +3,21 @@
     <channel>
         <title>Aki</title>
         <item>
+            <title>0.14.1</title>
+            <pubDate>Fri, 27 Nov 2026 09:54:08 -0300</pubDate>
+            <sparkle:version>20261127125408</sparkle:version>
+            <sparkle:shortVersionString>0.14.1</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
+            <description><![CDATA[<h2>Aki 0.14.1</h2><h3>Fixed</h3><ul>
+<li><b>Lighter on your Mac:</b> Aki now uses about a quarter of the processor it did while idle. Token use is counted again only from the logs macOS says changed, session files are reread only when they change, and the sidebar rests while the screen sleeps or is locked.</li>
+<li><b>⇧⌘A outlines right away</b> what is under the pointer: it used to wait for the mouse to move.</li>
+<li><b>An area's picture is just that area</b>: it used to take in a bit around it, often the lines above and below.</li>
+</ul>
+]]></description>
+            <enclosure url="https://aki-updates.vercel.app/0.14.1/Aki-0.14.1.zip" length="4564928" type="application/octet-stream" sparkle:edSignature="wF00k23Ivd0dd9ERGdLgiif2mODtuKbUnfLeZciTTsoyHTH/nsarRjhrueIYAOs+psx92v86W1HGmC9oMEduCQ=="/>
+        </item>
+        <item>
             <title>0.14.1-beta.6</title>
             <pubDate>Fri, 27 Nov 2026 07:32:51 -0300</pubDate>
             <sparkle:channel>beta</sparkle:channel>
@@ -17,38 +32,6 @@
 </ul>
 ]]></description>
             <enclosure url="https://aki-updates.vercel.app/0.14.1-beta.6/Aki-0.14.1-beta.6.zip" length="4564833" type="application/octet-stream" sparkle:edSignature="CKyQUknPzXM7RrGmSNYd148H5Q2WWLd/DSQ02zWb+3bzzmIWF0hELjfiAFQGrfQwq3KdXru1VdUG6OskYU8dCA=="/>
-        </item>
-        <item>
-            <title>0.14.1-beta.5</title>
-            <pubDate>Fri, 27 Nov 2026 07:24:49 -0300</pubDate>
-            <sparkle:channel>beta</sparkle:channel>
-            <sparkle:version>20261127102448</sparkle:version>
-            <sparkle:shortVersionString>0.14.1-beta.5</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
-            <description><![CDATA[<h2>Aki 0.14.1-beta.5</h2><h3>Fixed</h3><ul>
-<li>Aki uses much less of the Mac while idle: it no longer adds up your token use again when nothing changed, rereads only the session files that changed, and rests while the screen sleeps or is locked.</li>
-<li>The picture of an area you draw is just that area: it took in a bit around it, often the lines above and below.</li>
-<li>⇧⌘A outlines what is under the pointer right away: it waited for the mouse to move.</li>
-</ul>
-]]></description>
-            <enclosure url="https://aki-updates.vercel.app/0.14.1-beta.5/Aki-0.14.1-beta.5.zip" length="4559299" type="application/octet-stream" sparkle:edSignature="MG3uy9Exk167sVerTyBcwT6IhlHDTPLSR049/bwU8AzlOcW3BRxBhh6bJHitQ9nNRmIgLZj0LkhoIY1IQQz0BA=="/>
-        </item>
-        <item>
-            <title>0.14.1-beta.4</title>
-            <pubDate>Thu, 26 Nov 2026 23:04:35 -0300</pubDate>
-            <sparkle:channel>beta</sparkle:channel>
-            <sparkle:version>20261127020435</sparkle:version>
-            <sparkle:shortVersionString>0.14.1-beta.4</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
-            <description><![CDATA[<h2>Aki 0.14.1-beta.4</h2><h3>Fixed</h3><ul>
-<li>Aki uses much less of the Mac while idle: it no longer adds up your token use again when nothing changed, rereads only the session files that changed, and rests while the screen sleeps or is locked.</li>
-<li>The picture of an area you draw is just that area: it took in a bit around it, often the lines above and below.</li>
-<li>⇧⌘A outlines what is under the pointer right away: it waited for the mouse to move.</li>
-</ul>
-]]></description>
-            <enclosure url="https://aki-updates.vercel.app/0.14.1-beta.4/Aki-0.14.1-beta.4.zip" length="4557708" type="application/octet-stream" sparkle:edSignature="+sJNpNGNtaDh/kyUIq3qfmhx9PEqg9Yo627AsBvUvtOeRdjnfnplcwYHs1BHaYZ863kTPy7pW4zchc4E/P88Cw=="/>
         </item>
         <item>
             <title>0.14.0</title>
@@ -81,20 +64,6 @@
 </ul>
 ]]></description>
             <enclosure url="https://aki-updates.vercel.app/0.13.0/Aki-0.13.0.zip" length="4414386" type="application/octet-stream" sparkle:edSignature="VM+ZyJl55H23xGKDs6mQouZWSGb1B2o2LgzzmBa+UZNCfTi2h8l4n4k/McEvZyyS/NxxTEq1R86Ucu3nxUe8DA=="/>
-        </item>
-        <item>
-            <title>0.12.2</title>
-            <pubDate>Mon, 16 Nov 2026 18:39:38 -0300</pubDate>
-            <sparkle:version>20261116213937</sparkle:version>
-            <sparkle:shortVersionString>0.12.2</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
-            <description><![CDATA[<h2>Aki 0.12.2</h2><h3>Fixes</h3><ul>
-<li>A page's hover menu stays on screen when marking opens, as with the Mac's ⌘⇧4: the screen holds still at once, instead of the menu vanishing and coming back.</li>
-<li>Claude's usage ring shows the newest share of the limit: a session left idle kept showing an older, lower number.</li>
-</ul>
-]]></description>
-            <enclosure url="https://aki-updates.vercel.app/0.12.2/Aki-0.12.2.zip" length="4361673" type="application/octet-stream" sparkle:edSignature="Xte5/Y05V1DkpH4CipnLH93dUrgIOtc+FMRRr12Z93SK4tcj/eAm1otNR7gT0X8ayW/macki9KG1SUfFus/wAQ=="/>
         </item>
     </channel>
 </rss>
