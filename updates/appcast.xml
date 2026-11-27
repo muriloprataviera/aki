@@ -3,6 +3,20 @@
     <channel>
         <title>Aki</title>
         <item>
+            <title>0.14.3-beta.1</title>
+            <pubDate>Fri, 27 Nov 2026 16:01:32 -0300</pubDate>
+            <sparkle:channel>beta</sparkle:channel>
+            <sparkle:version>20261127190131</sparkle:version>
+            <sparkle:shortVersionString>0.14.3-beta.1</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
+            <description><![CDATA[<h2>Aki 0.14.3-beta.1</h2><h3>Fixed</h3><ul>
+<li><b>⇧ while marking:</b> after a ⇧-click, the keys go to the app below only while one of its text fields has the focus. A ⇧-click on a link no longer took E, Tab and the arrows away from marking.</li>
+</ul>
+]]></description>
+            <enclosure url="https://aki-updates.vercel.app/0.14.3-beta.1/Aki-0.14.3-beta.1.zip" length="4574612" type="application/octet-stream" sparkle:edSignature="wb0Ylir6f7h/2VIfa4Q26MYbX32oGf9yiGz+3C6IveAgC4shZHOdNCehMzUgQXTb7MjJUNIFV+s6ulrGEhdcAQ=="/>
+        </item>
+        <item>
             <title>0.14.2</title>
             <pubDate>Fri, 27 Nov 2026 12:24:45 -0300</pubDate>
             <sparkle:version>20261127152444</sparkle:version>
