@@ -3,6 +3,21 @@
     <channel>
         <title>Aki</title>
         <item>
+            <title>0.14.2</title>
+            <pubDate>Fri, 27 Nov 2026 12:24:45 -0300</pubDate>
+            <sparkle:version>20261127152444</sparkle:version>
+            <sparkle:shortVersionString>0.14.2</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
+            <description><![CDATA[<h2>Aki 0.14.2</h2><h3>Fixed</h3><ul>
+<li><b>Mark right away:</b> press ⇧⌘A and click or drag at once, and it counts as marking. In the instant before marking was up, it went to the page below and selected its text.</li>
+<li><b>Sharper outline on web pages:</b> what's outlined is what the pointer is in, a card or a grid's cell, not the button a few pixels beside it. And when the pointer stops right after moving, the outline catches up with where it is.</li>
+<li><b>Type in the app below while marking:</b> ⇧-click into an address bar or a search box and what you type goes there (the screen is captured again once you stop). Click on the marking to go back to it.</li>
+</ul>
+]]></description>
+            <enclosure url="https://aki-updates.vercel.app/0.14.2/Aki-0.14.2.zip" length="4572334" type="application/octet-stream" sparkle:edSignature="ymzdlZVKymkMk3QzXWxFu+ZUIvZBMybLpmS7aFnadUMR0B+IaQF2VeJifAwuay2pQIYusWSU0I3akCn+jIS+BQ=="/>
+        </item>
+        <item>
             <title>0.14.2-beta.3</title>
             <pubDate>Fri, 27 Nov 2026 11:24:25 -0300</pubDate>
             <sparkle:channel>beta</sparkle:channel>
@@ -17,35 +32,6 @@
 </ul>
 ]]></description>
             <enclosure url="https://aki-updates.vercel.app/0.14.2-beta.3/Aki-0.14.2-beta.3.zip" length="4568126" type="application/octet-stream" sparkle:edSignature="WS98Va3nV74ZKK80D9YvoTJcSM4AazY2eoi89K2h2gNZMBno6IU9Mzzm7Hp+EJo1ll6dD3u8ZhI9hZiM/EOdBw=="/>
-        </item>
-        <item>
-            <title>0.14.2-beta.2</title>
-            <pubDate>Fri, 27 Nov 2026 10:21:32 -0300</pubDate>
-            <sparkle:channel>beta</sparkle:channel>
-            <sparkle:version>20261127132126</sparkle:version>
-            <sparkle:shortVersionString>0.14.2-beta.2</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
-            <description><![CDATA[<h2>Aki 0.14.2-beta.2</h2><h3>Fixed</h3><ul>
-<li><b>Sharper outline on web pages:</b> what's outlined is what the pointer is in, a card or a grid's cell, not the button a few pixels beside it. And when the pointer stops right after moving, the outline catches up with where it is.</li>
-<li><b>Type in the app below while marking:</b> ⇧-click into an address bar or a search box and what you type goes there. Click on the marking again to go back to it.</li>
-</ul>
-]]></description>
-            <enclosure url="https://aki-updates.vercel.app/0.14.2-beta.2/Aki-0.14.2-beta.2.zip" length="4565963" type="application/octet-stream" sparkle:edSignature="ZyCFmFpERSgw3pi9QBeZ1qJdaj0GwmL7Ibv2POd95hm4l+DV/krnYnRH0k2oIa+CQhM0kdA7+ih0IWlHRsKVBw=="/>
-        </item>
-        <item>
-            <title>0.14.2-beta.1</title>
-            <pubDate>Fri, 27 Nov 2026 10:04:13 -0300</pubDate>
-            <sparkle:channel>beta</sparkle:channel>
-            <sparkle:version>20261127130412</sparkle:version>
-            <sparkle:shortVersionString>0.14.2-beta.1</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
-            <description><![CDATA[<h2>Aki 0.14.2-beta.1</h2><h3>Fixed</h3><ul>
-<li><b>Type in the app below while marking:</b> ⇧-click into an address bar or a search box and what you type goes there (the keys stayed with Aki). Click on the marking again to go back to it.</li>
-</ul>
-]]></description>
-            <enclosure url="https://aki-updates.vercel.app/0.14.2-beta.1/Aki-0.14.2-beta.1.zip" length="4565749" type="application/octet-stream" sparkle:edSignature="56VO7Pj5/li+GPn4r0NpbtGMs23rhw9Qtsl5V9Oj4YAeHs1WPhx53mAK/iKPiL14yQrLSmssRcEkiXfu9uTTDw=="/>
         </item>
         <item>
             <title>0.14.1</title>
@@ -75,24 +61,6 @@
 </ul>
 ]]></description>
             <enclosure url="https://aki-updates.vercel.app/0.14.0/Aki-0.14.0.zip" length="4545739" type="application/octet-stream" sparkle:edSignature="11OBh0N2QH5+WO677bubkFRKPU2REibDfJTl5ICogjQAdSJ+kZAcOKoXvzeqCezfbbwtuKluUNWGMrmvEK7gBA=="/>
-        </item>
-        <item>
-            <title>0.13.0</title>
-            <pubDate>Sat, 21 Nov 2026 20:47:57 -0300</pubDate>
-            <sparkle:version>20261121234757</sparkle:version>
-            <sparkle:shortVersionString>0.13.0</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
-            <description><![CDATA[<h2>Aki 0.13.0</h2><h3>New</h3><ul>
-<li>Limit resets in the Claude and Codex cards: use one of Codex's right from Aki (it asks first), or go straight to Claude's usage page to use one there.</li>
-</ul><h3>Fixes</h3><ul>
-<li>With more than one display, only the screen you're on holds still while a hover menu is kept, as with the Mac's ⌘⇧4: the others keep running.</li>
-<li>A localhost page served from a Claude session's own scratchpad folder goes to that session, whatever its tab is called.</li>
-<li>Claude's usage ring follows the session that talked to Claude last: after you reset your limit it kept showing the old share.</li>
-<li>The list of more terminals fits its card: with many sessions its top was cut off.</li>
-</ul>
-]]></description>
-            <enclosure url="https://aki-updates.vercel.app/0.13.0/Aki-0.13.0.zip" length="4414386" type="application/octet-stream" sparkle:edSignature="VM+ZyJl55H23xGKDs6mQouZWSGb1B2o2LgzzmBa+UZNCfTi2h8l4n4k/McEvZyyS/NxxTEq1R86Ucu3nxUe8DA=="/>
         </item>
     </channel>
 </rss>
