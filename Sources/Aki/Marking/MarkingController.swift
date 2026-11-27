@@ -1068,7 +1068,8 @@ final class MarkingController {
             // Typing in the app below (⇧-clicked into a field): only esc and ⌘⏎ stay Aki's.
             // Its field no longer has the focus (a link was clicked, ⏎ took you to the
             // page): the keys are marking's again.
-            if self.keysToApp, !Self.typingBelow() { self.keysToApp = false }
+            // (Not answering in time: unknown, so the keys keep going to it.)
+            if self.keysToApp, Self.typingBelow() == false { self.keysToApp = false }
             if self.keysToApp {
                 if event.keyCode == 53 || (event.keyCode == 36 && event.modifierFlags.contains(.command)) {
                     return self.handleKey(event)
@@ -1365,14 +1366,16 @@ final class MarkingController {
     }
 
     /// The app in front has a text field with the focus (an address bar, a search box,
-    /// a page's input): what's typed is for it.
-    private static func typingBelow() -> Bool {
+    /// a page's input): what's typed is for it. nil: it didn't answer (slow, busy).
+    private static func typingBelow() -> Bool? {
         guard let pid = NSWorkspace.shared.frontmostApplication?.processIdentifier, pid != getpid() else { return false }
         let app = AXUIElementCreateApplication(pid)
         AXUIElementSetMessagingTimeout(app, 0.15)
         var focused: CFTypeRef?
-        guard AXUIElementCopyAttributeValue(app, kAXFocusedUIElementAttribute as CFString, &focused) == .success,
-              let focused, CFGetTypeID(focused) == AXUIElementGetTypeID() else { return false }
+        let asked = AXUIElementCopyAttributeValue(app, kAXFocusedUIElementAttribute as CFString, &focused)
+        // Nothing has the focus: no field. Any other failure: not known.
+        if asked == .noValue { return false }
+        guard asked == .success, let focused, CFGetTypeID(focused) == AXUIElementGetTypeID() else { return nil }
         let element = focused as! AXUIElement
         var role: CFTypeRef?
         AXUIElementCopyAttributeValue(element, kAXRoleAttribute as CFString, &role)
