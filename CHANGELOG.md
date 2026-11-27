@@ -4,6 +4,8 @@ What changed in each version of Aki. Versions follow [semantic versioning](https
 
 ## [Unreleased]
 
+## [0.14.2] — 2026-11-27
+
 ### Fixed
 - Start marking with ⇧⌘A and click or drag right away: it counts as marking. In the instant before marking was up, it went to the page below and selected its text.
 - The outline on a web page is what the pointer is in: a card or a grid's cell, not the button a few pixels beside it; and when the pointer stops right after moving, the outline catches up with where it is.
