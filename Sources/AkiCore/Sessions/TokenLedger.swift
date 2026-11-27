@@ -282,11 +282,21 @@ public final class TokenLedger: @unchecked Sendable {
 
     /// The local day of a time, as "2026-10-18".
     public static func day(_ ts: Int) -> String {
-        dayLock.withLock { dayFormat.string(from: Date(timeIntervalSince1970: TimeInterval(ts))) }
+        // Formatting a date is slow and every pass asks for each request's day: by the quarter
+        // hour (time zones move by whole quarters), each formatted once.
+        dayLock.withLock {
+            let quarter = ts >= 0 ? ts / 900 : (ts - 899) / 900
+            if let known = dayMemo[quarter] { return known }
+            if dayMemo.count > 50_000 { dayMemo.removeAll() }
+            let day = dayFormat.string(from: Date(timeIntervalSince1970: TimeInterval(quarter * 900)))
+            dayMemo[quarter] = day
+            return day
+        }
     }
+    nonisolated(unsafe) private static var dayMemo: [Int: String] = [:]
 
     static func logs(in root: URL, since: Date, ext: String = "jsonl") -> [URL] {
-        let keys: [URLResourceKey] = [.contentModificationDateKey]
+        let keys: [URLResourceKey] = [.contentModificationDateKey, .fileSizeKey]
         guard let walk = FileManager.default.enumerator(at: root, includingPropertiesForKeys: keys, options: [.skipsHiddenFiles])
         else { return [] }
         var found: [URL] = []
@@ -300,6 +310,10 @@ public final class TokenLedger: @unchecked Sendable {
     /// Reads the complete lines appended to one log since its cursor.
     private func read(_ url: URL, agent: String) -> Bool {
         let path = url.path
+        // Nothing appended since the last pass (most logs, most passes): its size, read with the
+        // folder's listing, says so without asking the disk again.
+        if let known = state.cursors[path], let size = try? url.resourceValues(forKeys: [.fileSizeKey]).fileSize,
+           size == known.offset { return false }
         guard let attributes = try? FileManager.default.attributesOfItem(atPath: path) else { return false }
         let size = (attributes[.size] as? Int) ?? 0
         let inode = (attributes[.systemFileNumber] as? Int) ?? 0

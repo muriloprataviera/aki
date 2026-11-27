@@ -765,6 +765,8 @@ final class SidebarModel {
     @ObservationIgnored private let ledger = TokenLedger()
     @ObservationIgnored private var ledgerRead = Date.distantPast
     @ObservationIgnored private var ledgerBusy = false
+    @ObservationIgnored private var ledgerKey = ""
+    @ObservationIgnored private var ledgerSummed = Date.distantPast
     /// What OpenAI says of your Codex account (only with "More from Codex" on).
     var codexAccount: CodexAccount?
     /// The logs before the week being read, once (the all-time page says so).
@@ -888,8 +890,14 @@ final class SidebarModel {
             ledgerRead = Date()
             let ledger = self.ledger
             Task {
-                let found = await Task.detached(priority: .utility) { () -> [String: TokenSpend] in
-                    ledger.update()
+                // The totals again only when the logs grew, the week moved or the day turned
+                // (or every ten minutes, for the hours that pass): adding up the week each
+                // half minute for nothing new was most of Aki's time while idle.
+                let weeks = limits.map { "\($0.agent.rawValue)\($0.week?.resets?.timeIntervalSince1970 ?? 0)" }.sorted()
+                let key = "\(weeks)|\(Calendar.current.startOfDay(for: Date()).timeIntervalSince1970)"
+                let stale = key != ledgerKey || Date().timeIntervalSince(ledgerSummed) > 600
+                let found = await Task.detached(priority: .utility) { () -> [String: TokenSpend]? in
+                    guard ledger.update() || stale else { return nil }
                     var result: [String: TokenSpend] = [:]
                     for agent in ["claude", "codex"] {
                         let week = limits.first { $0.agent.rawValue == agent }?.week?.resets
@@ -898,7 +906,11 @@ final class SidebarModel {
                     }
                     return result
                 }.value
-                if found != spend { spend = found }
+                if let found {
+                    ledgerKey = key
+                    ledgerSummed = Date()
+                    if found != spend { spend = found }
+                }
                 // Once: the logs before the week, by day (the streak, the busiest day). Months of
                 // logs, so slowly, on its own; the next pass shows them.
                 if ledger.needsBackfill {
