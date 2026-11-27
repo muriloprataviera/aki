@@ -888,8 +888,11 @@ final class SidebarModel {
         let codex = [codexRead.limits, codexFresh].compactMap { $0 }.max { $0.updated < $1.updated }
         let limits = [claude ?? seen(.claude), codex ?? seen(.codex)].compactMap { $0?.current() }
         if limits != self.usage { self.usage = limits }
-        // Tokens: the logs' new lines every 30 s, in the background (the first pass reads the week).
-        if preferences.showUsage || usagePaneOpen, !ledgerBusy, Date().timeIntervalSince(ledgerRead) > 30 {
+        // Tokens: the logs' new lines, in the background (the first pass reads the week).
+        // Every minute (the Usage pane open: every 30 s; nobody at the Mac: every 5 min). Each
+        // pass walks the agents' log folders, thousands of files.
+        let ledgerEvery: TimeInterval = usagePaneOpen ? 30 : Away.idle ? 300 : 60
+        if preferences.showUsage || usagePaneOpen, !ledgerBusy, Date().timeIntervalSince(ledgerRead) > ledgerEvery {
             ledgerBusy = true
             ledgerRead = Date()
             let ledger = self.ledger

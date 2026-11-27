@@ -106,7 +106,9 @@ public final class TokenLedger: @unchecked Sendable {
         // a week, a session that ended meanwhile still has requests not counted.
         let changedSince = min(since, state.counted.map { Date(timeIntervalSince1970: TimeInterval($0)) } ?? since)
         for (root, agent) in [(claudeRoot, "claude"), (codexRoot, "codex"), (archived, "codex")] {
-            for url in Self.logs(in: root, since: changedSince) {
+            // One walk of the folder for both kinds (Codex's holds thousands of files).
+            let found = Self.logs(in: root, since: changedSince, exts: agent == "codex" ? ["jsonl", "zst"] : ["jsonl"])
+            for url in found where url.pathExtension == "jsonl" {
                 seen.insert(url.path)
                 if read(url, agent: agent) { changed = true }
             }
@@ -114,7 +116,7 @@ public final class TokenLedger: @unchecked Sendable {
             // count may hold requests never read (Aki closed meanwhile). Read once (its cursor
             // keeps its size); what was read before is a known request, or already counted.
             if agent == "codex" {
-                for url in Self.logs(in: root, since: changedSince, ext: "zst") {
+                for url in found where url.pathExtension == "zst" {
                     seen.insert(url.path)
                     if readPacked(url, agent: agent) { changed = true }
                 }
@@ -296,11 +298,15 @@ public final class TokenLedger: @unchecked Sendable {
     nonisolated(unsafe) private static var dayMemo: [Int: String] = [:]
 
     static func logs(in root: URL, since: Date, ext: String = "jsonl") -> [URL] {
+        logs(in: root, since: since, exts: [ext])
+    }
+
+    static func logs(in root: URL, since: Date, exts: Set<String>) -> [URL] {
         let keys: [URLResourceKey] = [.contentModificationDateKey, .fileSizeKey, .fileIdentifierKey]
         guard let walk = FileManager.default.enumerator(at: root, includingPropertiesForKeys: keys, options: [.skipsHiddenFiles])
         else { return [] }
         var found: [URL] = []
-        for case let url as URL in walk where url.pathExtension == ext {
+        for case let url as URL in walk where exts.contains(url.pathExtension) {
             let modified = (try? url.resourceValues(forKeys: [.contentModificationDateKey]).contentModificationDate) ?? .distantPast
             if modified >= since { found.append(url) }
         }
