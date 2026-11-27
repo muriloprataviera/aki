@@ -7,6 +7,7 @@ What changed in each version of Aki. Versions follow [semantic versioning](https
 ### Fixed
 - ⇧⌘A outlines what is under the pointer right away: it waited for the mouse to move.
 - The picture of an area you draw is just that area: it took in a bit around it, often the lines above and below.
+- Aki uses much less of the Mac while idle: it no longer adds up your token use again when nothing changed, rereads only the session files that changed, and rests while the screen sleeps or is locked.
 
 ## [0.14.0] — 2026-11-25
 
