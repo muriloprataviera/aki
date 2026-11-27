@@ -3,6 +3,22 @@
     <channel>
         <title>Aki</title>
         <item>
+            <title>0.14.2-beta.3</title>
+            <pubDate>Fri, 27 Nov 2026 11:24:25 -0300</pubDate>
+            <sparkle:channel>beta</sparkle:channel>
+            <sparkle:version>20261127142425</sparkle:version>
+            <sparkle:shortVersionString>0.14.2-beta.3</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
+            <description><![CDATA[<h2>Aki 0.14.2-beta.3</h2><h3>Fixed</h3><ul>
+<li><b>Mark right away:</b> press ⇧⌘A and click or drag at once, and it counts as marking. In the instant before marking was up, it went to the page below and selected its text.</li>
+<li><b>Sharper outline on web pages:</b> what's outlined is what the pointer is in, a card or a grid's cell, not the button a few pixels beside it.</li>
+<li><b>Type in the app below while marking:</b> ⇧-click into an address bar or a search box and what you type goes there.</li>
+</ul>
+]]></description>
+            <enclosure url="https://aki-updates.vercel.app/0.14.2-beta.3/Aki-0.14.2-beta.3.zip" length="4568126" type="application/octet-stream" sparkle:edSignature="WS98Va3nV74ZKK80D9YvoTJcSM4AazY2eoi89K2h2gNZMBno6IU9Mzzm7Hp+EJo1ll6dD3u8ZhI9hZiM/EOdBw=="/>
+        </item>
+        <item>
             <title>0.14.2-beta.2</title>
             <pubDate>Fri, 27 Nov 2026 10:21:32 -0300</pubDate>
             <sparkle:channel>beta</sparkle:channel>
@@ -45,22 +61,6 @@
 </ul>
 ]]></description>
             <enclosure url="https://aki-updates.vercel.app/0.14.1/Aki-0.14.1.zip" length="4564928" type="application/octet-stream" sparkle:edSignature="wF00k23Ivd0dd9ERGdLgiif2mODtuKbUnfLeZciTTsoyHTH/nsarRjhrueIYAOs+psx92v86W1HGmC9oMEduCQ=="/>
-        </item>
-        <item>
-            <title>0.14.1-beta.6</title>
-            <pubDate>Fri, 27 Nov 2026 07:32:51 -0300</pubDate>
-            <sparkle:channel>beta</sparkle:channel>
-            <sparkle:version>20261127103250</sparkle:version>
-            <sparkle:shortVersionString>0.14.1-beta.6</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
-            <description><![CDATA[<h2>Aki 0.14.1-beta.6</h2><h3>Fixed</h3><ul>
-<li>Aki uses much less of the Mac while idle: it no longer adds up your token use again when nothing changed, rereads only the session files that changed, and rests while the screen sleeps or is locked.</li>
-<li>The picture of an area you draw is just that area: it took in a bit around it, often the lines above and below.</li>
-<li>⇧⌘A outlines what is under the pointer right away: it waited for the mouse to move.</li>
-</ul>
-]]></description>
-            <enclosure url="https://aki-updates.vercel.app/0.14.1-beta.6/Aki-0.14.1-beta.6.zip" length="4564833" type="application/octet-stream" sparkle:edSignature="CKyQUknPzXM7RrGmSNYd148H5Q2WWLd/DSQ02zWb+3bzzmIWF0hELjfiAFQGrfQwq3KdXru1VdUG6OskYU8dCA=="/>
         </item>
         <item>
             <title>0.14.0</title>
