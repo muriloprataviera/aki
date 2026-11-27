@@ -1052,10 +1052,15 @@ final class MarkingController {
                 }
                 // What you type changes the page (its suggestions, a new address, ⌘+ its
                 // zoom): the screens are captured again once you stop, as after a scroll.
+                // Only the last key's wait counts (an earlier one ending meanwhile would
+                // capture too soon and leave the page as it was before this key).
                 if !session.flying, !session.sending {
                     session.scrolling = true
                     self.panels.forEach { $0.ignoresMouseEvents = true }
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) { [weak self] in self?.scrollMoved() }
+                    self.scrollIdle?.cancel()
+                    let work = DispatchWorkItem { [weak self] in self?.scrollStopped() }
+                    self.scrollIdle = work
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.65, execute: work)
                 }
                 return false
             }
