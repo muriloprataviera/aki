@@ -69,10 +69,17 @@ public enum MarkFolder {
     /// The day a mark was made, from its `created_at` (now when it has none).
     public static func created(_ annotation: Annotation) -> Date {
         guard let text = annotation["created_at"]?.string else { return Date() }
+        return fractional.date(from: text) ?? whole.date(from: text) ?? Date()
+    }
+
+    // Made once (thread-safe): one per call, for every mark every few seconds, showed in the
+    // idle app's time.
+    nonisolated(unsafe) private static let fractional: ISO8601DateFormatter = {
         let iso = ISO8601DateFormatter()
         iso.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-        return iso.date(from: text) ?? ISO8601DateFormatter().date(from: text) ?? Date()
-    }
+        return iso
+    }()
+    nonisolated(unsafe) private static let whole = ISO8601DateFormatter()
 
     /// Whether a path is one of Aki's own (under `marks/` or the old `images/`).
     public static func isAkis(_ path: String, home: AkiHome = .default) -> Bool {
