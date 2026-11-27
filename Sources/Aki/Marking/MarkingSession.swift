@@ -186,6 +186,9 @@ final class MarkingSession {
     private var probing = false
     /// A look at what's under the pointer is on its way.
     var isProbing: Bool { probing }
+    /// A click caught as marking opened, not given yet: only what's under it is looked
+    /// up meanwhile (the pointer moving on mustn't change what the click marks).
+    var lookupsHeldAt: CGPoint?
     /// Where the pointer went while a look was on its way: looked at once it's back, so
     /// a pointer that stops just after moving gets what's under it now, not where it was.
     private var pendingProbe: CGPoint?
@@ -381,6 +384,7 @@ final class MarkingSession {
             if hovered != nil { hovered = nil }
             return
         }
+        if let held = lookupsHeldAt, point != held { return }
         // Picked with the arrow keys: a small nudge of the pointer keeps it.
         if let hold = keyboardHold {
             if hypot(point.x - hold.x, point.y - hold.y) < 14 { return }
