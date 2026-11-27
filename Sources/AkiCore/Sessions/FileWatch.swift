@@ -13,7 +13,11 @@ public final class FileWatch: @unchecked Sendable {
     private var stream: FSEventStreamRef?
     private let queue = DispatchQueue(label: "ai.useaki.filewatch", qos: .utility)
 
+    /// The folders watched (the ones that existed when it started).
+    public let folders: [String]
+
     public init?(folders: [URL], latency: TimeInterval = 2) {
+        self.folders = folders.map(\.path)
         let paths = folders.map(\.path) as CFArray
         var context = FSEventStreamContext(version: 0, info: Unmanaged.passUnretained(self).toOpaque(),
                                            retain: nil, release: nil, copyDescription: nil)
@@ -26,6 +30,9 @@ public final class FileWatch: @unchecked Sendable {
             watch.lock.withLock {
                 for i in 0..<min(count, paths.count) {
                     if flags[i] & distrust != 0 { watch.rescan = true }
+                    // A folder moved in or out tells nothing of the files inside: look at all.
+                    let movedFolder = FSEventStreamEventFlags(kFSEventStreamEventFlagItemIsDir | kFSEventStreamEventFlagItemRenamed)
+                    if flags[i] & movedFolder == movedFolder { watch.rescan = true }
                     watch.changed.insert(paths[i])
                 }
             }

@@ -91,6 +91,11 @@ public final class TokenLedger: @unchecked Sendable {
         // Watching (the app's ledger): only the logs macOS says changed, with a full walk at
         // the start, when its events can't be trusted, and every half hour all the same.
         var only: Set<String>?
+        // A folder that didn't exist when watching began (the other agent installed since):
+        // watched from now on, after a full look.
+        if watch != nil, logFolders().map(\.path) != watch?.folders {
+            watch = FileWatch(folders: logFolders())
+        }
         if let watch {
             if now.timeIntervalSince(lastFullPass) > 1800 { watch.distrust() }
             only = watch.take()
@@ -176,10 +181,14 @@ public final class TokenLedger: @unchecked Sendable {
 
     /// From now on each pass reads only the logs macOS says changed (see `FileWatch`).
     public func watchLogs() {
-        let archived = codexRoot.deletingLastPathComponent().appending(path: "archived_sessions")
-        let folders = [claudeRoot, codexRoot, archived].filter { FileManager.default.fileExists(atPath: $0.path) }
-        let made = FileWatch(folders: folders)
+        let made = FileWatch(folders: logFolders())
         lock.withLock { if watch == nil { watch = made } }
+    }
+
+    /// The agents' log folders that exist now.
+    private func logFolders() -> [URL] {
+        let archived = codexRoot.deletingLastPathComponent().appending(path: "archived_sessions")
+        return [claudeRoot, codexRoot, archived].filter { FileManager.default.fileExists(atPath: $0.path) }
     }
 
     /// Writes what's unsaved now (Aki quitting).
