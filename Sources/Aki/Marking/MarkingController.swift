@@ -28,6 +28,8 @@ final class MarkingController {
     /// The keys while Aki doesn't have the focus (the app below keeps it).
     private var keyTap: KeyTap?
     private var moveTap: MoveTap?
+    /// While the screens are captured: a click begun then waits for the marking screen.
+    private var clickHold: ClickHold?
     /// A comment just started and Aki is taking the keyboard (after the picture):
     /// what's typed meanwhile goes into it.
     private var takingFocus = false
@@ -406,6 +408,8 @@ final class MarkingController {
         let menuOpen = !menus.isEmpty
         AkiCursor.pin.set()
         holdCursor()
+        clickHold?.stop()
+        clickHold = ClickHold()
         Task {
             defer { starting = false }
             // The page's session (by its localhost port) is looked up while the screens
@@ -444,6 +448,8 @@ final class MarkingController {
             }
             let captured = CACurrentMediaTime()
             guard let grabs = grabs0, !grabs.isEmpty else {
+                clickHold?.stop()
+                clickHold = nil
                 model.marking = false
                 AkiCursor.arrowIsPin = false
                 NSCursor.arrow.set()
@@ -595,6 +601,11 @@ final class MarkingController {
             }
             // On screen now, not when this turn of the main loop ends.
             CATransaction.flush()
+            // After the overlays' contents (queued above): a click begun meanwhile is theirs.
+            DispatchQueue.main.async { [weak self] in
+                self?.clickHold?.release()
+                self?.clickHold = nil
+            }
             MarkingSpeed.note(began: began, asked: asked, captured: captured, shown: CACurrentMediaTime(), screens: grabs.count, key: keyDelay, panel: panels.first)
             // The agent may just have changed in Orca: a fresh look, after the overlay is up
             // (it takes about half a second; followTerminals brings the result in).
@@ -850,6 +861,8 @@ final class MarkingController {
         keysToApp = false
         keyTap?.stop()
         keyTap = nil
+        clickHold?.stop()
+        clickHold = nil
         moveTap?.stop()
         moveTap = nil
         takingFocus = false

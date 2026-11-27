@@ -95,3 +95,83 @@ final class MoveTap {
 
     deinit { stop() }
 }
+
+/// From the shortcut until the marking screen is up (the screens are captured first,
+/// about a tenth of a second): a click or a drag begun meanwhile is kept from the app
+/// below (it would select its text) and handed to the marking screen once it's there.
+/// Needs Accessibility, as `KeyTap`; nil without it.
+final class ClickHold {
+    private var tap: CFMachPort?
+    private var source: CFRunLoopSource?
+    /// Where the button went down (global, top-left origin), and whether it's up again.
+    fileprivate var down: CGPoint?
+    fileprivate var up = false
+
+    init?() {
+        let mask = CGEventMask(1 << CGEventType.leftMouseDown.rawValue)
+            | CGEventMask(1 << CGEventType.leftMouseDragged.rawValue)
+            | CGEventMask(1 << CGEventType.leftMouseUp.rawValue)
+        let callback: CGEventTapCallBack = { _, type, event, info in
+            guard let info else { return Unmanaged.passUnretained(event) }
+            let me = Unmanaged<ClickHold>.fromOpaque(info).takeUnretainedValue()
+            if type == .tapDisabledByTimeout || type == .tapDisabledByUserInput {
+                if let tap = me.tap { CGEvent.tapEnable(tap: tap, enable: true) }
+                return Unmanaged.passUnretained(event)
+            }
+            // Posted by Aki itself: it goes through.
+            if pid_t(event.getIntegerValueField(.eventSourceUnixProcessID)) == getpid() { return Unmanaged.passUnretained(event) }
+            // Only a click begun now is held: the end of the one that opened marking
+            // (a ring in the sidebar, a menu) goes where it was going.
+            let held: Bool = MainActor.assumeIsolated {
+                switch type {
+                case .leftMouseDown:
+                    if me.down == nil { me.down = event.location }
+                    return true
+                case .leftMouseUp where me.down != nil:
+                    me.up = true
+                    return true
+                default:
+                    return me.down != nil
+                }
+            }
+            return held ? nil : Unmanaged.passUnretained(event)
+        }
+        guard let tap = CGEvent.tapCreate(
+            tap: .cgSessionEventTap, place: .headInsertEventTap, options: .defaultTap,
+            eventsOfInterest: mask, callback: callback, userInfo: Unmanaged.passUnretained(self).toOpaque())
+        else { return nil }
+        self.tap = tap
+        let source = CFMachPortCreateRunLoopSource(nil, tap, 0)
+        self.source = source
+        CFRunLoopAddSource(CFRunLoopGetMain(), source, .commonModes)
+        CGEvent.tapEnable(tap: tap, enable: true)
+    }
+
+    /// The marking screen is up: clicks reach it again, and the one caught meanwhile is
+    /// given to it — pressed where it began, moved to where the pointer is now, and let
+    /// go if it already was (a drag still going on carries on by itself).
+    func release() {
+        stop()
+        guard let down else { return }
+        let now = CGEvent(source: nil)?.location ?? down
+        let source = CGEventSource(stateID: .privateState)
+        var steps: [(CGEventType, CGPoint)] = [(.leftMouseDown, down)]
+        if hypot(now.x - down.x, now.y - down.y) > 1 { steps.append((.leftMouseDragged, now)) }
+        if up { steps.append((.leftMouseUp, now)) }
+        for (type, point) in steps {
+            let event = CGEvent(mouseEventSource: source, mouseType: type, mouseCursorPosition: point, mouseButton: .left)
+            event?.flags = []
+            if type != .leftMouseDragged { event?.setIntegerValueField(.mouseEventClickState, value: 1) }
+            event?.post(tap: .cghidEventTap)
+        }
+    }
+
+    func stop() {
+        if let tap { CGEvent.tapEnable(tap: tap, enable: false); CFMachPortInvalidate(tap) }
+        if let source { CFRunLoopRemoveSource(CFRunLoopGetMain(), source, .commonModes) }
+        tap = nil
+        source = nil
+    }
+
+    deinit { stop() }
+}
