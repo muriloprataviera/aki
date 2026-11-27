@@ -387,11 +387,13 @@ final class MarkingSession {
         }
         // A lookup that hangs must not freeze the outline: after a second, start anew.
         if probing, Date().timeIntervalSince(probeStarted) > 1 { probing = false }
-        guard hypot(point.x - lastProbe.x, point.y - lastProbe.y) > 2 else { return }
+        let moved = hypot(point.x - lastProbe.x, point.y - lastProbe.y) > 2
+        // A look on its way: only the latest place counts (back where it started: none).
         if probing {
-            pendingProbe = point
+            pendingProbe = moved ? point : nil
             return
         }
+        guard moved else { return }
         pendingProbe = nil
         probing = true
         probeStarted = Date()
