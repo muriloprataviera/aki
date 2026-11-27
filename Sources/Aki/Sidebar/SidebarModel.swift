@@ -850,7 +850,8 @@ final class SidebarModel {
              measureDisk ? DiskUsage.measure(pending: pending) : nil, AgentSessions.headlessBusy())
         }.value
         if busy != headlessBusy { headlessBusy = busy }
-        let open = await Task.detached { TerminalJump.namedTerminals(scanned) }.value
+        let tabsAge: TimeInterval = Away.idle ? 60 : 10
+        let open = await Task.detached { TerminalJump.namedTerminals(scanned, maxAge: tabsAge) }.value
         if let usage, usage != diskUsage { diskUsage = usage }
         // Housekeeping, at most once an hour: old done marks go, pictures stay under the limit.
         if Date().timeIntervalSince(lastCleanup) > 3600 {
