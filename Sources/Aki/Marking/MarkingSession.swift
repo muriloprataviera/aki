@@ -184,6 +184,8 @@ final class MarkingSession {
         if level > 0 { level -= 1 } else if level == 0, hovered?.finer.isEmpty == false { level = -1 }
     }
     private var probing = false
+    /// A look at what's under the pointer is on its way.
+    var isProbing: Bool { probing }
     /// Where the pointer went while a look was on its way: looked at once it's back, so
     /// a pointer that stops just after moving gets what's under it now, not where it was.
     private var pendingProbe: CGPoint?

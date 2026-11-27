@@ -605,17 +605,25 @@ final class MarkingController {
             // On screen now, not when this turn of the main loop ends.
             CATransaction.flush()
             // After the overlays' contents (queued above): a click begun meanwhile is theirs.
+            // A click caught meanwhile marks what's under it: that's looked up first
+            // (below), and the click given once it's known (half a second at most).
             DispatchQueue.main.async { [weak self] in
-                self?.clickHold?.release()
-                self?.clickHold = nil
+                Task { @MainActor [weak self] in
+                    if self?.clickHold?.firstDown != nil, let session = self?.session {
+                        for _ in 0..<25 where session.isProbing { try? await Task.sleep(for: .milliseconds(20)) }
+                    }
+                    self?.clickHold?.release()
+                    self?.clickHold = nil
+                }
             }
             MarkingSpeed.note(began: began, asked: asked, captured: captured, shown: CACurrentMediaTime(), screens: grabs.count, key: keyDelay, panel: panels.first)
             // The agent may just have changed in Orca: a fresh look, after the overlay is up
             // (it takes about half a second; followTerminals brings the result in).
             Task { await model.refresh() }
             // The outline under a pointer that hasn't moved, at once: hover only reports a move.
+            // A click caught while the screens were captured: what's under the click instead.
             let pointer = NSEvent.mouseLocation
-            session.probe(at: CGPoint(x: pointer.x, y: (NSScreen.screens.first?.frame.height ?? 0) - pointer.y))
+            session.probe(at: clickHold?.firstDown ?? CGPoint(x: pointer.x, y: (NSScreen.screens.first?.frame.height ?? 0) - pointer.y))
             AkiCursor.pin.set()
             holdCursor()
             watchKeys()

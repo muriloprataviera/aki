@@ -105,6 +105,8 @@ final class ClickHold {
     private var source: CFRunLoopSource?
     /// The presses, drags and let-gos begun meanwhile, in order (global, top-left origin).
     fileprivate var caught: [(type: CGEventType, at: CGPoint)] = []
+    /// Where the first click caught began (global, top-left origin).
+    var firstDown: CGPoint? { caught.first?.at }
 
     init?() {
         let mask = CGEventMask(1 << CGEventType.leftMouseDown.rawValue)
