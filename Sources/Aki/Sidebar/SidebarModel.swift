@@ -922,6 +922,7 @@ final class SidebarModel {
                     await Task.detached(priority: .background) { ledger.backfill() }.value
                     ledgerBackfilling = false
                     ledgerRead = .distantPast
+                    ledgerSummed = .distantPast  // the days before the week are in now: sum again
                 }
                 ledgerBusy = false
             }

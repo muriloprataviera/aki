@@ -296,7 +296,7 @@ public final class TokenLedger: @unchecked Sendable {
     nonisolated(unsafe) private static var dayMemo: [Int: String] = [:]
 
     static func logs(in root: URL, since: Date, ext: String = "jsonl") -> [URL] {
-        let keys: [URLResourceKey] = [.contentModificationDateKey, .fileSizeKey]
+        let keys: [URLResourceKey] = [.contentModificationDateKey, .fileSizeKey, .fileIdentifierKey]
         guard let walk = FileManager.default.enumerator(at: root, includingPropertiesForKeys: keys, options: [.skipsHiddenFiles])
         else { return [] }
         var found: [URL] = []
@@ -312,8 +312,8 @@ public final class TokenLedger: @unchecked Sendable {
         let path = url.path
         // Nothing appended since the last pass (most logs, most passes): its size, read with the
         // folder's listing, says so without asking the disk again.
-        if let known = state.cursors[path], let size = try? url.resourceValues(forKeys: [.fileSizeKey]).fileSize,
-           size == known.offset { return false }
+        if let known = state.cursors[path], let values = try? url.resourceValues(forKeys: [.fileSizeKey, .fileIdentifierKey]),
+           values.fileSize == known.offset, values.fileIdentifier.map({ Int($0) }) == known.inode { return false }
         guard let attributes = try? FileManager.default.attributesOfItem(atPath: path) else { return false }
         let size = (attributes[.size] as? Int) ?? 0
         let inode = (attributes[.systemFileNumber] as? Int) ?? 0

@@ -69,7 +69,7 @@ public enum MarkFolder {
     /// The day a mark was made, from its `created_at` (now when it has none).
     public static func created(_ annotation: Annotation) -> Date {
         guard let text = annotation["created_at"]?.string else { return Date() }
-        return fractional.date(from: text) ?? whole.date(from: text) ?? Date()
+        return formatLock.withLock { fractional.date(from: text) ?? whole.date(from: text) } ?? Date()
     }
 
     // Made once (thread-safe): one per call, for every mark every few seconds, showed in the
@@ -80,6 +80,7 @@ public enum MarkFolder {
         return iso
     }()
     nonisolated(unsafe) private static let whole = ISO8601DateFormatter()
+    private static let formatLock = NSLock()
 
     /// Whether a path is one of Aki's own (under `marks/` or the old `images/`).
     public static func isAkis(_ path: String, home: AkiHome = .default) -> Bool {
