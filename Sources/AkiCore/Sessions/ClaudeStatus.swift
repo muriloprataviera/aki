@@ -39,26 +39,39 @@ public struct ClaudeStatus: Sendable, Equatable {
         let files = (try? FileManager.default.contentsOfDirectory(
             at: folder, includingPropertiesForKeys: [.contentModificationDateKey])) ?? []
         var result: [String: ClaudeStatus] = [:]
+        var seen = Set<String>()
         for file in files where file.pathExtension == "json" {
-            guard let data = try? Data(contentsOf: file),
-                let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any]
-            else { continue }
             let updated = (try? file.resourceValues(forKeys: [.contentModificationDateKey]).contentModificationDate) ?? .distantPast
-            let limits = json["rate_limits"] as? [String: Any]
-            func limit(_ key: String) -> Limit? {
-                guard let l = limits?[key] as? [String: Any], let p = (l["used_percentage"] as? NSNumber)?.intValue else { return nil }
-                return Limit(percent: p, resets: (l["resets_at"] as? NSNumber).map { Date(timeIntervalSince1970: $0.doubleValue) })
+            seen.insert(file.path)
+            // Read again only when it changed: hundreds of files, a handful rewritten an hour.
+            var entry = parsedLock.withLock { parsed[file.path] }
+            if entry?.modified != updated {
+                guard let data = try? Data(contentsOf: file),
+                    let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any]
+                else { continue }
+                let limits = json["rate_limits"] as? [String: Any]
+                func limit(_ key: String) -> Limit? {
+                    guard let l = limits?[key] as? [String: Any], let p = (l["used_percentage"] as? NSNumber)?.intValue else { return nil }
+                    return Limit(percent: p, resets: (l["resets_at"] as? NSNumber).map { Date(timeIntervalSince1970: $0.doubleValue) })
+                }
+                let status = ClaudeStatus(
+                    model: (json["model"] as? [String: Any])?["display_name"] as? String,
+                    contextPercent: ((json["context_window"] as? [String: Any])?["used_percentage"] as? NSNumber)?.intValue,
+                    fiveHour: limit("five_hour"), week: limit("seven_day"), updated: updated)
+                entry = (updated, status, json["transcript_path"] as? String)
+                parsedLock.withLock { parsed[file.path] = entry }
             }
-            let fiveHour = limit("five_hour"), week = limit("seven_day")
+            guard var status = entry?.status else { continue }
             // Only for those with limits.
-            let heard = fiveHour == nil && week == nil ? nil : (json["transcript_path"] as? String).flatMap { lastReply(in: $0) }
-            result[file.deletingPathExtension().lastPathComponent] = ClaudeStatus(
-                model: (json["model"] as? [String: Any])?["display_name"] as? String,
-                contextPercent: ((json["context_window"] as? [String: Any])?["used_percentage"] as? NSNumber)?.intValue,
-                fiveHour: fiveHour, week: week, updated: updated, heard: heard)
+            if status.fiveHour != nil || status.week != nil { status.heard = entry?.transcript.flatMap { lastReply(in: $0) } }
+            result[file.deletingPathExtension().lastPathComponent] = status
         }
+        parsedLock.withLock { parsed = parsed.filter { seen.contains($0.key) } }
         return result
     }
+
+    nonisolated(unsafe) private static var parsed: [String: (modified: Date, status: ClaudeStatus, transcript: String?)] = [:]
+    private static let parsedLock = NSLock()
 
     /// When Claude last answered in a transcript (its last `assistant` line), read off the
     /// file's end once per change. Not the file's own date: renaming a session, or a
