@@ -4,6 +4,8 @@ What changed in each version of Aki. Versions follow [semantic versioning](https
 
 ## [Unreleased]
 
+## [0.14.1] — 2026-11-27
+
 ### Fixed
 - ⇧⌘A outlines what is under the pointer right away: it waited for the mouse to move.
 - The picture of an area you draw is just that area: it took in a bit around it, often the lines above and below.
