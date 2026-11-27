@@ -4,6 +4,9 @@ What changed in each version of Aki. Versions follow [semantic versioning](https
 
 ## [Unreleased]
 
+### Fixed
+- After a ⇧-click while marking, the keys go to the app below only while one of its text fields has the focus: a ⇧-click on a link no longer took E, Tab and the arrows away from marking.
+
 ## [0.14.2] — 2026-11-27
 
 ### Fixed

@@ -1065,7 +1065,10 @@ final class MarkingController {
                 }
                 return false
             }
-            // Typing in the app below (⇧-clicked into it): only esc and ⌘⏎ stay Aki's.
+            // Typing in the app below (⇧-clicked into a field): only esc and ⌘⏎ stay Aki's.
+            // Its field no longer has the focus (a link was clicked, ⏎ took you to the
+            // page): the keys are marking's again.
+            if self.keysToApp, !Self.typingBelow() { self.keysToApp = false }
             if self.keysToApp {
                 if event.keyCode == 53 || (event.keyCode == 36 && event.modifierFlags.contains(.command)) {
                     return self.handleKey(event)
@@ -1359,6 +1362,25 @@ final class MarkingController {
             }
             self?.scrollMoved()
         }
+    }
+
+    /// The app in front has a text field with the focus (an address bar, a search box,
+    /// a page's input): what's typed is for it.
+    private static func typingBelow() -> Bool {
+        guard let pid = NSWorkspace.shared.frontmostApplication?.processIdentifier, pid != getpid() else { return false }
+        let app = AXUIElementCreateApplication(pid)
+        AXUIElementSetMessagingTimeout(app, 0.15)
+        var focused: CFTypeRef?
+        guard AXUIElementCopyAttributeValue(app, kAXFocusedUIElementAttribute as CFString, &focused) == .success,
+              let focused, CFGetTypeID(focused) == AXUIElementGetTypeID() else { return false }
+        let element = focused as! AXUIElement
+        var role: CFTypeRef?
+        AXUIElementCopyAttributeValue(element, kAXRoleAttribute as CFString, &role)
+        if let role = role as? String, ["AXTextField", "AXTextArea", "AXComboBox", "AXSearchField"].contains(role) { return true }
+        // A page's own editable box (contenteditable) says so.
+        var editable: CFTypeRef?
+        AXUIElementCopyAttributeValue(element, "AXEditable" as CFString, &editable)
+        return (editable as? Bool) == true
     }
 
     /// The app whose window is under a global point (top-left origin), Aki's own left out.
