@@ -1050,6 +1050,13 @@ final class MarkingController {
                 if event.keyCode == 53 || (event.keyCode == 36 && event.modifierFlags.contains(.command)) {
                     return self.handleKey(event)
                 }
+                // What you type changes the page (its suggestions, a new address, ⌘+ its
+                // zoom): the screens are captured again once you stop, as after a scroll.
+                if !session.flying, !session.sending {
+                    session.scrolling = true
+                    self.panels.forEach { $0.ignoresMouseEvents = true }
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) { [weak self] in self?.scrollMoved() }
+                }
                 return false
             }
             if self.handleKey(event) { return true }
