@@ -607,15 +607,21 @@ final class MarkingController {
             // After the overlays' contents (queued above): a click begun meanwhile is theirs.
             // A click caught meanwhile marks what's under it: that's looked up first
             // (below), and the click given once it's known (half a second at most).
-            DispatchQueue.main.async { [weak self] in
-                Task { @MainActor [weak self] in
-                    let session = self?.session
-                    if self?.clickHold?.firstDown != nil, let session {
+            // This round's own: closed and opened again meanwhile, the new one's stays its own.
+            let hold = clickHold
+            DispatchQueue.main.async { [weak self, weak session] in
+                Task { @MainActor [weak self, weak session] in
+                    guard let self, let hold, self.clickHold === hold, let session, self.session === session else { return }
+                    // Where the click really began (it may have come after the first look).
+                    if let at = hold.firstDown {
+                        session.lookupsHeldAt = at
+                        session.probe(at: at)
                         for _ in 0..<25 where session.isProbing { try? await Task.sleep(for: .milliseconds(20)) }
                     }
-                    self?.clickHold?.release()
-                    self?.clickHold = nil
-                    session?.lookupsHeldAt = nil
+                    guard self.clickHold === hold, self.session === session else { return }
+                    hold.release()
+                    self.clickHold = nil
+                    session.lookupsHeldAt = nil
                 }
             }
             MarkingSpeed.note(began: began, asked: asked, captured: captured, shown: CACurrentMediaTime(), screens: grabs.count, key: keyDelay, panel: panels.first)
