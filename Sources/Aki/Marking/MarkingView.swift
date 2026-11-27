@@ -102,7 +102,10 @@ struct MarkingView: View {
                 .gesture(
                     DragGesture(minimumDistance: 0)
                         .onChanged { value in
-                            if dragStart == nil { dragStart = value.startLocation }
+                            if dragStart == nil {
+                                dragStart = value.startLocation
+                                MarkingSpeed.line("drag began since-open=\(Int(((CACurrentMediaTime() - session.openedAt) * 1000).rounded()))ms")
+                            }
                             // Space held while dragging moves the whole area (as the Mac's ⌘⇧4).
                             if CGEventSource.keyState(.combinedSessionState, key: 0x31), let start = dragStart, let now = dragNow {
                                 dragStart = CGPoint(x: start.x + value.location.x - now.x, y: start.y + value.location.y - now.y)
@@ -116,6 +119,7 @@ struct MarkingView: View {
                             session.dragging = false
                             let start = dragStart ?? value.startLocation, end = value.location
                             let moved = hypot(end.x - start.x, end.y - start.y)
+                            MarkingSpeed.line("drag ended moved=\(Int(moved)) target=\(session.target?.role ?? "-") since-open=\(Int(((CACurrentMediaTime() - session.openedAt) * 1000).rounded()))ms")
                             // The click that put a zoomed picture away: just that.
                             if ImageZoom.isOpen || Date().timeIntervalSince(ImageZoom.closedAt) < 0.4 {
                                 dragStart = nil

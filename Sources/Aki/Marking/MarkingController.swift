@@ -1611,6 +1611,12 @@ enum MarkingSpeed {
         append("skipped=\(reason) key=\(key.map { "\(Int(($0 * 1000).rounded()))ms" } ?? "-")")
     }
 
+    /// A free line (the click hold, the drag): only while measuring.
+    @MainActor static func line(_ text: String) {
+        guard on else { return }
+        append(text)
+    }
+
     @MainActor private static func append(_ text: String) {
         let line = "\(ISO8601DateFormatter().string(from: Date())) \(text)"
         let file = FileManager.default.homeDirectoryForCurrentUser.appending(path: ".aki/marking-speed.log")

@@ -107,6 +107,9 @@ final class ClickHold {
     fileprivate var caught: [(type: CGEventType, at: CGPoint)] = []
     /// Where the first click caught began (global, top-left origin).
     var firstDown: CGPoint? { caught.first?.at }
+    /// For the speed log: when the hold began, and when the first click came.
+    private let created = CACurrentMediaTime()
+    fileprivate var firstAt: CFTimeInterval?
 
     init?() {
         let mask = CGEventMask(1 << CGEventType.leftMouseDown.rawValue)
@@ -127,6 +130,7 @@ final class ClickHold {
                 guard type == .leftMouseDown || !me.caught.isEmpty else { return false }
                 // Of a drag, only where it is now matters.
                 if type == .leftMouseDragged, me.caught.last?.type == .leftMouseDragged { me.caught.removeLast() }
+                if me.caught.isEmpty { me.firstAt = CACurrentMediaTime() }
                 me.caught.append((type, event.location))
                 return true
             }
@@ -147,8 +151,11 @@ final class ClickHold {
     /// given to it in order, each where it happened. A drag still going on is moved to
     /// where the pointer is now and carries on by itself; otherwise the pointer is put
     /// back where it is now (the replay moved it).
-    func release() {
+    @MainActor func release() {
         stop()
+        func ms(_ t: CFTimeInterval) -> Int { Int(((t - created) * 1000).rounded()) }
+        MarkingSpeed.line("hold caught=\(caught.count)" + (firstAt.map { " first=+\(ms($0))ms" } ?? "")
+                          + " released=+\(ms(CACurrentMediaTime()))ms last=\(caught.last.map { "\($0.type.rawValue)" } ?? "-")")
         guard !caught.isEmpty else { return }
         let now = CGEvent(source: nil)?.location
         var steps = caught
