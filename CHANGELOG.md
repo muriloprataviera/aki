@@ -5,6 +5,7 @@ What changed in each version of Aki. Versions follow [semantic versioning](https
 ## [Unreleased]
 
 ### Fixed
+- The outline on a web page is what the pointer is in: a card or a grid's cell, not the button a few pixels beside it; and when the pointer stops right after moving, the outline catches up with where it is.
 - While marking, ⇧-click into a field of the app below (an address bar, a search box) and you can type in it: the keys stayed with Aki. Click on the marking again to go back to it.
 
 ## [0.14.1] — 2026-11-27

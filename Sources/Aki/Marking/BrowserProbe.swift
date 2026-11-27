@@ -187,7 +187,13 @@ enum BrowserProbe {
             // few pixels instead (the smallest, then the nearest).
             // A picture, video, canvas or drawing is what you mean, however big.
             function media(e){return /^(IMG|VIDEO|CANVAS|PICTURE|SVG|IFRAME)$/i.test(e.tagName)||getComputedStyle(e).backgroundImage.indexOf('url(')>=0}
-            if(!c||(area(c)>VW*VH*0.15&&!media(c))){var best=null,bd=0;
+            // Only for a page-sized block: a card or a grid's cell under the pointer is
+            // what you mean, never the button just beside it. And the box the pointer is
+            // in comes first, even one that paints nothing of its own (a grid's cell).
+            function page(e){return area(e)>VW*VH*0.5&&!media(e)}
+            if(!c||page(c)){for(var h=0;h<list.length;h++){var n=list[h];
+              if(valid(n)&&!page(n)){if(!c||c.contains(n))c=n;break}}}
+            if(!c||page(c)){var best=null,bd=0;
               for(var rr=4;rr<=12;rr+=4)for(var a=0;a<12;a++){var t=a*Math.PI/6,px=x+Math.cos(t)*rr,py=y+Math.sin(t)*rr,l=stack(px,py);
                 for(var k=0;k<l.length;k++){var n=l[k];if(valid(n)&&paintedAt(n,px,py)){if(!best||area(n)<area(best)||(area(n)===area(best)&&rr<bd)){best=n;bd=rr}break}}}
               if(best&&(!c||area(best)<area(c)*0.5))c=best}

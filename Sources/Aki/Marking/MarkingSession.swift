@@ -124,6 +124,7 @@ final class MarkingSession {
         // A look still on its way is dropped, and the one here is asked anew.
         probeCount += 1
         probing = false
+        pendingProbe = nil
         lastProbe = CGPoint(x: -10_000, y: -10_000)
         probe(at: point)
     }
@@ -183,6 +184,9 @@ final class MarkingSession {
         if level > 0 { level -= 1 } else if level == 0, hovered?.finer.isEmpty == false { level = -1 }
     }
     private var probing = false
+    /// Where the pointer went while a look was on its way: looked at once it's back, so
+    /// a pointer that stops just after moving gets what's under it now, not where it was.
+    private var pendingProbe: CGPoint?
     private var keyboardHold: CGPoint?
     private var probeStarted = Date.distantPast
     @ObservationIgnored private var probeCount = 0
@@ -383,7 +387,12 @@ final class MarkingSession {
         }
         // A lookup that hangs must not freeze the outline: after a second, start anew.
         if probing, Date().timeIntervalSince(probeStarted) > 1 { probing = false }
-        guard !probing, hypot(point.x - lastProbe.x, point.y - lastProbe.y) > 2 else { return }
+        guard hypot(point.x - lastProbe.x, point.y - lastProbe.y) > 2 else { return }
+        if probing {
+            pendingProbe = point
+            return
+        }
+        pendingProbe = nil
         probing = true
         probeStarted = Date()
         lastProbe = point
@@ -419,6 +428,10 @@ final class MarkingSession {
                 // Same element as before (pointer moved inside it): keep the ↑ level.
                 if self.hovered?.frame != found?.frame || self.hovered?.label != found?.label { self.hovered = found }
                 self.probing = false
+                if let next = self.pendingProbe {
+                    self.pendingProbe = nil
+                    self.probe(at: next)
+                }
             }
         }
     }
