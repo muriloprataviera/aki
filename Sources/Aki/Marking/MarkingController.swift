@@ -19,6 +19,12 @@ final class MarkingController {
     private var panels: [MarkingPanel] = []
     private var session: MarkingSession?
     private var keyMonitor: Any?
+    /// Clicks while marking: a ⇧-click on the app below hands it the keyboard, a click
+    /// on the marking screen takes it back.
+    private var clickMonitors: [Any] = []
+    /// A ⇧-click landed on the app below (an address bar, a search field): what you
+    /// type goes to it, until you click on the marking screen again. esc and ⌘⏎ stay Aki's.
+    private var keysToApp = false
     /// The keys while Aki doesn't have the focus (the app below keeps it).
     private var keyTap: KeyTap?
     private var moveTap: MoveTap?
@@ -839,6 +845,9 @@ final class MarkingController {
         modalKeys.removeAll()
         if let keyMonitor { NSEvent.removeMonitor(keyMonitor) }
         keyMonitor = nil
+        clickMonitors.forEach(NSEvent.removeMonitor)
+        clickMonitors = []
+        keysToApp = false
         keyTap?.stop()
         keyTap = nil
         moveTap?.stop()
@@ -991,6 +1000,19 @@ final class MarkingController {
             guard let self else { return event }
             return self.handleKey(event) ? nil : event
         }
+        // A click that reaches the app below while ⇧ lets the pointer through: it gets the keys.
+        let global = NSEvent.addGlobalMonitorForEvents(matching: .leftMouseDown) { [weak self] _ in
+            MainActor.assumeIsolated {
+                guard let self, self.seeThrough else { return }
+                self.keysToApp = true
+            }
+        }
+        // A click on the marking screen itself (marking again): Aki has the keys back.
+        let local = NSEvent.addLocalMonitorForEvents(matching: .leftMouseDown) { [weak self] event in
+            if let self, event.window is MarkingPanel, !event.modifierFlags.contains(.shift) { self.keysToApp = false }
+            return event
+        }
+        clickMonitors = [global, local].compactMap { $0 }
         // The app in front stops following the pointer (its hand would blink over the pin).
         moveTap = MoveTap { [weak self] in self?.session?.shiftHeld == true || NSApp.isActive }
         // The app below has it: the keys are read on their way, and the ones Aki uses stop here.
@@ -1005,6 +1027,13 @@ final class MarkingController {
                 // Otherwise (you switched apps while writing): the keys are that app's.
                 if self.takingFocus { return self.typeIntoDraft(event) }
                 // esc and ⌘⏎ still close or send, as they always did from anywhere.
+                if event.keyCode == 53 || (event.keyCode == 36 && event.modifierFlags.contains(.command)) {
+                    return self.handleKey(event)
+                }
+                return false
+            }
+            // Typing in the app below (⇧-clicked into it): only esc and ⌘⏎ stay Aki's.
+            if self.keysToApp {
                 if event.keyCode == 53 || (event.keyCode == 36 && event.modifierFlags.contains(.command)) {
                     return self.handleKey(event)
                 }
@@ -1265,6 +1294,7 @@ final class MarkingController {
     /// on the app below, and the screens are captured again once it settles.
     private func passClick(at point: CGPoint) {
         guard let session, !session.flying, !session.sending else { return }
+        keysToApp = true
         session.scrolling = true
         panels.forEach { $0.ignoresMouseEvents = true }
         // The app under the point comes forward first: Chrome (and others) take a click

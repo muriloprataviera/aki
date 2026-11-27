@@ -4,6 +4,9 @@ What changed in each version of Aki. Versions follow [semantic versioning](https
 
 ## [Unreleased]
 
+### Fixed
+- While marking, ⇧-click into a field of the app below (an address bar, a search box) and you can type in it: the keys stayed with Aki. Click on the marking again to go back to it.
+
 ## [0.14.1] — 2026-11-27
 
 ### Fixed
