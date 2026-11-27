@@ -393,7 +393,10 @@ final class MarkingSession {
             pendingProbe = moved ? point : nil
             return
         }
-        guard moved else { return }
+        guard moved else {
+            pendingProbe = nil
+            return
+        }
         pendingProbe = nil
         probing = true
         probeStarted = Date()

@@ -48,6 +48,9 @@ final class MarkingController {
     /// are captured again once it stops.
     private var scrollMonitors: [Any] = []
     private var scrollIdle: DispatchWorkItem?
+    /// Counted at each scroll or key that changes the page: a capture already under way
+    /// when a newer one is asked for doesn't end the wait (the newer one does).
+    private var recaptures = 0
     private var starting = false
     /// Marks saved but not sent, kept between rounds (the sidebar counts them, the History lists them).
     /// The "+ New" sessions the queue's marks go to (they open when those marks go).
@@ -1058,6 +1061,7 @@ final class MarkingController {
                     session.scrolling = true
                     self.panels.forEach { $0.ignoresMouseEvents = true }
                     self.scrollIdle?.cancel()
+                    self.recaptures += 1
                     let work = DispatchWorkItem { [weak self] in self?.scrollStopped() }
                     self.scrollIdle = work
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.65, execute: work)
@@ -1358,6 +1362,7 @@ final class MarkingController {
 
     private func scrollMoved() {
         scrollIdle?.cancel()
+        recaptures += 1
         let work = DispatchWorkItem { [weak self] in self?.scrollStopped() }
         scrollIdle = work
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.45, execute: work)
@@ -1367,6 +1372,7 @@ final class MarkingController {
     /// (going from ⇧ alone to ⇧ with the arrows).
     private func scrollStopped(keepSelection: Bool = false) {
         guard let session, session.scrolling else { return }
+        let round = recaptures
         Task {
             if let grabs = await ScreenGrab.captureAll(excluding: overlayIDs) {
                 let kept = keepSelection ? session.selectionState : nil
@@ -1379,6 +1385,8 @@ final class MarkingController {
                 }
                 if let kept { session.selectionState = kept }
             }
+            // A newer change came while this picture was taken: its own capture ends the wait.
+            guard round == self.recaptures else { return }
             // ⇧ still held: the pointer keeps going through (only the picture was renewed).
             guard !self.seeThrough else { return }
             session.scrolling = false
